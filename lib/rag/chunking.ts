@@ -1,0 +1,707 @@
+import { z } from 'zod';
+
+// Schemas for chunking configuration and results
+export const ChunkMetadata = z.object({
+  title: z.string().optional(),
+  source: z.string().optional(),
+  chunkIndex: z.number(),
+  totalChunks: z.number(),
+  chunkType: z.enum(['text', 'code', 'heading', 'paragraph', 'list', 'table']).optional(),
+  documentStructure: z.object({
+    section: z.string().optional(),
+    subsection: z.string().optional(),
+    hierarchy: z.array(z.string()).optional(),
+  }).optional(),
+  quality: z.object({
+    score: z.number().min(0).max(1),
+    completeness: z.number().min(0).max(1),
+    coherence: z.number().min(0).max(1),
+  }).optional(),
+  timestamp: z.date().optional(),
+}).passthrough();
+
+export const ChunkingStrategy = z.enum([
+  'character', // Basic character-based chunking
+  'semantic', // Respect document structure boundaries
+  'recursive', // Recursively break down large chunks
+  'hybrid', // Combine multiple strategies
+  'sentence', // Split on sentence boundaries
+  'paragraph', // Split on paragraph boundaries
+  'markdown', // Markdown-aware chunking
+  'code', // Code-aware chunking
+]);
+
+export const ChunkingConfig = z.object({
+  strategy: ChunkingStrategy.default('hybrid'),
+  chunkSize: z.number().min(100).max(10000).default(1500),
+  chunkOverlap: z.number().min(0).max(1000).default(200),
+  preserveStructure: z.boolean().default(true),
+  respectBoundaries: z.boolean().default(true),
+  minChunkSize: z.number().min(50).default(100),
+  maxChunkSize: z.number().min(500).default(3000),
+  enableQualityValidation: z.boolean().default(true),
+  customSeparators: z.array(z.string()).optional(),
+  codeLanguage: z.string().optional(),
+});
+
+export const DocumentChunk = z.object({
+  id: z.string(),
+  documentId: z.string(),
+  content: z.string(),
+  metadata: ChunkMetadata,
+  boundaries: z.object({
+    start: z.number(),
+    end: z.number(),
+    preservedStructure: z.boolean(),
+  }),
+});
+
+// Types
+export type ChunkMetadata = z.infer<typeof ChunkMetadata>;
+export type ChunkingStrategy = z.infer<typeof ChunkingStrategy>;
+export type ChunkingConfig = z.infer<typeof ChunkingConfig>;
+export type DocumentChunk = z.infer<typeof DocumentChunk>;
+
+export interface Document {
+  id: string;
+  content: string;
+  type?: 'text' | 'markdown' | 'code' | 'html';
+  metadata: Record<string, unknown>;
+}
+
+export interface ChunkingResult {
+  chunks: DocumentChunk[];
+  strategy: ChunkingStrategy;
+  totalTokens: number;
+  avgChunkSize: number;
+  qualityMetrics: {
+    avgQualityScore: number;
+    structurePreservation: number;
+    boundaryCoverage: number;
+  };
+}
+
+// Structure detection patterns
+const MARKDOWN_PATTERNS = {
+  heading: /^#{1,6}\s+(.+)$/gm,
+  codeBlock: /```[\s\S]*?```/g,
+  paragraph: /\n\s*\n/g,
+  list: /^[\s]*[-*+]\s+/gm,
+  table: /\|.*\|/g,
+};
+
+const CODE_PATTERNS = {
+  function: /(?:function|def|class|interface|type)\s+\w+/g,
+  comment: /\/\*[\s\S]*?\*\/|\/\/.*$/gm,
+  block: /\{[\s\S]*?\}/g,
+};
+
+const STRUCTURE_SEPARATORS = [
+  '\n\n\n', // Major section breaks
+  '\n\n', // Paragraph breaks
+  '\n---\n', // Horizontal rules
+  '\n***\n', // Alternative horizontal rules
+  '\n===\n', // Title underlines
+  '\n---', // Section breaks
+];
+
+// Quality validation functions
+function validateChunkQuality(chunk: string, context: { 
+  documentType?: string;
+  preservedStructure: boolean;
+  chunkIndex: number;
+  totalChunks: number;
+}): { score: number; completeness: number; coherence: number } {
+  let score = 0.5; // Base score
+  let completeness = 0.5;
+  let coherence = 0.5;
+
+  // Check for complete sentences
+  const sentences = chunk.split(/[.!?]+/).filter(s => s.trim().length > 0);
+  if (sentences.length > 0) {
+    const lastSentence = sentences[sentences.length - 1].trim();
+    if (lastSentence.match(/[.!?]$/) || context.chunkIndex === context.totalChunks - 1) {
+      completeness += 0.3;
+    }
+  }
+
+  // Check for structural integrity
+  if (context.preservedStructure) {
+    score += 0.2;
+    coherence += 0.2;
+  }
+
+  // Check for meaningful content (not just whitespace/formatting)
+  const meaningfulContent = chunk.replace(/\s+/g, ' ').trim();
+  if (meaningfulContent.length > 20) {
+    score += 0.2;
+    coherence += 0.2;
+  }
+
+  // Check for balanced parentheses/brackets in code
+  if (context.documentType === 'code') {
+    const openBrackets = (chunk.match(/[{[(]/g) || []).length;
+    const closeBrackets = (chunk.match(/[}\])]/g) || []).length;
+    if (Math.abs(openBrackets - closeBrackets) <= 1) {
+      coherence += 0.2;
+    }
+  }
+
+  // Penalize extremely short or long chunks
+  const idealLength = 1500;
+  const lengthRatio = Math.min(chunk.length, idealLength) / idealLength;
+  score = Math.min(1, score + lengthRatio * 0.1);
+
+  return {
+    score: Math.min(1, Math.max(0, score)),
+    completeness: Math.min(1, Math.max(0, completeness)),
+    coherence: Math.min(1, Math.max(0, coherence)),
+  };
+}
+
+// Document structure analysis
+function analyzeDocumentStructure(content: string, documentType?: string): {
+  headings: Array<{ level: number; text: string; position: number }>;
+  codeBlocks: Array<{ language?: string; position: number; length: number }>;
+  paragraphs: Array<{ position: number; length: number }>;
+  lists: Array<{ position: number; length: number }>;
+  naturalBreaks: number[];
+} {
+  const headings: Array<{ level: number; text: string; position: number }> = [];
+  const codeBlocks: Array<{ language?: string; position: number; length: number }> = [];
+  const paragraphs: Array<{ position: number; length: number }> = [];
+  const lists: Array<{ position: number; length: number }> = [];
+  const naturalBreaks: number[] = [];
+
+  if (documentType === 'markdown') {
+    // Extract headings
+    let match;
+    while ((match = MARKDOWN_PATTERNS.heading.exec(content)) !== null) {
+      const level = match[0].indexOf(' ') - 1; // Count # characters
+      headings.push({
+        level,
+        text: match[1],
+        position: match.index,
+      });
+    }
+
+    // Extract code blocks
+    while ((match = MARKDOWN_PATTERNS.codeBlock.exec(content)) !== null) {
+      const langMatch = match[0].match(/```(\w+)?/);
+      codeBlocks.push({
+        language: langMatch?.[1],
+        position: match.index,
+        length: match[0].length,
+      });
+    }
+
+    // Extract lists
+    while ((match = MARKDOWN_PATTERNS.list.exec(content)) !== null) {
+      lists.push({
+        position: match.index,
+        length: match[0].length,
+      });
+    }
+  }
+
+  // Find paragraph breaks
+  const paragraphRegex = /\n\s*\n/g;
+  let paragraphMatch;
+  while ((paragraphMatch = paragraphRegex.exec(content)) !== null) {
+    naturalBreaks.push(paragraphMatch.index);
+    paragraphs.push({
+      position: paragraphMatch.index,
+      length: 2,
+    });
+  }
+
+  // Find sentence boundaries
+  const sentenceRegex = /[.!?]+\s+/g;
+  let sentenceMatch;
+  while ((sentenceMatch = sentenceRegex.exec(content)) !== null) {
+    naturalBreaks.push(sentenceMatch.index + sentenceMatch[0].length);
+  }
+
+  // Remove duplicates and sort
+  const uniqueBreaks = Array.from(new Set(naturalBreaks)).sort((a, b) => a - b);
+
+  return {
+    headings,
+    codeBlocks,
+    paragraphs,
+    lists,
+    naturalBreaks: uniqueBreaks,
+  };
+}
+
+// Core chunking strategies
+class CharacterChunker {
+  static chunk(content: string, config: ChunkingConfig): string[] {
+    const { chunkSize, chunkOverlap } = config;
+    const chunks: string[] = [];
+
+    if (content.length <= chunkSize) {
+      return [content];
+    }
+
+    let start = 0;
+    while (start < content.length) {
+      const end = Math.min(start + chunkSize, content.length);
+      chunks.push(content.slice(start, end));
+      start = end - chunkOverlap;
+    }
+
+    return chunks.filter(chunk => chunk.trim().length > 0);
+  }
+}
+
+class SemanticChunker {
+  static chunk(content: string, config: ChunkingConfig, documentType?: string): string[] {
+    const structure = analyzeDocumentStructure(content, documentType);
+    const chunks: string[] = [];
+    const { chunkSize, chunkOverlap, minChunkSize, maxChunkSize } = config;
+
+    // Prioritize structure-aware breaks
+    const breakPoints = [
+      ...structure.headings.map(h => h.position),
+      ...structure.naturalBreaks,
+    ].sort((a, b) => a - b);
+
+    let start = 0;
+    for (const breakPoint of breakPoints) {
+      if (breakPoint - start >= minChunkSize) {
+        let chunkEnd = breakPoint;
+        
+        // Extend chunk if it's too small
+        while (chunkEnd - start < chunkSize && chunkEnd < content.length) {
+          const nextBreak = breakPoints.find(bp => bp > chunkEnd);
+          if (nextBreak && nextBreak - start <= maxChunkSize) {
+            chunkEnd = nextBreak;
+          } else {
+            break;
+          }
+        }
+
+        const chunk = content.slice(start, chunkEnd).trim();
+        if (chunk.length >= minChunkSize) {
+          chunks.push(chunk);
+          start = Math.max(chunkEnd - chunkOverlap, start + minChunkSize);
+        }
+      }
+    }
+
+    // Handle remaining content
+    if (start < content.length) {
+      const remaining = content.slice(start).trim();
+      if (remaining.length >= minChunkSize) {
+        chunks.push(remaining);
+      } else if (chunks.length > 0) {
+        // Merge with last chunk if too small
+        chunks[chunks.length - 1] += `\n${remaining}`;
+      } else {
+        chunks.push(remaining);
+      }
+    }
+
+    return chunks.filter(chunk => chunk.length > 0);
+  }
+}
+
+class RecursiveChunker {
+  static chunk(content: string, config: ChunkingConfig, documentType?: string): string[] {
+    const { chunkSize, minChunkSize, maxChunkSize } = config;
+    const separators = config.customSeparators || STRUCTURE_SEPARATORS;
+
+    return RecursiveChunker.recursiveChunk(content, separators, config, documentType);
+  }
+
+  private static recursiveChunk(
+    content: string, 
+    separators: string[], 
+    config: ChunkingConfig,
+    documentType?: string,
+    depth = 0
+  ): string[] {
+    const { chunkSize, minChunkSize, maxChunkSize } = config;
+    
+    // Base case: content is small enough
+    if (content.length <= chunkSize || depth > 5) {
+      return content.trim().length >= minChunkSize ? [content.trim()] : [];
+    }
+
+    // Try to split on the most appropriate separator
+    for (const separator of separators) {
+      const splits = content.split(separator);
+      if (splits.length > 1) {
+        const chunks: string[] = [];
+        let currentChunk = '';
+
+        for (const split of splits) {
+          const testChunk = currentChunk + (currentChunk ? separator : '') + split;
+          
+          if (testChunk.length <= chunkSize) {
+            currentChunk = testChunk;
+          } else {
+            // Current chunk is full, process it
+            if (currentChunk.trim().length >= minChunkSize) {
+              if (currentChunk.length > maxChunkSize) {
+                // Recursively chunk if still too large
+                chunks.push(...RecursiveChunker.recursiveChunk(
+                  currentChunk, 
+                  separators.slice(1), 
+                  config, 
+                  documentType, 
+                  depth + 1
+                ));
+              } else {
+                chunks.push(currentChunk.trim());
+              }
+            }
+            
+            // Start new chunk
+            currentChunk = split;
+          }
+        }
+
+        // Add final chunk
+        if (currentChunk.trim().length >= minChunkSize) {
+          if (currentChunk.length > maxChunkSize) {
+            chunks.push(...RecursiveChunker.recursiveChunk(
+              currentChunk, 
+              separators.slice(1), 
+              config, 
+              documentType, 
+              depth + 1
+            ));
+          } else {
+            chunks.push(currentChunk.trim());
+          }
+        }
+
+        return chunks.filter(chunk => chunk.length > 0);
+      }
+    }
+
+    // Fallback to character chunking if no separators work
+    return CharacterChunker.chunk(content, config);
+  }
+}
+
+class HybridChunker {
+  static chunk(content: string, config: ChunkingConfig, documentType?: string): string[] {
+    // First, try semantic chunking
+    const chunks = SemanticChunker.chunk(content, config, documentType);
+    
+    // If chunks are too large, apply recursive chunking
+    const processedChunks: string[] = [];
+    for (const chunk of chunks) {
+      if (chunk.length > config.maxChunkSize) {
+        const subChunks = RecursiveChunker.chunk(chunk, config, documentType);
+        processedChunks.push(...subChunks);
+      } else {
+        processedChunks.push(chunk);
+      }
+    }
+
+    // Final quality check and adjustment
+    return HybridChunker.optimizeChunks(processedChunks, config);
+  }
+
+  private static optimizeChunks(chunks: string[], config: ChunkingConfig): string[] {
+    const optimized: string[] = [];
+    const { minChunkSize, chunkSize } = config;
+
+    for (let i = 0; i < chunks.length; i++) {
+      const chunk = chunks[i];
+      
+      // Merge small chunks with next chunk if possible
+      if (chunk.length < minChunkSize && i < chunks.length - 1) {
+        const nextChunk = chunks[i + 1];
+        if (chunk.length + nextChunk.length <= chunkSize * 1.2) {
+          chunks[i + 1] = `${chunk}\n\n${nextChunk}`;
+          continue;
+        }
+      }
+
+      optimized.push(chunk);
+    }
+
+    const filtered = optimized.filter(chunk => chunk.trim().length >= minChunkSize);
+    
+    // If no chunks meet minimum size but we have content, include at least one chunk
+    if (filtered.length === 0 && optimized.length > 0) {
+      return [optimized[0]];
+    }
+    
+    return filtered;
+  }
+}
+
+// Main chunking service
+export class DocumentChunkingService {
+  constructor(private config: ChunkingConfig = {}) {
+    this.config = ChunkingConfig.parse(config);
+  }
+
+  async chunkDocument(document: Document): Promise<ChunkingResult> {
+    const validatedConfig = ChunkingConfig.parse(this.config);
+    const { strategy, enableQualityValidation } = validatedConfig;
+
+    let chunks: string[];
+    
+    // Handle empty or very short content
+    if (!document.content || document.content.trim().length === 0) {
+      return {
+        chunks: [],
+        strategy,
+        totalTokens: 0,
+        avgChunkSize: 0,
+        qualityMetrics: {
+          avgQualityScore: 0,
+          structurePreservation: 0,
+          boundaryCoverage: 0,
+        },
+      };
+    }
+
+    // Apply appropriate chunking strategy
+    switch (strategy) {
+      case 'character':
+        chunks = CharacterChunker.chunk(document.content, validatedConfig);
+        break;
+      case 'semantic':
+        chunks = SemanticChunker.chunk(document.content, validatedConfig, document.type);
+        break;
+      case 'recursive':
+        chunks = RecursiveChunker.chunk(document.content, validatedConfig, document.type);
+        break;
+      case 'hybrid':
+        chunks = HybridChunker.chunk(document.content, validatedConfig, document.type);
+        break;
+      case 'sentence':
+        chunks = this.chunkBySentences(document.content, validatedConfig);
+        break;
+      case 'paragraph':
+        chunks = this.chunkByParagraphs(document.content, validatedConfig);
+        break;
+      case 'markdown':
+        chunks = this.chunkMarkdown(document.content, validatedConfig);
+        break;
+      case 'code':
+        chunks = this.chunkCode(document.content, validatedConfig);
+        break;
+      default:
+        chunks = HybridChunker.chunk(document.content, validatedConfig, document.type);
+    }
+
+    // Ensure we have at least one chunk for non-empty content
+    if (chunks.length === 0 && document.content.trim().length > 0) {
+      chunks = [document.content.trim()];
+    }
+
+    // Create document chunks with metadata
+    const documentChunks: DocumentChunk[] = chunks.map((chunk, index) => {
+      const start = document.content.indexOf(chunk);
+      const end = start + chunk.length;
+      const preservedStructure = strategy !== 'character';
+
+      const quality = enableQualityValidation 
+        ? validateChunkQuality(chunk, {
+            documentType: document.type,
+            preservedStructure,
+            chunkIndex: index,
+            totalChunks: chunks.length,
+          })
+        : { score: 0.8, completeness: 0.8, coherence: 0.8 };
+
+      const metadata: ChunkMetadata = {
+        ...document.metadata,
+        chunkIndex: index,
+        totalChunks: chunks.length,
+        chunkType: this.detectChunkType(chunk, document.type),
+        quality,
+        timestamp: new Date(),
+      };
+
+      return {
+        id: `${document.id}-chunk-${index}`,
+        documentId: document.id,
+        content: chunk,
+        metadata,
+        boundaries: {
+          start,
+          end,
+          preservedStructure,
+        },
+      };
+    });
+
+    // Calculate quality metrics
+    const qualityScores = documentChunks.map(chunk => chunk.metadata.quality?.score || 0);
+    const avgQualityScore = qualityScores.reduce((sum, score) => sum + score, 0) / qualityScores.length;
+    const structurePreservation = documentChunks.filter(chunk => chunk.boundaries.preservedStructure).length / documentChunks.length;
+
+    const result: ChunkingResult = {
+      chunks: documentChunks,
+      strategy,
+      totalTokens: this.estimateTokens(document.content),
+      avgChunkSize: chunks.reduce((sum, chunk) => sum + chunk.length, 0) / chunks.length,
+      qualityMetrics: {
+        avgQualityScore,
+        structurePreservation,
+        boundaryCoverage: this.calculateBoundaryCoverage(documentChunks, document.content),
+      },
+    };
+
+    return result;
+  }
+
+  private chunkBySentences(content: string, config: ChunkingConfig): string[] {
+    const sentences = content.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 0);
+    const chunks: string[] = [];
+    let currentChunk = '';
+
+    for (const sentence of sentences) {
+      const testChunk = currentChunk + (currentChunk ? ' ' : '') + sentence;
+      
+      if (testChunk.length <= config.chunkSize) {
+        currentChunk = testChunk;
+      } else {
+        if (currentChunk) chunks.push(currentChunk);
+        currentChunk = sentence;
+      }
+    }
+
+    if (currentChunk) chunks.push(currentChunk);
+    return chunks;
+  }
+
+  private chunkByParagraphs(content: string, config: ChunkingConfig): string[] {
+    const paragraphs = content.split(/\n\s*\n/).filter(p => p.trim().length > 0);
+    const chunks: string[] = [];
+    let currentChunk = '';
+
+    for (const paragraph of paragraphs) {
+      const testChunk = currentChunk + (currentChunk ? '\n\n' : '') + paragraph;
+      
+      if (testChunk.length <= config.chunkSize) {
+        currentChunk = testChunk;
+      } else {
+        if (currentChunk) chunks.push(currentChunk);
+        
+        // If single paragraph is too large, split it
+        if (paragraph.length > config.chunkSize) {
+          chunks.push(...CharacterChunker.chunk(paragraph, config));
+          currentChunk = '';
+        } else {
+          currentChunk = paragraph;
+        }
+      }
+    }
+
+    if (currentChunk) chunks.push(currentChunk);
+    return chunks;
+  }
+
+  private chunkMarkdown(content: string, config: ChunkingConfig): string[] {
+    // Use semantic chunking with markdown-specific patterns
+    return SemanticChunker.chunk(content, config, 'markdown');
+  }
+
+  private chunkCode(content: string, config: ChunkingConfig): string[] {
+    // Split by functions/classes first, then by blocks
+    const functionRegex = CODE_PATTERNS.function;
+    const functionMatches: RegExpExecArray[] = [];
+    let match;
+    
+    while ((match = functionRegex.exec(content)) !== null) {
+      functionMatches.push(match);
+    }
+    
+    if (functionMatches.length > 1) {
+      const chunks: string[] = [];
+      let lastEnd = 0;
+
+      for (const functionMatch of functionMatches) {
+        if (functionMatch.index && functionMatch.index > lastEnd) {
+          const chunk = content.slice(lastEnd, functionMatch.index).trim();
+          if (chunk.length >= config.minChunkSize) {
+            chunks.push(chunk);
+          }
+          lastEnd = functionMatch.index;
+        }
+      }
+
+      // Add remaining content
+      const remaining = content.slice(lastEnd).trim();
+      if (remaining.length >= config.minChunkSize) {
+        chunks.push(remaining);
+      }
+
+      return chunks.length > 0 ? chunks : CharacterChunker.chunk(content, config);
+    }
+
+    return RecursiveChunker.chunk(content, config, 'code');
+  }
+
+  private detectChunkType(chunk: string, documentType?: string): ChunkMetadata['chunkType'] {
+    if (documentType === 'code') return 'code';
+    if (chunk.match(/^#{1,6}\s/)) return 'heading';
+    if (chunk.match(/^\s*[-*+]\s/)) return 'list';
+    if (chunk.match(/\|.*\|/)) return 'table';
+    if (chunk.includes('\n\n')) return 'paragraph';
+    return 'text';
+  }
+
+  private estimateTokens(content: string): number {
+    // Rough estimation: 1 token ≈ 4 characters for English text
+    return Math.ceil(content.length / 4);
+  }
+
+  private calculateBoundaryCoverage(chunks: DocumentChunk[], originalContent: string): number {
+    const coveredLength = chunks.reduce(
+      (total, chunk) => total + chunk.boundaries.end - chunk.boundaries.start, 
+      0
+    );
+    return coveredLength / originalContent.length;
+  }
+
+  updateConfig(newConfig: Partial<ChunkingConfig>): void {
+    this.config = ChunkingConfig.parse({ ...this.config, ...newConfig });
+  }
+
+  getConfig(): ChunkingConfig {
+    return this.config;
+  }
+}
+
+// Factory functions
+export function createChunkingService(config?: Partial<ChunkingConfig>): DocumentChunkingService {
+  return new DocumentChunkingService(config);
+}
+
+export async function chunkDocument(
+  document: Document,
+  config?: Partial<ChunkingConfig>
+): Promise<ChunkingResult> {
+  const service = createChunkingService(config);
+  return await service.chunkDocument(document);
+}
+
+// Utility functions for backward compatibility
+export function createSimpleChunks(content: string, chunkSize = 1500, overlap = 200): string[] {
+  return CharacterChunker.chunk(content, { 
+    strategy: 'character',
+    chunkSize, 
+    chunkOverlap: overlap 
+  });
+}
+
+export function createSemanticChunks(
+  content: string, 
+  documentType?: string, 
+  config?: Partial<ChunkingConfig>
+): string[] {
+  const fullConfig = ChunkingConfig.parse(config || {});
+  return SemanticChunker.chunk(content, fullConfig, documentType);
+}

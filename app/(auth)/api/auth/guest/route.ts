@@ -1,5 +1,6 @@
 import { signIn } from '@/app/(auth)/auth';
 import { isDevelopmentEnvironment } from '@/lib/constants';
+import { AUTH_SECRET } from '@/lib/env';
 import { getToken } from 'next-auth/jwt';
 import { NextResponse } from 'next/server';
 
@@ -9,7 +10,7 @@ export async function GET(request: Request) {
 
   const token = await getToken({
     req: request,
-    secret: process.env.AUTH_SECRET,
+    secret: AUTH_SECRET,
     secureCookie: !isDevelopmentEnvironment,
   });
 

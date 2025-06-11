@@ -6,7 +6,10 @@ import {
   createRAGService,
   embedDocument,
   searchSimilarChunks,
-  generateRAGResponse
+  generateRAGResponse,
+  analyzeDocumentChunking,
+  updateChunkingStrategy,
+  getChunkingConfig
 } from './rag';
 
 describe('RAG Service', () => {
@@ -249,6 +252,265 @@ describe('RAG Service', () => {
           chatModel: 'invalid-model'
         });
       }).toThrow();
+    });
+  });
+
+  describe('Enhanced Chunking Integration', () => {
+    it('should use enhanced chunking by default', async () => {
+      const document = {
+        id: 'enhanced-test-doc',
+        content: `
+# Document Title
+
+This is a well-structured document with multiple sections.
+
+## Section 1
+Content for section 1 with detailed explanations.
+
+## Section 2  
+Content for section 2 with more information.
+        `.trim(),
+        metadata: { title: 'Enhanced Test', source: 'test', type: 'markdown' }
+      };
+
+      const chunks = await embedDocument(ragService, document);
+      
+      expect(chunks).toBeDefined();
+      expect(Array.isArray(chunks)).toBe(true);
+      expect(chunks.length).toBeGreaterThan(0);
+      
+      // Enhanced chunks should have additional metadata
+      chunks.forEach(chunk => {
+        expect(chunk.metadata).toHaveProperty('chunkingStrategy');
+        expect(chunk.metadata).toHaveProperty('qualityScore');
+        expect(chunk.metadata).toHaveProperty('structurePreserved');
+        expect(chunk.metadata).toHaveProperty('boundaries');
+      });
+    });
+
+    it('should preserve document structure in chunks', async () => {
+      const document = {
+        id: 'structure-test',
+        content: `
+# Main Title
+
+Introduction paragraph with important information.
+
+## Subsection A
+Detailed content for subsection A.
+
+## Subsection B
+Detailed content for subsection B with code examples.
+
+\`\`\`javascript
+function example() {
+  return "code block";
+}
+\`\`\`
+        `.trim(),
+        metadata: { title: 'Structure Test', type: 'markdown' }
+      };
+
+      const chunks = await embedDocument(ragService, document);
+      
+      // Should have chunks that respect markdown structure
+      const hasHeadingChunks = chunks.some(chunk => 
+        chunk.content.includes('# Main Title') || 
+        chunk.content.includes('## Subsection')
+      );
+      expect(hasHeadingChunks).toBe(true);
+
+      // Should have chunk type metadata
+      const chunkTypes = chunks.map(chunk => chunk.metadata.chunkType).filter(Boolean);
+      expect(chunkTypes.length).toBeGreaterThan(0);
+    });
+
+    it('should analyze document chunking without embedding', async () => {
+      const document = {
+        id: 'analysis-test',
+        content: 'This is a test document for chunking analysis. '.repeat(100),
+        metadata: { title: 'Analysis Test' }
+      };
+
+      const analysis = await analyzeDocumentChunking(ragService, document);
+      
+      expect(analysis).toBeDefined();
+      expect(analysis.chunks).toBeDefined();
+      expect(analysis.strategy).toBeDefined();
+      expect(analysis.qualityMetrics).toBeDefined();
+      expect(analysis.totalTokens).toBeGreaterThan(0);
+      expect(analysis.avgChunkSize).toBeGreaterThan(0);
+    });
+
+    it('should allow chunking strategy updates', () => {
+      const originalConfig = getChunkingConfig(ragService);
+      expect(originalConfig.strategy).toBe('hybrid');
+
+      updateChunkingStrategy(ragService, 'semantic');
+      
+      const updatedConfig = getChunkingConfig(ragService);
+      expect(updatedConfig.strategy).toBe('semantic');
+    });
+
+    it('should handle different document types appropriately', async () => {
+      const documents = [
+        {
+          id: 'markdown-doc',
+          content: '# Title\n\nParagraph with **bold** text.',
+          metadata: { type: 'markdown' }
+        },
+        {
+          id: 'code-doc',
+          content: 'function test() {\n  return "hello";\n}',
+          metadata: { type: 'code' }
+        },
+        {
+          id: 'html-doc',
+          content: '<html><body><h1>Title</h1><p>Content</p></body></html>',
+          metadata: { type: 'html' }
+        }
+      ];
+
+      for (const doc of documents) {
+        const chunks = await embedDocument(ragService, doc);
+        expect(chunks.length).toBeGreaterThan(0);
+        
+        // Each chunk should have appropriate metadata
+        chunks.forEach(chunk => {
+          expect(chunk.metadata.chunkingStrategy).toBeDefined();
+        });
+      }
+    });
+
+    it('should maintain quality metrics across chunks', async () => {
+      const document = {
+        id: 'quality-metrics-test',
+        content: `
+High-quality document with proper structure.
+
+Each paragraph contains complete thoughts and proper grammar.
+The content is well-organized and coherent.
+
+Another section with meaningful content that demonstrates
+quality validation in the chunking process.
+        `.trim(),
+        metadata: { title: 'Quality Test' }
+      };
+
+      const chunks = await embedDocument(ragService, document);
+      
+      // All chunks should have quality metrics
+      chunks.forEach(chunk => {
+        if (chunk.metadata.qualityScore !== undefined) {
+          expect(chunk.metadata.qualityScore).toBeGreaterThanOrEqual(0);
+          expect(chunk.metadata.qualityScore).toBeLessThanOrEqual(1);
+        }
+      });
+    });
+
+    it('should handle configuration with chunking options', () => {
+      const ragServiceWithChunking = createRAGService({
+        vectorStore: 'memory',
+        embeddingModel: 'openai-text-embedding-3-small',
+        chatModel: 'openai-gpt-4.1',
+        chunking: {
+          strategy: 'semantic',
+          preserveStructure: true,
+          enableQualityValidation: true,
+          minChunkSize: 200,
+          maxChunkSize: 2000,
+        }
+      });
+
+      const config = getChunkingConfig(ragServiceWithChunking);
+      expect(config.strategy).toBe('semantic');
+      expect(config.preserveStructure).toBe(true);
+      expect(config.enableQualityValidation).toBe(true);
+      expect(config.minChunkSize).toBe(200);
+      expect(config.maxChunkSize).toBe(2000);
+    });
+  });
+
+  describe('Backward Compatibility', () => {
+    it('should maintain compatibility with existing code', async () => {
+      // Test that existing tests still pass with enhanced chunking
+      const document = {
+        id: 'compat-test',
+        content: 'Simple test document for compatibility.',
+        metadata: { title: 'Compatibility Test' }
+      };
+
+      const chunks = await embedDocument(ragService, document);
+      
+      // Should still have basic properties
+      chunks.forEach(chunk => {
+        expect(chunk).toHaveProperty('id');
+        expect(chunk).toHaveProperty('content');
+        expect(chunk).toHaveProperty('embedding');
+        expect(chunk).toHaveProperty('metadata');
+        expect(chunk.metadata).toHaveProperty('chunkIndex');
+      });
+    });
+
+    it('should work with legacy search functionality', async () => {
+      const document = {
+        id: 'search-compat',
+        content: 'Document about artificial intelligence and machine learning.',
+        metadata: { title: 'AI Document' }
+      };
+
+      await embedDocument(ragService, document);
+      
+      const results = await searchSimilarChunks(ragService, 'artificial intelligence');
+      
+      expect(results).toBeDefined();
+      expect(results.length).toBeGreaterThan(0);
+      expect(results[0]).toHaveProperty('score');
+      expect(results[0]).toHaveProperty('content');
+    });
+  });
+
+  describe('Error Handling and Edge Cases', () => {
+    it('should handle empty documents gracefully', async () => {
+      const document = {
+        id: 'empty-test',
+        content: '',
+        metadata: { title: 'Empty Document' }
+      };
+
+      const chunks = await embedDocument(ragService, document);
+      expect(chunks).toHaveLength(0);
+    });
+
+    it('should handle very large documents', async () => {
+      const document = {
+        id: 'large-test',
+        content: 'Large document content. '.repeat(1000), // ~23,000 characters
+        metadata: { title: 'Large Document' }
+      };
+
+      const chunks = await embedDocument(ragService, document);
+      
+      expect(chunks.length).toBeGreaterThan(1);
+      
+      // All chunks should be within reasonable size limits
+      chunks.forEach(chunk => {
+        expect(chunk.content.length).toBeLessThanOrEqual(3000);
+      });
+    });
+
+    it('should handle documents with special characters', async () => {
+      const document = {
+        id: 'special-chars-test',
+        content: 'Document with émojis 🚀, ünïcödé characters, and symbols: @#$%^&*()',
+        metadata: { title: 'Special Characters' }
+      };
+
+      const chunks = await embedDocument(ragService, document);
+      
+      expect(chunks.length).toBeGreaterThan(0);
+      expect(chunks[0].content).toContain('émojis');
+      expect(chunks[0].content).toContain('🚀');
     });
   });
 });

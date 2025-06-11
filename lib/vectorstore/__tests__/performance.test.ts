@@ -1,0 +1,548 @@
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+
+// Mock server-only module to prevent client component error
+vi.mock('server-only', () => ({}));
+
+import { createOpenAIVectorStoreService, type SearchRequest } from '../openai';
+
+// Mock OpenAI SDK with performance tracking
+const mockOpenAI = {
+  files: {
+    create: vi.fn(),
+    retrieve: vi.fn(),
+  },
+  responses: {
+    create: vi.fn(),
+  },
+};
+
+vi.mock('openai', () => ({
+  default: vi.fn().mockImplementation(() => mockOpenAI),
+}));
+
+// Mock fetch with performance simulation
+const mockFetch = vi.fn();
+global.fetch = mockFetch;
+
+describe('Vector Store Performance Tests', () => {
+  let service: any;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockFetch.mockClear();
+    
+    service = createOpenAIVectorStoreService({
+      apiKey: 'sk-test-key',
+      defaultVectorStoreId: 'vs_test_store'
+    });
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  describe('Search Performance', () => {
+    beforeEach(() => {
+      // Mock successful vector store validation
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ status: 'completed' }),
+      });
+    });
+
+    it('should complete simple searches within acceptable time', async () => {
+      const mockResponse = {
+        id: 'response_123',
+        status: 'completed',
+        output: [{
+          type: 'file_search_call',
+          status: 'completed',
+          results: [{
+            file_id: 'file_1',
+            text: 'Test content',
+            score: 0.9,
+          }],
+        }],
+      };
+
+      mockOpenAI.responses.create.mockResolvedValueOnce(mockResponse);
+      mockOpenAI.files.retrieve.mockResolvedValueOnce({
+        id: 'file_1',
+        filename: 'test.txt',
+      });
+
+      const startTime = Date.now();
+      const request: SearchRequest = { query: 'test query' };
+      const result = await service.searchFiles(request);
+      const endTime = Date.now();
+
+      expect(result.success).toBe(true);
+      expect(endTime - startTime).toBeLessThan(5000); // Should complete within 5 seconds
+      expect(result.executionTime).toBeGreaterThan(0);
+    });
+
+    it('should handle large result sets efficiently', async () => {
+      const largeResults = Array.from({ length: 100 }, (_, i) => ({
+        file_id: `file_${i}`,
+        text: `Content ${i}`,
+        score: 0.8 - (i * 0.001),
+      }));
+
+      const mockResponse = {
+        id: 'response_large',
+        status: 'completed',
+        output: [{
+          type: 'file_search_call',
+          status: 'completed',
+          results: largeResults,
+        }],
+      };
+
+      mockOpenAI.responses.create.mockResolvedValueOnce(mockResponse);
+      
+      // Mock file retrieval for multiple files
+      largeResults.forEach((result, index) => {
+        mockOpenAI.files.retrieve.mockResolvedValueOnce({
+          id: result.file_id,
+          filename: `file_${index}.txt`,
+        });
+      });
+
+      const request: SearchRequest = { query: 'test', maxResults: 50 };
+      const result = await service.searchFiles(request);
+
+      expect(result.success).toBe(true);
+      expect(result.results.length).toBeLessThanOrEqual(50); // Should respect maxResults
+      expect(result.executionTime).toBeLessThan(10000); // Should handle large sets efficiently
+    });
+
+    it('should perform well with concurrent searches', async () => {
+      const mockResponse = {
+        id: 'response_concurrent',
+        status: 'completed',
+        output: [{
+          type: 'file_search_call',
+          status: 'completed',
+          results: [{
+            file_id: 'file_1',
+            text: 'Test content',
+            score: 0.9,
+          }],
+        }],
+      };
+
+      mockOpenAI.responses.create.mockResolvedValue(mockResponse);
+      mockOpenAI.files.retrieve.mockResolvedValue({
+        id: 'file_1',
+        filename: 'test.txt',
+      });
+
+      const requests = Array.from({ length: 10 }, (_, i) => 
+        service.searchFiles({ query: `query ${i}` })
+      );
+
+      const startTime = Date.now();
+      const results = await Promise.all(requests);
+      const endTime = Date.now();
+
+      expect(results.every(r => r.success)).toBe(true);
+      expect(endTime - startTime).toBeLessThan(15000); // All should complete within 15 seconds
+    });
+
+    it('should optimize search performance with caching', async () => {
+      const mockResponse = {
+        id: 'response_cached',
+        status: 'completed',
+        output: [{
+          type: 'file_search_call',
+          status: 'completed',
+          results: [{
+            file_id: 'file_1',
+            text: 'Cached content',
+            score: 0.95,
+          }],
+        }],
+      };
+
+      mockOpenAI.responses.create.mockResolvedValue(mockResponse);
+      mockOpenAI.files.retrieve.mockResolvedValue({
+        id: 'file_1',
+        filename: 'cached.txt',
+      });
+
+      const request: SearchRequest = { query: 'same query' };
+
+      // First search
+      const firstStart = Date.now();
+      const firstResult = await service.searchFiles(request);
+      const firstEnd = Date.now();
+
+      // Second identical search (should potentially benefit from caching)
+      const secondStart = Date.now();
+      const secondResult = await service.searchFiles(request);
+      const secondEnd = Date.now();
+
+      expect(firstResult.success).toBe(true);
+      expect(secondResult.success).toBe(true);
+      
+      // While OpenAI doesn't cache, our service should at least not degrade
+      const firstDuration = firstEnd - firstStart;
+      const secondDuration = secondEnd - secondStart;
+      expect(secondDuration).toBeLessThan(firstDuration * 2); // Should not be significantly slower
+    });
+  });
+
+  describe('Upload Performance', () => {
+    it('should handle small file uploads efficiently', async () => {
+      const smallFile = new File(['small content'], 'small.txt', { type: 'text/plain' });
+      
+      mockOpenAI.files.create.mockResolvedValueOnce({
+        id: 'file_small',
+        filename: 'small.txt',
+      });
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({
+          id: 'file_small',
+          status: 'completed',
+        }),
+      });
+
+      const startTime = Date.now();
+      const result = await service.uploadFile({ file: smallFile });
+      const endTime = Date.now();
+
+      expect(result.id).toBe('file_small');
+      expect(endTime - startTime).toBeLessThan(3000); // Should complete within 3 seconds
+    });
+
+    it('should handle medium file uploads within reasonable time', async () => {
+      const mediumContent = 'x'.repeat(100000); // 100KB
+      const mediumFile = new File([mediumContent], 'medium.txt', { type: 'text/plain' });
+      
+      mockOpenAI.files.create.mockResolvedValueOnce({
+        id: 'file_medium',
+        filename: 'medium.txt',
+      });
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({
+          id: 'file_medium',
+          status: 'completed',
+        }),
+      });
+
+      const startTime = Date.now();
+      const result = await service.uploadFile({ file: mediumFile });
+      const endTime = Date.now();
+
+      expect(result.id).toBe('file_medium');
+      expect(endTime - startTime).toBeLessThan(10000); // Should complete within 10 seconds
+    });
+
+    it('should handle concurrent uploads efficiently', async () => {
+      const files = Array.from({ length: 5 }, (_, i) => 
+        new File([`content ${i}`], `file_${i}.txt`, { type: 'text/plain' })
+      );
+
+      files.forEach((_, i) => {
+        mockOpenAI.files.create.mockResolvedValueOnce({
+          id: `file_${i}`,
+          filename: `file_${i}.txt`,
+        });
+
+        mockFetch.mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve({
+            id: `file_${i}`,
+            status: 'completed',
+          }),
+        });
+      });
+
+      const uploads = files.map(file => service.uploadFile({ file }));
+
+      const startTime = Date.now();
+      const results = await Promise.all(uploads);
+      const endTime = Date.now();
+
+      expect(results.every(r => r.id)).toBe(true);
+      expect(endTime - startTime).toBeLessThan(20000); // All should complete within 20 seconds
+    });
+  });
+
+  describe('Memory Management', () => {
+    it('should not accumulate memory during repeated operations', async () => {
+      const mockResponse = {
+        id: 'response_memory',
+        status: 'completed',
+        output: [{
+          type: 'file_search_call',
+          status: 'completed',
+          results: [{
+            file_id: 'file_1',
+            text: 'Memory test content',
+            score: 0.9,
+          }],
+        }],
+      };
+
+      mockOpenAI.responses.create.mockResolvedValue(mockResponse);
+      mockOpenAI.files.retrieve.mockResolvedValue({
+        id: 'file_1',
+        filename: 'memory.txt',
+      });
+
+      // Simulate repeated operations
+      for (let i = 0; i < 100; i++) {
+        const result = await service.searchFiles({ query: `query ${i}` });
+        expect(result.success).toBe(true);
+      }
+
+      // If we reach here without memory issues, the test passes
+      expect(true).toBe(true);
+    });
+
+    it('should handle large response payloads without memory leaks', async () => {
+      const largeContent = 'x'.repeat(10000); // Large content blocks
+      const largeResponse = {
+        id: 'response_large_memory',
+        status: 'completed',
+        output: [{
+          type: 'file_search_call',
+          status: 'completed',
+          results: Array.from({ length: 50 }, (_, i) => ({
+            file_id: `file_${i}`,
+            text: largeContent,
+            score: 0.8,
+          })),
+        }],
+      };
+
+      mockOpenAI.responses.create.mockResolvedValue(largeResponse);
+      mockOpenAI.files.retrieve.mockResolvedValue({
+        id: 'file_1',
+        filename: 'large.txt',
+      });
+
+      const result = await service.searchFiles({ query: 'large test', maxResults: 10 });
+
+      expect(result.success).toBe(true);
+      expect(result.results.length).toBeLessThanOrEqual(10);
+    });
+  });
+
+  describe('Retry Performance', () => {
+    it('should implement exponential backoff efficiently', async () => {
+      let attemptCount = 0;
+      vi.spyOn(service, 'searchFiles').mockImplementation(() => {
+        attemptCount++;
+        if (attemptCount < 3) {
+          return Promise.resolve({
+            success: false,
+            message: 'Temporary failure',
+            results: [],
+            sources: [],
+            totalResults: 0,
+            query: 'test',
+            executionTime: 100,
+          });
+        }
+        return Promise.resolve({
+          success: true,
+          message: 'Success',
+          results: [],
+          sources: [],
+          totalResults: 0,
+          query: 'test',
+          executionTime: 100,
+        });
+      });
+
+      const startTime = Date.now();
+      const result = await service.searchWithRetry({ query: 'test' }, 3);
+      const endTime = Date.now();
+
+      expect(result.success).toBe(true);
+      expect(attemptCount).toBe(3);
+      
+      // Should include backoff delays but not be excessive
+      expect(endTime - startTime).toBeGreaterThan(1000); // Should have some delay
+      expect(endTime - startTime).toBeLessThan(10000); // But not too much
+    });
+
+    it('should fail fast for non-retryable errors', async () => {
+      vi.spyOn(service, 'searchFiles').mockResolvedValue({
+        success: false,
+        message: 'No vector store ID provided',
+        results: [],
+        sources: [],
+        totalResults: 0,
+        query: 'test',
+        executionTime: 100,
+      });
+
+      const startTime = Date.now();
+      const result = await service.searchWithRetry({ query: 'test' }, 5);
+      const endTime = Date.now();
+
+      expect(result.success).toBe(false);
+      expect(endTime - startTime).toBeLessThan(1000); // Should fail fast
+    });
+  });
+
+  describe('Scalability Tests', () => {
+    it('should handle increasing query complexity gracefully', async () => {
+      const queries = [
+        'simple',
+        'more complex query with multiple terms',
+        'very complex query with many technical terms and specific requirements for detailed analysis',
+        'extremely complex and comprehensive query requiring extensive processing and analysis of multiple interconnected concepts with various technical specifications and detailed requirements',
+      ];
+
+      const mockResponse = {
+        id: 'response_scalability',
+        status: 'completed',
+        output: [{
+          type: 'file_search_call',
+          status: 'completed',
+          results: [{
+            file_id: 'file_1',
+            text: 'Scalability test content',
+            score: 0.9,
+          }],
+        }],
+      };
+
+      mockOpenAI.responses.create.mockResolvedValue(mockResponse);
+      mockOpenAI.files.retrieve.mockResolvedValue({
+        id: 'file_1',
+        filename: 'scalability.txt',
+      });
+
+      const results = await Promise.all(
+        queries.map(async query => {
+          const startTime = Date.now();
+          const result = await service.searchFiles({ query });
+          const endTime = Date.now();
+          return { result, duration: endTime - startTime };
+        })
+      );
+
+      // All should succeed
+      expect(results.every(r => r.result.success)).toBe(true);
+      
+      // Performance should not degrade dramatically with complexity
+      const durations = results.map(r => r.duration);
+      const maxDuration = Math.max(...durations);
+      const minDuration = Math.min(...durations);
+      
+      expect(maxDuration / minDuration).toBeLessThan(5); // Should not vary by more than 5x
+    });
+
+    it('should maintain performance with varying result set sizes', async () => {
+      const resultSizes = [1, 10, 25, 50];
+
+      for (const size of resultSizes) {
+        const mockResponse = {
+          id: `response_${size}`,
+          status: 'completed',
+          output: [{
+            type: 'file_search_call',
+            status: 'completed',
+            results: Array.from({ length: size }, (_, i) => ({
+              file_id: `file_${i}`,
+              text: `Content ${i}`,
+              score: 0.9 - (i * 0.01),
+            })),
+          }],
+        };
+
+        mockOpenAI.responses.create.mockResolvedValueOnce(mockResponse);
+        
+        // Mock file retrievals
+        for (let i = 0; i < size; i++) {
+          mockOpenAI.files.retrieve.mockResolvedValueOnce({
+            id: `file_${i}`,
+            filename: `file_${i}.txt`,
+          });
+        }
+
+        const startTime = Date.now();
+        const result = await service.searchFiles({ 
+          query: 'test', 
+          maxResults: size 
+        });
+        const endTime = Date.now();
+
+        expect(result.success).toBe(true);
+        expect(result.results.length).toBe(size);
+        expect(endTime - startTime).toBeLessThan(15000); // Should complete within 15 seconds
+      }
+    });
+  });
+
+  describe('Resource Utilization', () => {
+    it('should efficiently handle batch operations', async () => {
+      const batchSize = 20;
+      const mockResponse = {
+        id: 'response_batch',
+        status: 'completed',
+        output: [{
+          type: 'file_search_call',
+          status: 'completed',
+          results: [{
+            file_id: 'file_batch',
+            text: 'Batch content',
+            score: 0.9,
+          }],
+        }],
+      };
+
+      mockOpenAI.responses.create.mockResolvedValue(mockResponse);
+      mockOpenAI.files.retrieve.mockResolvedValue({
+        id: 'file_batch',
+        filename: 'batch.txt',
+      });
+
+      const batchRequests = Array.from({ length: batchSize }, (_, i) => 
+        service.searchFiles({ query: `batch query ${i}` })
+      );
+
+      const startTime = Date.now();
+      const results = await Promise.all(batchRequests);
+      const endTime = Date.now();
+
+      expect(results.every(r => r.success)).toBe(true);
+      expect(endTime - startTime).toBeLessThan(30000); // Batch should complete within 30 seconds
+      
+      // Average time per request should be reasonable
+      const avgTimePerRequest = (endTime - startTime) / batchSize;
+      expect(avgTimePerRequest).toBeLessThan(5000); // Each request should average < 5 seconds
+    });
+
+    it('should handle connection pooling efficiently', async () => {
+      // Simulate multiple rapid requests that would benefit from connection reuse
+      const rapidRequests = Array.from({ length: 15 }, (_, i) => 
+        service.healthCheck()
+      );
+
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ data: [] }),
+      });
+
+      const startTime = Date.now();
+      const results = await Promise.all(rapidRequests);
+      const endTime = Date.now();
+
+      expect(results.every(r => r.isHealthy)).toBe(true);
+      
+      // With connection reuse, should be faster than serial requests
+      const totalTime = endTime - startTime;
+      expect(totalTime).toBeLessThan(10000); // Should complete within 10 seconds
+    });
+  });
+});

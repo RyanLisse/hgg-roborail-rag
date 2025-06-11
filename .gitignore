@@ -41,3 +41,10 @@ yarn-error.log*
 /playwright-report/
 /blob-report/
 /playwright/*
+
+# Agent-specific files
+AGENT.md.backup
+SETUP.sh.backup
+*.agent.log
+.agent-workspace/
+.agent-temp/

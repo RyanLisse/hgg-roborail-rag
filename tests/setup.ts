@@ -1,13 +1,18 @@
 import { vi } from 'vitest';
 import '@testing-library/jest-dom';
 
+// Mock server-only module to prevent client component errors in tests
+vi.mock('server-only', () => ({}));
+
 // Mock environment variables for testing
 process.env.NODE_ENV = 'test';
-process.env.OPENAI_API_KEY = 'test-openai-key';
+process.env.OPENAI_API_KEY = 'sk-test-openai-key';
 process.env.ANTHROPIC_API_KEY = 'test-anthropic-key';
 process.env.GOOGLE_GENERATIVE_AI_API_KEY = 'test-google-key';
 process.env.COHERE_API_KEY = 'test-cohere-key';
 process.env.GROQ_API_KEY = 'test-groq-key';
+process.env.AUTH_SECRET = 'test-auth-secret';
+process.env.POSTGRES_URL = 'postgresql://test:test@localhost:5432/test';
 
 // Mock next-auth
 vi.mock('next-auth/react', () => ({

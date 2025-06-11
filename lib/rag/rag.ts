@@ -3,8 +3,17 @@ import { embed, generateText } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { AISDKExporter } from 'langsmith/vercel';
 import { getModelInstance, getEmbeddingModelInstance } from '../ai/providers';
+import { isLangSmithEnabled } from '../env';
 import { getCohereEmbeddingService, embedDocuments, isImageContent, type DocumentItem } from '../embeddings/cohere';
 import { getUnifiedVectorStoreService, type VectorStoreType, } from '../vectorstore/unified';
+import { 
+  type DocumentChunkingService, 
+  createChunkingService, 
+  type ChunkingConfig, 
+  type ChunkingStrategy,
+  type ChunkingResult,
+  type Document as ChunkingDocument
+} from './chunking';
 
 // Schemas
 export const DocumentChunk = z.object({
@@ -66,6 +75,13 @@ export const RAGConfig = z.object({
     maxRetrievalLimit: z.number().default(20),
     embeddingDimensions: z.number().default(1536),
   }).optional(),
+  chunking: z.object({
+    strategy: z.enum(['character', 'semantic', 'recursive', 'hybrid', 'sentence', 'paragraph', 'markdown', 'code']).default('hybrid'),
+    preserveStructure: z.boolean().default(true),
+    enableQualityValidation: z.boolean().default(true),
+    minChunkSize: z.number().default(100),
+    maxChunkSize: z.number().default(3000),
+  }).optional(),
 });
 
 // Types
@@ -77,7 +93,7 @@ export type RAGConfig = z.infer<typeof RAGConfig>;
 export interface Document {
   id: string;
   content: string;
-  type?: 'text' | 'image';
+  type?: 'text' | 'image' | 'markdown' | 'code' | 'html';
   metadata: Record<string, unknown>;
 }
 
@@ -108,7 +124,7 @@ class MemoryVectorStore {
     const { limit = 10, minScore = 0.3, filter } = options;
     const results: SearchResult[] = [];
 
-    for (const chunk of this.chunks.values()) {
+    for (const chunk of Array.from(this.chunks.values())) {
       // Apply metadata filter if provided
       if (filter) {
         const matchesFilter = Object.entries(filter).every(([key, value]) =>
@@ -129,7 +145,7 @@ class MemoryVectorStore {
   }
 
   async deleteByDocumentId(documentId: string): Promise<void> {
-    for (const [id, chunk] of this.chunks.entries()) {
+    for (const [id, chunk] of Array.from(this.chunks.entries())) {
       if (chunk.documentId === documentId) {
         this.chunks.delete(id);
       }
@@ -139,10 +155,25 @@ class MemoryVectorStore {
 
 // RAG Service
 export class RAGService {
+  private chunkingService: DocumentChunkingService;
+
   constructor(
     public config: RAGConfig,
     private vectorStore: MemoryVectorStore = new MemoryVectorStore()
-  ) {}
+  ) {
+    // Initialize chunking service with configuration
+    const chunkingConfig: ChunkingConfig = {
+      strategy: config.chunking?.strategy || 'hybrid',
+      chunkSize: config.options?.chunkSize || 1500,
+      chunkOverlap: config.options?.chunkOverlap || 200,
+      preserveStructure: config.chunking?.preserveStructure ?? true,
+      enableQualityValidation: config.chunking?.enableQualityValidation ?? true,
+      minChunkSize: config.chunking?.minChunkSize || 100,
+      maxChunkSize: config.chunking?.maxChunkSize || 3000,
+    };
+    
+    this.chunkingService = createChunkingService(chunkingConfig);
+  }
 
   async embedDocument(document: Document): Promise<DocumentChunk[]> {
     // Detect document type if not specified
@@ -154,8 +185,8 @@ export class RAGService {
       return await this.embedDocumentWithCohere(document, documentType);
     }
 
-    // Fallback to standard text embedding for text documents
-    return await this.embedTextDocument(document);
+    // Use enhanced chunking for text documents
+    return await this.embedTextDocumentEnhanced(document);
   }
 
   private async embedDocumentWithCohere(document: Document, documentType: 'text' | 'image'): Promise<DocumentChunk[]> {
@@ -187,24 +218,32 @@ export class RAGService {
       await this.vectorStore.addChunks([chunk]);
       return [chunk];
     } else {
-      // Chunk and embed text using Cohere
-      const chunks = this.chunkDocument(document);
-      const documentItems: DocumentItem[] = chunks.map(chunk => ({
-        type: 'text',
-        content: chunk,
+      // Use enhanced chunking and embed text using Cohere
+      const chunkingDocument: ChunkingDocument = {
+        id: document.id,
+        content: document.content,
+        type: this.detectDocumentType(document),
         metadata: document.metadata,
+      };
+
+      const chunkingResult = await this.chunkingService.chunkDocument(chunkingDocument);
+      const documentItems: DocumentItem[] = chunkingResult.chunks.map(chunk => ({
+        type: 'text',
+        content: chunk.content,
+        metadata: chunk.metadata,
       }));
 
       const embeddedDocuments = await embedDocuments(cohereService, documentItems);
       const embeddedChunks: DocumentChunk[] = embeddedDocuments.map((embeddedDoc, i) => ({
-        id: `${document.id}-chunk-${i}`,
+        id: chunkingResult.chunks[i].id,
         documentId: document.id,
         content: embeddedDoc.content,
         embedding: embeddedDoc.embedding,
         metadata: {
-          ...document.metadata,
-          chunkIndex: i,
+          ...chunkingResult.chunks[i].metadata,
           timestamp: new Date(),
+          chunkingStrategy: chunkingResult.strategy,
+          qualityScore: chunkingResult.chunks[i].metadata.quality?.score,
         },
       }));
 
@@ -213,6 +252,50 @@ export class RAGService {
     }
   }
 
+  private async embedTextDocumentEnhanced(document: Document): Promise<DocumentChunk[]> {
+    // Use enhanced chunking service
+    const chunkingDocument: ChunkingDocument = {
+      id: document.id,
+      content: document.content,
+      type: this.detectDocumentType(document),
+      metadata: document.metadata,
+    };
+
+    const chunkingResult = await this.chunkingService.chunkDocument(chunkingDocument);
+    const embeddedChunks: DocumentChunk[] = [];
+
+    for (const enhancedChunk of chunkingResult.chunks) {
+      const { embedding } = await embed({
+        model: getEmbeddingModelInstance(this.config.embeddingModel),
+        value: enhancedChunk.content,
+      });
+
+      const chunk: DocumentChunk = {
+        id: enhancedChunk.id,
+        documentId: document.id,
+        content: enhancedChunk.content,
+        embedding,
+        metadata: {
+          ...enhancedChunk.metadata,
+          timestamp: new Date(),
+          chunkingStrategy: chunkingResult.strategy,
+          qualityScore: enhancedChunk.metadata.quality?.score,
+          structurePreserved: enhancedChunk.boundaries.preservedStructure,
+          boundaries: {
+            start: enhancedChunk.boundaries.start,
+            end: enhancedChunk.boundaries.end,
+          },
+        },
+      };
+
+      embeddedChunks.push(chunk);
+    }
+
+    await this.vectorStore.addChunks(embeddedChunks);
+    return embeddedChunks;
+  }
+
+  // Keep legacy method for backward compatibility
   private async embedTextDocument(document: Document): Promise<DocumentChunk[]> {
     const chunks = this.chunkDocument(document);
     const embeddedChunks: DocumentChunk[] = [];
@@ -242,6 +325,34 @@ export class RAGService {
 
     await this.vectorStore.addChunks(embeddedChunks);
     return embeddedChunks;
+  }
+
+  private detectDocumentType(document: Document): 'text' | 'markdown' | 'code' | 'html' {
+    // Check metadata first
+    if (document.metadata.type) {
+      return document.metadata.type as 'text' | 'markdown' | 'code' | 'html';
+    }
+
+    const content = document.content.toLowerCase();
+    
+    // Check for markdown indicators
+    if (content.includes('```') || content.match(/^#{1,6}\s/) || content.includes('![')) {
+      return 'markdown';
+    }
+
+    // Check for HTML indicators
+    if (content.includes('<html') || content.includes('<!doctype') || content.match(/<\w+/)) {
+      return 'html';
+    }
+
+    // Check for code indicators
+    if (content.includes('function ') || content.includes('class ') || 
+        content.includes('import ') || content.includes('const ') ||
+        content.includes('def ') || content.includes('public class')) {
+      return 'code';
+    }
+
+    return 'text';
   }
 
   async searchSimilar(
@@ -352,12 +463,15 @@ Instructions:
 
     const messages = [
       { role: 'system' as const, content: systemPrompt },
-      ...chatHistory,
+      ...chatHistory.map(msg => ({ 
+        role: msg.role as 'user' | 'assistant' | 'system', 
+        content: msg.content 
+      })),
       { role: 'user' as const, content: question },
     ];
 
     // Get telemetry settings for LangSmith tracing
-    const telemetrySettings = process.env.LANGSMITH_TRACING === 'true' 
+    const telemetrySettings = isLangSmithEnabled 
       ? AISDKExporter.getSettings() 
       : undefined;
 
@@ -456,6 +570,37 @@ Instructions:
 
     return chunks.filter(chunk => chunk.length > 0);
   }
+
+  // Enhanced chunking methods
+  async analyzeDocumentChunking(document: Document): Promise<ChunkingResult> {
+    const chunkingDocument: ChunkingDocument = {
+      id: document.id,
+      content: document.content,
+      type: this.detectDocumentType(document),
+      metadata: document.metadata,
+    };
+    
+    return await this.chunkingService.chunkDocument(chunkingDocument);
+  }
+
+  updateChunkingStrategy(strategy: ChunkingStrategy): void {
+    this.chunkingService.updateConfig({ strategy });
+  }
+
+  getChunkingConfig(): ChunkingConfig {
+    return this.chunkingService.getConfig();
+  }
+
+  async getChunkQualityMetrics(documentId: string): Promise<{
+    avgQuality: number;
+    totalChunks: number;
+    structurePreservation: number;
+    chunkingStrategy: string;
+  } | null> {
+    // This would need to be implemented based on how chunks are stored
+    // For now, return a basic implementation
+    return null;
+  }
 }
 
 // Utility functions
@@ -503,4 +648,33 @@ export async function generateRAGResponse(
   query: RAGQuery
 ): Promise<RAGResponse> {
   return await service.generateResponse(query);
+}
+
+// Enhanced chunking exports
+export { 
+  DocumentChunkingService, 
+  createChunkingService, 
+  chunkDocument as createEnhancedChunks,
+  type ChunkingConfig, 
+  type ChunkingStrategy,
+  type ChunkingResult,
+  type DocumentChunk as EnhancedDocumentChunk 
+} from './chunking';
+
+export async function analyzeDocumentChunking(
+  service: RAGService,
+  document: Document
+): Promise<ChunkingResult> {
+  return await service.analyzeDocumentChunking(document);
+}
+
+export function updateChunkingStrategy(
+  service: RAGService,
+  strategy: ChunkingStrategy
+): void {
+  service.updateChunkingStrategy(strategy);
+}
+
+export function getChunkingConfig(service: RAGService): ChunkingConfig {
+  return service.getChunkingConfig();
 }

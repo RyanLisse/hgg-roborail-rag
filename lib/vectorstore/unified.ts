@@ -3,6 +3,7 @@ import 'server-only';
 import { z } from 'zod';
 import { getOpenAIVectorStoreService, type OpenAIVectorStoreService } from './openai';
 import { getNeonVectorStoreService, type NeonVectorStoreService } from './neon';
+import { getVectorStoreMonitoringService, withPerformanceMonitoring } from './monitoring';
 
 // Unified schemas
 export const VectorStoreType = z.enum(['openai', 'neon', 'memory']);
@@ -198,61 +199,119 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
         return false;
       },
 
-      async searchAcrossSources(request: UnifiedSearchRequest): Promise<UnifiedSearchResult[]> {
+      searchAcrossSources: withPerformanceMonitoring('unified', 'searchAcrossSources', async function(this: any, request: UnifiedSearchRequest): Promise<UnifiedSearchResult[]> {
+        const monitoringService = getVectorStoreMonitoringService();
         const validatedRequest = UnifiedSearchRequest.parse(request);
         const allResults: UnifiedSearchResult[] = [];
+        const startTime = Date.now();
 
-        // Search in parallel across all requested sources
-        const searchPromises = validatedRequest.sources.map(async (source) => {
-          try {
-            switch (source) {
-              case 'openai':
-                if (openaiService.isEnabled) {
-                  return await this.searchOpenAI(
-                    validatedRequest.query, 
-                    Math.ceil(validatedRequest.maxResults / validatedRequest.sources.length)
-                  );
-                }
-                break;
+        try {
+          // Search in parallel across all requested sources
+          const searchPromises = validatedRequest.sources.map(async (source) => {
+            try {
+              switch (source) {
+                case 'openai':
+                  if (openaiService.isEnabled) {
+                    return await this.searchOpenAI(
+                      validatedRequest.query, 
+                      Math.ceil(validatedRequest.maxResults / validatedRequest.sources.length)
+                    );
+                  }
+                  break;
 
-              case 'neon':
-                if (neonService.isEnabled) {
-                  return await this.searchNeon(
-                    validatedRequest.query,
-                    Math.ceil(validatedRequest.maxResults / validatedRequest.sources.length),
-                    validatedRequest.threshold
-                  );
-                }
-                break;
+                case 'neon':
+                  if (neonService.isEnabled) {
+                    return await this.searchNeon(
+                      validatedRequest.query,
+                      Math.ceil(validatedRequest.maxResults / validatedRequest.sources.length),
+                      validatedRequest.threshold
+                    );
+                  }
+                  break;
 
-              case 'memory':
-                // Memory search would be handled by existing RAG service
-                return [];
+                case 'memory':
+                  // Memory search would be handled by existing RAG service
+                  return [];
+              }
+            } catch (error) {
+              console.warn(`Failed to search ${source}:`, error);
+              monitoringService.recordSearchError('unified', error as Error, {
+                query: validatedRequest.query,
+                failedSource: source,
+              });
             }
-          } catch (error) {
-            console.warn(`Failed to search ${source}:`, error);
-          }
-          return [];
-        });
+            return [];
+          });
 
-        const results = await Promise.all(searchPromises);
-        
-        // Combine and sort results by similarity
-        for (const sourceResults of results) {
-          if (sourceResults) {
-            allResults.push(...sourceResults);
+          const results = await Promise.all(searchPromises);
+          
+          // Combine and sort results by similarity
+          for (const sourceResults of results) {
+            if (sourceResults) {
+              allResults.push(...sourceResults);
+            }
           }
+
+          const finalResults = allResults
+            .sort((a, b) => b.similarity - a.similarity)
+            .slice(0, validatedRequest.maxResults);
+
+          const executionTime = Date.now() - startTime;
+
+          // Record unified search metrics
+          monitoringService.recordSearchLatency('unified', executionTime, {
+            query: validatedRequest.query,
+            resultsCount: finalResults.length,
+            sourcesSearched: validatedRequest.sources,
+            totalSourceResults: allResults.length,
+          });
+          monitoringService.recordSearchSuccess('unified', {
+            query: validatedRequest.query,
+            resultsCount: finalResults.length,
+          });
+
+          return finalResults;
+        } catch (error) {
+          monitoringService.recordSearchError('unified', error as Error, {
+            query: validatedRequest.query,
+            sources: validatedRequest.sources,
+          });
+          throw error;
         }
-
-        return allResults
-          .sort((a, b) => b.similarity - a.similarity)
-          .slice(0, validatedRequest.maxResults);
-      },
+      }),
 
       async searchOpenAI(query: string, maxResults = 10): Promise<UnifiedSearchResult[]> {
-        // OpenAI vector store search is handled through the file_search tool
-        // This is a placeholder - actual search happens in conversation context
-        return [];
+        if (!openaiService.isEnabled) return [];
+
+        try {
+          const searchResponse = await openaiService.searchFiles({
+            query,
+            maxResults,
+            includeContent: true,
+            includeCitations: true,
+          });
+
+          if (!searchResponse.success) {
+            console.warn('OpenAI search failed:', searchResponse.message);
+            return [];
+          }
+
+          return searchResponse.results.map(result => UnifiedSearchResult.parse({
+            document: UnifiedDocument.parse({
+              id: result.id,
+              content: result.content,
+              metadata: result.metadata || {},
+              source: 'openai',
+              createdAt: result.metadata?.responseId ? new Date() : undefined,
+            }),
+            similarity: result.similarity,
+            distance: 1 - result.similarity, // Convert similarity to distance
+            source: 'openai',
+          }));
+        } catch (error) {
+          console.error('Failed to search OpenAI vector store:', error);
+          return [];
+        }
       },
 
       async searchNeon(query: string, maxResults = 10, threshold = 0.3): Promise<UnifiedSearchResult[]> {

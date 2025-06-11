@@ -1,5 +1,6 @@
 import { Client as LangSmithClient } from 'langsmith';
 import { z } from 'zod';
+import { langSmithConfig } from '../env';
 
 // Configuration schema
 export const LangSmithConfig = z.object({
@@ -189,9 +190,9 @@ let langSmithService: LangSmithService | null = null;
 export function getLangSmithService(): LangSmithService {
   if (!langSmithService) {
     langSmithService = createLangSmithService({
-      apiKey: process.env.LANGSMITH_API_KEY || '',
-      projectName: process.env.LANGSMITH_PROJECT_NAME || 'rag-chatbot',
-      baseUrl: process.env.LANGSMITH_BASE_URL,
+      apiKey: langSmithConfig.apiKey,
+      projectName: langSmithConfig.projectName,
+      baseUrl: langSmithConfig.baseUrl,
     });
   }
   
