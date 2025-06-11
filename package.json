@@ -149,7 +149,7 @@
       "biome lint --write --unsafe",
       "next lint --fix"
     ],
-    "*.{json,md,css}": ["biome format --write"]
+    "*.{json}": ["biome format --write"]
   },
   "packageManager": "pnpm@9.12.3"
 }
