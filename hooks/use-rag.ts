@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
-import { createRAGService, type RAGQuery, type RAGResponse } from '@/lib/rag/rag';
+type VectorStoreType = 'openai' | 'neon' | 'memory';
 import { nanoid } from 'nanoid';
 
 // Schemas
@@ -43,18 +43,30 @@ const SUPPORTED_FILE_TYPES = [
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
 ] as const;
 
-// RAG service instance (singleton)
-let ragService: ReturnType<typeof createRAGService> | null = null;
+// RAG query interfaces
+interface RAGQueryOptions {
+  vectorStoreSources: VectorStoreType[];
+  useFileSearch: boolean;
+  useWebSearch: boolean;
+}
 
-function getRagService() {
-  if (!ragService) {
-    ragService = createRAGService({
-      vectorStore: 'memory',
-      embeddingModel: 'openai-text-embedding-3-small',
-      chatModel: 'openai-gpt-4.1',
-    });
-  }
-  return ragService;
+interface RAGQueryRequest {
+  question: string;
+  chatHistory: Array<{ role: 'user' | 'assistant'; content: string }>;
+  modelId: string;
+  options: RAGQueryOptions;
+}
+
+interface RAGResponse {
+  answer: string;
+  sources: Array<{
+    documentId: string;
+    content: string;
+    score: number;
+    metadata?: Record<string, any>;
+  }>;
+  runId?: string;
+  responseId?: string;
 }
 
 // File processing utilities
@@ -170,19 +182,25 @@ export function useRAG() {
         const content = await extractTextFromFile(file);
         newDocument.content = content;
 
-        // Embed document in RAG service
-        const ragService = getRagService();
-        await ragService.embedDocument({
-          id: documentId,
-          content,
-          metadata: {
-            title: metadata.title || metadata.name,
-            source: metadata.source || 'upload',
-            name: metadata.name,
-            size: metadata.size,
-            type: metadata.type,
-          },
+        // Upload document to vector stores via API
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('metadata', JSON.stringify({
+          title: metadata.title || metadata.name,
+          source: metadata.source || 'upload',
+          name: metadata.name,
+          size: metadata.size,
+          type: metadata.type,
+        }));
+
+        const response = await fetch('/api/vectorstore/upload', {
+          method: 'POST',
+          body: formData,
         });
+
+        if (!response.ok) {
+          throw new Error(`Upload failed: ${response.statusText}`);
+        }
 
         newDocument.status = 'processed';
         const finalDocs = updatedDocs.map(doc => 
@@ -225,12 +243,42 @@ export function useRAG() {
 
   // RAG query mutation
   const { mutate: executeQuery, isPending: isQuerying } = useMutation({
-    mutationFn: async (query: RAGQuery): Promise<RAGResponse> => {
-      const ragService = getRagService();
-      const result = await ragService.generateResponse(query);
-      setResponse(result);
+    mutationFn: async (queryRequest: RAGQueryRequest): Promise<RAGResponse> => {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: [
+            ...queryRequest.chatHistory,
+            { role: 'user', content: queryRequest.question },
+          ],
+          modelId: queryRequest.modelId,
+          ragOptions: {
+            vectorStoreSources: queryRequest.options.vectorStoreSources,
+            useFileSearch: queryRequest.options.useFileSearch,
+            useWebSearch: queryRequest.options.useWebSearch,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Query failed: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      const ragResponse: RAGResponse = {
+        answer: data.answer || data.content || 'No response generated',
+        sources: data.sources || [],
+        runId: data.runId,
+        responseId: data.responseId,
+      };
+
+      setResponse(ragResponse);
       setError(null);
-      return result;
+      return ragResponse;
     },
     onError: (error: Error) => {
       setError(error);
@@ -239,7 +287,7 @@ export function useRAG() {
   });
 
   // Wrap query function to return a promise
-  const query = useCallback(async (queryData: RAGQuery): Promise<RAGResponse> => {
+  const query = useCallback(async (queryData: RAGQueryRequest): Promise<RAGResponse> => {
     return new Promise((resolve, reject) => {
       executeQuery(queryData, {
         onSuccess: resolve,

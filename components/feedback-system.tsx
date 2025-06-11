@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -198,8 +198,8 @@ export function FeedbackDialog({
         <div className="space-y-4">
           {/* Vote Selection */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Rating</label>
-            <div className="flex gap-2">
+            <label htmlFor="rating-buttons" className="text-sm font-medium">Rating</label>
+            <div id="rating-buttons" className="flex gap-2">
               <Button
                 type="button"
                 variant="outline"

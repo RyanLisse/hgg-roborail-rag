@@ -253,4 +253,33 @@ export class ChatPage {
       element.scrollTop = 0;
     });
   }
+
+  // Vector store selection methods
+  async selectVectorStore(source: 'openai' | 'neon' | 'memory') {
+    const databaseSelector = this.page.locator('[data-testid="database-selector"]');
+    
+    if (await databaseSelector.count() > 0) {
+      await databaseSelector.click();
+      
+      // Try different selector patterns
+      const sourceOption = this.page.locator(`text=${source}`, { hasText: new RegExp(source, 'i') });
+      if (await sourceOption.count() > 0) {
+        await sourceOption.first().click();
+      } else {
+        // Try alternative selector
+        const altOption = this.page.locator(`[data-value="${source}"]`);
+        if (await altOption.count() > 0) {
+          await altOption.click();
+        }
+      }
+    }
+  }
+
+  async getSelectedVectorStores() {
+    const databaseSelector = this.page.locator('[data-testid="database-selector"]');
+    if (await databaseSelector.count() > 0) {
+      return await databaseSelector.innerText();
+    }
+    return null;
+  }
 }

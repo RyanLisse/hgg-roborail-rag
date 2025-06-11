@@ -1,17 +1,6 @@
-import type { Metadata } from 'next';
-import { RAGChat } from '@/components/rag-chat';
-
-export const metadata: Metadata = {
-  title: 'RAG Chat - AI Assistant',
-  description: 'Chat with AI using your uploaded documents for context',
-};
+import { redirect } from 'next/navigation';
 
 export default function RAGPage() {
-  return (
-    <div className="flex flex-col h-full">
-      <div className="flex-1 overflow-hidden">
-        <RAGChat />
-      </div>
-    </div>
-  );
+  // Redirect to main chat since RAG is now integrated
+  redirect('/');
 }

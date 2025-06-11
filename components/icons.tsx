@@ -1191,3 +1191,22 @@ export const CheckIcon = ({ size = 16 }: { size?: number }) => {
     </svg>
   );
 };
+
+export const DatabaseIcon = ({ size = 16, className }: { size?: number; className?: string }) => {
+  return (
+    <svg
+      height={size}
+      strokeLinejoin="round"
+      viewBox="0 0 16 16"
+      width={size}
+      className={className}
+      style={{ color: 'currentcolor' }}
+    >
+      <ellipse cx="8" cy="3" rx="6" ry="2" stroke="currentColor" strokeWidth="1.5" fill="none" />
+      <path d="M2 7c0 1.1 2.7 2 6 2s6-.9 6-2" stroke="currentColor" strokeWidth="1.5" fill="none" />
+      <path d="M2 11c0 1.1 2.7 2 6 2s6-.9 6-2" stroke="currentColor" strokeWidth="1.5" fill="none" />
+      <path d="M2 3v10" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M14 3v10" stroke="currentColor" strokeWidth="1.5" />
+    </svg>
+  );
+};

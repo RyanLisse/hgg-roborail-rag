@@ -23,6 +23,7 @@ import { createDocument } from '@/lib/ai/tools/create-document';
 import { updateDocument } from '@/lib/ai/tools/update-document';
 import { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
 import { getWeather } from '@/lib/ai/tools/get-weather';
+import { searchDocuments } from '@/lib/ai/tools/search-documents';
 import { isProductionEnvironment } from '@/lib/constants';
 import { myProvider } from '@/lib/ai/providers';
 import { entitlementsByUserType } from '@/lib/ai/entitlements';
@@ -72,7 +73,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { id, message, selectedChatModel, selectedVisibilityType } =
+    const { id, message, selectedChatModel, selectedVisibilityType, selectedSources } =
       requestBody;
 
     const session = await auth();
@@ -95,8 +96,14 @@ export async function POST(request: Request) {
     const chat = await getChatById({ id });
 
     if (!chat) {
+      // Ensure the message has the correct date type for title generation
+      const messageForTitle = {
+        ...message,
+        createdAt: message.createdAt instanceof Date ? message.createdAt : new Date(message.createdAt),
+      };
+      
       const title = await generateTitleFromUserMessage({
-        message,
+        message: messageForTitle,
       });
 
       await saveChat({
@@ -113,10 +120,16 @@ export async function POST(request: Request) {
 
     const previousMessages = await getMessagesByChatId({ id });
 
+    // Ensure the message has the correct date type
+    const normalizedMessage = {
+      ...message,
+      createdAt: message.createdAt instanceof Date ? message.createdAt : new Date(message.createdAt),
+    };
+
     const messages = appendClientMessage({
       // @ts-expect-error: todo add type conversion from DBMessage[] to UIMessage[]
       messages: previousMessages,
-      message,
+      message: normalizedMessage,
     });
 
     const { longitude, latitude, city, country } = geolocation(request);
@@ -132,10 +145,10 @@ export async function POST(request: Request) {
       messages: [
         {
           chatId: id,
-          id: message.id,
+          id: normalizedMessage.id,
           role: 'user',
-          parts: message.parts,
-          attachments: message.experimental_attachments ?? [],
+          parts: normalizedMessage.parts,
+          attachments: normalizedMessage.experimental_attachments ?? [],
           createdAt: new Date(),
         },
       ],
@@ -156,9 +169,10 @@ export async function POST(request: Request) {
               ? []
               : [
                   'getWeather',
-                  'createDocument',
+                  'createDocument', 
                   'updateDocument',
                   'requestSuggestions',
+                  ...(selectedSources && selectedSources.length > 0 ? ['searchDocuments' as const] : []),
                 ],
           experimental_transform: smoothStream({ chunking: 'word' }),
           experimental_generateMessageId: generateUUID,
@@ -170,6 +184,7 @@ export async function POST(request: Request) {
               session,
               dataStream,
             }),
+            searchDocuments: searchDocuments(selectedSources || ['memory']),
           },
           onFinish: async ({ response }) => {
             if (session.user?.id) {
@@ -185,7 +200,7 @@ export async function POST(request: Request) {
                 }
 
                 const [, assistantMessage] = appendResponseMessages({
-                  messages: [message],
+                  messages: [normalizedMessage],
                   responseMessages: response.messages,
                 });
 
@@ -234,9 +249,23 @@ export async function POST(request: Request) {
       return new Response(stream);
     }
   } catch (error) {
+    console.error('Chat API error:', error);
+    
     if (error instanceof ChatSDKError) {
       return error.toResponse();
     }
+    
+    // Handle all other errors with a generic 500 response
+    return new Response(
+      JSON.stringify({ 
+        code: 'internal_server_error:chat', 
+        message: 'An unexpected error occurred. Please try again later.' 
+      }),
+      { 
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      }
+    );
   }
 }
 

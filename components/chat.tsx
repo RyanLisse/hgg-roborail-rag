@@ -20,6 +20,7 @@ import { useSearchParams } from 'next/navigation';
 import { useChatVisibility } from '@/hooks/use-chat-visibility';
 import { useAutoResume } from '@/hooks/use-auto-resume';
 import { ChatSDKError } from '@/lib/errors';
+import { DatabaseSelector, useDatabaseSelection } from '@/components/database-selector';
 
 export function Chat({
   id,
@@ -69,6 +70,7 @@ export function Chat({
       message: body.messages.at(-1),
       selectedChatModel: initialChatModel,
       selectedVisibilityType: visibilityType,
+      selectedSources,
     }),
     onFinish: () => {
       mutate(unstable_serialize(getChatHistoryPaginationKey));
@@ -107,6 +109,15 @@ export function Chat({
 
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
   const isArtifactVisible = useArtifactSelector((state) => state.isVisible);
+  
+  // Database selection for vector stores
+  const {
+    selectedSources,
+    setSelectedSources,
+    availableSources,
+    sourceStats,
+    isLoading: isLoadingSources,
+  } = useDatabaseSelection();
 
   useAutoResume({
     autoResume,
@@ -138,22 +149,37 @@ export function Chat({
           isArtifactVisible={isArtifactVisible}
         />
 
-        <form className="flex mx-auto px-4 bg-background pb-4 md:pb-6 gap-2 w-full md:max-w-3xl">
+        <form className="flex flex-col mx-auto px-4 bg-background pb-4 md:pb-6 gap-2 w-full md:max-w-3xl">
           {!isReadonly && (
-            <MultimodalInput
-              chatId={id}
-              input={input}
-              setInput={setInput}
-              handleSubmit={handleSubmit}
-              status={status}
-              stop={stop}
-              attachments={attachments}
-              setAttachments={setAttachments}
-              messages={messages}
-              setMessages={setMessages}
-              append={append}
-              selectedVisibilityType={visibilityType}
-            />
+            <div className="flex flex-col gap-2">
+              {/* Database Selector for Vector Stores */}
+              <div className="flex items-center gap-2 px-2">
+                <span className="text-sm text-muted-foreground min-w-fit">Data Sources:</span>
+                <DatabaseSelector
+                  selectedSources={selectedSources}
+                  onSourcesChange={setSelectedSources}
+                  availableSources={availableSources}
+                  sourceStats={sourceStats}
+                  disabled={isLoadingSources}
+                  className="flex-1"
+                />
+              </div>
+              
+              <MultimodalInput
+                chatId={id}
+                input={input}
+                setInput={setInput}
+                handleSubmit={handleSubmit}
+                status={status}
+                stop={stop}
+                attachments={attachments}
+                setAttachments={setAttachments}
+                messages={messages}
+                setMessages={setMessages}
+                append={append}
+                selectedVisibilityType={visibilityType}
+              />
+            </div>
           )}
         </form>
       </div>
