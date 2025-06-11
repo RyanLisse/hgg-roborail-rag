@@ -64,3 +64,58 @@ pnpm dev
 ```
 
 Your app template should now be running on [localhost:3000](http://localhost:3000).
+
+## Development
+
+This project includes a robust development workflow with automated code quality checks:
+
+### Available Scripts
+
+- `pnpm lint` - Check code for linting issues (read-only)
+- `pnpm lint:fix` - Fix auto-fixable linting issues
+- `pnpm format` - Format code using Biome
+- `pnpm type-check` - Run TypeScript type checking
+- `pnpm test` - Run all tests (E2E with Playwright)
+- `pnpm test:unit` - Run unit tests only (Vitest)
+
+### Git Hooks
+
+The project uses [Husky](https://typicode.github.io/husky/) to enforce code quality:
+
+#### Pre-commit Hook
+- Automatically runs on `git commit`
+- Uses [lint-staged](https://github.com/okonet/lint-staged) to format and lint staged files
+- Formats code with Biome and fixes linting issues where possible
+
+#### Pre-push Hook
+- Automatically runs on `git push`
+- Executes TypeScript type checking
+- Runs linting checks
+- Runs unit tests
+- Provides warnings for issues but doesn't block pushes (configurable)
+
+### Skip Hooks During Development
+
+When needed, you can skip the git hooks:
+
+```bash
+# Skip pre-commit hook
+git commit --no-verify -m "your message"
+
+# Skip pre-push hook
+git push --no-verify
+
+# Skip pre-push hook with environment variable
+SKIP_PREPUSH=true git push
+```
+
+### Code Quality
+
+The project maintains high code quality through:
+
+- **ESLint** with Next.js and accessibility rules
+- **Biome** for fast formatting and additional linting
+- **TypeScript** for type safety
+- **Automated testing** with Playwright and Vitest
+- **Pre-commit formatting** to ensure consistent code style
+- **Pre-push validation** to catch issues before they reach the repository
