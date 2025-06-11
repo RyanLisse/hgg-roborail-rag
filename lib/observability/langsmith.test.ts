@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { 
-  LangSmithService,
+  type LangSmithService,
   createLangSmithService,
   trackRagGeneration,
   submitUserFeedback,

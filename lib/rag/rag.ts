@@ -4,6 +4,7 @@ import { openai } from '@ai-sdk/openai';
 import { AISDKExporter } from 'langsmith/vercel';
 import { getModelInstance, getEmbeddingModelInstance } from '../ai/providers';
 import { getCohereEmbeddingService, embedDocuments, isImageContent, type DocumentItem } from '../embeddings/cohere';
+import { getUnifiedVectorStoreService, type VectorStoreType, } from '../vectorstore/unified';
 
 // Schemas
 export const DocumentChunk = z.object({
@@ -32,6 +33,8 @@ export const RAGQuery = z.object({
     includeMetadata: z.boolean().default(true),
     useWebSearch: z.boolean().default(false),
     previousResponseId: z.string().optional(),
+    vectorStoreSources: z.array(z.enum(['openai', 'neon', 'memory'])).default(['openai']),
+    useFileSearch: z.boolean().default(true),
   }).optional(),
 });
 
@@ -244,9 +247,15 @@ export class RAGService {
   async searchSimilar(
     query: string,
     options: SearchOptions = {},
-    queryType?: 'text' | 'image'
+    queryType?: 'text' | 'image',
+    vectorStoreSources: VectorStoreType[] = ['memory']
   ): Promise<SearchResult[]> {
-    // Detect query type if not specified
+    // If using external vector stores, delegate to unified service
+    if (vectorStoreSources.some(source => source !== 'memory')) {
+      return await this.searchUnifiedVectorStores(query, options, vectorStoreSources);
+    }
+
+    // Original in-memory search for backward compatibility
     const detectedType = queryType || (isImageContent(query) ? 'image' : 'text');
     
     let embedding: number[];
@@ -281,15 +290,46 @@ export class RAGService {
     return await this.vectorStore.searchSimilar(embedding, options);
   }
 
+  private async searchUnifiedVectorStores(
+    query: string,
+    options: SearchOptions,
+    vectorStoreSources: VectorStoreType[]
+  ): Promise<SearchResult[]> {
+    try {
+      const unifiedService = await getUnifiedVectorStoreService();
+      
+      const results = await unifiedService.searchAcrossSources({
+        query,
+        sources: vectorStoreSources,
+        maxResults: options.limit || 10,
+        threshold: options.minScore || 0.3,
+        metadata: options.filter,
+      });
+
+      // Convert unified results to RAG search results
+      return results.map(result => ({
+        id: result.document.id,
+        documentId: result.document.id,
+        content: result.document.content,
+        embedding: [], // Not needed for unified results
+        metadata: result.document.metadata || {},
+        score: result.similarity,
+      }));
+    } catch (error) {
+      console.error('Failed to search unified vector stores:', error);
+      return [];
+    }
+  }
+
   async generateResponse(query: RAGQuery): Promise<RAGResponse> {
     const validatedQuery = RAGQuery.parse(query);
     const { question, chatHistory, modelId, options } = validatedQuery;
 
-    // Retrieve relevant context
+    // Retrieve relevant context from selected vector stores
     const searchResults = await this.searchSimilar(question, {
       limit: options?.maxSources || 5,
       minScore: options?.minRelevanceScore || 0.3,
-    });
+    }, undefined, options?.vectorStoreSources || ['openai']);
 
     // Prepare context for generation
     const context = searchResults
@@ -322,15 +362,32 @@ Instructions:
       : undefined;
 
     // Check if we should use OpenAI responses API
-    const shouldUseResponses = options?.useWebSearch || options?.previousResponseId;
+    const shouldUseResponses = options?.useWebSearch || options?.previousResponseId || options?.useFileSearch;
     const modelInstance = shouldUseResponses && modelId.startsWith('openai-')
       ? openai.responses(modelId.replace('openai-', ''))
       : getModelInstance(modelId);
 
     // Configure tools for OpenAI responses
-    const tools = shouldUseResponses && options?.useWebSearch ? {
-      web_search_preview: openai.tools.webSearchPreview(),
-    } : undefined;
+    const tools: any = {};
+    
+    if (shouldUseResponses) {
+      if (options?.useWebSearch) {
+        tools.web_search_preview = openai.tools.webSearchPreview();
+      }
+      
+      if (options?.useFileSearch && options?.vectorStoreSources?.includes('openai')) {
+        try {
+          const unifiedService = await getUnifiedVectorStoreService();
+          const fileSearchTool = unifiedService.openaiService.getFileSearchTool();
+          tools.file_search = fileSearchTool;
+        } catch (error) {
+          console.warn('Failed to get file search tool:', error);
+        }
+      }
+    }
+
+    // Only pass tools if we have any
+    const finalTools = Object.keys(tools).length > 0 ? tools : undefined;
 
     // Configure provider options for response continuity
     const providerOptions = options?.previousResponseId ? {
@@ -345,7 +402,7 @@ Instructions:
       maxTokens: 1000,
       temperature: 0.1,
       experimental_telemetry: telemetrySettings,
-      tools,
+      tools: finalTools,
       providerOptions,
     });
 

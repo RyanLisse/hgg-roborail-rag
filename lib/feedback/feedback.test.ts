@@ -1,12 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { 
-  FeedbackService,
+  type FeedbackService,
   createFeedbackService,
   submitFeedback,
   getFeedbackByRunId,
   updateFeedback,
   type MessageFeedback,
-  type FeedbackStats
 } from './feedback';
 
 // Mock database

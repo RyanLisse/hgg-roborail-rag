@@ -9,6 +9,7 @@ import {
   primaryKey,
   foreignKey,
   boolean,
+  vector,
 } from 'drizzle-orm/pg-core';
 
 export const user = pgTable('User', {
@@ -182,3 +183,15 @@ export const feedback = pgTable('Feedback', {
 });
 
 export type Feedback = InferSelectModel<typeof feedback>;
+
+// Vector documents table for NeonDB pgvector storage
+export const vectorDocuments = pgTable('vector_documents', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  content: text('content').notNull(),
+  metadata: json('metadata').$type<Record<string, any>>(),
+  embedding: vector('embedding', { dimensions: 1536 }), // OpenAI embeddings are 1536 dimensions
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export type VectorDocument = InferSelectModel<typeof vectorDocuments>;

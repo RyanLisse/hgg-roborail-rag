@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { getFeedbackService, hasUserVoted, type MessageFeedback, type FeedbackUpdate } from '@/lib/feedback/feedback';
 import { auth } from '@/app/(auth)/auth';
 

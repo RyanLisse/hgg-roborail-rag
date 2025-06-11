@@ -10,7 +10,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useRAG } from '@/hooks/use-rag';
 import { useModelSelection } from '@/hooks/use-model-selection';
 import { MessageFeedback } from '@/components/feedback-system';
-import { Upload, Send, X, FileText, AlertCircle } from 'lucide-react';
+import { DatabaseSelector, useDatabaseSelection } from '@/components/database-selector';
+import { Upload, Send, X, FileText, AlertCircle, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSession } from 'next-auth/react';
 
@@ -25,6 +26,14 @@ export function RAGChat() {
   
   const { data: session } = useSession();
   const { selectedModel } = useModelSelection();
+  const {
+    selectedSources,
+    setSelectedSources,
+    availableSources,
+    sourceStats,
+    isLoading: isLoadingSources,
+    refreshStats,
+  } = useDatabaseSelection();
   const {
     query,
     isLoading,
@@ -48,6 +57,11 @@ export function RAGChat() {
         question,
         chatHistory: newHistory,
         modelId: selectedModel.id,
+        options: {
+          vectorStoreSources: selectedSources,
+          useFileSearch: selectedSources.includes('openai'),
+          useWebSearch: false, // Can be made configurable
+        },
       });
 
       if (result) {
@@ -106,27 +120,45 @@ export function RAGChat() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
-            <Upload className="mx-auto size-12 text-muted-foreground/50 mb-4" />
+          <div className="space-y-4">
+            {/* Vector Store Selector */}
             <div className="space-y-2">
-              <h3 className="text-sm font-medium">Upload Documents</h3>
-              <p className="text-xs text-muted-foreground">
-                Support for PDF, TXT, MD, and DOCX files
-              </p>
-              <Button variant="outline" size="sm" asChild>
-                <label htmlFor="file-upload" className="cursor-pointer">
-                  Browse Files
-                  <input
-                    id="file-upload"
-                    type="file"
-                    multiple
-                    accept=".pdf,.txt,.md,.docx"
-                    onChange={handleFileUpload}
-                    className="sr-only"
-                    aria-label="Upload documents"
-                  />
-                </label>
-              </Button>
+              <h4 className="text-sm font-medium flex items-center gap-2">
+                <Settings size={16} />
+                Data Sources
+              </h4>
+              <DatabaseSelector
+                selectedSources={selectedSources}
+                onSourcesChange={setSelectedSources}
+                availableSources={availableSources}
+                sourceStats={sourceStats}
+                disabled={isLoadingSources}
+              />
+            </div>
+
+            {/* File Upload */}
+            <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
+              <Upload className="mx-auto size-12 text-muted-foreground/50 mb-4" />
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium">Upload Documents</h3>
+                <p className="text-xs text-muted-foreground">
+                  Support for PDF, TXT, MD, and DOCX files
+                </p>
+                <Button variant="outline" size="sm" asChild>
+                  <label htmlFor="file-upload" className="cursor-pointer">
+                    Browse Files
+                    <input
+                      id="file-upload"
+                      type="file"
+                      multiple
+                      accept=".pdf,.txt,.md,.docx"
+                      onChange={handleFileUpload}
+                      className="sr-only"
+                      aria-label="Upload documents"
+                    />
+                  </label>
+                </Button>
+              </div>
             </div>
           </div>
 
@@ -276,7 +308,7 @@ export function RAGChat() {
             <Textarea
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
-              placeholder="Ask a question about your documents..."
+              placeholder="Ask a question about RoboRail documentation..."
               className="min-h-[60px] resize-none"
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -299,6 +331,47 @@ export function RAGChat() {
             <p className="text-xs text-muted-foreground text-center">
               Please select a model to start chatting
             </p>
+          )}
+
+          {/* Vector Store Info */}
+          {selectedSources.includes('openai') && (
+            <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+              <div className="flex items-center gap-2 text-sm font-medium text-green-800">
+                <div className="size-2 bg-green-600 rounded-full" />
+                Connected to RoboRail Documentation
+              </div>
+              <div className="text-xs text-green-700 mt-1">
+                Using OpenAI vector store vs_6849955367a88191bf89d7660230325f with RoboRail technical documentation
+              </div>
+            </div>
+          )}
+
+          {/* RoboRail Example Questions */}
+          {chatHistory.length === 0 && selectedModel && (
+            <div className="space-y-3">
+              <div className="text-sm font-medium text-muted-foreground">Try asking about RoboRail:</div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {[
+                  "How do I calibrate the RoboRail system?",
+                  "What are the safety procedures for RoboRail?",
+                  "What is the measurement accuracy of RoboRail?",
+                  "How do I troubleshoot RoboRail issues?",
+                  "What are the operating procedures for RoboRail?",
+                  "How do I maintain the RoboRail system?"
+                ].map((exampleQuestion) => (
+                  <Button
+                    key={exampleQuestion}
+                    variant="outline"
+                    size="sm"
+                    className="text-left text-xs h-auto py-2 px-3 justify-start"
+                    onClick={() => setQuestion(exampleQuestion)}
+                    disabled={isLoading}
+                  >
+                    {exampleQuestion}
+                  </Button>
+                ))}
+              </div>
+            </div>
           )}
         </CardContent>
       </Card>
