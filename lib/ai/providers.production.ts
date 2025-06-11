@@ -6,11 +6,19 @@ import { groq } from '@ai-sdk/groq';
 import { customProvider, wrapLanguageModel, extractReasoningMiddleware } from 'ai';
 import { z } from 'zod';
 import { getModelById } from './models';
+import { 
+  OPENAI_API_KEY,
+  ANTHROPIC_API_KEY, 
+  GOOGLE_GENERATIVE_AI_API_KEY,
+  COHERE_API_KEY,
+  GROQ_API_KEY,
+  XAI_API_KEY
+} from '../env';
 
 // xAI provider (using OpenAI SDK with custom base URL)
 const xai = createOpenAI({
   baseURL: 'https://api.x.ai/v1',
-  apiKey: process.env.XAI_API_KEY ?? '',
+  apiKey: XAI_API_KEY ?? '',
 });
 
 // Provider instances
@@ -105,14 +113,16 @@ export const myProvider = customProvider({
 
 // Validate provider configuration
 export function validateProviderConfig() {
+  // Using imported variables directly instead of destructuring env
+
   const missingKeys = [];
   
-  if (!process.env.OPENAI_API_KEY) missingKeys.push('OPENAI_API_KEY');
-  if (!process.env.ANTHROPIC_API_KEY) missingKeys.push('ANTHROPIC_API_KEY');
-  if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) missingKeys.push('GOOGLE_GENERATIVE_AI_API_KEY');
-  if (!process.env.COHERE_API_KEY) missingKeys.push('COHERE_API_KEY');
-  if (!process.env.GROQ_API_KEY) missingKeys.push('GROQ_API_KEY');
-  if (!process.env.XAI_API_KEY) missingKeys.push('XAI_API_KEY');
+  if (!OPENAI_API_KEY) missingKeys.push('OPENAI_API_KEY');
+  if (!ANTHROPIC_API_KEY) missingKeys.push('ANTHROPIC_API_KEY');
+  if (!GOOGLE_GENERATIVE_AI_API_KEY) missingKeys.push('GOOGLE_GENERATIVE_AI_API_KEY');
+  if (!COHERE_API_KEY) missingKeys.push('COHERE_API_KEY');
+  if (!GROQ_API_KEY) missingKeys.push('GROQ_API_KEY');
+  if (!XAI_API_KEY) missingKeys.push('XAI_API_KEY');
 
   if (missingKeys.length > 0) {
     console.warn(`Missing API keys: ${missingKeys.join(', ')}`);

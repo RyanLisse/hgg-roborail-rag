@@ -1,13 +1,14 @@
 import { registerOTel } from '@vercel/otel';
 import { AISDKExporter } from 'langsmith/vercel';
+import { isLangSmithEnabled, langSmithConfig } from './lib/env';
 
 export function register() {
   // Enable LangSmith tracing if configured
-  if (process.env.LANGSMITH_TRACING === 'true' && process.env.LANGSMITH_API_KEY) {
+  if (isLangSmithEnabled) {
     registerOTel({
       serviceName: 'rra-rag-chatbot',
       traceExporter: new AISDKExporter({
-        projectName: process.env.LANGSMITH_PROJECT || 'rra',
+        projectName: langSmithConfig.projectName,
       }),
     });
   } else {

@@ -4,19 +4,11 @@ import { z } from 'zod';
 import { embed } from 'ai';
 import { getEmbeddingModelInstance } from '../ai/providers';
 import { drizzle } from 'drizzle-orm/postgres-js';
-import { pgTable, text, vector, timestamp, uuid, json } from 'drizzle-orm/pg-core';
 import { desc, gt, sql } from 'drizzle-orm';
 import postgres from 'postgres';
-
-// Vector document schema for Neon pgvector
-export const vectorDocuments = pgTable('vector_documents', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  content: text('content').notNull(),
-  metadata: json('metadata').$type<Record<string, any>>(),
-  embedding: vector('embedding', { dimensions: 1536 }), // OpenAI embeddings are 1536 dimensions
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+import { vectorDocuments } from '../db/schema';
+import { POSTGRES_URL } from '../env';
+import { getVectorStoreMonitoringService, withPerformanceMonitoring } from './monitoring';
 
 // Schemas
 export const NeonDocument = z.object({
@@ -83,9 +75,9 @@ export interface NeonVectorStoreService {
 // Create Neon vector store service
 export function createNeonVectorStoreService(config?: Partial<NeonVectorStoreConfig>): NeonVectorStoreService {
   const validatedConfig: NeonVectorStoreConfig = {
-    connectionString: config?.connectionString || process.env.POSTGRES_URL || '',
+    connectionString: config?.connectionString || POSTGRES_URL || '',
     embeddingModel: config?.embeddingModel || 'text-embedding-3-small',
-    isEnabled: !!(config?.connectionString || process.env.POSTGRES_URL),
+    isEnabled: !!(config?.connectionString || POSTGRES_URL),
   };
 
   if (!validatedConfig.isEnabled) {
@@ -117,10 +109,10 @@ export function createNeonVectorStoreService(config?: Partial<NeonVectorStoreCon
     async initializeExtensions(): Promise<void> {
       try {
         // Enable pgvector extension
-        await db.execute(sql`CREATE EXTENSION IF NOT EXISTS vector;`);
+        await this.db.execute(sql`CREATE EXTENSION IF NOT EXISTS vector;`);
         
         // Create index for faster similarity search
-        await db.execute(sql`
+        await this.db.execute(sql`
           CREATE INDEX IF NOT EXISTS vector_documents_embedding_idx 
           ON vector_documents 
           USING ivfflat (embedding vector_cosine_ops) 
@@ -134,18 +126,40 @@ export function createNeonVectorStoreService(config?: Partial<NeonVectorStoreCon
       }
     },
 
-    async generateEmbedding(text: string): Promise<number[]> {
+    generateEmbedding: withPerformanceMonitoring('neon', 'generateEmbedding', async (text: string): Promise<number[]> => {
+      const monitoringService = getVectorStoreMonitoringService();
+      
       try {
         const { embedding } = await embed({
           model: getEmbeddingModelInstance(validatedConfig.embeddingModel),
           value: text,
         });
+        
+        // Record embedding generation metrics
+        monitoringService.recordMetric({
+          provider: 'neon',
+          metricType: 'embedding_generation',
+          value: 1,
+          unit: 'count',
+          success: true,
+          metadata: { textLength: text.length, modelName: validatedConfig.embeddingModel },
+        });
+        
         return embedding;
       } catch (error) {
+        monitoringService.recordMetric({
+          provider: 'neon',
+          metricType: 'embedding_generation',
+          value: 0,
+          unit: 'count',
+          success: false,
+          errorMessage: error instanceof Error ? error.message : 'Unknown error',
+        });
+        
         console.error('Failed to generate embedding:', error);
         throw error;
       }
-    },
+    }),
 
     async addDocument(document: NeonDocumentInsert): Promise<NeonDocument> {
       const validatedDocument = NeonDocumentInsert.parse(document);
@@ -154,7 +168,7 @@ export function createNeonVectorStoreService(config?: Partial<NeonVectorStoreCon
         // Generate embedding if not provided
         const embedding = validatedDocument.embedding || await this.generateEmbedding(validatedDocument.content);
         
-        const [insertedDocument] = await db
+        const [insertedDocument] = await this.db
           .insert(vectorDocuments)
           .values({
             content: validatedDocument.content,
@@ -185,7 +199,7 @@ export function createNeonVectorStoreService(config?: Partial<NeonVectorStoreCon
           }))
         );
 
-        const insertedDocuments = await db
+        const insertedDocuments = await this.db
           .insert(vectorDocuments)
           .values(documentsWithEmbeddings.map(doc => ({
             content: doc.content,
@@ -206,7 +220,7 @@ export function createNeonVectorStoreService(config?: Partial<NeonVectorStoreCon
 
     async getDocument(id: string): Promise<NeonDocument | null> {
       try {
-        const [document] = await db
+        const [document] = await this.db
           .select()
           .from(vectorDocuments)
           .where(sql`${vectorDocuments.id} = ${id}`)
@@ -231,7 +245,7 @@ export function createNeonVectorStoreService(config?: Partial<NeonVectorStoreCon
           updateData.embedding = await this.generateEmbedding(document.content);
         }
 
-        const [updatedDocument] = await db
+        const [updatedDocument] = await this.db
           .update(vectorDocuments)
           .set(updateData)
           .where(sql`${vectorDocuments.id} = ${id}`)
@@ -246,7 +260,7 @@ export function createNeonVectorStoreService(config?: Partial<NeonVectorStoreCon
 
     async deleteDocument(id: string): Promise<boolean> {
       try {
-        const result = await db
+        const result = await this.db
           .delete(vectorDocuments)
           .where(sql`${vectorDocuments.id} = ${id}`);
 
@@ -257,22 +271,44 @@ export function createNeonVectorStoreService(config?: Partial<NeonVectorStoreCon
       }
     },
 
-    async searchSimilar(request: NeonSearchRequest): Promise<NeonSearchResult[]> {
+    searchSimilar: withPerformanceMonitoring('neon', 'searchSimilar', async function(this: any, request: NeonSearchRequest): Promise<NeonSearchResult[]> {
+      const monitoringService = getVectorStoreMonitoringService();
       const validatedRequest = NeonSearchRequest.parse(request);
+      const startTime = Date.now();
       
       try {
         // Generate embedding for the query
         const queryEmbedding = await this.generateEmbedding(validatedRequest.query);
-        return await this.searchSimilarByEmbedding(
+        const results = await this.searchSimilarByEmbedding(
           queryEmbedding, 
           validatedRequest.maxResults, 
           validatedRequest.threshold
         );
+        
+        const executionTime = Date.now() - startTime;
+        
+        // Record successful search metrics
+        monitoringService.recordSearchLatency('neon', executionTime, {
+          query: validatedRequest.query,
+          resultsCount: results.length,
+          threshold: validatedRequest.threshold,
+        });
+        monitoringService.recordSearchSuccess('neon', {
+          query: validatedRequest.query,
+          resultsCount: results.length,
+        });
+        
+        return results;
       } catch (error) {
+        // Record search error
+        monitoringService.recordSearchError('neon', error as Error, {
+          query: validatedRequest.query,
+        });
+        
         console.error('Failed to search similar documents in Neon vector store:', error);
         throw error;
       }
-    },
+    }),
 
     async searchSimilarByEmbedding(
       embedding: number[], 
@@ -282,7 +318,7 @@ export function createNeonVectorStoreService(config?: Partial<NeonVectorStoreCon
       try {
         const similarity = sql<number>`1 - (${vectorDocuments.embedding} <=> ${JSON.stringify(embedding)})`;
         
-        const results = await db
+        const results = await this.db
           .select({
             id: vectorDocuments.id,
             content: vectorDocuments.content,

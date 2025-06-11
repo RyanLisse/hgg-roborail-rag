@@ -8,11 +8,14 @@ config({
 });
 
 const runMigrate = async () => {
-  if (!process.env.POSTGRES_URL) {
+  // Use process.env directly for migration since we need to load after dotenv
+  const postgresUrl = process.env.POSTGRES_URL;
+  
+  if (!postgresUrl) {
     throw new Error('POSTGRES_URL is not defined');
   }
 
-  const connection = postgres(process.env.POSTGRES_URL, { max: 1 });
+  const connection = postgres(postgresUrl, { max: 1 });
   const db = drizzle(connection);
 
   console.log('⏳ Running migrations...');

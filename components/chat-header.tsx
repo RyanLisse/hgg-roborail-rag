@@ -9,19 +9,27 @@ import { PlusIcon, } from './icons';
 import { useSidebar } from './ui/sidebar';
 import { memo } from 'react';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
-import { type VisibilityType, VisibilitySelector } from './visibility-selector';
+import { DatabaseSelector } from './database-selector';
 import type { Session } from 'next-auth';
+
+type VectorStoreType = 'openai' | 'neon' | 'memory';
 
 function PureChatHeader({
   chatId,
   selectedModelId,
-  selectedVisibilityType,
+  selectedSources,
+  onSourcesChange,
+  availableSources,
+  sourceStats,
   isReadonly,
   session,
 }: {
   chatId: string;
   selectedModelId: string;
-  selectedVisibilityType: VisibilityType;
+  selectedSources: VectorStoreType[];
+  onSourcesChange: (sources: VectorStoreType[]) => void;
+  availableSources: VectorStoreType[];
+  sourceStats: Record<VectorStoreType, { enabled: boolean; count?: number }>;
   isReadonly: boolean;
   session: Session;
 }) {
@@ -60,10 +68,13 @@ function PureChatHeader({
       )}
 
       {!isReadonly && (
-        <VisibilitySelector
-          chatId={chatId}
-          selectedVisibilityType={selectedVisibilityType}
+        <DatabaseSelector
+          selectedSources={selectedSources}
+          onSourcesChange={onSourcesChange}
+          availableSources={availableSources}
+          sourceStats={sourceStats}
           className="order-1 md:order-3"
+          data-testid="database-selector"
         />
       )}
 
@@ -72,5 +83,9 @@ function PureChatHeader({
 }
 
 export const ChatHeader = memo(PureChatHeader, (prevProps, nextProps) => {
-  return prevProps.selectedModelId === nextProps.selectedModelId;
+  return (
+    prevProps.selectedModelId === nextProps.selectedModelId &&
+    JSON.stringify(prevProps.selectedSources) === JSON.stringify(nextProps.selectedSources) &&
+    JSON.stringify(prevProps.sourceStats) === JSON.stringify(nextProps.sourceStats)
+  );
 });

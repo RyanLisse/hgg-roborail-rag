@@ -1,5 +1,6 @@
 import { CohereClient } from 'cohere-ai';
 import { z } from 'zod';
+import { COHERE_API_KEY } from '../env';
 
 // Configuration schema
 export const CohereConfig = z.object({
@@ -245,7 +246,7 @@ let cohereService: CohereEmbeddingService | null = null;
 export function getCohereEmbeddingService(): CohereEmbeddingService {
   if (!cohereService) {
     cohereService = createCohereEmbeddingService({
-      apiKey: process.env.COHERE_API_KEY || '',
+      apiKey: COHERE_API_KEY || '',
       timeout: 30000,
     });
   }

@@ -3,6 +3,7 @@ import 'server-only';
 import { z } from 'zod';
 import { eq, and } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
+import { POSTGRES_URL } from '../env';
 
 // Feedback schemas
 export const MessageFeedback = z.object({
@@ -276,8 +277,8 @@ export async function getFeedbackService(): Promise<FeedbackService> {
   if (!feedbackService) {
     const { drizzle } = await import('drizzle-orm/postgres-js');
     const postgres = (await import('postgres')).default;
-    // biome-ignore lint: Forbidden non-null assertion.
-    const client = postgres(process.env.POSTGRES_URL!);
+    // Use validated environment variable
+    const client = postgres(POSTGRES_URL);
     const db = drizzle(client);
     feedbackService = createFeedbackService(db);
   }
