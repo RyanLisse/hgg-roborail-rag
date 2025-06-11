@@ -7,9 +7,11 @@
     "dev": "next dev --turbo",
     "build": "tsx lib/db/migrate && next build",
     "start": "next start",
-    "lint": "next lint && biome lint --write --unsafe",
+    "lint": "next lint && biome lint",
     "lint:fix": "next lint --fix && biome lint --write --unsafe",
     "format": "biome format --write",
+    "type-check": "tsc --noEmit",
+    "prepare": "husky",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "npx tsx lib/db/migrate.ts",
     "db:studio": "drizzle-kit studio",
@@ -27,7 +29,8 @@
     "vectorstore:openai": "node simple-openai-test.js",
     "vectorstore:files": "node get-vectorstore-files.js",
     "vectorstore:search": "node test-vector-search.js",
-    "test:roborail": "node scripts/test-roborail-responses.js"
+    "test:roborail": "node scripts/test-roborail-responses.js",
+    "test:responses": "node test-openai-responses.js"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^1.2.12",
@@ -131,12 +134,22 @@
     "eslint-config-prettier": "^9.1.0",
     "eslint-import-resolver-typescript": "^3.6.3",
     "eslint-plugin-tailwindcss": "^3.17.5",
+    "husky": "^9.1.6",
     "jsdom": "^26.1.0",
+    "lint-staged": "^15.2.10",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
     "tsx": "^4.19.1",
     "typescript": "^5.6.3",
     "vitest": "^3.2.3"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "biome format --write",
+      "biome lint --write --unsafe",
+      "next lint --fix"
+    ],
+    "*.{json,md,css}": ["biome format --write"]
   },
   "packageManager": "pnpm@9.12.3"
 }
