@@ -13,7 +13,7 @@ export function useModelSelection() {
 
   // Get the selected model
   const { data: selectedModel, isLoading } = useQuery<ChatModel>({
-    queryKey: [MODEL_SELECTION_KEY, session?.user?.id],
+    queryKey: [MODEL_SELECTION_KEY, session?.user?.id || 'guest'],
     queryFn: async () => {
       if (typeof window === 'undefined') return getDefaultModel();
       
@@ -25,7 +25,6 @@ export function useModelSelection() {
       return model || getDefaultModel();
     },
     staleTime: Number.POSITIVE_INFINITY,
-    enabled: !!session?.user?.id,
   });
 
   // Mutation to update the selected model
@@ -38,7 +37,7 @@ export function useModelSelection() {
     },
     onSuccess: (model) => {
       // Update the query data to avoid a refetch
-      queryClient.setQueryData([MODEL_SELECTION_KEY, session?.user?.id], model);
+      queryClient.setQueryData([MODEL_SELECTION_KEY, session?.user?.id || 'guest'], model);
     },
   });
 
@@ -46,16 +45,30 @@ export function useModelSelection() {
   const { data: availableModels = [] } = useQuery<ChatModel[]>({
     queryKey: ['available-models', session?.user?.type],
     queryFn: async () => {
-      if (!session?.user?.type) return [];
-      
-      const { entitlementsByUserType } = await import('@/lib/ai/entitlements');
       const { chatModels } = await import('@/lib/ai/models');
       
-      const { availableChatModelIds } = entitlementsByUserType[session.user.type];
-      return chatModels.filter(model => availableChatModelIds.includes(model.id));
+      // If no session or user type, show all models for development
+      if (!session?.user?.type) {
+        return chatModels;
+      }
+      
+      try {
+        const { entitlementsByUserType } = await import('@/lib/ai/entitlements');
+        const userEntitlements = entitlementsByUserType[session.user.type];
+        
+        if (!userEntitlements) {
+          // Fallback to all models if entitlements not found
+          return chatModels;
+        }
+        
+        const { availableChatModelIds } = userEntitlements;
+        return chatModels.filter(model => availableChatModelIds.includes(model.id));
+      } catch (error) {
+        console.warn('Failed to load entitlements, showing all models:', error);
+        return chatModels;
+      }
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
-    enabled: !!session?.user?.type,
   });
 
   // Get models grouped by provider

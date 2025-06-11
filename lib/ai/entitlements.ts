@@ -12,7 +12,13 @@ export const entitlementsByUserType: Record<UserType, Entitlements> = {
    */
   guest: {
     maxMessagesPerDay: 20,
-    availableChatModelIds: ['chat-model', 'chat-model-reasoning'],
+    availableChatModelIds: [
+      'openai-gpt-4.1',
+      'openai-o4-mini',
+      'anthropic-claude-4-sonnet',
+      'google-gemini-1.5-flash-latest',
+      'groq-mixtral-8x7b-32768',
+    ],
   },
 
   /*
@@ -20,7 +26,19 @@ export const entitlementsByUserType: Record<UserType, Entitlements> = {
    */
   regular: {
     maxMessagesPerDay: 100,
-    availableChatModelIds: ['chat-model', 'chat-model-reasoning'],
+    availableChatModelIds: [
+      'openai-gpt-4.1',
+      'openai-o4-mini',
+      'openai-o3-pro',
+      'anthropic-claude-4-sonnet',
+      'anthropic-claude-4-opus',
+      'google-gemini-1.5-pro-latest',
+      'google-gemini-1.5-flash-latest',
+      'cohere-command-a-03-2025',
+      'cohere-command-r-plus',
+      'groq-mixtral-8x7b-32768',
+      'groq-llama3-70b-8192',
+    ],
   },
 
   /*
