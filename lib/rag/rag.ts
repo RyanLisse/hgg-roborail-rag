@@ -167,6 +167,7 @@ export class RAGService {
       chunkSize: config.options?.chunkSize || 1500,
       chunkOverlap: config.options?.chunkOverlap || 200,
       preserveStructure: config.chunking?.preserveStructure ?? true,
+      respectBoundaries: true, // Default value since not in RAGConfig
       enableQualityValidation: config.chunking?.enableQualityValidation ?? true,
       minChunkSize: config.chunking?.minChunkSize || 100,
       maxChunkSize: config.chunking?.maxChunkSize || 3000,
@@ -415,6 +416,7 @@ export class RAGService {
         maxResults: options.limit || 10,
         threshold: options.minScore || 0.3,
         metadata: options.filter,
+        optimizePrompts: false,
       });
 
       // Convert unified results to RAG search results

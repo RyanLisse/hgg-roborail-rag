@@ -208,6 +208,7 @@ export abstract class BaseAgent implements Agent {
         sources: request.context.sources,
         maxResults: request.context.maxResults || 5,
         threshold: 0.3,
+        optimizePrompts: false,
       });
       
       return results;

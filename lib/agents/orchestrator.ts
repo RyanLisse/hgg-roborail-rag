@@ -57,13 +57,18 @@ export class AgentOrchestrator {
       const enhancedRequest: AgentRequest = {
         ...validatedRequest,
         context: {
-          ...validatedRequest.context,
+          maxResults: validatedRequest.context?.maxResults || 10,
           sources: routingDecision.suggestedSources,
           complexity: routingDecision.estimatedComplexity,
+          domainKeywords: validatedRequest.context?.domainKeywords || [],
+          requiresCitations: validatedRequest.context?.requiresCitations ?? true,
+          userIntent: validatedRequest.context?.userIntent,
         },
         options: {
           ...validatedRequest.options,
           modelId: validatedRequest.options?.modelId || this.config.defaultModel,
+          streaming: validatedRequest.options?.streaming ?? false,
+          useTools: validatedRequest.options?.useTools ?? false,
         },
       };
 
@@ -150,13 +155,18 @@ export class AgentOrchestrator {
         ...validatedRequest,
         context: {
           ...validatedRequest.context,
+          maxResults: validatedRequest.context?.maxResults || 10,
           sources: routingDecision.suggestedSources,
           complexity: routingDecision.estimatedComplexity,
+          domainKeywords: validatedRequest.context?.domainKeywords || [],
+          requiresCitations: validatedRequest.context?.requiresCitations ?? true,
+          userIntent: validatedRequest.context?.userIntent,
         },
         options: {
           ...validatedRequest.options,
           modelId: validatedRequest.options?.modelId || this.config.defaultModel,
           streaming: true,
+          useTools: validatedRequest.options?.useTools ?? false,
         },
       };
 
@@ -281,7 +291,12 @@ export class AgentOrchestrator {
     // Test each agent with a simple request
     const testRequest: AgentRequest = {
       query: 'Hello',
-      options: { modelId: this.config.fallbackModel, streaming: false },
+      chatHistory: [],
+      options: { 
+        modelId: this.config.fallbackModel, 
+        streaming: false,
+        useTools: false,
+      },
     };
 
     for (const [type, agent] of Array.from(this.agents.entries())) {

@@ -112,8 +112,8 @@ export type MonitoringConfig = z.infer<typeof MonitoringConfig>;
 class MetricsStore {
   private metrics: Map<string, MetricEvent[]> = new Map();
   private healthStatus: Map<VectorStoreProvider, HealthCheckResult> = new Map();
-  private alerts: Map<string, AlertRule> = new Map();
-  private config: MonitoringConfig;
+  public alerts: Map<string, AlertRule> = new Map();
+  public config: MonitoringConfig;
 
   constructor(config?: Partial<MonitoringConfig>) {
     this.config = MonitoringConfig.parse(config || {});
@@ -346,6 +346,7 @@ export function withPerformanceMonitoring<T extends any[], R>(
       const duration = Date.now() - startTime;
 
       // Record performance metrics
+      const monitoringService = getVectorStoreMonitoringService();
       monitoringService.recordMetric({
         provider,
         metricType: success ? 'search_success' : 'search_error',

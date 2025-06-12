@@ -18,8 +18,8 @@ export const enhancedSearch = (sources: VectorStoreType[] = ['memory']) =>
         console.log(`🔍 Enhanced search started for: "${query}"`);
         
         const vectorStore = await getUnifiedVectorStoreService();
-        const results = [];
-        let sourcesWithCitations = [];
+        const results: any[] = [];
+        let sourcesWithCitations: any[] = [];
 
         // 1. Search unified vector stores (memory, neon, etc.)
         if (sources.includes('memory') || sources.includes('neon')) {
@@ -30,6 +30,7 @@ export const enhancedSearch = (sources: VectorStoreType[] = ['memory']) =>
               sources: unifiedSources,
               maxResults: limit,
               threshold: 0.3,
+              optimizePrompts: false,
             });
 
             results.push(...unifiedResults.map(result => ({
@@ -109,10 +110,10 @@ export const enhancedSearch = (sources: VectorStoreType[] = ['memory']) =>
         topResults.forEach((result, index) => {
           formattedResponse += `**Result ${index + 1}** (${result.source}, similarity: ${result.similarity.toFixed(2)}):\n`;
           
-          if (result.type === 'openai_response' && result.citations?.length > 0) {
+          if (result.type === 'openai_response' && (result as any).citations?.length > 0) {
             // For OpenAI responses, include formatted citations
             formattedResponse += result.content;
-            formattedResponse += formatCitationsMarkdown(result.citations);
+            formattedResponse += formatCitationsMarkdown((result as any).citations);
           } else {
             // For vector search results, show content with metadata
             const contentPreview = result.content.length > 500 
@@ -148,9 +149,10 @@ export const enhancedSearch = (sources: VectorStoreType[] = ['memory']) =>
 
       } catch (error) {
         console.error('Error in enhanced search:', error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
         return {
           success: false,
-          message: `Error occurred while searching: ${error.message}`,
+          message: `Error occurred while searching: ${errorMessage}`,
           results: [],
           query,
           sources: sources.join(', '),

@@ -236,10 +236,12 @@ Intent:`;
     return available.slice(0, 2); // Default to 2 sources
   }
 
-  private async getAvailableSources(): Promise<VectorStoreType[]> {
+  private async getAvailableSources(): Promise<('openai' | 'neon' | 'memory')[]> {
     try {
       const service = await getUnifiedVectorStoreService();
-      return await service.getAvailableSources();
+      const sources = await service.getAvailableSources();
+      // Filter out 'unified' since agents work with individual sources
+      return sources.filter(source => source !== 'unified') as ('openai' | 'neon' | 'memory')[];
     } catch (error) {
       console.warn('Failed to get available sources, using defaults:', error);
       return ['openai', 'memory']; // Fallback sources

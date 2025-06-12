@@ -51,6 +51,7 @@ export class OpenAIResponsesService {
     
     if (!this.isEnabled) {
       console.warn('OpenAI Responses API service is disabled - no API key provided');
+      this.client = null as any; // Initialize to avoid undefined
       return;
     }
 
@@ -93,19 +94,20 @@ export class OpenAIResponsesService {
         include: ["file_search_call.results"],
       });
 
+      const responseData = response as any;
       console.log('📄 Response received:', {
-        id: response.id,
-        hasAnnotations: response.body?.annotations?.length > 0,
-        annotationCount: response.body?.annotations?.length || 0,
+        id: responseData.id,
+        hasAnnotations: responseData.output?.[0]?.content?.length > 0,
+        outputLength: responseData.output?.length || 0,
       });
 
       // Extract content and annotations
-      const content = response.body?.content || '';
-      const annotations = response.body?.annotations || [];
+      const content = responseData.output?.[0]?.content || '';
+      const annotations = responseData.output?.[0]?.annotations || [];
 
       // Extract unique source files from annotations
       const sourceFileIds = new Set<string>();
-      annotations.forEach(annotation => {
+      annotations.forEach((annotation: any) => {
         if (annotation.file_citation?.file_id) {
           sourceFileIds.add(annotation.file_citation.file_id);
         }

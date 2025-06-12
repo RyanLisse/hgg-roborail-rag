@@ -4,6 +4,14 @@ import { z } from 'zod';
 import OpenAI from 'openai';
 import { OPENAI_API_KEY, OPENAI_VECTORSTORE } from '../env';
 import { getVectorStoreMonitoringService, withPerformanceMonitoring } from './monitoring';
+import { 
+  PromptOptimizationEngine, 
+  ContextWindowManager,
+  PromptOptimizationMetrics,
+  type QueryContext,
+  type PromptConfig,
+  type OptimizedQuery 
+} from './prompt-optimization';
 
 // Schemas for OpenAI vector store operations
 export const VectorStoreFile = z.object({
@@ -53,6 +61,27 @@ export const SearchRequest = z.object({
   maxResults: z.number().min(1).max(50).default(10),
   includeContent: z.boolean().default(true),
   includeCitations: z.boolean().default(true),
+  // Enhanced search options for prompt optimization
+  queryContext: z.object({
+    type: z.enum(['technical', 'conceptual', 'procedural', 'troubleshooting', 'configuration', 'api', 'integration', 'best_practices', 'examples', 'reference', 'multi_turn', 'contextual']).optional(),
+    domain: z.string().optional(),
+    conversationHistory: z.array(z.object({
+      role: z.enum(['user', 'assistant']),
+      content: z.string(),
+      timestamp: z.number(),
+    })).optional(),
+    previousQueries: z.array(z.string()).optional(),
+    userIntent: z.string().optional(),
+    complexity: z.enum(['basic', 'intermediate', 'advanced']).optional(),
+    searchDepth: z.enum(['shallow', 'comprehensive', 'exhaustive']).optional(),
+  }).optional(),
+  optimizePrompts: z.boolean().default(true),
+  promptConfig: z.object({
+    maxTokens: z.number().default(1500),
+    temperature: z.number().min(0).max(1).default(0.1),
+    includeContext: z.boolean().default(true),
+    includeCitations: z.boolean().default(true),
+  }).optional(),
 });
 
 export const SearchResult = z.object({
@@ -92,6 +121,16 @@ export const SearchResponse = z.object({
   totalResults: z.number(),
   query: z.string(),
   executionTime: z.number(),
+  // Enhanced response with optimization metadata
+  optimizationMetadata: z.object({
+    originalQuery: z.string(),
+    optimizedQuery: z.string(),
+    queryType: z.string(),
+    complexity: z.string(),
+    expansionCount: z.number(),
+    estimatedRelevance: z.number(),
+    promptOptimizationUsed: z.boolean(),
+  }).optional(),
 });
 
 // Types
@@ -483,10 +522,35 @@ export function createOpenAIVectorStoreService(config?: Partial<OpenAIVectorStor
           return response;
         }
 
+        // Apply prompt optimization if enabled
+        let optimizedQuery: OptimizedQuery | null = null;
+        let searchPrompt = `Search for information about: ${validatedRequest.query}. Please provide comprehensive relevant information with proper citations.`;
+        
+        if (validatedRequest.optimizePrompts && validatedRequest.queryContext && validatedRequest.queryContext.type) {
+          try {
+            console.log('🧠 Applying prompt optimization...');
+            optimizedQuery = await PromptOptimizationEngine.optimizeQuery(
+              validatedRequest.query,
+              {
+                ...validatedRequest.queryContext,
+                type: validatedRequest.queryContext.type!
+              },
+              validatedRequest.promptConfig
+            );
+            
+            searchPrompt = optimizedQuery.contextualPrompt;
+            console.log(`✨ Query optimized: ${optimizedQuery.metadata.queryType} (${optimizedQuery.metadata.complexity})`);
+            console.log(`📊 Expanded to ${optimizedQuery.expandedQueries.length} variations`);
+          } catch (optimizationError) {
+            console.warn('⚠️ Prompt optimization failed, using original query:', optimizationError);
+            // Continue with original query if optimization fails
+          }
+        }
+
         // Use OpenAI Responses API with file search for vector store search
         const response = await client.responses.create({
           model: 'gpt-4o-mini', // Use efficient model for search
-          input: `Search for information about: ${validatedRequest.query}. Please provide comprehensive relevant information with proper citations.`,
+          input: searchPrompt,
           tools: [{
             type: "file_search",
             vector_store_ids: [targetVectorStoreId],
@@ -551,16 +615,37 @@ export function createOpenAIVectorStoreService(config?: Partial<OpenAIVectorStor
         const executionTime = Date.now() - startTime;
         console.log(`✅ Search completed in ${executionTime}ms with ${results.length} results`);
 
-        // Record performance metrics
+        // Record performance metrics including optimization metadata
+        const optimizationMetrics = optimizedQuery ? {
+          queryType: optimizedQuery.metadata.queryType,
+          complexity: optimizedQuery.metadata.complexity,
+          expansionCount: optimizedQuery.expandedQueries.length,
+          estimatedRelevance: optimizedQuery.metadata.estimatedRelevance,
+        } : {};
+
         monitoringService.recordSearchLatency('openai', executionTime, {
           query: validatedRequest.query,
           resultsCount: results.length,
           vectorStoreId: targetVectorStoreId,
+          ...optimizationMetrics,
         });
         monitoringService.recordSearchSuccess('openai', {
           query: validatedRequest.query,
           resultsCount: results.length,
+          promptOptimizationUsed: !!optimizedQuery,
         });
+
+        // Record prompt optimization metrics if used
+        if (optimizedQuery) {
+          const queryId = `${targetVectorStoreId}_${Date.now()}`;
+          PromptOptimizationMetrics.recordOptimizationMetrics(
+            queryId,
+            validatedRequest.query,
+            optimizedQuery,
+            results,
+            executionTime
+          );
+        }
 
         return SearchResponse.parse({
           success: true,
@@ -568,10 +653,19 @@ export function createOpenAIVectorStoreService(config?: Partial<OpenAIVectorStor
             ? `Found ${results.length} relevant result(s) with ${sources.length} source file(s)`
             : 'Search completed but no relevant content found',
           results,
-          sources: sources.map(s => ({ id: s.id, name: s.name, url: s.url })),
+          sources: sources.map((s: any) => ({ id: s.id, name: s.name, url: s.url })),
           totalResults: results.length,
           query: validatedRequest.query,
           executionTime,
+          optimizationMetadata: optimizedQuery ? {
+            originalQuery: validatedRequest.query,
+            optimizedQuery: optimizedQuery.optimizedQuery,
+            queryType: optimizedQuery.metadata.queryType,
+            complexity: optimizedQuery.metadata.complexity,
+            expansionCount: optimizedQuery.expandedQueries.length,
+            estimatedRelevance: optimizedQuery.metadata.estimatedRelevance,
+            promptOptimizationUsed: true,
+          } : undefined,
         });
 
       } catch (error) {
@@ -678,7 +772,7 @@ export function createOpenAIVectorStoreService(config?: Partial<OpenAIVectorStor
       return sources;
     },
 
-    getFileSearchTool(vectorStoreId?: string): any {
+    getFileSearchTool(vectorStoreId?: string, optimizationConfig?: { domain?: string, queryType?: string }): any {
       const targetVectorStoreId = vectorStoreId || validatedConfig.defaultVectorStoreId;
       
       if (!targetVectorStoreId) {
@@ -686,16 +780,26 @@ export function createOpenAIVectorStoreService(config?: Partial<OpenAIVectorStor
         return null;
       }
 
-      console.log(`🔍 Creating file search tool for vector store: ${targetVectorStoreId}`);
-
-      // Return file search tool configuration for AI SDK
-      return {
+      console.log(`🔍 Creating optimized file search tool for vector store: ${targetVectorStoreId}`);
+      
+      // Enhanced configuration with optimization hints
+      const toolConfig = {
         type: 'file_search' as const,
         file_search: {
           vector_store_ids: [targetVectorStoreId],
           max_num_results: 20, // Allow more results for better context
+          // Add optimization metadata for the AI model to use
+          search_strategy: optimizationConfig?.queryType || 'comprehensive',
+          domain_context: optimizationConfig?.domain || 'roborail',
         },
       };
+
+      // Add domain-specific search instructions
+      if (optimizationConfig?.domain === 'roborail') {
+        console.log('🤖 Applying RoboRail-specific search optimization');
+      }
+
+      return toolConfig;
     },
 
     async healthCheck(): Promise<{ isHealthy: boolean; vectorStoreStatus?: string; error?: string }> {

@@ -2,11 +2,21 @@ import 'server-only';
 import {
   type VectorStoreType,
   UnifiedDocument,
+  BasicSearchRequest,
   UnifiedSearchRequest,
   UnifiedSearchResult,
   DocumentUploadRequest,
   type UnifiedVectorStoreService,
+  type EnhancedSearchResponse,
+  type UserFeedback,
+  type RelevanceWeights,
 } from './unified';
+import {
+  type RerankingRequest,
+  type RerankingResult,
+  type HybridSearchRequest,
+  type FusionScore,
+} from './reranking';
 import { type FaultTolerantOpenAIVectorStoreService, getFaultTolerantOpenAIVectorStoreService } from './openai-fault-tolerant';
 import { type FaultTolerantNeonVectorStoreService, getFaultTolerantNeonVectorStoreService } from './neon-fault-tolerant';
 import {
@@ -202,15 +212,15 @@ export class FaultTolerantUnifiedVectorStoreService implements UnifiedVectorStor
   // ====================================
 
   searchAcrossSources = withPerformanceMonitoring(
-    'unified_fault_tolerant',
+    'unified',
     'searchAcrossSources',
-    async (request: UnifiedSearchRequest): Promise<UnifiedSearchResult[]> => {
+    async (request: BasicSearchRequest): Promise<UnifiedSearchResult[]> => {
       const cacheKey = `unified:search:${request.query}:${request.maxResults}:${request.sources.join(',')}`;
 
       return this.faultTolerantService.execute(
         async () => {
           const monitoringService = getVectorStoreMonitoringService();
-          const validatedRequest = UnifiedSearchRequest.parse(request);
+          const validatedRequest = BasicSearchRequest.parse(request);
           const allResults: UnifiedSearchResult[] = [];
           const startTime = Date.now();
 
@@ -243,7 +253,7 @@ export class FaultTolerantUnifiedVectorStoreService implements UnifiedVectorStor
               }
             } catch (error) {
               console.warn(`Failed to search ${source}:`, error);
-              monitoringService.recordSearchError('unified_fault_tolerant', error as Error, {
+              monitoringService.recordSearchError('unified', error as Error, {
                 query: validatedRequest.query,
                 failedSource: source,
               });
@@ -268,14 +278,14 @@ export class FaultTolerantUnifiedVectorStoreService implements UnifiedVectorStor
           const executionTime = Date.now() - startTime;
 
           // Record unified search metrics
-          monitoringService.recordSearchLatency('unified_fault_tolerant', executionTime, {
+          monitoringService.recordSearchLatency('unified', executionTime, {
             query: validatedRequest.query,
             resultsCount: finalResults.length,
             sourcesSearched: validatedRequest.sources,
             totalSourceResults: allResults.length,
           });
 
-          monitoringService.recordSearchSuccess('unified_fault_tolerant', {
+          monitoringService.recordSearchSuccess('unified', {
             query: validatedRequest.query,
             resultsCount: finalResults.length,
           });
@@ -300,6 +310,7 @@ export class FaultTolerantUnifiedVectorStoreService implements UnifiedVectorStor
         maxResults,
         includeContent: true,
         includeCitations: true,
+        optimizePrompts: false,
       });
 
       if (!searchResponse.success) {
@@ -406,6 +417,7 @@ export class FaultTolerantUnifiedVectorStoreService implements UnifiedVectorStor
           memory: { enabled: true },
           openai: { enabled: this.openaiService.isEnabled },
           neon: { enabled: this.neonService?.isEnabled || false },
+          unified: { enabled: true },
         };
 
         // Get counts where possible with fault tolerance
@@ -580,6 +592,58 @@ export class FaultTolerantUnifiedVectorStoreService implements UnifiedVectorStor
     this.faultTolerantService.addProvider(openaiOnlyProvider);
     this.faultTolerantService.addProvider(neonOnlyProvider);
     this.faultTolerantService.addProvider(emergencyProvider);
+  }
+
+  // ====================================
+  // ENHANCED SEARCH FEATURES
+  // ====================================
+
+  async searchEnhanced(request: UnifiedSearchRequest): Promise<EnhancedSearchResponse> {
+    // For fault-tolerant version, delegate to the basic service
+    // In production, this could be enhanced with additional fault tolerance
+    const basicService = await this.getBasicService();
+    return basicService.searchEnhanced(request);
+  }
+
+  async rerankResults(request: RerankingRequest): Promise<RerankingResult> {
+    const basicService = await this.getBasicService();
+    return basicService.rerankResults(request);
+  }
+
+  async hybridSearch(request: HybridSearchRequest): Promise<FusionScore[]> {
+    const basicService = await this.getBasicService();
+    return basicService.hybridSearch(request);
+  }
+
+  async recordUserFeedback(feedback: UserFeedback): Promise<void> {
+    const basicService = await this.getBasicService();
+    return basicService.recordUserFeedback(feedback);
+  }
+
+  async getUserPreferences(userId: string): Promise<RelevanceWeights> {
+    const basicService = await this.getBasicService();
+    return basicService.getUserPreferences(userId);
+  }
+
+  async updateUserPreferences(userId: string, weights: Partial<RelevanceWeights>): Promise<void> {
+    const basicService = await this.getBasicService();
+    return basicService.updateUserPreferences(userId, weights);
+  }
+
+  async getRelevanceMetrics(): Promise<{
+    totalQueries: number;
+    avgRelevanceScore: number;
+    rerankingUsage: number;
+    userFeedbackCount: number;
+  }> {
+    const basicService = await this.getBasicService();
+    return basicService.getRelevanceMetrics();
+  }
+
+  private async getBasicService(): Promise<UnifiedVectorStoreService> {
+    // Import here to avoid circular dependency
+    const { createUnifiedVectorStoreService } = await import('./unified');
+    return createUnifiedVectorStoreService();
   }
 }
 

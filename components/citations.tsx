@@ -24,6 +24,7 @@ export function Citations({ citations, sources, className = '' }: CitationsProps
       text: '',
       fileName: source.name,
       fileId: source.id,
+      quote: undefined,
     })) || [];
 
   return (
@@ -59,7 +60,7 @@ export function Citations({ citations, sources, className = '' }: CitationsProps
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <p className="text-sm font-medium text-gray-900 truncate">
-                      {citation.fileName}
+                      {citation.fileName || (citation as any).name}
                     </p>
                     
                     {citation.quote && (

@@ -29,6 +29,7 @@ export const searchDocumentsWithSources = (sources: VectorStoreType[] = ['memory
           sources,
           maxResults: limit,
           threshold: 0.3,
+          optimizePrompts: false,
         });
 
         let openAIResults: any = null;
@@ -68,7 +69,7 @@ export const searchDocumentsWithSources = (sources: VectorStoreType[] = ['memory
             content: result.document.content,
             source: result.source,
             similarity: result.similarity,
-            metadata: result.document.metadata,
+            metadata: result.document.metadata || {},
           });
         });
 
