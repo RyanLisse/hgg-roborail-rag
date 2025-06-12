@@ -87,6 +87,10 @@ export const AgentConfig = z.object({
     defaultSources: z.array(z.enum(['openai', 'neon', 'memory'])).default(['openai']),
     searchThreshold: z.number().min(0).max(1).default(0.3),
     maxResults: z.number().min(1).max(50).default(10),
+  }).default({
+    defaultSources: ['openai'],
+    searchThreshold: 0.3,
+    maxResults: 10,
   }),
 });
 

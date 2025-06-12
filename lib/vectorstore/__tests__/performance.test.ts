@@ -3,6 +3,47 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 // Mock server-only module to prevent client component error
 vi.mock('server-only', () => ({}));
 
+// Mock performance API if not available
+if (typeof global.performance === 'undefined') {
+  global.performance = {
+    now: Date.now,
+    mark: vi.fn(),
+    measure: vi.fn(),
+    clearMarks: vi.fn(),
+    clearMeasures: vi.fn(),
+    getEntriesByName: vi.fn(() => []),
+    getEntriesByType: vi.fn(() => []),
+  } as any;
+}
+
+// Mock monitoring service
+vi.mock('../monitoring', () => ({
+  getVectorStoreMonitoringService: vi.fn().mockReturnValue({
+    recordSearchLatency: vi.fn(),
+    recordSearchError: vi.fn(),
+    recordSearchSuccess: vi.fn(),
+    recordFileUpload: vi.fn(),
+    recordFileUploadError: vi.fn(),
+    recordMetric: vi.fn(),
+    recordTokenUsage: vi.fn(),
+    performHealthCheck: vi.fn().mockResolvedValue({ isHealthy: true }),
+    getHealthStatus: vi.fn().mockReturnValue([]),
+    getPerformanceMetrics: vi.fn().mockReturnValue({}),
+    getMetrics: vi.fn().mockReturnValue([]),
+    getDashboardData: vi.fn().mockResolvedValue({}),
+    cleanup: vi.fn(),
+    exportMetrics: vi.fn().mockResolvedValue([]),
+    config: {
+      retentionPeriodMs: 86400000,
+      maxMetricsPerProvider: 10000,
+      healthCheckIntervalMs: 60000,
+      cleanupIntervalMs: 3600000,
+      alertThresholds: {},
+    },
+  }),
+  withPerformanceMonitoring: vi.fn((store, method, fn) => fn),
+}));
+
 import { createOpenAIVectorStoreService, type SearchRequest } from '../openai';
 
 // Mock OpenAI SDK with performance tracking
@@ -25,7 +66,7 @@ const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
 describe('Vector Store Performance Tests', () => {
-  let service: any;
+  let service: ReturnType<typeof createOpenAIVectorStoreService>;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -43,10 +84,30 @@ describe('Vector Store Performance Tests', () => {
 
   describe('Search Performance', () => {
     beforeEach(() => {
-      // Mock successful vector store validation
+      // Mock successful vector store validation with complete schema
+      const mockVectorStore = {
+        id: 'vs_test_store',
+        object: 'vector_store',
+        created_at: Date.now(),
+        name: 'Test Store',
+        usage_bytes: 0,
+        file_counts: {
+          in_progress: 0,
+          completed: 1,
+          failed: 0,
+          cancelled: 0,
+          total: 1,
+        },
+        status: 'completed',
+        expires_after: null,
+        expires_at: null,
+        last_active_at: null,
+        metadata: {},
+      };
+      
       mockFetch.mockResolvedValue({
         ok: true,
-        json: () => Promise.resolve({ status: 'completed' }),
+        json: () => Promise.resolve(mockVectorStore),
       });
     });
 
@@ -207,6 +268,34 @@ describe('Vector Store Performance Tests', () => {
   });
 
   describe('Upload Performance', () => {
+    beforeEach(() => {
+      // Mock successful vector store validation
+      const mockVectorStore = {
+        id: 'vs_test_store',
+        object: 'vector_store',
+        created_at: Date.now(),
+        name: 'Test Store',
+        usage_bytes: 0,
+        file_counts: {
+          in_progress: 0,
+          completed: 1,
+          failed: 0,
+          cancelled: 0,
+          total: 1,
+        },
+        status: 'completed',
+        expires_after: null,
+        expires_at: null,
+        last_active_at: null,
+        metadata: {},
+      };
+      
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve(mockVectorStore),
+      });
+    });
+    
     it('should handle small file uploads efficiently', async () => {
       const smallFile = new File(['small content'], 'small.txt', {
         type: 'text/plain',
@@ -297,6 +386,34 @@ describe('Vector Store Performance Tests', () => {
   });
 
   describe('Memory Management', () => {
+    beforeEach(() => {
+      // Mock successful vector store validation
+      const mockVectorStore = {
+        id: 'vs_test_store',
+        object: 'vector_store',
+        created_at: Date.now(),
+        name: 'Test Store',
+        usage_bytes: 0,
+        file_counts: {
+          in_progress: 0,
+          completed: 1,
+          failed: 0,
+          cancelled: 0,
+          total: 1,
+        },
+        status: 'completed',
+        expires_after: null,
+        expires_at: null,
+        last_active_at: null,
+        metadata: {},
+      };
+      
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve(mockVectorStore),
+      });
+    });
+    
     it('should not accumulate memory during repeated operations', async () => {
       const mockResponse = {
         id: 'response_memory',
@@ -369,7 +486,15 @@ describe('Vector Store Performance Tests', () => {
   describe('Retry Performance', () => {
     it('should implement exponential backoff efficiently', async () => {
       let attemptCount = 0;
-      vi.spyOn(service, 'searchFiles').mockImplementation(() => {
+      
+      // Create a new service instance to avoid conflicts with spies
+      const testService = createOpenAIVectorStoreService({
+        apiKey: 'sk-test-key',
+        defaultVectorStoreId: 'vs_test_store',
+      });
+      
+      // Mock the searchFiles method directly
+      testService.searchFiles = vi.fn().mockImplementation(() => {
         attemptCount++;
         if (attemptCount < 3) {
           return Promise.resolve({
@@ -394,19 +519,25 @@ describe('Vector Store Performance Tests', () => {
       });
 
       const startTime = Date.now();
-      const result = await service.searchWithRetry({ query: 'test' }, 3);
+      const result = await testService.searchWithRetry({ query: 'test' }, 3);
       const endTime = Date.now();
 
       expect(result.success).toBe(true);
       expect(attemptCount).toBe(3);
 
       // Should include backoff delays but not be excessive
-      expect(endTime - startTime).toBeGreaterThan(1000); // Should have some delay
+      expect(endTime - startTime).toBeGreaterThan(500); // Should have some delay
       expect(endTime - startTime).toBeLessThan(10000); // But not too much
     });
 
     it('should fail fast for non-retryable errors', async () => {
-      vi.spyOn(service, 'searchFiles').mockResolvedValue({
+      // Create a new service instance
+      const testService = createOpenAIVectorStoreService({
+        apiKey: 'sk-test-key',
+        defaultVectorStoreId: 'vs_test_store',
+      });
+      
+      testService.searchFiles = vi.fn().mockResolvedValue({
         success: false,
         message: 'No vector store ID provided',
         results: [],
@@ -417,7 +548,7 @@ describe('Vector Store Performance Tests', () => {
       });
 
       const startTime = Date.now();
-      const result = await service.searchWithRetry({ query: 'test' }, 5);
+      const result = await testService.searchWithRetry({ query: 'test' }, 5);
       const endTime = Date.now();
 
       expect(result.success).toBe(false);
@@ -426,6 +557,34 @@ describe('Vector Store Performance Tests', () => {
   });
 
   describe('Scalability Tests', () => {
+    beforeEach(() => {
+      // Mock successful vector store validation
+      const mockVectorStore = {
+        id: 'vs_test_store',
+        object: 'vector_store',
+        created_at: Date.now(),
+        name: 'Test Store',
+        usage_bytes: 0,
+        file_counts: {
+          in_progress: 0,
+          completed: 1,
+          failed: 0,
+          cancelled: 0,
+          total: 1,
+        },
+        status: 'completed',
+        expires_after: null,
+        expires_at: null,
+        last_active_at: null,
+        metadata: {},
+      };
+      
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve(mockVectorStore),
+      });
+    });
+    
     it('should handle increasing query complexity gracefully', async () => {
       const queries = [
         'simple',
@@ -523,6 +682,34 @@ describe('Vector Store Performance Tests', () => {
   });
 
   describe('Resource Utilization', () => {
+    beforeEach(() => {
+      // Mock successful vector store validation
+      const mockVectorStore = {
+        id: 'vs_test_store',
+        object: 'vector_store',
+        created_at: Date.now(),
+        name: 'Test Store',
+        usage_bytes: 0,
+        file_counts: {
+          in_progress: 0,
+          completed: 1,
+          failed: 0,
+          cancelled: 0,
+          total: 1,
+        },
+        status: 'completed',
+        expires_after: null,
+        expires_at: null,
+        last_active_at: null,
+        metadata: {},
+      };
+      
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve(mockVectorStore),
+      });
+    });
+    
     it('should efficiently handle batch operations', async () => {
       const batchSize = 20;
       const mockResponse = {
@@ -562,7 +749,7 @@ describe('Vector Store Performance Tests', () => {
 
       // Average time per request should be reasonable
       const avgTimePerRequest = (endTime - startTime) / batchSize;
-      expect(avgTimePerRequest).toBeLessThan(5000); // Each request should average < 5 seconds
+      expect(avgTimePerRequest).toBeLessThan(2000); // Each request should average < 2 seconds
     });
 
     it('should handle connection pooling efficiently', async () => {

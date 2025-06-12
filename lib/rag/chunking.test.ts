@@ -99,10 +99,10 @@ describe('Enhanced Document Chunking', () => {
 
       // Check for overlap between consecutive chunks
       if (result.chunks.length > 1) {
-        const firstChunkEnd = result.chunks[0].content.slice(-100);
-        const secondChunkStart = result.chunks[1].content.slice(0, 100);
-        // There should be some overlap
-        expect(firstChunkEnd).toContain(secondChunkStart.slice(0, 50));
+        const firstChunkEnd = result.chunks[0].content.slice(-200); // Get last 200 chars (overlap size)
+        const secondChunkStart = result.chunks[1].content.slice(0, 200); // Get first 200 chars
+        // The end of first chunk should match the start of second chunk (overlap)
+        expect(firstChunkEnd).toBe(secondChunkStart);
       }
     });
   });
@@ -170,7 +170,16 @@ function test() {
         metadata: {},
       };
 
-      const result = await chunkingService.chunkDocument(document);
+      // Use a smaller chunk size to force multiple chunks
+      const service = createChunkingService({
+        strategy: 'hybrid',
+        chunkSize: 100,
+        minChunkSize: 10,
+        preserveStructure: true,
+        enableQualityValidation: true,
+      });
+
+      const result = await service.chunkDocument(document);
 
       const chunkTypes = result.chunks.map((chunk) => chunk.metadata.chunkType);
       expect(chunkTypes).toContain('heading');
@@ -208,7 +217,7 @@ function test() {
       const document: Document = {
         id: 'separator-test',
         content: `
-Section 1
+Section 1 has enough content to meet the minimum chunk size requirement
 
 ---
 
@@ -225,6 +234,7 @@ Section 3 with even more content that definitely exceeds the chunk size limit an
       const service = createChunkingService({
         strategy: 'recursive',
         chunkSize: 100,
+        minChunkSize: 10,
         customSeparators: ['\n---\n', '\n***\n', '\n\n', '. '],
       });
 
@@ -307,7 +317,7 @@ A brief conclusion that wraps up the document.
 
       const service = createChunkingService({
         strategy: 'sentence',
-        chunkSize: 50,
+        chunkSize: 100,
       });
 
       const result = await service.chunkDocument(document);
@@ -378,7 +388,8 @@ function secondFunction() {
 
       const service = createChunkingService({
         strategy: 'code',
-        chunkSize: 200,
+        chunkSize: 100,
+        minChunkSize: 10,
       });
 
       const result = await service.chunkDocument(document);
