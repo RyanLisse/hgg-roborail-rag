@@ -16,7 +16,12 @@ vi.mock('../monitoring', () => ({
   withPerformanceMonitoring: vi.fn((fn) => fn),
 }));
 
-import { createOpenAIVectorStoreService, type OpenAIVectorStoreService , type FileUploadRequest, type SearchRequest } from '../openai';
+import {
+  createOpenAIVectorStoreService,
+  type OpenAIVectorStoreService,
+  type FileUploadRequest,
+  type SearchRequest,
+} from '../openai';
 
 // Mock OpenAI SDK
 const mockOpenAI = {
@@ -39,14 +44,17 @@ global.fetch = mockFetch;
 
 describe('OpenAI Vector Store Service', () => {
   let service: OpenAIVectorStoreService;
-  
+
+  // Skip these tests if OpenAI API key is not available
+  const skipIfNoOpenAI = !process.env.OPENAI_API_KEY ? it.skip : it;
+
   beforeEach(() => {
     vi.clearAllMocks();
     mockFetch.mockClear();
-    
+
     // Reset environment variables
-    process.env.OPENAI_API_KEY = 'sk-test-key';
-    process.env.OPENAI_VECTORSTORE = 'vs_test_store';
+    process.env.OPENAI_API_KEY = process.env.OPENAI_API_KEY || 'sk-test-key';
+    process.env.OPENAI_VECTORSTORE = process.env.OPENAI_VECTORSTORE || 'vs_test_store';
   });
 
   afterEach(() => {
@@ -57,7 +65,7 @@ describe('OpenAI Vector Store Service', () => {
     it('should create enabled service with valid API key', () => {
       service = createOpenAIVectorStoreService({
         apiKey: 'sk-valid-key',
-        defaultVectorStoreId: 'vs_test_store'
+        defaultVectorStoreId: 'vs_test_store',
       });
 
       expect(service.isEnabled).toBe(true);
@@ -67,7 +75,7 @@ describe('OpenAI Vector Store Service', () => {
     it('should create disabled service without API key', () => {
       service = createOpenAIVectorStoreService({
         apiKey: '',
-        defaultVectorStoreId: null
+        defaultVectorStoreId: null,
       });
 
       expect(service.isEnabled).toBe(false);
@@ -76,31 +84,31 @@ describe('OpenAI Vector Store Service', () => {
 
     it('should warn about invalid API key format', () => {
       const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-      
+
       createOpenAIVectorStoreService({
         apiKey: 'invalid-key',
-        defaultVectorStoreId: 'vs_test_store'
+        defaultVectorStoreId: 'vs_test_store',
       });
 
       expect(consoleSpy).toHaveBeenCalledWith(
-        'OpenAI API key appears to be invalid (should start with "sk-")'
+        'OpenAI API key appears to be invalid (should start with "sk-")',
       );
-      
+
       consoleSpy.mockRestore();
     });
 
     it('should warn about invalid vector store ID format', () => {
       const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-      
+
       createOpenAIVectorStoreService({
         apiKey: 'sk-valid-key',
-        defaultVectorStoreId: 'invalid-store-id'
+        defaultVectorStoreId: 'invalid-store-id',
       });
 
       expect(consoleSpy).toHaveBeenCalledWith(
-        'OpenAI vector store ID appears to be invalid (should start with "vs_")'
+        'OpenAI vector store ID appears to be invalid (should start with "vs_")',
       );
-      
+
       consoleSpy.mockRestore();
     });
   });
@@ -109,7 +117,7 @@ describe('OpenAI Vector Store Service', () => {
     beforeEach(() => {
       service = createOpenAIVectorStoreService({
         apiKey: 'sk-test-key',
-        defaultVectorStoreId: 'vs_test_store'
+        defaultVectorStoreId: 'vs_test_store',
       });
     });
 
@@ -143,14 +151,16 @@ describe('OpenAI Vector Store Service', () => {
           json: () => Promise.resolve(mockVectorStore),
         });
 
-        const result = await service.createVectorStore('Test Store', { key: 'value' });
+        const result = await service.createVectorStore('Test Store', {
+          key: 'value',
+        });
 
         expect(mockFetch).toHaveBeenCalledWith(
           'https://api.openai.com/v1/vector_stores',
           expect.objectContaining({
             method: 'POST',
             headers: expect.objectContaining({
-              'Authorization': 'Bearer sk-test-key',
+              Authorization: 'Bearer sk-test-key',
               'Content-Type': 'application/json',
               'OpenAI-Beta': 'assistants=v2',
             }),
@@ -162,7 +172,7 @@ describe('OpenAI Vector Store Service', () => {
                 days: 365,
               },
             }),
-          })
+          }),
         );
 
         expect(result).toEqual(mockVectorStore);
@@ -173,13 +183,14 @@ describe('OpenAI Vector Store Service', () => {
           ok: false,
           status: 400,
           statusText: 'Bad Request',
-          json: () => Promise.resolve({ 
-            error: { message: 'Invalid request' } 
-          }),
+          json: () =>
+            Promise.resolve({
+              error: { message: 'Invalid request' },
+            }),
         });
 
         await expect(service.createVectorStore('Test Store')).rejects.toThrow(
-          'HTTP 400: Invalid request'
+          'HTTP 400: Invalid request',
         );
       });
 
@@ -187,7 +198,7 @@ describe('OpenAI Vector Store Service', () => {
         mockFetch.mockRejectedValueOnce(new Error('Network error'));
 
         await expect(service.createVectorStore('Test Store')).rejects.toThrow(
-          'Network error'
+          'Network error',
         );
       });
     });
@@ -225,9 +236,9 @@ describe('OpenAI Vector Store Service', () => {
           'https://api.openai.com/v1/vector_stores/vs_test_store',
           expect.objectContaining({
             headers: expect.objectContaining({
-              'Authorization': 'Bearer sk-test-key',
+              Authorization: 'Bearer sk-test-key',
             }),
-          })
+          }),
         );
 
         expect(result).toEqual(mockVectorStore);
@@ -238,13 +249,14 @@ describe('OpenAI Vector Store Service', () => {
           ok: false,
           status: 404,
           statusText: 'Not Found',
-          json: () => Promise.resolve({ 
-            error: { message: 'Vector store not found' } 
-          }),
+          json: () =>
+            Promise.resolve({
+              error: { message: 'Vector store not found' },
+            }),
         });
 
         await expect(service.getVectorStore('vs_nonexistent')).rejects.toThrow(
-          'HTTP 404: Vector store not found'
+          'HTTP 404: Vector store not found',
         );
       });
     });
@@ -258,7 +270,13 @@ describe('OpenAI Vector Store Service', () => {
             created_at: Date.now(),
             name: 'Store 1',
             usage_bytes: 1024,
-            file_counts: { in_progress: 0, completed: 1, failed: 0, cancelled: 0, total: 1 },
+            file_counts: {
+              in_progress: 0,
+              completed: 1,
+              failed: 0,
+              cancelled: 0,
+              total: 1,
+            },
             status: 'completed',
             expires_after: null,
             expires_at: null,
@@ -271,7 +289,13 @@ describe('OpenAI Vector Store Service', () => {
             created_at: Date.now(),
             name: 'Store 2',
             usage_bytes: 2048,
-            file_counts: { in_progress: 0, completed: 2, failed: 0, cancelled: 0, total: 2 },
+            file_counts: {
+              in_progress: 0,
+              completed: 2,
+              failed: 0,
+              cancelled: 0,
+              total: 2,
+            },
             status: 'completed',
             expires_after: null,
             expires_at: null,
@@ -293,8 +317,10 @@ describe('OpenAI Vector Store Service', () => {
       });
 
       it('should return empty array on API error', async () => {
-        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-        
+        const consoleSpy = vi
+          .spyOn(console, 'error')
+          .mockImplementation(() => {});
+
         mockFetch.mockResolvedValueOnce({
           ok: false,
           status: 500,
@@ -307,9 +333,9 @@ describe('OpenAI Vector Store Service', () => {
         expect(result).toEqual([]);
         expect(consoleSpy).toHaveBeenCalledWith(
           'Failed to list vector stores:',
-          expect.any(Error)
+          expect.any(Error),
         );
-        
+
         consoleSpy.mockRestore();
       });
     });
@@ -327,15 +353,17 @@ describe('OpenAI Vector Store Service', () => {
           'https://api.openai.com/v1/vector_stores/vs_test_store',
           expect.objectContaining({
             method: 'DELETE',
-          })
+          }),
         );
 
         expect(result).toBe(true);
       });
 
       it('should return false on API error', async () => {
-        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-        
+        const consoleSpy = vi
+          .spyOn(console, 'error')
+          .mockImplementation(() => {});
+
         mockFetch.mockResolvedValueOnce({
           ok: false,
           status: 404,
@@ -347,7 +375,7 @@ describe('OpenAI Vector Store Service', () => {
 
         expect(result).toBe(false);
         expect(consoleSpy).toHaveBeenCalled();
-        
+
         consoleSpy.mockRestore();
       });
     });
@@ -357,13 +385,15 @@ describe('OpenAI Vector Store Service', () => {
     beforeEach(() => {
       service = createOpenAIVectorStoreService({
         apiKey: 'sk-test-key',
-        defaultVectorStoreId: 'vs_test_store'
+        defaultVectorStoreId: 'vs_test_store',
       });
     });
 
     describe('uploadFile', () => {
       it('should upload file successfully', async () => {
-        const mockFile = new File(['test content'], 'test.txt', { type: 'text/plain' });
+        const mockFile = new File(['test content'], 'test.txt', {
+          type: 'text/plain',
+        });
         const mockUploadedFile = {
           id: 'file_123',
           object: 'file',
@@ -401,7 +431,7 @@ describe('OpenAI Vector Store Service', () => {
           expect.objectContaining({
             method: 'POST',
             body: JSON.stringify({ file_id: 'file_123' }),
-          })
+          }),
         );
 
         expect(result).toEqual(mockVectorStoreFile);
@@ -410,24 +440,28 @@ describe('OpenAI Vector Store Service', () => {
       it('should throw error without vector store ID', async () => {
         const serviceWithoutStore = createOpenAIVectorStoreService({
           apiKey: 'sk-test-key',
-          defaultVectorStoreId: null
+          defaultVectorStoreId: null,
         });
 
         const mockFile = new File(['test'], 'test.txt', { type: 'text/plain' });
         const request: FileUploadRequest = { file: mockFile };
 
         await expect(serviceWithoutStore.uploadFile(request)).rejects.toThrow(
-          'No vector store ID provided and no default configured'
+          'No vector store ID provided and no default configured',
         );
       });
 
       it('should handle file upload errors', async () => {
         const mockFile = new File(['test'], 'test.txt', { type: 'text/plain' });
-        mockOpenAI.files.create.mockRejectedValueOnce(new Error('Upload failed'));
+        mockOpenAI.files.create.mockRejectedValueOnce(
+          new Error('Upload failed'),
+        );
 
         const request: FileUploadRequest = { file: mockFile };
 
-        await expect(service.uploadFile(request)).rejects.toThrow('Upload failed');
+        await expect(service.uploadFile(request)).rejects.toThrow(
+          'Upload failed',
+        );
       });
     });
 
@@ -463,9 +497,9 @@ describe('OpenAI Vector Store Service', () => {
           'https://api.openai.com/v1/vector_stores/vs_test_store/files',
           expect.objectContaining({
             headers: expect.objectContaining({
-              'Authorization': 'Bearer sk-test-key',
+              Authorization: 'Bearer sk-test-key',
             }),
-          })
+          }),
         );
 
         expect(result).toHaveLength(2);
@@ -473,8 +507,10 @@ describe('OpenAI Vector Store Service', () => {
       });
 
       it('should return empty array on error', async () => {
-        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-        
+        const consoleSpy = vi
+          .spyOn(console, 'error')
+          .mockImplementation(() => {});
+
         mockFetch.mockResolvedValueOnce({
           ok: false,
           status: 500,
@@ -485,7 +521,7 @@ describe('OpenAI Vector Store Service', () => {
 
         expect(result).toEqual([]);
         expect(consoleSpy).toHaveBeenCalled();
-        
+
         consoleSpy.mockRestore();
       });
     });
@@ -503,15 +539,17 @@ describe('OpenAI Vector Store Service', () => {
           'https://api.openai.com/v1/vector_stores/vs_test_store/files/file_123',
           expect.objectContaining({
             method: 'DELETE',
-          })
+          }),
         );
 
         expect(result).toBe(true);
       });
 
       it('should return false on error', async () => {
-        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-        
+        const consoleSpy = vi
+          .spyOn(console, 'error')
+          .mockImplementation(() => {});
+
         mockFetch.mockResolvedValueOnce({
           ok: false,
           status: 404,
@@ -523,7 +561,7 @@ describe('OpenAI Vector Store Service', () => {
 
         expect(result).toBe(false);
         expect(consoleSpy).toHaveBeenCalled();
-        
+
         consoleSpy.mockRestore();
       });
     });
@@ -533,7 +571,7 @@ describe('OpenAI Vector Store Service', () => {
     beforeEach(() => {
       service = createOpenAIVectorStoreService({
         apiKey: 'sk-test-key',
-        defaultVectorStoreId: 'vs_test_store'
+        defaultVectorStoreId: 'vs_test_store',
       });
     });
 
@@ -573,10 +611,11 @@ describe('OpenAI Vector Store Service', () => {
         mockFetch
           .mockResolvedValueOnce({
             ok: true,
-            json: () => Promise.resolve({
-              id: 'vs_test_store',
-              status: 'completed',
-            }),
+            json: () =>
+              Promise.resolve({
+                id: 'vs_test_store',
+                status: 'completed',
+              }),
           })
           .mockResolvedValueOnce({
             ok: true,
@@ -595,7 +634,9 @@ describe('OpenAI Vector Store Service', () => {
 
         expect(result.success).toBe(true);
         expect(result.results).toHaveLength(1);
-        expect(result.results[0].content).toBe('This is test content from the document.');
+        expect(result.results[0].content).toBe(
+          'This is test content from the document.',
+        );
         expect(result.sources).toHaveLength(1);
         expect(result.sources[0].name).toBe('document.txt');
       });
@@ -621,13 +662,16 @@ describe('OpenAI Vector Store Service', () => {
         // Mock validation success
         mockFetch.mockResolvedValueOnce({
           ok: true,
-          json: () => Promise.resolve({
-            id: 'vs_test_store',
-            status: 'completed',
-          }),
+          json: () =>
+            Promise.resolve({
+              id: 'vs_test_store',
+              status: 'completed',
+            }),
         });
 
-        mockOpenAI.responses.create.mockRejectedValueOnce(new Error('Search failed'));
+        mockOpenAI.responses.create.mockRejectedValueOnce(
+          new Error('Search failed'),
+        );
 
         const request: SearchRequest = {
           query: 'test query',
@@ -642,7 +686,7 @@ describe('OpenAI Vector Store Service', () => {
       it('should handle missing vector store ID', async () => {
         const serviceWithoutStore = createOpenAIVectorStoreService({
           apiKey: 'sk-test-key',
-          defaultVectorStoreId: null
+          defaultVectorStoreId: null,
         });
 
         const request: SearchRequest = {
@@ -730,7 +774,9 @@ describe('OpenAI Vector Store Service', () => {
       });
 
       it('should exhaust all retries', async () => {
-        vi.spyOn(service, 'searchFiles').mockRejectedValue(new Error('Persistent error'));
+        vi.spyOn(service, 'searchFiles').mockRejectedValue(
+          new Error('Persistent error'),
+        );
 
         const request: SearchRequest = { query: 'test' };
         const result = await service.searchWithRetry(request, 2);
@@ -746,7 +792,7 @@ describe('OpenAI Vector Store Service', () => {
     beforeEach(() => {
       service = createOpenAIVectorStoreService({
         apiKey: 'sk-test-key',
-        defaultVectorStoreId: 'vs_test_store'
+        defaultVectorStoreId: 'vs_test_store',
       });
     });
 
@@ -759,10 +805,11 @@ describe('OpenAI Vector Store Service', () => {
           })
           .mockResolvedValueOnce({
             ok: true,
-            json: () => Promise.resolve({
-              id: 'vs_test_store',
-              status: 'completed',
-            }),
+            json: () =>
+              Promise.resolve({
+                id: 'vs_test_store',
+                status: 'completed',
+              }),
           });
 
         const result = await service.healthCheck();
@@ -807,10 +854,11 @@ describe('OpenAI Vector Store Service', () => {
       it('should validate completed vector store', async () => {
         mockFetch.mockResolvedValueOnce({
           ok: true,
-          json: () => Promise.resolve({
-            id: 'vs_test_store',
-            status: 'completed',
-          }),
+          json: () =>
+            Promise.resolve({
+              id: 'vs_test_store',
+              status: 'completed',
+            }),
         });
 
         const result = await service.validateVectorStore('vs_test_store');
@@ -821,10 +869,11 @@ describe('OpenAI Vector Store Service', () => {
       it('should validate in-progress vector store', async () => {
         mockFetch.mockResolvedValueOnce({
           ok: true,
-          json: () => Promise.resolve({
-            id: 'vs_test_store',
-            status: 'in_progress',
-          }),
+          json: () =>
+            Promise.resolve({
+              id: 'vs_test_store',
+              status: 'in_progress',
+            }),
         });
 
         const result = await service.validateVectorStore('vs_test_store');
@@ -835,10 +884,11 @@ describe('OpenAI Vector Store Service', () => {
       it('should reject expired vector store', async () => {
         mockFetch.mockResolvedValueOnce({
           ok: true,
-          json: () => Promise.resolve({
-            id: 'vs_test_store',
-            status: 'expired',
-          }),
+          json: () =>
+            Promise.resolve({
+              id: 'vs_test_store',
+              status: 'expired',
+            }),
         });
 
         const result = await service.validateVectorStore('vs_test_store');
@@ -847,15 +897,17 @@ describe('OpenAI Vector Store Service', () => {
       });
 
       it('should handle validation error', async () => {
-        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-        
+        const consoleSpy = vi
+          .spyOn(console, 'error')
+          .mockImplementation(() => {});
+
         mockFetch.mockRejectedValueOnce(new Error('Network error'));
 
         const result = await service.validateVectorStore('vs_test_store');
 
         expect(result).toBe(false);
         expect(consoleSpy).toHaveBeenCalled();
-        
+
         consoleSpy.mockRestore();
       });
     });
@@ -877,16 +929,20 @@ describe('OpenAI Vector Store Service', () => {
       });
 
       it('should handle file retrieval errors', async () => {
-        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-        
-        mockOpenAI.files.retrieve.mockRejectedValueOnce(new Error('File not found'));
+        const consoleSpy = vi
+          .spyOn(console, 'error')
+          .mockImplementation(() => {});
+
+        mockOpenAI.files.retrieve.mockRejectedValueOnce(
+          new Error('File not found'),
+        );
 
         const result = await service.getSourceFiles(['file_nonexistent']);
 
         expect(result).toHaveLength(1);
         expect(result[0].name).toContain('Unknown file');
         expect(consoleSpy).toHaveBeenCalled();
-        
+
         consoleSpy.mockRestore();
       });
 
@@ -913,7 +969,7 @@ describe('OpenAI Vector Store Service', () => {
       it('should return null without vector store ID', () => {
         const serviceWithoutStore = createOpenAIVectorStoreService({
           apiKey: 'sk-test-key',
-          defaultVectorStoreId: null
+          defaultVectorStoreId: null,
         });
 
         const result = serviceWithoutStore.getFileSearchTool();
@@ -924,7 +980,9 @@ describe('OpenAI Vector Store Service', () => {
       it('should use provided vector store ID', () => {
         const result = service.getFileSearchTool('vs_custom_store');
 
-        expect(result.file_search.vector_store_ids).toEqual(['vs_custom_store']);
+        expect(result.file_search.vector_store_ids).toEqual([
+          'vs_custom_store',
+        ]);
       });
     });
   });
@@ -933,16 +991,22 @@ describe('OpenAI Vector Store Service', () => {
     beforeEach(() => {
       service = createOpenAIVectorStoreService({
         apiKey: '',
-        defaultVectorStoreId: null
+        defaultVectorStoreId: null,
       });
     });
 
     it('should throw errors for write operations', async () => {
-      await expect(service.createVectorStore('test')).rejects.toThrow('disabled');
-      await expect(service.getVectorStore('vs_test')).rejects.toThrow('disabled');
-      
+      await expect(service.createVectorStore('test')).rejects.toThrow(
+        'disabled',
+      );
+      await expect(service.getVectorStore('vs_test')).rejects.toThrow(
+        'disabled',
+      );
+
       const mockFile = new File(['test'], 'test.txt');
-      await expect(service.uploadFile({ file: mockFile })).rejects.toThrow('disabled');
+      await expect(service.uploadFile({ file: mockFile })).rejects.toThrow(
+        'disabled',
+      );
     });
 
     it('should return empty arrays for read operations', async () => {

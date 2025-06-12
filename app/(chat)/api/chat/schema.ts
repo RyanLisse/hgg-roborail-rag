@@ -16,7 +16,12 @@ try {
 } catch (error) {
   console.error('Failed to load model IDs:', error);
   // Fallback to basic model IDs to prevent schema creation failure
-  modelIds = ['openai-gpt-4o', 'openai-gpt-4o-mini', 'chat-model', 'chat-model-reasoning'];
+  modelIds = [
+    'openai-gpt-4o',
+    'openai-gpt-4o-mini',
+    'chat-model',
+    'chat-model-reasoning',
+  ];
 }
 
 const chatModelSchema = z.enum(modelIds as [string, ...string[]]);
@@ -25,14 +30,16 @@ export const postRequestBodySchema = z.object({
   id: z.string().uuid(),
   message: z.object({
     id: z.string().uuid(),
-    createdAt: z.union([
-      z.string().datetime(),
-      z.date(),
-      z.string().transform((str) => new Date(str))
-    ]).refine((date) => {
-      const d = date instanceof Date ? date : new Date(date);
-      return !Number.isNaN(d.getTime());
-    }, "Invalid date format"),
+    createdAt: z
+      .union([
+        z.string().datetime(),
+        z.date(),
+        z.string().transform((str) => new Date(str)),
+      ])
+      .refine((date) => {
+        const d = date instanceof Date ? date : new Date(date);
+        return !Number.isNaN(d.getTime());
+      }, 'Invalid date format'),
     role: z.enum(['user']),
     content: z.string().min(1).max(2000),
     parts: z.array(textPartSchema),

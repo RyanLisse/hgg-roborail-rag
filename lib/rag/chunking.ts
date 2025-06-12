@@ -175,51 +175,58 @@ function analyzeDocumentStructure(content: string, documentType?: string): {
 
   if (documentType === 'markdown') {
     // Extract headings
-    let match;
-    while ((match = MARKDOWN_PATTERNS.heading.exec(content)) !== null) {
+    let match: RegExpExecArray | null = MARKDOWN_PATTERNS.heading.exec(content);
+    while (match !== null) {
       const level = match[0].indexOf(' ') - 1; // Count # characters
       headings.push({
         level,
         text: match[1],
         position: match.index,
       });
+      match = MARKDOWN_PATTERNS.heading.exec(content);
     }
 
     // Extract code blocks
-    while ((match = MARKDOWN_PATTERNS.codeBlock.exec(content)) !== null) {
+    match = MARKDOWN_PATTERNS.codeBlock.exec(content);
+    while (match !== null) {
       const langMatch = match[0].match(/```(\w+)?/);
       codeBlocks.push({
         language: langMatch?.[1],
         position: match.index,
         length: match[0].length,
       });
+      match = MARKDOWN_PATTERNS.codeBlock.exec(content);
     }
 
     // Extract lists
-    while ((match = MARKDOWN_PATTERNS.list.exec(content)) !== null) {
+    match = MARKDOWN_PATTERNS.list.exec(content);
+    while (match !== null) {
       lists.push({
         position: match.index,
         length: match[0].length,
       });
+      match = MARKDOWN_PATTERNS.list.exec(content);
     }
   }
 
   // Find paragraph breaks
   const paragraphRegex = /\n\s*\n/g;
-  let paragraphMatch;
-  while ((paragraphMatch = paragraphRegex.exec(content)) !== null) {
+  let paragraphMatch: RegExpExecArray | null = paragraphRegex.exec(content);
+  while (paragraphMatch !== null) {
     naturalBreaks.push(paragraphMatch.index);
     paragraphs.push({
       position: paragraphMatch.index,
       length: 2,
     });
+    paragraphMatch = paragraphRegex.exec(content);
   }
 
   // Find sentence boundaries
   const sentenceRegex = /[.!?]+\s+/g;
-  let sentenceMatch;
-  while ((sentenceMatch = sentenceRegex.exec(content)) !== null) {
+  let sentenceMatch: RegExpExecArray | null = sentenceRegex.exec(content);
+  while (sentenceMatch !== null) {
     naturalBreaks.push(sentenceMatch.index + sentenceMatch[0].length);
+    sentenceMatch = sentenceRegex.exec(content);
   }
 
   // Remove duplicates and sort
@@ -235,6 +242,7 @@ function analyzeDocumentStructure(content: string, documentType?: string): {
 }
 
 // Core chunking strategies
+// biome-ignore lint/complexity/noStaticOnlyClass: Utility class pattern for organized functionality
 class CharacterChunker {
   static chunk(content: string, config: ChunkingConfig): string[] {
     const { chunkSize, chunkOverlap } = config;
@@ -248,13 +256,26 @@ class CharacterChunker {
     while (start < content.length) {
       const end = Math.min(start + chunkSize, content.length);
       chunks.push(content.slice(start, end));
+      
+      // If we've reached the end, break
+      if (end >= content.length) {
+        break;
+      }
+      
+      // Move to next chunk with overlap
       start = end - chunkOverlap;
+      
+      // Ensure we make progress to avoid infinite loops
+      if (start >= end - 1) {
+        start = end;
+      }
     }
 
     return chunks.filter(chunk => chunk.trim().length > 0);
   }
 }
 
+// biome-ignore lint/complexity/noStaticOnlyClass: Utility class pattern for organized functionality
 class SemanticChunker {
   static chunk(content: string, config: ChunkingConfig, documentType?: string): string[] {
     const structure = analyzeDocumentStructure(content, documentType);
@@ -307,6 +328,7 @@ class SemanticChunker {
   }
 }
 
+// biome-ignore lint/complexity/noStaticOnlyClass: Utility class pattern for organized functionality
 class RecursiveChunker {
   static chunk(content: string, config: ChunkingConfig, documentType?: string): string[] {
     const { chunkSize, minChunkSize, maxChunkSize } = config;
@@ -387,6 +409,7 @@ class RecursiveChunker {
   }
 }
 
+// biome-ignore lint/complexity/noStaticOnlyClass: Utility class pattern for organized functionality
 class HybridChunker {
   static chunk(content: string, config: ChunkingConfig, documentType?: string): string[] {
     // First, try semantic chunking
@@ -614,10 +637,11 @@ export class DocumentChunkingService {
     // Split by functions/classes first, then by blocks
     const functionRegex = CODE_PATTERNS.function;
     const functionMatches: RegExpExecArray[] = [];
-    let match;
+    let match = functionRegex.exec(content);
     
-    while ((match = functionRegex.exec(content)) !== null) {
+    while (match !== null) {
       functionMatches.push(match);
+      match = functionRegex.exec(content);
     }
     
     if (functionMatches.length > 1) {

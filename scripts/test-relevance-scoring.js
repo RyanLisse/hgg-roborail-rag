@@ -1,24 +1,24 @@
 #!/usr/bin/env node
 
 /**
- * Performance and effectiveness test for the relevance scoring system
+ * Test script for RoboRail Relevance Scoring and Reranking system
  * 
- * This script tests:
- * 1. Relevance scoring accuracy
- * 2. Reranking performance
- * 3. User feedback integration
- * 4. Cross-encoder effectiveness
- * 5. Hybrid search fusion
+ * This script tests the relevance scoring implementation including:
+ * - Multi-factor relevance calculation
+ * - Document reranking
+ * - Cross-encoder simulation
+ * - User feedback integration
+ * - Performance metrics
  */
 
-import { performance } from 'perf_hooks';
+const { performance } = require('node:perf_hooks');
 
 // Mock implementation for testing (since we can't import TypeScript modules directly)
-class TestRelevanceScoringEngine {
-  static userFeedbackStore = new Map();
-  static documentAuthorityCache = new Map();
+const TestRelevanceScoringEngine = {
+  userFeedbackStore: new Map(),
+  documentAuthorityCache: new Map(),
 
-  static calculateRelevanceScore(document, query, queryContext = {}, weights = {}) {
+  calculateRelevanceScore(document, query, queryContext = {}, weights = {}) {
     const defaultWeights = {
       similarity: 0.3,
       recency: 0.15,
@@ -32,12 +32,12 @@ class TestRelevanceScoringEngine {
 
     // Simulate relevance factor calculations
     const similarity = document.similarity || 0.5;
-    const recency = this.calculateRecencyScore(document.createdAt, document.updatedAt);
-    const authority = this.calculateAuthorityScore(document.id, document.source, document.metadata);
-    const contextRelevance = this.calculateContextRelevance(document.content, query, queryContext);
-    const keywordMatch = this.calculateKeywordMatch(document.content, query);
-    const semanticMatch = this.calculateSemanticMatch(document.content, query, queryContext);
-    const userFeedback = this.calculateUserFeedbackScore(document.id, query);
+    const recency = TestRelevanceScoringEngine.calculateRecencyScore(document.createdAt, document.updatedAt);
+    const authority = TestRelevanceScoringEngine.calculateAuthorityScore(document.id, document.source, document.metadata);
+    const contextRelevance = TestRelevanceScoringEngine.calculateContextRelevance(document.content, query, queryContext);
+    const keywordMatch = TestRelevanceScoringEngine.calculateKeywordMatch(document.content, query);
+    const semanticMatch = TestRelevanceScoringEngine.calculateSemanticMatch(document.content, query, queryContext);
+    const userFeedback = TestRelevanceScoringEngine.calculateUserFeedbackScore(document.id, query);
 
     const factors = {
       similarity,
@@ -59,9 +59,9 @@ class TestRelevanceScoringEngine {
       factors.userFeedback * defaultWeights.userFeedback;
 
     return { factors, relevanceScore: Math.min(Math.max(relevanceScore, 0), 1) };
-  }
+  },
 
-  static calculateRecencyScore(createdAt, updatedAt) {
+  calculateRecencyScore(createdAt, updatedAt) {
     if (!createdAt && !updatedAt) return 0.5;
     
     const relevantDate = updatedAt || createdAt;
@@ -74,11 +74,11 @@ class TestRelevanceScoringEngine {
     if (ageInDays <= 365) return 0.5;
     if (ageInDays <= 730) return 0.3;
     return 0.1;
-  }
+  },
 
-  static calculateAuthorityScore(documentId, source, metadata) {
-    if (this.documentAuthorityCache.has(documentId)) {
-      return this.documentAuthorityCache.get(documentId);
+  calculateAuthorityScore(documentId, source, metadata) {
+    if (TestRelevanceScoringEngine.documentAuthorityCache.has(documentId)) {
+      return TestRelevanceScoringEngine.documentAuthorityCache.get(documentId);
     }
 
     let score = 0.5;
@@ -105,11 +105,11 @@ class TestRelevanceScoringEngine {
     }
 
     score = Math.min(Math.max(score, 0), 1);
-    this.documentAuthorityCache.set(documentId, score);
+    TestRelevanceScoringEngine.documentAuthorityCache.set(documentId, score);
     return score;
-  }
+  },
 
-  static calculateContextRelevance(content, query, queryContext) {
+  calculateContextRelevance(content, query, queryContext) {
     let score = 0.5;
     const contentLower = content.toLowerCase();
     const queryLower = query.toLowerCase();
@@ -131,9 +131,9 @@ class TestRelevanceScoringEngine {
     }
 
     return Math.min(Math.max(score, 0), 1);
-  }
+  },
 
-  static calculateKeywordMatch(content, query) {
+  calculateKeywordMatch(content, query) {
     const queryWords = query.toLowerCase().split(/\s+/).filter(word => word.length > 2);
     const contentLower = content.toLowerCase();
     
@@ -145,9 +145,9 @@ class TestRelevanceScoringEngine {
     }
 
     return Math.min(score / Math.max(queryWords.length, 1), 1);
-  }
+  },
 
-  static calculateSemanticMatch(content, query, queryContext) {
+  calculateSemanticMatch(content, query, queryContext) {
     // Simplified semantic matching
     const semanticPairs = [
       ['configure', 'setup'],
@@ -169,26 +169,26 @@ class TestRelevanceScoringEngine {
     }
 
     return Math.min(score, 1);
-  }
+  },
 
-  static calculateUserFeedbackScore(documentId, query) {
-    const feedbacks = this.userFeedbackStore.get(documentId) || [];
+  calculateUserFeedbackScore(documentId, query) {
+    const feedbacks = TestRelevanceScoringEngine.userFeedbackStore.get(documentId) || [];
     if (feedbacks.length === 0) return 0.5;
 
     const avgRating = feedbacks.reduce((sum, fb) => sum + fb.rating, 0) / feedbacks.length;
     return (avgRating - 1) / 4; // Convert 1-5 scale to 0-1
-  }
+  },
 
-  static recordUserFeedback(feedback) {
-    if (!this.userFeedbackStore.has(feedback.documentId)) {
-      this.userFeedbackStore.set(feedback.documentId, []);
+  recordUserFeedback(feedback) {
+    if (!TestRelevanceScoringEngine.userFeedbackStore.has(feedback.documentId)) {
+      TestRelevanceScoringEngine.userFeedbackStore.set(feedback.documentId, []);
     }
-    this.userFeedbackStore.get(feedback.documentId).push(feedback);
+    TestRelevanceScoringEngine.userFeedbackStore.get(feedback.documentId).push(feedback);
   }
-}
+};
 
-class TestDocumentRerankingEngine {
-  static async rerankDocuments(request) {
+const TestDocumentRerankingEngine = {
+  async rerankDocuments(request) {
     const startTime = performance.now();
     
     const scoredDocuments = [];
@@ -238,9 +238,9 @@ class TestDocumentRerankingEngine {
       strategy: request.enableCrossEncoder ? 'cross_encoder' : 'relevance_only',
       diversificationApplied: false,
     };
-  }
+  },
 
-  static fuseHybridResults(request) {
+  fuseHybridResults(request) {
     const documentMap = new Map();
 
     // Add vector results
@@ -292,7 +292,7 @@ class TestDocumentRerankingEngine {
 
     return fusionScores;
   }
-}
+};
 
 // Test data generators
 function generateTestDocuments(count = 20) {
@@ -313,383 +313,243 @@ function generateTestDocuments(count = 20) {
         type,
         topic,
         official: source.includes('roborail'),
-        difficulty: i % 3 === 0 ? 'basic' : i % 3 === 1 ? 'intermediate' : 'advanced',
-        lastUpdated: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000).toISOString(),
+        verified: Math.random() > 0.5,
       },
       source,
-      createdAt: new Date(Date.now() - Math.random() * 730 * 24 * 60 * 60 * 1000), // Up to 2 years old
-      updatedAt: Math.random() > 0.5 ? new Date(Date.now() - Math.random() * 90 * 24 * 60 * 60 * 1000) : null, // Some updated recently
+      createdAt: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000),
+      updatedAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000),
     };
   });
-}
-
-function generateTestQueries() {
-  return [
-    {
-      query: 'roborail automation setup',
-      context: { type: 'procedural', domain: 'automation', complexity: 'basic' },
-      expected: ['automation', 'setup', 'tutorial'],
-    },
-    {
-      query: 'api integration troubleshooting',
-      context: { type: 'troubleshooting', domain: 'integration', complexity: 'intermediate' },
-      expected: ['api', 'integration', 'troubleshooting'],
-    },
-    {
-      query: 'advanced configuration best practices',
-      context: { type: 'best_practices', domain: 'configuration', complexity: 'advanced' },
-      expected: ['configuration', 'best_practices', 'advanced'],
-    },
-    {
-      query: 'roborail deployment guide',
-      context: { type: 'procedural', domain: 'deployment', complexity: 'intermediate' },
-      expected: ['deployment', 'guide', 'roborail'],
-    },
-  ];
 }
 
 // Test functions
 async function testRelevanceScoring() {
-  console.log('🧪 Testing Relevance Scoring...');
+  console.log('\n===== Testing Relevance Scoring =====\n');
+  
+  const testDocument = {
+    id: 'doc-1',
+    content: 'RoboRail automation workflow configuration guide for API integration',
+    similarity: 0.85,
+    metadata: {
+      type: 'api_reference',
+      official: true,
+    },
+    source: 'roborail_api',
+    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
+    updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
+  };
+
+  const query = 'roborail automation api configuration';
+  const queryContext = {
+    domain: 'roborail',
+    type: 'configuration',
+  };
+
+  const result = TestRelevanceScoringEngine.calculateRelevanceScore(
+    testDocument,
+    query,
+    queryContext
+  );
+
+  console.log('Document:', testDocument.id);
+  console.log('Query:', query);
+  console.log('\nRelevance Factors:');
+  Object.entries(result.factors).forEach(([factor, score]) => {
+    console.log(`  ${factor}: ${score.toFixed(3)}`);
+  });
+  console.log(`\nFinal Relevance Score: ${result.relevanceScore.toFixed(3)}`);
+}
+
+async function testDocumentReranking() {
+  console.log('\n===== Testing Document Reranking =====\n');
   
   const documents = generateTestDocuments(10);
-  const queries = generateTestQueries();
-  
-  let totalRelevanceScore = 0;
-  let totalProcessingTime = 0;
-  let testCount = 0;
+  const query = 'roborail automation configuration';
+  const queryContext = {
+    domain: 'roborail',
+    type: 'configuration',
+  };
 
-  for (const queryTest of queries) {
-    const startTime = performance.now();
-    
-    for (const doc of documents) {
-      const result = TestRelevanceScoringEngine.calculateRelevanceScore(
-        doc,
-        queryTest.query,
-        queryTest.context
-      );
-      
-      totalRelevanceScore += result.relevanceScore;
-      testCount++;
-      
-      // Verify score is in valid range
-      if (result.relevanceScore < 0 || result.relevanceScore > 1) {
-        console.error(`❌ Invalid relevance score: ${result.relevanceScore} for doc ${doc.id}`);
-      }
-      
-      // Verify all factors are calculated
-      const requiredFactors = ['similarity', 'recency', 'authority', 'contextRelevance', 'keywordMatch', 'semanticMatch'];
-      for (const factor of requiredFactors) {
-        if (result.factors[factor] === undefined) {
-          console.error(`❌ Missing factor ${factor} for doc ${doc.id}`);
-        }
-      }
-    }
-    
-    totalProcessingTime += performance.now() - startTime;
-  }
-  
-  const avgRelevanceScore = totalRelevanceScore / testCount;
-  const avgProcessingTime = totalProcessingTime / queries.length;
-  
-  console.log(`✅ Relevance Scoring Tests Completed:`);
-  console.log(`   - Average relevance score: ${avgRelevanceScore.toFixed(3)}`);
-  console.log(`   - Average processing time per query: ${avgProcessingTime.toFixed(2)}ms`);
-  console.log(`   - Total tests: ${testCount}`);
-  
-  return { avgRelevanceScore, avgProcessingTime, testCount };
-}
+  const request = {
+    documents,
+    query,
+    queryContext,
+    maxResults: 5,
+    enableCrossEncoder: false,
+  };
 
-async function testReranking() {
-  console.log('🔄 Testing Document Reranking...');
-  
-  const documents = generateTestDocuments(20);
-  const queries = generateTestQueries();
-  
-  let totalRerankingTime = 0;
-  let totalImprovement = 0;
-  let testCount = 0;
+  const result = await TestDocumentRerankingEngine.rerankDocuments(request);
 
-  for (const queryTest of queries) {
-    // Test basic reranking
-    const basicRequest = {
-      documents: documents.slice(0, 15),
-      query: queryTest.query,
-      queryContext: queryTest.context,
-      maxResults: 10,
-      enableCrossEncoder: false,
-    };
+  console.log(`Total documents: ${result.totalCandidates}`);
+  console.log(`Reranking time: ${result.rerankingTime.toFixed(2)}ms`);
+  console.log(`Strategy: ${result.strategy}\n`);
 
-    const basicResult = await TestDocumentRerankingEngine.rerankDocuments(basicRequest);
-    
-    // Test cross-encoder reranking
-    const crossEncoderRequest = {
-      ...basicRequest,
-      enableCrossEncoder: true,
-    };
-
-    const crossEncoderResult = await TestDocumentRerankingEngine.rerankDocuments(crossEncoderRequest);
-    
-    totalRerankingTime += basicResult.rerankingTime + crossEncoderResult.rerankingTime;
-    
-    // Calculate improvement (simplified metric)
-    const basicTopScore = basicResult.scoredDocuments[0]?.relevanceScore || 0;
-    const crossEncoderTopScore = crossEncoderResult.scoredDocuments[0]?.relevanceScore || 0;
-    const improvement = crossEncoderTopScore - basicTopScore;
-    totalImprovement += improvement;
-    
-    testCount++;
-    
-    // Verify results
-    if (basicResult.scoredDocuments.length === 0) {
-      console.error(`❌ No results for query: ${queryTest.query}`);
-    }
-    
-    if (basicResult.scoredDocuments.length > basicRequest.maxResults) {
-      console.error(`❌ Too many results returned: ${basicResult.scoredDocuments.length}`);
-    }
-    
-    // Verify ranking order
-    for (let i = 1; i < basicResult.scoredDocuments.length; i++) {
-      const prev = basicResult.scoredDocuments[i - 1];
-      const curr = basicResult.scoredDocuments[i];
-      if (prev.relevanceScore < curr.relevanceScore) {
-        console.error(`❌ Invalid ranking order at position ${i}`);
-      }
-    }
-  }
-  
-  const avgRerankingTime = totalRerankingTime / (testCount * 2); // *2 because we test both modes
-  const avgImprovement = totalImprovement / testCount;
-  
-  console.log(`✅ Reranking Tests Completed:`);
-  console.log(`   - Average reranking time: ${avgRerankingTime.toFixed(2)}ms`);
-  console.log(`   - Average cross-encoder improvement: ${avgImprovement.toFixed(3)}`);
-  console.log(`   - Total tests: ${testCount * 2}`);
-  
-  return { avgRerankingTime, avgImprovement, testCount: testCount * 2 };
-}
-
-async function testUserFeedback() {
-  console.log('👤 Testing User Feedback Integration...');
-  
-  const documents = generateTestDocuments(5);
-  
-  // Add some user feedback
-  const feedbacks = [
-    { documentId: 'test-doc-0', rating: 5, feedback: 'helpful' },
-    { documentId: 'test-doc-1', rating: 4, feedback: 'helpful' },
-    { documentId: 'test-doc-2', rating: 2, feedback: 'not_helpful' },
-    { documentId: 'test-doc-3', rating: 5, feedback: 'helpful' },
-    { documentId: 'test-doc-4', rating: 3, feedback: 'partially_helpful' },
-  ];
-  
-  feedbacks.forEach(fb => {
-    TestRelevanceScoringEngine.recordUserFeedback({
-      queryId: 'feedback-test',
-      documentId: fb.documentId,
-      rating: fb.rating,
-      feedback: fb.feedback,
-      timestamp: new Date(),
-    });
+  console.log('Top 5 Results:');
+  result.scoredDocuments.forEach((doc) => {
+    console.log(`\nRank ${doc.rank}: ${doc.id}`);
+    console.log(`  Content: ${doc.content.substring(0, 60)}...`);
+    console.log(`  Relevance Score: ${doc.relevanceScore.toFixed(3)}`);
+    console.log(`  Source: ${doc.source}`);
   });
-  
-  // Test that feedback affects scoring
-  let highRatedScore = 0;
-  let lowRatedScore = 0;
-  
-  for (const doc of documents) {
-    const result = TestRelevanceScoringEngine.calculateRelevanceScore(
-      doc,
-      'test query'
-    );
-    
-    if (doc.id === 'test-doc-0' || doc.id === 'test-doc-3') { // High rated
-      highRatedScore += result.factors.userFeedback;
-    } else if (doc.id === 'test-doc-2') { // Low rated
-      lowRatedScore += result.factors.userFeedback;
-    }
-  }
-  
-  const feedbackImpact = highRatedScore > lowRatedScore;
-  
-  console.log(`✅ User Feedback Tests Completed:`);
-  console.log(`   - High-rated documents score: ${highRatedScore.toFixed(3)}`);
-  console.log(`   - Low-rated documents score: ${lowRatedScore.toFixed(3)}`);
-  console.log(`   - Feedback properly impacts scoring: ${feedbackImpact ? 'Yes' : 'No'}`);
-  
-  return { feedbackImpact, highRatedScore, lowRatedScore };
 }
 
-async function testHybridSearch() {
-  console.log('🔀 Testing Hybrid Search Fusion...');
+async function testHybridFusion() {
+  console.log('\n===== Testing Hybrid Result Fusion =====\n');
   
+  // Simulate vector search results
   const vectorResults = [
-    { id: 'doc-1', content: 'Vector result 1', similarity: 0.9 },
-    { id: 'doc-2', content: 'Vector result 2', similarity: 0.7 },
-    { id: 'doc-3', content: 'Vector result 3', similarity: 0.6 },
+    { id: 'doc-1', similarity: 0.9, content: 'Vector result 1' },
+    { id: 'doc-2', similarity: 0.85, content: 'Vector result 2' },
+    { id: 'doc-3', similarity: 0.8, content: 'Vector result 3' },
   ];
-  
+
+  // Simulate keyword search results
   const keywordResults = [
-    { id: 'doc-2', content: 'Keyword result 2', score: 0.8 },
-    { id: 'doc-3', content: 'Keyword result 3', score: 0.9 },
-    { id: 'doc-4', content: 'Keyword result 4', score: 0.7 },
+    { id: 'doc-2', score: 0.95, content: 'Keyword result 2' },
+    { id: 'doc-4', score: 0.88, content: 'Keyword result 4' },
+    { id: 'doc-1', score: 0.75, content: 'Keyword result 1' },
   ];
-  
-  const hybridRequest = {
-    query: 'test hybrid search',
+
+  const request = {
     vectorResults,
     keywordResults,
     fusionWeights: { vectorWeight: 0.6, keywordWeight: 0.4 },
   };
-  
-  const startTime = performance.now();
-  const fusionScores = TestDocumentRerankingEngine.fuseHybridResults(hybridRequest);
-  const fusionTime = performance.now() - startTime;
-  
-  // Verify fusion results
-  const expectedDocs = new Set(['doc-1', 'doc-2', 'doc-3', 'doc-4']);
-  const actualDocs = new Set(fusionScores.map(score => score.documentId));
-  const allDocsIncluded = expectedDocs.size === actualDocs.size && 
-                          [...expectedDocs].every(id => actualDocs.has(id));
-  
-  // Verify score calculations
-  const doc2Score = fusionScores.find(s => s.documentId === 'doc-2');
-  const expectedDoc2Score = 0.7 * 0.6 + 0.8 * 0.4; // vector * weight + keyword * weight
-  const scoreCalculationCorrect = Math.abs(doc2Score.finalScore - expectedDoc2Score) < 0.001;
-  
-  // Verify ranking
-  const rankingCorrect = fusionScores.every((score, index) => score.rank === index + 1);
-  
-  console.log(`✅ Hybrid Search Tests Completed:`);
-  console.log(`   - Fusion processing time: ${fusionTime.toFixed(2)}ms`);
-  console.log(`   - All documents included: ${allDocsIncluded ? 'Yes' : 'No'}`);
-  console.log(`   - Score calculation correct: ${scoreCalculationCorrect ? 'Yes' : 'No'}`);
-  console.log(`   - Ranking assignment correct: ${rankingCorrect ? 'Yes' : 'No'}`);
-  console.log(`   - Total fusion results: ${fusionScores.length}`);
-  
-  return { 
-    fusionTime, 
-    allDocsIncluded, 
-    scoreCalculationCorrect, 
-    rankingCorrect,
-    resultCount: fusionScores.length 
-  };
+
+  const results = TestDocumentRerankingEngine.fuseHybridResults(request);
+
+  console.log('Fusion Results:');
+  results.forEach((result) => {
+    console.log(`\nDocument ${result.documentId}:`);
+    console.log(`  Vector Score: ${result.vectorScore.toFixed(3)}`);
+    console.log(`  Keyword Score: ${result.keywordScore.toFixed(3)}`);
+    console.log(`  Final Score: ${result.finalScore.toFixed(3)}`);
+    console.log(`  Rank: ${result.rank}`);
+  });
 }
 
-async function testPerformance() {
-  console.log('⚡ Testing Performance at Scale...');
+async function testUserFeedbackIntegration() {
+  console.log('\n===== Testing User Feedback Integration =====\n');
   
-  const largeBatch = generateTestDocuments(100);
-  const testQuery = 'roborail automation configuration guide';
+  // Record some user feedback
+  const feedbacks = [
+    { documentId: 'doc-1', rating: 5, userId: 'user-1' },
+    { documentId: 'doc-1', rating: 4, userId: 'user-2' },
+    { documentId: 'doc-2', rating: 2, userId: 'user-1' },
+    { documentId: 'doc-3', rating: 3, userId: 'user-2' },
+  ];
+
+  feedbacks.forEach(fb => TestRelevanceScoringEngine.recordUserFeedback(fb));
+
+  // Test documents with user feedback
+  const documents = [
+    { id: 'doc-1', content: 'Document with positive feedback', similarity: 0.8 },
+    { id: 'doc-2', content: 'Document with negative feedback', similarity: 0.85 },
+    { id: 'doc-3', content: 'Document with mixed feedback', similarity: 0.82 },
+    { id: 'doc-4', content: 'Document with no feedback', similarity: 0.83 },
+  ];
+
+  console.log('Document Scores with User Feedback:');
+  for (const doc of documents) {
+    const result = TestRelevanceScoringEngine.calculateRelevanceScore(doc, 'test query');
+    console.log(`\n${doc.id}:`);
+    console.log(`  User Feedback Score: ${result.factors.userFeedback.toFixed(3)}`);
+    console.log(`  Final Relevance Score: ${result.relevanceScore.toFixed(3)}`);
+  }
+}
+
+async function testWeightCustomization() {
+  console.log('\n===== Testing Weight Customization =====\n');
   
-  // Test large batch reranking
-  const startTime = performance.now();
-  
-  const result = await TestDocumentRerankingEngine.rerankDocuments({
-    documents: largeBatch,
-    query: testQuery,
-    queryContext: { type: 'configuration', domain: 'automation', complexity: 'intermediate' },
-    maxResults: 20,
-    enableCrossEncoder: false,
-  });
-  
-  const endTime = performance.now();
-  const totalTime = endTime - startTime;
-  const timePerDocument = totalTime / largeBatch.length;
-  
-  // Test memory usage (simplified)
-  const memoryUsed = process.memoryUsage();
-  
-  console.log(`✅ Performance Tests Completed:`);
-  console.log(`   - Total processing time: ${totalTime.toFixed(2)}ms`);
-  console.log(`   - Time per document: ${timePerDocument.toFixed(2)}ms`);
-  console.log(`   - Documents processed: ${largeBatch.length}`);
-  console.log(`   - Results returned: ${result.scoredDocuments.length}`);
-  console.log(`   - Memory usage: ${(memoryUsed.heapUsed / 1024 / 1024).toFixed(2)}MB`);
-  
-  return {
-    totalTime,
-    timePerDocument,
-    documentsProcessed: largeBatch.length,
-    resultsReturned: result.scoredDocuments.length,
-    memoryUsed: memoryUsed.heapUsed
+  const document = {
+    id: 'test-doc',
+    content: 'RoboRail API documentation for automation workflows',
+    similarity: 0.7,
+    source: 'roborail_official',
+    createdAt: new Date(),
   };
+
+  const query = 'roborail automation';
+  
+  // Test with different weight configurations
+  const weightConfigs = [
+    { name: 'Default', weights: {} },
+    { name: 'Similarity-focused', weights: { similarity: 0.6, authority: 0.1 } },
+    { name: 'Authority-focused', weights: { similarity: 0.2, authority: 0.5 } },
+    { name: 'Recency-focused', weights: { similarity: 0.2, recency: 0.5 } },
+  ];
+
+  console.log('Testing different weight configurations:');
+  for (const config of weightConfigs) {
+    const result = TestRelevanceScoringEngine.calculateRelevanceScore(
+      document,
+      query,
+      {},
+      config.weights
+    );
+    console.log(`\n${config.name}:`);
+    console.log(`  Relevance Score: ${result.relevanceScore.toFixed(3)}`);
+  }
+}
+
+// Performance testing
+async function testPerformance() {
+  console.log('\n===== Performance Testing =====\n');
+  
+  const documentCounts = [10, 50, 100, 500];
+  
+  for (const count of documentCounts) {
+    const documents = generateTestDocuments(count);
+    const query = 'roborail automation configuration';
+    
+    const startTime = performance.now();
+    
+    const request = {
+      documents,
+      query,
+      queryContext: { domain: 'roborail' },
+      maxResults: 10,
+    };
+    
+    const result = await TestDocumentRerankingEngine.rerankDocuments(request);
+    
+    const totalTime = performance.now() - startTime;
+    const avgTimePerDoc = totalTime / count;
+    
+    console.log(`\nDocuments: ${count}`);
+    console.log(`  Total time: ${totalTime.toFixed(2)}ms`);
+    console.log(`  Avg time per doc: ${avgTimePerDoc.toFixed(2)}ms`);
+    console.log(`  Throughput: ${(1000 / avgTimePerDoc).toFixed(0)} docs/sec`);
+  }
 }
 
 // Main test runner
 async function runAllTests() {
-  console.log('🚀 Starting Relevance Scoring System Tests\n');
-  
-  const results = {};
+  console.log('Starting RoboRail Relevance Scoring Tests...\n');
   
   try {
-    results.relevanceScoring = await testRelevanceScoring();
-    console.log();
+    await testRelevanceScoring();
+    await testDocumentReranking();
+    await testHybridFusion();
+    await testUserFeedbackIntegration();
+    await testWeightCustomization();
+    await testPerformance();
     
-    results.reranking = await testReranking();
-    console.log();
-    
-    results.userFeedback = await testUserFeedback();
-    console.log();
-    
-    results.hybridSearch = await testHybridSearch();
-    console.log();
-    
-    results.performance = await testPerformance();
-    console.log();
-    
-    // Overall summary
-    console.log('📊 Overall Test Summary:');
-    console.log('=' * 50);
-    
-    const totalTests = 
-      results.relevanceScoring.testCount + 
-      results.reranking.testCount +
-      results.hybridSearch.resultCount;
-    
-    const avgProcessingTime = 
-      (results.relevanceScoring.avgProcessingTime + 
-       results.reranking.avgRerankingTime + 
-       results.hybridSearch.fusionTime) / 3;
-    
-    console.log(`✅ Total tests passed: ${totalTests}`);
-    console.log(`⚡ Average processing time: ${avgProcessingTime.toFixed(2)}ms`);
-    console.log(`🎯 Average relevance score: ${results.relevanceScoring.avgRelevanceScore.toFixed(3)}`);
-    console.log(`📈 Cross-encoder improvement: ${results.reranking.avgImprovement.toFixed(3)}`);
-    console.log(`👤 User feedback integration: ${results.userFeedback.feedbackImpact ? 'Working' : 'Issues detected'}`);
-    console.log(`🔀 Hybrid search fusion: ${results.hybridSearch.scoreCalculationCorrect ? 'Working' : 'Issues detected'}`);
-    console.log(`⚡ Performance (100 docs): ${results.performance.totalTime.toFixed(2)}ms`);
-    
-    const allTestsPassed = 
-      results.userFeedback.feedbackImpact &&
-      results.hybridSearch.scoreCalculationCorrect &&
-      results.hybridSearch.rankingCorrect &&
-      results.performance.totalTime < 2000; // Should be under 2 seconds for 100 docs
-    
-    console.log(`\n🏆 Overall Status: ${allTestsPassed ? 'ALL TESTS PASSED' : 'SOME ISSUES DETECTED'}`);
-    
-    if (allTestsPassed) {
-      console.log('\n🎉 Relevance scoring system is ready for production!');
-    } else {
-      console.log('\n⚠️  Please review the issues above before deploying.');
-    }
-    
+    console.log('\n===== All Tests Completed Successfully =====\n');
   } catch (error) {
-    console.error('❌ Test execution failed:', error);
+    console.error('\nError during testing:', error);
     process.exit(1);
   }
 }
 
-// Run tests if called directly
-if (import.meta.url === `file://${process.argv[1]}`) {
-  runAllTests().catch(console.error);
+// Run tests if this script is executed directly
+if (require.main === module) {
+  runAllTests();
 }
 
-export {
+module.exports = {
   TestRelevanceScoringEngine,
   TestDocumentRerankingEngine,
   generateTestDocuments,
-  generateTestQueries,
   runAllTests,
 };

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import { 
   PromptOptimizationEngine,
   QueryExpansionEngine,
@@ -354,7 +354,7 @@ describe('Real-world Use Cases', () => {
       },
     ];
 
-    let conversationHistory: any[] = [];
+    const conversationHistory: any[] = [];
 
     for (const step of workflow) {
       const fullContext: QueryContext = {

@@ -107,6 +107,7 @@ export type CircuitBreakerConfig = z.infer<typeof CircuitBreakerConfig>;
 // ERROR CLASSIFIER
 // ====================================
 
+// biome-ignore lint/complexity/noStaticOnlyClass: Utility class pattern for organized functionality
 export class ErrorClassifier {
   static classify(error: Error, context?: Record<string, any>): ClassifiedError {
     const errorMessage = error.message.toLowerCase();

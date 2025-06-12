@@ -1,12 +1,13 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { 
-  QAAgent, 
-  RewriteAgent, 
-  PlannerAgent, 
+import {
+  QAAgent,
+  RewriteAgent,
+  PlannerAgent,
   ResearchAgent,
   SmartAgentRouter,
   AgentOrchestrator,
   processQuery,
+  processQueryStream,
   classifyIntent,
   analyzeComplexity,
 } from './index';
@@ -30,20 +31,24 @@ vi.mock('../vectorstore/unified', () => ({
 
 // Mock the AI SDK
 vi.mock('ai', () => ({
-  generateText: vi.fn(() => Promise.resolve({
-    text: 'Mock response',
-    usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 },
-    response: { id: 'test-id' },
-  })),
-  streamText: vi.fn(() => Promise.resolve({
-    textStream: async function* () {
-      yield 'Mock ';
-      yield 'streaming ';
-      yield 'response';
-    },
-    usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 },
-    response: { id: 'test-id' },
-  })),
+  generateText: vi.fn(() =>
+    Promise.resolve({
+      text: 'Mock response',
+      usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 },
+      response: { id: 'test-id' },
+    }),
+  ),
+  streamText: vi.fn(() =>
+    Promise.resolve({
+      textStream: async function* () {
+        yield 'Mock ';
+        yield 'streaming ';
+        yield 'response';
+      },
+      usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 },
+      response: { id: 'test-id' },
+    }),
+  ),
 }));
 
 describe('Agent System', () => {
@@ -54,13 +59,21 @@ describe('Agent System', () => {
   let router: SmartAgentRouter;
   let orchestrator: AgentOrchestrator;
 
+  const testAgentConfig = {
+    vectorStoreConfig: {
+      defaultSources: ['memory' as const],
+      searchThreshold: 0.3,
+      maxResults: 10,
+    },
+  };
+
   beforeEach(() => {
     qaAgent = new QAAgent();
     rewriteAgent = new RewriteAgent();
     plannerAgent = new PlannerAgent();
     researchAgent = new ResearchAgent();
     router = new SmartAgentRouter();
-    orchestrator = new AgentOrchestrator();
+    orchestrator = new AgentOrchestrator(testAgentConfig);
   });
 
   describe('Agent Initialization', () => {
@@ -126,12 +139,16 @@ describe('Agent System', () => {
     });
 
     it('should classify rewriting intent correctly', async () => {
-      const intent = await classifyIntent('Please rewrite this sentence to be more clear');
+      const intent = await classifyIntent(
+        'Please rewrite this sentence to be more clear',
+      );
       expect(intent).toBe('rewriting');
     });
 
     it('should classify planning intent correctly', async () => {
-      const intent = await classifyIntent('Create a step-by-step plan for learning Python');
+      const intent = await classifyIntent(
+        'Create a step-by-step plan for learning Python',
+      );
       expect(intent).toBe('planning');
     });
 
@@ -141,8 +158,8 @@ describe('Agent System', () => {
 
       const complexComplexity = await analyzeComplexity(
         'Analyze the economic implications of artificial intelligence on various industry sectors, ' +
-        'considering both short-term disruptions and long-term transformative effects, and provide ' +
-        'a comprehensive framework for policy makers to address these challenges'
+          'considering both short-term disruptions and long-term transformative effects, and provide ' +
+          'a comprehensive framework for policy makers to address these challenges',
       );
       expect(complexComplexity.level).toBe('complex');
     });
@@ -151,13 +168,19 @@ describe('Agent System', () => {
       const qaDecision = await router.routeQuery('What is machine learning?');
       expect(qaDecision.selectedAgent).toBe('qa');
 
-      const rewriteDecision = await router.routeQuery('Please summarize this text');
+      const rewriteDecision = await router.routeQuery(
+        'Please summarize this text',
+      );
       expect(rewriteDecision.selectedAgent).toBe('rewrite');
 
-      const plannerDecision = await router.routeQuery('Create a plan to learn data science');
+      const plannerDecision = await router.routeQuery(
+        'Create a plan to learn data science',
+      );
       expect(plannerDecision.selectedAgent).toBe('planner');
 
-      const researchDecision = await router.routeQuery('Research the latest developments in quantum computing');
+      const researchDecision = await router.routeQuery(
+        'Research the latest developments in quantum computing',
+      );
       expect(researchDecision.selectedAgent).toBe('research');
     });
   });
@@ -177,7 +200,7 @@ describe('Agent System', () => {
 
     it('should process requests with QA agent', async () => {
       const response = await qaAgent.processRequest(testRequest);
-      
+
       expect(response.agent).toBe('qa');
       expect(response.content).toBeDefined();
       expect(response.metadata).toBeDefined();
@@ -186,7 +209,7 @@ describe('Agent System', () => {
 
     it('should process requests with Rewrite agent', async () => {
       const response = await rewriteAgent.processRequest(testRequest);
-      
+
       expect(response.agent).toBe('rewrite');
       expect(response.content).toBeDefined();
       expect(response.metadata).toBeDefined();
@@ -194,7 +217,7 @@ describe('Agent System', () => {
 
     it('should process requests with Planner agent', async () => {
       const response = await plannerAgent.processRequest(testRequest);
-      
+
       expect(response.agent).toBe('planner');
       expect(response.content).toBeDefined();
       expect(response.metadata.subQuestions).toBeDefined();
@@ -202,7 +225,7 @@ describe('Agent System', () => {
 
     it('should process requests with Research agent', async () => {
       const response = await researchAgent.processRequest(testRequest);
-      
+
       expect(response.agent).toBe('research');
       expect(response.content).toBeDefined();
       expect(response.metadata.citations).toBeDefined();
@@ -257,7 +280,7 @@ describe('Agent System', () => {
 
     it('should provide health check functionality', async () => {
       const health = await orchestrator.healthCheck();
-      
+
       expect(health.status).toMatch(/healthy|degraded|unhealthy/);
       expect(health.agents).toBeDefined();
       expect(Object.keys(health.agents)).toContain('qa');
@@ -268,12 +291,12 @@ describe('Agent System', () => {
 
     it('should provide agent capabilities', () => {
       const capabilities = orchestrator.getAgentCapabilities();
-      
+
       expect(capabilities.qa).toBeDefined();
       expect(capabilities.rewrite).toBeDefined();
       expect(capabilities.planner).toBeDefined();
       expect(capabilities.research).toBeDefined();
-      
+
       expect(capabilities.qa.available).toBe(true);
       expect(capabilities.qa.supportsStreaming).toBe(true);
     });
@@ -282,7 +305,7 @@ describe('Agent System', () => {
   describe('Utility Functions', () => {
     it('should process queries through the main interface', async () => {
       const response = await processQuery('What is TypeScript?');
-      
+
       expect(response.content).toBeDefined();
       expect(response.agent).toBeDefined();
       expect(response.metadata).toBeDefined();
@@ -321,7 +344,9 @@ describe('Agent System', () => {
 
     it('should provide meaningful error messages', async () => {
       const { generateText } = await import('ai');
-      vi.mocked(generateText).mockRejectedValueOnce(new Error('Network timeout'));
+      vi.mocked(generateText).mockRejectedValueOnce(
+        new Error('Network timeout'),
+      );
 
       const response = await qaAgent.processRequest({
         query: 'Test query',

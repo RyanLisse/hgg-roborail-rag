@@ -6,10 +6,7 @@ import { OPENAI_API_KEY, OPENAI_VECTORSTORE } from '../env';
 import { getVectorStoreMonitoringService, withPerformanceMonitoring } from './monitoring';
 import { 
   PromptOptimizationEngine, 
-  ContextWindowManager,
   PromptOptimizationMetrics,
-  type QueryContext,
-  type PromptConfig,
   type OptimizedQuery 
 } from './prompt-optimization';
 
@@ -533,7 +530,7 @@ export function createOpenAIVectorStoreService(config?: Partial<OpenAIVectorStor
               validatedRequest.query,
               {
                 ...validatedRequest.queryContext,
-                type: validatedRequest.queryContext.type!
+                type: validatedRequest.queryContext.type || 'general'
               },
               validatedRequest.promptConfig
             );

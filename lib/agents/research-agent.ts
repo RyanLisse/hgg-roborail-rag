@@ -117,20 +117,22 @@ Focus on providing thorough, well-researched responses that advance understandin
     ];
     
     for (const pattern of citationPatterns) {
-      let match;
-      while ((match = pattern.exec(content)) !== null) {
+      let match: RegExpExecArray | null = pattern.exec(content);
+      while (match !== null) {
         const citation = match[1].trim();
         if (citation.length > 3 && citation.length < 200) {
           citations.push(citation);
         }
+        match = pattern.exec(content);
       }
     }
     
     // Also extract any URLs if present
     const urlPattern = /https?:\/\/[^\s]+/g;
-    let urlMatch;
-    while ((urlMatch = urlPattern.exec(content)) !== null) {
+    let urlMatch: RegExpExecArray | null = urlPattern.exec(content);
+    while (urlMatch !== null) {
       citations.push(urlMatch[0]);
+      urlMatch = urlPattern.exec(content);
     }
     
     // Remove duplicates and return unique citations

@@ -23,7 +23,7 @@ export class QAAgent extends BaseAgent {
   }
 
   getSystemPrompt(request: AgentRequest): string {
-    const hasContext = request.context?.sources?.length || 0 > 0;
+    const hasContext = (request.context?.sources?.length || 0) > 0;
     
     return `You are a knowledgeable AI assistant specialized in providing accurate, helpful answers to questions.
 

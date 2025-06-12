@@ -74,8 +74,13 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { id, message, selectedChatModel, selectedVisibilityType, selectedSources } =
-      requestBody;
+    const {
+      id,
+      message,
+      selectedChatModel,
+      selectedVisibilityType,
+      selectedSources,
+    } = requestBody;
 
     const session = await auth();
 
@@ -100,9 +105,12 @@ export async function POST(request: Request) {
       // Ensure the message has the correct date type for title generation
       const messageForTitle = {
         ...message,
-        createdAt: message.createdAt instanceof Date ? message.createdAt : new Date(message.createdAt),
+        createdAt:
+          message.createdAt instanceof Date
+            ? message.createdAt
+            : new Date(message.createdAt),
       };
-      
+
       const title = await generateTitleFromUserMessage({
         message: messageForTitle,
       });
@@ -124,7 +132,10 @@ export async function POST(request: Request) {
     // Ensure the message has the correct date type
     const normalizedMessage = {
       ...message,
-      createdAt: message.createdAt instanceof Date ? message.createdAt : new Date(message.createdAt),
+      createdAt:
+        message.createdAt instanceof Date
+          ? message.createdAt
+          : new Date(message.createdAt),
     };
 
     const messages = appendClientMessage({
@@ -170,10 +181,12 @@ export async function POST(request: Request) {
               ? []
               : [
                   'getWeather',
-                  'createDocument', 
+                  'createDocument',
                   'updateDocument',
                   'requestSuggestions',
-                  ...(selectedSources && selectedSources.length > 0 ? ['enhancedSearch' as const, 'searchDocuments' as const] : []),
+                  ...(selectedSources && selectedSources.length > 0
+                    ? ['enhancedSearch' as const, 'searchDocuments' as const]
+                    : []),
                 ],
           experimental_transform: smoothStream({ chunking: 'word' }),
           experimental_generateMessageId: generateUUID,
@@ -186,18 +199,22 @@ export async function POST(request: Request) {
               dataStream,
             }),
             searchDocuments: searchDocuments(
-              selectedSources || ['memory'], 
+              selectedSources || ['memory'],
               // Pass recent conversation history for context-aware optimization
               messages
-                .filter(msg => msg.role === 'user' || msg.role === 'assistant')
+                .filter(
+                  (msg) => msg.role === 'user' || msg.role === 'assistant',
+                )
                 .slice(-10) // Last 10 messages for context
-                .map(msg => ({
+                .map((msg) => ({
                   role: msg.role as 'user' | 'assistant',
-                  content: Array.isArray(msg.content) 
-                    ? msg.content.map(c => c.type === 'text' ? c.text : '').join(' ')
+                  content: Array.isArray(msg.content)
+                    ? msg.content
+                        .map((c) => (c.type === 'text' ? c.text : ''))
+                        .join(' ')
                     : msg.content || '',
                   timestamp: Date.now(), // Use current time as approximation
-                }))
+                })),
             ),
             enhancedSearch: enhancedSearch(selectedSources || ['memory']),
           },
@@ -265,21 +282,21 @@ export async function POST(request: Request) {
     }
   } catch (error) {
     console.error('Chat API error:', error);
-    
+
     if (error instanceof ChatSDKError) {
       return error.toResponse();
     }
-    
+
     // Handle all other errors with a generic 500 response
     return new Response(
-      JSON.stringify({ 
-        code: 'internal_server_error:chat', 
-        message: 'An unexpected error occurred. Please try again later.' 
+      JSON.stringify({
+        code: 'internal_server_error:chat',
+        message: 'An unexpected error occurred. Please try again later.',
       }),
-      { 
+      {
         status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      }
+        headers: { 'Content-Type': 'application/json' },
+      },
     );
   }
 }

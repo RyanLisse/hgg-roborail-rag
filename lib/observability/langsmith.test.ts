@@ -1,11 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { 
+import {
   type LangSmithService,
   createLangSmithService,
   trackRagGeneration,
   submitUserFeedback,
-  type UserFeedback
+  type UserFeedback,
 } from './langsmith';
+
+// Mock crypto.randomUUID
+vi.stubGlobal('crypto', {
+  randomUUID: vi.fn(() => 'test-run-id'),
+});
 
 // Mock LangSmith client
 vi.mock('langsmith', () => ({
@@ -38,7 +43,7 @@ describe('LangSmith Service', () => {
         apiKey: '',
         projectName: 'test-project',
       });
-      
+
       expect(service.isEnabled).toBe(false);
     });
   });
@@ -68,7 +73,9 @@ describe('LangSmith Service', () => {
 
       expect(runId).toBe('test-run-id');
       expect(langSmithService.client.createRun).toHaveBeenCalledWith({
+        id: 'test-run-id',
         name: 'rag_generation',
+        run_type: 'chain',
         inputs: {
           question: ragData.question,
           sources: ragData.sources,
@@ -77,17 +84,23 @@ describe('LangSmith Service', () => {
         outputs: {
           answer: ragData.answer,
         },
-        metadata: {
-          sources_count: 1,
-          model: ragData.model,
-          usage: ragData.usage,
+        extra: {
+          metadata: {
+            sources_count: 1,
+            model: ragData.model,
+            usage: ragData.usage,
+            timestamp: expect.any(Number),
+          },
+          tags: ['rag', 'generation'],
         },
-        tags: ['rag', 'generation'],
+        project_name: 'test-rag-app',
       });
     });
 
     it('should handle tracking errors gracefully', async () => {
-      langSmithService.client.createRun = vi.fn().mockRejectedValue(new Error('API Error'));
+      langSmithService.client.createRun = vi
+        .fn()
+        .mockRejectedValue(new Error('API Error'));
 
       const ragData = {
         question: 'Test question',
@@ -113,18 +126,16 @@ describe('LangSmith Service', () => {
 
       const feedbackId = await submitUserFeedback(langSmithService, feedback);
 
-      expect(feedbackId).toBe('test-feedback-id');
-      expect(langSmithService.client.createFeedback).toHaveBeenCalledWith({
-        runId: 'test-run-id',
-        key: 'user_feedback',
-        score: 1,
-        value: 'thumbs_up',
-        comment: 'Great response!',
-        metadata: {
-          userId: 'user-123',
-          timestamp: expect.any(Number),
-        },
-      });
+      expect(feedbackId).toBe('test-run-id'); // submitUserFeedback returns the runId
+      expect(langSmithService.client.createFeedback).toHaveBeenCalledWith(
+        'test-run-id',
+        'user_feedback',
+        {
+          score: 1,
+          value: 'thumbs_up',
+          comment: 'Great response!',
+        }
+      );
     });
 
     it('should submit negative feedback without comment', async () => {
@@ -137,22 +148,22 @@ describe('LangSmith Service', () => {
 
       const feedbackId = await submitUserFeedback(langSmithService, feedback);
 
-      expect(feedbackId).toBe('test-feedback-id');
-      expect(langSmithService.client.createFeedback).toHaveBeenCalledWith({
-        runId: 'test-run-id',
-        key: 'user_feedback',
-        score: 0,
-        value: 'thumbs_down',
-        comment: undefined,
-        metadata: {
-          userId: 'user-123',
-          timestamp: expect.any(Number),
-        },
-      });
+      expect(feedbackId).toBe('test-run-id'); // submitUserFeedback returns the runId
+      expect(langSmithService.client.createFeedback).toHaveBeenCalledWith(
+        'test-run-id',
+        'user_feedback',
+        {
+          score: 0,
+          value: 'thumbs_down',
+          comment: undefined,
+        }
+      );
     });
 
     it('should handle feedback submission errors', async () => {
-      langSmithService.client.createFeedback = vi.fn().mockRejectedValue(new Error('Feedback Error'));
+      langSmithService.client.createFeedback = vi
+        .fn()
+        .mockRejectedValue(new Error('Feedback Error'));
 
       const feedback: UserFeedback = {
         runId: 'test-run-id',
