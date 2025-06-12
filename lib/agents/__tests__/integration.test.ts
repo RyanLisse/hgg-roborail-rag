@@ -6,12 +6,21 @@ vi.mock('ai', () => ({
   generateText: vi.fn(),
 }));
 
-vi.mock('../ai/providers', () => ({
+vi.mock('../../ai/providers', () => ({
   getModelInstance: vi.fn().mockReturnValue('mocked-model'),
 }));
 
-vi.mock('../vectorstore/unified', () => ({
-  getUnifiedVectorStoreService: vi.fn(),
+vi.mock('../../vectorstore/unified', () => ({
+  getUnifiedVectorStoreService: vi.fn(() => Promise.resolve({
+    searchAcrossSources: vi.fn(() => Promise.resolve([])),
+    getAvailableSources: vi.fn(() => Promise.resolve(['openai', 'memory', 'neon'])),
+    healthCheck: vi.fn(() => Promise.resolve({ isHealthy: true })),
+    config: {
+      sources: ['openai', 'memory', 'neon'],
+      searchThreshold: 0.3,
+      maxResults: 10,
+    },
+  })),
 }));
 
 import { generateText } from 'ai';
@@ -27,12 +36,7 @@ describe('Multi-Agent System Integration Tests', () => {
     vi.clearAllMocks();
     router = new SmartAgentRouter();
 
-    // Mock default vector store service
-    mockGetUnifiedVectorStoreService.mockResolvedValue({
-      getAvailableSources: vi
-        .fn()
-        .mockResolvedValue(['openai', 'memory', 'neon']),
-    });
+    // Vector store service is already mocked in the module mock above
   });
 
   afterEach(() => {
@@ -148,9 +152,17 @@ describe('Multi-Agent System Integration Tests', () => {
   describe('Context-Aware Routing', () => {
     it('should adapt routing based on available sources', async () => {
       // Test with limited sources
-      mockGetUnifiedVectorStoreService.mockResolvedValueOnce({
+      const mockUnifiedService = await import('../../vectorstore/unified');
+      vi.mocked(mockUnifiedService.getUnifiedVectorStoreService).mockResolvedValueOnce({
+        searchAcrossSources: vi.fn(() => Promise.resolve([])),
         getAvailableSources: vi.fn().mockResolvedValue(['memory']),
-      });
+        healthCheck: vi.fn(() => Promise.resolve({ isHealthy: true })),
+        config: {
+          sources: ['memory'],
+          searchThreshold: 0.3,
+          maxResults: 10,
+        },
+      } as any);
 
       mockGenerateText.mockResolvedValueOnce({
         text: 'research',
@@ -163,7 +175,8 @@ describe('Multi-Agent System Integration Tests', () => {
     });
 
     it('should handle vector store service failures gracefully', async () => {
-      mockGetUnifiedVectorStoreService.mockRejectedValueOnce(
+      const mockUnifiedService = await import('../../vectorstore/unified');
+      vi.mocked(mockUnifiedService.getUnifiedVectorStoreService).mockRejectedValueOnce(
         new Error('Service unavailable'),
       );
 
@@ -552,9 +565,17 @@ describe('Multi-Agent System Integration Tests', () => {
     });
 
     it('should handle limited source availability gracefully', async () => {
-      mockGetUnifiedVectorStoreService.mockResolvedValueOnce({
+      const mockUnifiedService = await import('../../vectorstore/unified');
+      vi.mocked(mockUnifiedService.getUnifiedVectorStoreService).mockResolvedValueOnce({
+        searchAcrossSources: vi.fn(() => Promise.resolve([])),
         getAvailableSources: vi.fn().mockResolvedValue(['memory']), // Only one source available
-      });
+        healthCheck: vi.fn(() => Promise.resolve({ isHealthy: true })),
+        config: {
+          sources: ['memory'],
+          searchThreshold: 0.3,
+          maxResults: 10,
+        },
+      } as any);
 
       mockGenerateText.mockResolvedValueOnce({
         text: 'research',

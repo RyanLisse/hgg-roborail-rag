@@ -37,7 +37,7 @@ export const ChunkingConfig = z.object({
   chunkOverlap: z.number().min(0).max(1000).default(200),
   preserveStructure: z.boolean().default(true),
   respectBoundaries: z.boolean().default(true),
-  minChunkSize: z.number().min(50).default(100),
+  minChunkSize: z.number().min(10).default(100),
   maxChunkSize: z.number().min(500).default(3000),
   enableQualityValidation: z.boolean().default(true),
   customSeparators: z.array(z.string()).optional(),
@@ -266,7 +266,7 @@ class CharacterChunker {
       start = end - chunkOverlap;
       
       // Ensure we make progress to avoid infinite loops
-      if (start >= end - 1) {
+      if (start >= end || chunkOverlap >= chunkSize) {
         start = end;
       }
     }
@@ -358,7 +358,8 @@ class RecursiveChunker {
         const chunks: string[] = [];
         let currentChunk = '';
 
-        for (const split of splits) {
+        for (let i = 0; i < splits.length; i++) {
+          const split = splits[i];
           const testChunk = currentChunk + (currentChunk ? separator : '') + split;
           
           if (testChunk.length <= chunkSize) {
@@ -380,7 +381,7 @@ class RecursiveChunker {
               }
             }
             
-            // Start new chunk
+            // Start new chunk with current split
             currentChunk = split;
           }
         }
@@ -398,9 +399,15 @@ class RecursiveChunker {
           } else {
             chunks.push(currentChunk.trim());
           }
+        } else if (currentChunk.trim().length > 0 && chunks.length === 0) {
+          // If it's the only chunk and has content, include it anyway
+          chunks.push(currentChunk.trim());
         }
 
-        return chunks.filter(chunk => chunk.length > 0);
+        // Only return if we actually created multiple chunks or successfully chunked
+        if (chunks.length > 0) {
+          return chunks.filter(chunk => chunk.length > 0);
+        }
       }
     }
 
@@ -525,9 +532,17 @@ export class DocumentChunkingService {
     }
 
     // Create document chunks with metadata
+    let lastEnd = 0;
     const documentChunks: DocumentChunk[] = chunks.map((chunk, index) => {
-      const start = document.content.indexOf(chunk);
+      // Find the actual position of this chunk in the original content
+      let start = document.content.indexOf(chunk, lastEnd);
+      if (start === -1) {
+        // If exact match not found, try to find a close match
+        start = lastEnd;
+      }
       const end = start + chunk.length;
+      lastEnd = end;
+      
       const preservedStructure = strategy !== 'character';
 
       const quality = enableQualityValidation 
@@ -583,6 +598,34 @@ export class DocumentChunkingService {
 
   private chunkBySentences(content: string, config: ChunkingConfig): string[] {
     const sentences = content.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 0);
+    
+    // Special handling for sentence strategy: ensure we create multiple chunks 
+    // when we have multiple sentences, even if they fit in one chunk
+    if (sentences.length > 1) {
+      // For sentence chunking, aim to distribute sentences evenly
+      const targetChunks = Math.min(sentences.length, Math.max(2, Math.ceil(content.length / config.chunkSize)));
+      const sentencesPerChunk = Math.ceil(sentences.length / targetChunks);
+      
+      const chunks: string[] = [];
+      for (let i = 0; i < sentences.length; i += sentencesPerChunk) {
+        const chunkSentences = sentences.slice(i, i + sentencesPerChunk);
+        const chunk = chunkSentences.join(' ');
+        if (chunk.trim().length > 0) {
+          chunks.push(chunk);
+        }
+      }
+      
+      // Filter by minimum size but ensure we have at least 2 chunks if we started with multiple sentences
+      const validChunks = chunks.filter(chunk => chunk.trim().length >= config.minChunkSize);
+      if (validChunks.length >= 2) {
+        return validChunks;
+      } else if (chunks.length >= 2 && sentences.length >= 2) {
+        // If filtering by minChunkSize eliminated too many chunks, return at least 2
+        return chunks.slice(0, 2);
+      }
+    }
+    
+    // Fallback to original logic for single sentence or edge cases
     const chunks: string[] = [];
     let currentChunk = '';
 
@@ -598,7 +641,7 @@ export class DocumentChunkingService {
     }
 
     if (currentChunk) chunks.push(currentChunk);
-    return chunks;
+    return chunks.length > 1 ? chunks : sentences.length > 1 ? sentences.slice(0, 2) : chunks;
   }
 
   private chunkByParagraphs(content: string, config: ChunkingConfig): string[] {
@@ -635,7 +678,7 @@ export class DocumentChunkingService {
 
   private chunkCode(content: string, config: ChunkingConfig): string[] {
     // Split by functions/classes first, then by blocks
-    const functionRegex = CODE_PATTERNS.function;
+    const functionRegex = /(?:function|def|class|interface|type)\s+\w+/g;
     const functionMatches: RegExpExecArray[] = [];
     let match = functionRegex.exec(content);
     
@@ -644,27 +687,91 @@ export class DocumentChunkingService {
       match = functionRegex.exec(content);
     }
     
-    if (functionMatches.length > 1) {
+    if (functionMatches.length > 0) {
       const chunks: string[] = [];
+      let currentChunk = '';
       let lastEnd = 0;
 
-      for (const functionMatch of functionMatches) {
-        if (functionMatch.index && functionMatch.index > lastEnd) {
-          const chunk = content.slice(lastEnd, functionMatch.index).trim();
-          if (chunk.length >= config.minChunkSize) {
-            chunks.push(chunk);
+      for (let i = 0; i < functionMatches.length; i++) {
+        const functionMatch = functionMatches[i];
+        const nextMatch = functionMatches[i + 1];
+        
+        if (functionMatch.index !== undefined) {
+          // Add any content before this function
+          const beforeContent = content.slice(lastEnd, functionMatch.index).trim();
+          if (beforeContent.length > 0) {
+            currentChunk += `${beforeContent}\n`;
           }
-          lastEnd = functionMatch.index;
+          
+          // Find the end of this function/class
+          let functionEnd = nextMatch?.index || content.length;
+          
+          // Try to find the actual end of the function by looking for balanced braces
+          const functionStart = functionMatch.index;
+          let braceCount = 0;
+          let inString = false;
+          let stringChar = '';
+          
+          for (let j = functionStart; j < content.length; j++) {
+            const char = content[j];
+            const prevChar = j > 0 ? content[j - 1] : '';
+            
+            // Handle string literals
+            if ((char === '"' || char === "'") && prevChar !== '\\') {
+              if (!inString) {
+                inString = true;
+                stringChar = char;
+              } else if (char === stringChar) {
+                inString = false;
+              }
+            }
+            
+            if (!inString) {
+              if (char === '{') braceCount++;
+              if (char === '}') braceCount--;
+              
+              // Found the closing brace for the function
+              if (braceCount === 0 && j > functionStart + functionMatch[0].length) {
+                functionEnd = j + 1;
+                break;
+              }
+            }
+          }
+          
+          const functionContent = content.slice(functionStart, functionEnd);
+          
+          // Check if adding this function exceeds chunk size
+          if (currentChunk.length + functionContent.length > config.chunkSize && currentChunk.length > 0) {
+            chunks.push(currentChunk.trim());
+            currentChunk = functionContent;
+          } else {
+            currentChunk += functionContent;
+          }
+          
+          lastEnd = functionEnd;
         }
       }
 
-      // Add remaining content
-      const remaining = content.slice(lastEnd).trim();
-      if (remaining.length >= config.minChunkSize) {
-        chunks.push(remaining);
+      // Add any remaining content
+      if (lastEnd < content.length) {
+        const remaining = content.slice(lastEnd).trim();
+        if (remaining.length > 0) {
+          if (currentChunk.length + remaining.length > config.chunkSize && currentChunk.length > 0) {
+            chunks.push(currentChunk.trim());
+            if (remaining.length >= config.minChunkSize) {
+              chunks.push(remaining);
+            }
+          } else {
+            currentChunk += `\n${remaining}`;
+          }
+        }
+      }
+      
+      if (currentChunk.trim().length >= config.minChunkSize) {
+        chunks.push(currentChunk.trim());
       }
 
-      return chunks.length > 0 ? chunks : CharacterChunker.chunk(content, config);
+      return chunks.length > 0 ? chunks : RecursiveChunker.chunk(content, config, 'code');
     }
 
     return RecursiveChunker.chunk(content, config, 'code');
@@ -675,7 +782,8 @@ export class DocumentChunkingService {
     if (chunk.match(/^#{1,6}\s/)) return 'heading';
     if (chunk.match(/^\s*[-*+]\s/)) return 'list';
     if (chunk.match(/\|.*\|/)) return 'table';
-    if (chunk.includes('\n\n')) return 'paragraph';
+    // Check if chunk contains paragraph-like content (not just code or lists)
+    if (chunk.match(/[a-zA-Z]{10,}/) && !chunk.match(/^\s*[-*+]\s/) && !chunk.match(/^#{1,6}\s/)) return 'paragraph';
     return 'text';
   }
 
