@@ -21,24 +21,35 @@ export const enhancedSearch = (sources: VectorStoreType[] = ['memory']) =>
         const results: any[] = [];
         let sourcesWithCitations: any[] = [];
 
-        // 1. Search unified vector stores (memory, neon, etc.)
+        // 1. Search unified vector stores with enhanced search capabilities
         if (sources.includes('memory') || sources.includes('neon')) {
           const unifiedSources = sources.filter(s => s !== 'openai');
           if (unifiedSources.length > 0) {
-            const unifiedResults = await vectorStore.searchAcrossSources({
+            const enhancedSearchResponse = await vectorStore.searchEnhanced({
               query,
               sources: unifiedSources,
               maxResults: limit,
               threshold: 0.3,
-              optimizePrompts: false,
+              optimizePrompts: true,
+              enableRelevanceScoring: true,
+              enableDiversification: true,
+              enableCrossEncoder: false,
+              enableHybridSearch: false,
+              queryContext: {
+                type: 'technical',
+                domain: 'roborail',
+              },
             });
 
-            results.push(...unifiedResults.map(result => ({
+            results.push(...enhancedSearchResponse.results.map(result => ({
               content: result.document.content,
               source: result.source,
               similarity: result.similarity,
               metadata: result.document.metadata,
-              type: 'vector_search',
+              type: 'enhanced_vector_search',
+              relevanceScore: result.relevanceScore,
+              relevanceFactors: result.relevanceFactors,
+              scoringMetadata: result.scoringMetadata,
             })));
           }
         }

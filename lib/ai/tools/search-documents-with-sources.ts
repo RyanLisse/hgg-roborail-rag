@@ -23,14 +23,24 @@ export const searchDocumentsWithSources = (sources: VectorStoreType[] = ['memory
       try {
         const vectorStore = await getUnifiedVectorStoreService();
         
-        // Search across unified vector stores
-        const unifiedResults = await vectorStore.searchAcrossSources({
+        // Search across unified vector stores with enhanced capabilities
+        const enhancedSearchResponse = await vectorStore.searchEnhanced({
           query,
-          sources,
+          sources: sources.filter(s => s !== 'openai'), // Exclude OpenAI for separate handling
           maxResults: limit,
           threshold: 0.3,
-          optimizePrompts: false,
+          optimizePrompts: true,
+          enableRelevanceScoring: true,
+          enableDiversification: true,
+          enableCrossEncoder: false,
+          enableHybridSearch: false,
+          queryContext: {
+            type: 'technical',
+            domain: 'roborail',
+          },
         });
+        
+        const unifiedResults = enhancedSearchResponse.results;
 
         let openAIResults: any = null;
         let openAISources: SourceFile[] = [];
@@ -63,13 +73,19 @@ export const searchDocumentsWithSources = (sources: VectorStoreType[] = ['memory
         // Combine results from different sources
         const combinedResults: DocumentSearchResult[] = [];
 
-        // Add unified vector store results
+        // Add unified vector store results with enhanced metadata
         unifiedResults.forEach(result => {
           combinedResults.push({
             content: result.document.content,
             source: result.source,
             similarity: result.similarity,
-            metadata: result.document.metadata || {},
+            metadata: {
+              ...(result.document.metadata || {}),
+              relevanceScore: result.relevanceScore,
+              rank: result.rank,
+              relevanceFactors: result.relevanceFactors,
+              scoringMetadata: result.scoringMetadata,
+            },
           });
         });
 
