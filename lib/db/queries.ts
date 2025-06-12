@@ -81,6 +81,27 @@ export async function createGuestUser() {
   }
 }
 
+export async function ensureUserExists(userId: string) {
+  try {
+    const existingUser = await db.select().from(user).where(eq(user.id, userId));
+    
+    if (existingUser.length === 0) {
+      // Create a guest user with the provided ID
+      console.log(`Creating missing user with ID: ${userId}`);
+      await db.insert(user).values({
+        id: userId,
+        email: `guest-${userId}@temp.local`,
+        password: generateHashedPassword(generateUUID()),
+      });
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Failed to ensure user exists:', error);
+    return false;
+  }
+}
+
 export async function saveChat({
   id,
   userId,
@@ -93,6 +114,9 @@ export async function saveChat({
   visibility: VisibilityType;
 }) {
   try {
+    // Ensure the user exists before saving the chat
+    await ensureUserExists(userId);
+    
     return await db.insert(chat).values({
       id,
       createdAt: new Date(),
