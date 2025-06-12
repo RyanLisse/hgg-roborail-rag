@@ -95,6 +95,10 @@ export const MonitoringConfig = z.object({
     maxLatencyMs: z.number().default(5000),
     minSuccessRate: z.number().default(0.95),
     maxErrorRate: z.number().default(0.05),
+  }).default({
+    maxLatencyMs: 5000,
+    minSuccessRate: 0.95,
+    maxErrorRate: 0.05,
   }),
 });
 

@@ -54,11 +54,19 @@ export async function POST(request: NextRequest) {
         includeContext: true,
         includeCitations: true,
       },
+      // Enhanced search options with relevance scoring
+      enableRelevanceScoring: true,
+      enableCrossEncoder: false, // Can be enabled for higher accuracy
+      enableDiversification: true,
+      enableHybridSearch: false, // Enable for keyword + semantic search
+      userId: session.user.id, // For personalized scoring
     };
 
-    const results = await vectorStoreService.searchAcrossSources(searchRequest);
+    // Use enhanced search with relevance scoring for better results
+    const enhancedResponse = await vectorStoreService.searchEnhanced(searchRequest);
+    const results = enhancedResponse.results;
 
-    // Enhanced response with optimization metadata
+    // Enhanced response with optimization metadata and relevance scoring info
     const response = {
       results,
       searchMetadata: {
@@ -66,6 +74,12 @@ export async function POST(request: NextRequest) {
         sourcesSearched: searchRequest.sources,
         totalResults: results.length,
         queryContext: queryContext,
+        // Enhanced search metadata
+        relevanceScoringEnabled: enhancedResponse.rerankingApplied,
+        diversificationApplied: enhancedResponse.diversificationApplied,
+        hybridSearchUsed: enhancedResponse.hybridSearchUsed,
+        scoringStrategy: enhancedResponse.scoringStrategy,
+        performance: enhancedResponse.performance,
       },
     };
 
