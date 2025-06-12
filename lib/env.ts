@@ -1,3 +1,4 @@
+import 'server-only';
 import { z } from 'zod';
 
 // Environment validation schema with logical grouping

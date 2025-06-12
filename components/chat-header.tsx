@@ -73,7 +73,7 @@ function PureChatHeader({
           onSourcesChange={onSourcesChange}
           availableSources={availableSources}
           sourceStats={sourceStats}
-          className="order-1 md:order-3"
+          className="order-1 md:order-3 hidden md:flex"
           data-testid="database-selector"
         />
       )}

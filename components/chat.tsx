@@ -156,8 +156,8 @@ export function Chat({
         <form className="flex flex-col mx-auto px-4 bg-background pb-4 md:pb-6 gap-2 w-full md:max-w-3xl">
           {!isReadonly && (
             <div className="flex flex-col gap-2">
-              {/* Database Selector for Vector Stores */}
-              <div className="flex items-center gap-2 px-2">
+              {/* Database Selector for Vector Stores - Mobile only */}
+              <div className="flex items-center gap-2 px-2 md:hidden">
                 <span className="text-sm text-muted-foreground min-w-fit">Data Sources:</span>
                 <DatabaseSelector
                   selectedSources={selectedSources}
