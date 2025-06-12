@@ -185,7 +185,20 @@ export async function POST(request: Request) {
               session,
               dataStream,
             }),
-            searchDocuments: searchDocuments(selectedSources || ['memory']),
+            searchDocuments: searchDocuments(
+              selectedSources || ['memory'], 
+              // Pass recent conversation history for context-aware optimization
+              messages
+                .filter(msg => msg.role === 'user' || msg.role === 'assistant')
+                .slice(-10) // Last 10 messages for context
+                .map(msg => ({
+                  role: msg.role as 'user' | 'assistant',
+                  content: Array.isArray(msg.content) 
+                    ? msg.content.map(c => c.type === 'text' ? c.text : '').join(' ')
+                    : msg.content || '',
+                  timestamp: Date.now(), // Use current time as approximation
+                }))
+            ),
             enhancedSearch: enhancedSearch(selectedSources || ['memory']),
           },
           onFinish: async ({ response }) => {

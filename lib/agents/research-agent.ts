@@ -76,12 +76,15 @@ Focus on providing thorough, well-researched responses that advance understandin
 
   async processRequest(request: AgentRequest): Promise<AgentResponse> {
     // Set context to require citations for research tasks
-    const researchRequest = {
+    const researchRequest: AgentRequest = {
       ...request,
       context: {
         ...request.context,
+        sources: request.context?.sources || ['memory'],
         requiresCitations: true,
         maxResults: Math.max(request.context?.maxResults || 5, 8), // Research needs more sources
+        complexity: request.context?.complexity || 'complex',
+        domainKeywords: request.context?.domainKeywords || [],
       },
     };
 

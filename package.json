@@ -34,7 +34,8 @@
     "vectorstore:files": "node get-vectorstore-files.js",
     "vectorstore:search": "node test-vector-search.js",
     "test:roborail": "node scripts/test-roborail-responses.js",
-    "test:responses": "node test-openai-responses.js"
+    "test:responses": "node test-openai-responses.js",
+    "test:relevance": "node scripts/test-relevance-scoring.js"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^1.2.12",

@@ -66,7 +66,7 @@ export async function processQuery(
   query: string,
   options?: {
     chatHistory?: AgentRequest['chatHistory'];
-    sources?: AgentRequest['context']['sources'];
+    sources?: ('openai' | 'neon' | 'memory')[];
     modelId?: string;
     streaming?: boolean;
   }
@@ -77,11 +77,16 @@ export async function processQuery(
     query,
     chatHistory: options?.chatHistory || [],
     context: {
-      sources: options?.sources || ['openai'],
+      sources: options?.sources || ['memory'],
+      maxResults: 10,
+      complexity: 'moderate',
+      domainKeywords: [],
+      requiresCitations: true,
     },
     options: {
-      modelId: options?.modelId,
+      modelId: options?.modelId || 'anthropic-claude-sonnet-4-20250514',
       streaming: options?.streaming ?? false,
+      useTools: true,
     },
   };
 
@@ -95,7 +100,7 @@ export async function* processQueryStream(
   query: string,
   options?: {
     chatHistory?: AgentRequest['chatHistory'];
-    sources?: AgentRequest['context']['sources'];
+    sources?: ('openai' | 'neon' | 'memory')[];
     modelId?: string;
   }
 ): AsyncGenerator<string, AgentResponse, unknown> {
@@ -105,11 +110,16 @@ export async function* processQueryStream(
     query,
     chatHistory: options?.chatHistory || [],
     context: {
-      sources: options?.sources || ['openai'],
+      sources: options?.sources || ['memory'],
+      maxResults: 10,
+      complexity: 'moderate',
+      domainKeywords: [],
+      requiresCitations: true,
     },
     options: {
-      modelId: options?.modelId,
+      modelId: options?.modelId || 'anthropic-claude-sonnet-4-20250514',
       streaming: true,
+      useTools: true,
     },
   };
 
@@ -140,7 +150,7 @@ export async function useAgent(
   query: string,
   options?: {
     chatHistory?: AgentRequest['chatHistory'];
-    sources?: AgentRequest['context']['sources'];
+    sources?: ('openai' | 'neon' | 'memory')[];
     modelId?: string;
   }
 ): Promise<AgentResponse> {
@@ -157,11 +167,16 @@ export async function useAgent(
     query,
     chatHistory: options?.chatHistory || [],
     context: {
-      sources: options?.sources || ['openai'],
+      sources: options?.sources || ['memory'],
+      maxResults: 10,
+      complexity: 'moderate',
+      domainKeywords: [],
+      requiresCitations: true,
     },
     options: {
-      modelId: options?.modelId,
+      modelId: options?.modelId || 'anthropic-claude-sonnet-4-20250514',
       streaming: false,
+      useTools: true,
     },
   };
 

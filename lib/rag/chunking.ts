@@ -439,7 +439,9 @@ class HybridChunker {
 
 // Main chunking service
 export class DocumentChunkingService {
-  constructor(private config: ChunkingConfig = {}) {
+  private config: ChunkingConfig;
+  
+  constructor(config: Partial<ChunkingConfig> = {}) {
     this.config = ChunkingConfig.parse(config);
   }
 
@@ -693,7 +695,12 @@ export function createSimpleChunks(content: string, chunkSize = 1500, overlap = 
   return CharacterChunker.chunk(content, { 
     strategy: 'character',
     chunkSize, 
-    chunkOverlap: overlap 
+    chunkOverlap: overlap,
+    preserveStructure: false,
+    respectBoundaries: true,
+    minChunkSize: 100,
+    maxChunkSize: chunkSize,
+    enableQualityValidation: false,
   });
 }
 

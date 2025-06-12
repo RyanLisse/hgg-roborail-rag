@@ -85,6 +85,24 @@ export class FaultTolerantOpenAIVectorStoreService {
     );
   }
 
+  async searchWithRetry(request: SearchRequest, maxRetries = 3): Promise<SearchResponse> {
+    const cacheKey = `search_retry:${request.query}:${request.maxResults}:${request.vectorStoreId}:${maxRetries}`;
+    
+    return this.faultTolerantService.execute(
+      async () => {
+        if (!this.baseService.isEnabled) {
+          throw new Error('OpenAI vector store service is disabled');
+        }
+        return await this.baseService.searchWithRetry(request, maxRetries);
+      },
+      {
+        operationName: 'searchWithRetry',
+        cacheKey,
+        requiredServiceLevel: 2, // Can operate in reduced functionality mode
+      }
+    );
+  }
+
   async uploadFile(request: FileUploadRequest, vectorStoreId?: string): Promise<VectorStoreFile> {
     return this.faultTolerantService.execute(
       async () => {

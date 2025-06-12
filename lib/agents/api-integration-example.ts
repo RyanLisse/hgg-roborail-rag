@@ -28,7 +28,7 @@ const AgentAPIRequestSchema = z.object({
     agentType: z.enum(['qa', 'rewrite', 'planner', 'research']).optional(),
     maxTokens: z.number().min(50).max(4000).optional(),
     temperature: z.number().min(0).max(2).optional(),
-  }).optional(),
+  }).default({}),
 });
 
 type AgentAPIRequest = z.infer<typeof AgentAPIRequestSchema>;
@@ -50,7 +50,7 @@ export async function processAgentRequest(request: NextRequest) {
     const body = await request.json();
     const validatedRequest = AgentAPIRequestSchema.parse(body);
 
-    const { query, chatHistory = [], options = {} } = validatedRequest;
+    const { query, chatHistory = [], options } = validatedRequest;
 
     // Check if streaming is requested
     if (options.streaming) {
@@ -60,8 +60,8 @@ export async function processAgentRequest(request: NextRequest) {
     // Process non-streaming request
     const response = await processQuery(query, {
       chatHistory,
-      sources: options.sources,
-      modelId: options.modelId,
+      sources: options.sources || ['memory'],
+      modelId: options.modelId || 'claude-3-5-sonnet-20241022',
       streaming: false,
     });
 
@@ -109,7 +109,7 @@ export async function processAgentRequest(request: NextRequest) {
 async function handleStreamingRequest(
   query: string, 
   chatHistory: any[], 
-  options: AgentAPIRequest['options'] = {}
+  options: AgentAPIRequest['options']
 ) {
   const encoder = new TextEncoder();
   
@@ -133,8 +133,8 @@ async function handleStreamingRequest(
         let fullContent = '';
         const streamGenerator = processQueryStream(query, {
           chatHistory,
-          sources: options.sources,
-          modelId: options.modelId,
+          sources: options.sources || ['memory'],
+          modelId: options.modelId || 'claude-3-5-sonnet-20241022',
         });
 
         for await (const chunk of streamGenerator) {
@@ -148,13 +148,13 @@ async function handleStreamingRequest(
                 chunk,
               })}\n\n`)
             );
-          } else {
+          } else if (typeof chunk === 'object' && chunk !== null) {
             // Final response with metadata
             controller.enqueue(
               encoder.encode(`data: ${JSON.stringify({
                 type: 'complete',
                 content: fullContent,
-                metadata: chunk.metadata,
+                metadata: (chunk as any).metadata,
               })}\n\n`)
             );
           }

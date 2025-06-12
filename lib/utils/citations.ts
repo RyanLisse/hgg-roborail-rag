@@ -1,5 +1,8 @@
 import type { SourceAnnotation, SourceFile } from '@/lib/ai/responses';
 
+// Re-export for convenience
+export type { SourceFile };
+
 export interface ParsedCitation {
   id: string;
   number: number;

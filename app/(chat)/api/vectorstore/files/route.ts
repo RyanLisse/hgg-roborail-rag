@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     if (source === 'openai') {
       const files = await vectorStoreService.openaiService.listFiles(vectorStoreId || undefined);
       return NextResponse.json({ 
-        files: files.map(file => ({
+        files: files.map((file: any) => ({
           id: file.id,
           name: `file-${file.id}`, // OpenAI doesn't store original filename in vector store
           status: file.status,
@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
     if (availableSources.includes('openai')) {
       try {
         const openaiFiles = await vectorStoreService.openaiService.listFiles();
-        allFiles.push(...openaiFiles.map(file => ({
+        allFiles.push(...openaiFiles.map((file: any) => ({
           id: file.id,
           name: `file-${file.id}`,
           status: file.status,

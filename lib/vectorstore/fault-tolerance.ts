@@ -39,7 +39,7 @@ export type FaultToleranceConfig = z.infer<typeof FaultToleranceConfig>;
 // METRICS COLLECTION
 // ====================================
 
-interface OperationMetrics {
+export interface OperationMetrics {
   totalRequests: number;
   successfulRequests: number;
   failedRequests: number;
@@ -357,7 +357,7 @@ export class FaultTolerantService<T> {
     }, this.config.healthCheckIntervalMs);
   }
 
-  private async performPeriodicHealthCheck(): void {
+  private async performPeriodicHealthCheck(): Promise<void> {
     const health = await this.healthCheck();
     
     // Log health status periodically
@@ -483,12 +483,19 @@ export {
   ErrorClassifier,
   RetryMechanism,
   CircuitBreaker,
-  FallbackManager,
-  GracefulDegradation,
+  type ClassifiedError,
+  ErrorCategory,
+  type RetryConfig,
+  type CircuitBreakerConfig
 } from './error-handling';
 
-export {
+export type {
   FallbackConfig,
-  FallbackMode,
   ServiceProvider,
+} from './fallback';
+
+export {
+  FallbackManager,
+  GracefulDegradation,
+  FallbackMode,
 } from './fallback';
