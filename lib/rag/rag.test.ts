@@ -1,20 +1,20 @@
-import { describe, it, expect, beforeEach, } from 'vitest';
-import { 
-  type RAGService, 
-  DocumentChunk, 
-  RAGQuery, 
+import { describe, it, expect, beforeEach } from 'vitest';
+import {
+  type RAGService,
+  DocumentChunk,
+  RAGQuery,
   createRAGService,
   embedDocument,
   searchSimilarChunks,
   generateRAGResponse,
   analyzeDocumentChunking,
   updateChunkingStrategy,
-  getChunkingConfig
+  getChunkingConfig,
 } from './rag';
 
 describe('RAG Service', () => {
   let ragService: RAGService;
-  
+
   beforeEach(() => {
     ragService = createRAGService({
       vectorStore: 'memory',
@@ -27,17 +27,18 @@ describe('RAG Service', () => {
     it('should embed document and create chunks', async () => {
       const document = {
         id: 'test-doc-1',
-        content: 'This is a test document with some content about AI and machine learning.',
-        metadata: { title: 'Test Document', source: 'test' }
+        content:
+          'This is a test document with some content about AI and machine learning.',
+        metadata: { title: 'Test Document', source: 'test' },
       };
 
       const chunks = await embedDocument(ragService, document);
-      
+
       expect(chunks).toBeDefined();
       expect(Array.isArray(chunks)).toBe(true);
       expect(chunks.length).toBeGreaterThan(0);
-      
-      chunks.forEach(chunk => {
+
+      chunks.forEach((chunk) => {
         expect(chunk).toHaveProperty('id');
         expect(chunk).toHaveProperty('content');
         expect(chunk).toHaveProperty('embedding');
@@ -56,8 +57,8 @@ describe('RAG Service', () => {
         metadata: {
           title: 'Sample',
           chunkIndex: 0,
-          source: 'test'
-        }
+          source: 'test',
+        },
       };
 
       expect(() => DocumentChunk.parse(validChunk)).not.toThrow();
@@ -68,13 +69,13 @@ describe('RAG Service', () => {
       const document = {
         id: 'large-doc',
         content: largeContent,
-        metadata: { title: 'Large Document', source: 'test' }
+        metadata: { title: 'Large Document', source: 'test' },
       };
 
       const chunks = await embedDocument(ragService, document);
-      
+
       expect(chunks.length).toBeGreaterThan(1);
-      chunks.forEach(chunk => {
+      chunks.forEach((chunk) => {
         expect(chunk.content.length).toBeLessThanOrEqual(2000); // Max chunk size
       });
     });
@@ -86,19 +87,22 @@ describe('RAG Service', () => {
       const documents = [
         {
           id: 'doc-ai',
-          content: 'Artificial Intelligence and machine learning are transforming technology.',
-          metadata: { title: 'AI Overview', source: 'tech' }
+          content:
+            'Artificial Intelligence and machine learning are transforming technology.',
+          metadata: { title: 'AI Overview', source: 'tech' },
         },
         {
           id: 'doc-cooking',
-          content: 'Cooking pasta requires boiling water and adding salt for flavor.',
-          metadata: { title: 'Cooking Guide', source: 'food' }
+          content:
+            'Cooking pasta requires boiling water and adding salt for flavor.',
+          metadata: { title: 'Cooking Guide', source: 'food' },
         },
         {
           id: 'doc-programming',
-          content: 'TypeScript provides type safety for JavaScript development.',
-          metadata: { title: 'Programming Guide', source: 'tech' }
-        }
+          content:
+            'TypeScript provides type safety for JavaScript development.',
+          metadata: { title: 'Programming Guide', source: 'tech' },
+        },
       ];
 
       for (const doc of documents) {
@@ -108,12 +112,14 @@ describe('RAG Service', () => {
 
     it('should find relevant chunks for a query', async () => {
       const query = 'Tell me about artificial intelligence';
-      const results = await searchSimilarChunks(ragService, query, { limit: 5 });
+      const results = await searchSimilarChunks(ragService, query, {
+        limit: 5,
+      });
 
       expect(results).toBeDefined();
       expect(Array.isArray(results)).toBe(true);
       expect(results.length).toBeGreaterThan(0);
-      
+
       // First result should be most relevant (AI document)
       expect(results[0].content).toContain('Artificial Intelligence');
       expect(results[0].score).toBeGreaterThan(0.5);
@@ -121,28 +127,32 @@ describe('RAG Service', () => {
 
     it('should return results sorted by relevance score', async () => {
       const query = 'programming languages';
-      const results = await searchSimilarChunks(ragService, query, { limit: 3 });
+      const results = await searchSimilarChunks(ragService, query, {
+        limit: 3,
+      });
 
       for (let i = 1; i < results.length; i++) {
-        expect(results[i-1].score).toBeGreaterThanOrEqual(results[i].score);
+        expect(results[i - 1].score).toBeGreaterThanOrEqual(results[i].score);
       }
     });
 
     it('should respect limit parameter', async () => {
       const query = 'technology';
-      const results = await searchSimilarChunks(ragService, query, { limit: 2 });
+      const results = await searchSimilarChunks(ragService, query, {
+        limit: 2,
+      });
 
       expect(results.length).toBeLessThanOrEqual(2);
     });
 
     it('should filter by metadata if provided', async () => {
       const query = 'guide';
-      const results = await searchSimilarChunks(ragService, query, { 
+      const results = await searchSimilarChunks(ragService, query, {
         limit: 5,
-        filter: { source: 'tech' }
+        filter: { source: 'tech' },
       });
 
-      results.forEach(result => {
+      results.forEach((result) => {
         expect(result.metadata.source).toBe('tech');
       });
     });
@@ -152,10 +162,11 @@ describe('RAG Service', () => {
     beforeEach(async () => {
       const document = {
         id: 'rag-test-doc',
-        content: 'Next.js is a React framework that provides server-side rendering, static site generation, and many other features for building modern web applications.',
-        metadata: { title: 'Next.js Guide', source: 'docs' }
+        content:
+          'Next.js is a React framework that provides server-side rendering, static site generation, and many other features for building modern web applications.',
+        metadata: { title: 'Next.js Guide', source: 'docs' },
       };
-      
+
       await embedDocument(ragService, document);
     });
 
@@ -163,7 +174,7 @@ describe('RAG Service', () => {
       const query: RAGQuery = {
         question: 'What is Next.js?',
         chatHistory: [],
-        modelId: 'openai-gpt-4.1'
+        modelId: 'openai-gpt-4.1',
       };
 
       const response = await generateRAGResponse(ragService, query);
@@ -183,13 +194,13 @@ describe('RAG Service', () => {
         question: 'What is TypeScript?',
         chatHistory: [
           { role: 'user', content: 'Hello' },
-          { role: 'assistant', content: 'Hi there!' }
+          { role: 'assistant', content: 'Hi there!' },
         ],
         modelId: 'openai-gpt-4.1',
         options: {
           maxSources: 5,
-          minRelevanceScore: 0.7
-        }
+          minRelevanceScore: 0.7,
+        },
       };
 
       expect(() => RAGQuery.parse(validQuery)).not.toThrow();
@@ -200,9 +211,9 @@ describe('RAG Service', () => {
         question: 'Can you elaborate on that?',
         chatHistory: [
           { role: 'user', content: 'Tell me about Next.js' },
-          { role: 'assistant', content: 'Next.js is a React framework...' }
+          { role: 'assistant', content: 'Next.js is a React framework...' },
         ],
-        modelId: 'openai-gpt-4.1'
+        modelId: 'openai-gpt-4.1',
       };
 
       const response = await generateRAGResponse(ragService, query);
@@ -215,7 +226,7 @@ describe('RAG Service', () => {
       const query: RAGQuery = {
         question: 'What is the weather like on Mars?',
         chatHistory: [],
-        modelId: 'openai-gpt-4.1'
+        modelId: 'openai-gpt-4.1',
       };
 
       const response = await generateRAGResponse(ragService, query);
@@ -235,8 +246,8 @@ describe('RAG Service', () => {
         options: {
           chunkSize: 1000,
           chunkOverlap: 200,
-          maxRetrievalLimit: 10
-        }
+          maxRetrievalLimit: 10,
+        },
       };
 
       const service = createRAGService(config);
@@ -249,7 +260,7 @@ describe('RAG Service', () => {
         createRAGService({
           vectorStore: 'invalid' as any,
           embeddingModel: 'invalid-model',
-          chatModel: 'invalid-model'
+          chatModel: 'invalid-model',
         });
       }).toThrow();
     });
@@ -270,17 +281,17 @@ Content for section 1 with detailed explanations.
 ## Section 2  
 Content for section 2 with more information.
         `.trim(),
-        metadata: { title: 'Enhanced Test', source: 'test', type: 'markdown' }
+        metadata: { title: 'Enhanced Test', source: 'test', type: 'markdown' },
       };
 
       const chunks = await embedDocument(ragService, document);
-      
+
       expect(chunks).toBeDefined();
       expect(Array.isArray(chunks)).toBe(true);
       expect(chunks.length).toBeGreaterThan(0);
-      
+
       // Enhanced chunks should have additional metadata
-      chunks.forEach(chunk => {
+      chunks.forEach((chunk) => {
         expect(chunk.metadata).toHaveProperty('chunkingStrategy');
         expect(chunk.metadata).toHaveProperty('qualityScore');
         expect(chunk.metadata).toHaveProperty('structurePreserved');
@@ -308,20 +319,23 @@ function example() {
 }
 \`\`\`
         `.trim(),
-        metadata: { title: 'Structure Test', type: 'markdown' }
+        metadata: { title: 'Structure Test', type: 'markdown' },
       };
 
       const chunks = await embedDocument(ragService, document);
-      
+
       // Should have chunks that respect markdown structure
-      const hasHeadingChunks = chunks.some(chunk => 
-        chunk.content.includes('# Main Title') || 
-        chunk.content.includes('## Subsection')
+      const hasHeadingChunks = chunks.some(
+        (chunk) =>
+          chunk.content.includes('# Main Title') ||
+          chunk.content.includes('## Subsection'),
       );
       expect(hasHeadingChunks).toBe(true);
 
       // Should have chunk type metadata
-      const chunkTypes = chunks.map(chunk => chunk.metadata.chunkType).filter(Boolean);
+      const chunkTypes = chunks
+        .map((chunk) => chunk.metadata.chunkType)
+        .filter(Boolean);
       expect(chunkTypes.length).toBeGreaterThan(0);
     });
 
@@ -329,11 +343,11 @@ function example() {
       const document = {
         id: 'analysis-test',
         content: 'This is a test document for chunking analysis. '.repeat(100),
-        metadata: { title: 'Analysis Test' }
+        metadata: { title: 'Analysis Test' },
       };
 
       const analysis = await analyzeDocumentChunking(ragService, document);
-      
+
       expect(analysis).toBeDefined();
       expect(analysis.chunks).toBeDefined();
       expect(analysis.strategy).toBeDefined();
@@ -347,7 +361,7 @@ function example() {
       expect(originalConfig.strategy).toBe('hybrid');
 
       updateChunkingStrategy(ragService, 'semantic');
-      
+
       const updatedConfig = getChunkingConfig(ragService);
       expect(updatedConfig.strategy).toBe('semantic');
     });
@@ -357,26 +371,26 @@ function example() {
         {
           id: 'markdown-doc',
           content: '# Title\n\nParagraph with **bold** text.',
-          metadata: { type: 'markdown' }
+          metadata: { type: 'markdown' },
         },
         {
           id: 'code-doc',
           content: 'function test() {\n  return "hello";\n}',
-          metadata: { type: 'code' }
+          metadata: { type: 'code' },
         },
         {
           id: 'html-doc',
           content: '<html><body><h1>Title</h1><p>Content</p></body></html>',
-          metadata: { type: 'html' }
-        }
+          metadata: { type: 'html' },
+        },
       ];
 
       for (const doc of documents) {
         const chunks = await embedDocument(ragService, doc);
         expect(chunks.length).toBeGreaterThan(0);
-        
+
         // Each chunk should have appropriate metadata
-        chunks.forEach(chunk => {
+        chunks.forEach((chunk) => {
           expect(chunk.metadata.chunkingStrategy).toBeDefined();
         });
       }
@@ -394,13 +408,13 @@ The content is well-organized and coherent.
 Another section with meaningful content that demonstrates
 quality validation in the chunking process.
         `.trim(),
-        metadata: { title: 'Quality Test' }
+        metadata: { title: 'Quality Test' },
       };
 
       const chunks = await embedDocument(ragService, document);
-      
+
       // All chunks should have quality metrics
-      chunks.forEach(chunk => {
+      chunks.forEach((chunk) => {
         if (chunk.metadata.qualityScore !== undefined) {
           expect(chunk.metadata.qualityScore).toBeGreaterThanOrEqual(0);
           expect(chunk.metadata.qualityScore).toBeLessThanOrEqual(1);
@@ -419,7 +433,7 @@ quality validation in the chunking process.
           enableQualityValidation: true,
           minChunkSize: 200,
           maxChunkSize: 2000,
-        }
+        },
       });
 
       const config = getChunkingConfig(ragServiceWithChunking);
@@ -437,13 +451,13 @@ quality validation in the chunking process.
       const document = {
         id: 'compat-test',
         content: 'Simple test document for compatibility.',
-        metadata: { title: 'Compatibility Test' }
+        metadata: { title: 'Compatibility Test' },
       };
 
       const chunks = await embedDocument(ragService, document);
-      
+
       // Should still have basic properties
-      chunks.forEach(chunk => {
+      chunks.forEach((chunk) => {
         expect(chunk).toHaveProperty('id');
         expect(chunk).toHaveProperty('content');
         expect(chunk).toHaveProperty('embedding');
@@ -456,13 +470,16 @@ quality validation in the chunking process.
       const document = {
         id: 'search-compat',
         content: 'Document about artificial intelligence and machine learning.',
-        metadata: { title: 'AI Document' }
+        metadata: { title: 'AI Document' },
       };
 
       await embedDocument(ragService, document);
-      
-      const results = await searchSimilarChunks(ragService, 'artificial intelligence');
-      
+
+      const results = await searchSimilarChunks(
+        ragService,
+        'artificial intelligence',
+      );
+
       expect(results).toBeDefined();
       expect(results.length).toBeGreaterThan(0);
       expect(results[0]).toHaveProperty('score');
@@ -475,7 +492,7 @@ quality validation in the chunking process.
       const document = {
         id: 'empty-test',
         content: '',
-        metadata: { title: 'Empty Document' }
+        metadata: { title: 'Empty Document' },
       };
 
       const chunks = await embedDocument(ragService, document);
@@ -486,15 +503,15 @@ quality validation in the chunking process.
       const document = {
         id: 'large-test',
         content: 'Large document content. '.repeat(1000), // ~23,000 characters
-        metadata: { title: 'Large Document' }
+        metadata: { title: 'Large Document' },
       };
 
       const chunks = await embedDocument(ragService, document);
-      
+
       expect(chunks.length).toBeGreaterThan(1);
-      
+
       // All chunks should be within reasonable size limits
-      chunks.forEach(chunk => {
+      chunks.forEach((chunk) => {
         expect(chunk.content.length).toBeLessThanOrEqual(3000);
       });
     });
@@ -502,12 +519,13 @@ quality validation in the chunking process.
     it('should handle documents with special characters', async () => {
       const document = {
         id: 'special-chars-test',
-        content: 'Document with émojis 🚀, ünïcödé characters, and symbols: @#$%^&*()',
-        metadata: { title: 'Special Characters' }
+        content:
+          'Document with émojis 🚀, ünïcödé characters, and symbols: @#$%^&*()',
+        metadata: { title: 'Special Characters' },
       };
 
       const chunks = await embedDocument(ragService, document);
-      
+
       expect(chunks.length).toBeGreaterThan(0);
       expect(chunks[0].content).toContain('émojis');
       expect(chunks[0].content).toContain('🚀');

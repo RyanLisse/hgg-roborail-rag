@@ -213,8 +213,8 @@ export class OpenAIResponsesService {
   static extractQuotes(annotations: SourceAnnotation[]): string[] {
     return annotations
       .filter(annotation => annotation.type === 'file_citation' && annotation.file_citation?.quote)
-      .map(annotation => annotation.file_citation?.quote!)
-      .filter(Boolean);
+      .map(annotation => annotation.file_citation?.quote)
+      .filter((quote): quote is string => quote !== undefined && quote !== null);
   }
 }
 

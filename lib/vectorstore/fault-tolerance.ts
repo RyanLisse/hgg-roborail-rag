@@ -381,6 +381,7 @@ export class FaultTolerantService<T> {
 // FAULT TOLERANCE FACTORY
 // ====================================
 
+// biome-ignore lint/complexity/noStaticOnlyClass: Utility class pattern for organized functionality
 export class FaultToleranceFactory {
   private static services = new Map<string, FaultTolerantService<any>>();
 
@@ -388,8 +389,9 @@ export class FaultToleranceFactory {
     serviceName: string,
     config?: Partial<FaultToleranceConfig>
   ): FaultTolerantService<T> {
-    if (FaultToleranceFactory.services.has(serviceName)) {
-      return FaultToleranceFactory.services.get(serviceName)!;
+    const existingService = FaultToleranceFactory.services.get(serviceName);
+    if (existingService) {
+      return existingService;
     }
 
     const service = new FaultTolerantService<T>(serviceName, config);

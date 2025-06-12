@@ -294,7 +294,9 @@ export async function documentTypeExample() {
     // Show chunk types distribution
     const chunkTypes = result.chunks.map(c => c.metadata.chunkType).filter(Boolean);
     const typeDistribution = chunkTypes.reduce((acc, type) => {
-      acc[type!] = (acc[type!] || 0) + 1;
+      if (type) {
+        acc[type] = (acc[type] || 0) + 1;
+      }
       return acc;
     }, {} as Record<string, number>);
     

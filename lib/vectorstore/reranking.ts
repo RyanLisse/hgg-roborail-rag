@@ -7,7 +7,6 @@ import {
   ScoredDocument,
   RerankingRequest,
   HybridSearchRequest,
-  type RelevanceFactors,
   type RelevanceWeights,
 } from './relevance-scoring';
 
@@ -70,6 +69,7 @@ export type { RerankingRequest, HybridSearchRequest } from './relevance-scoring'
 /**
  * Advanced document reranking engine
  */
+// biome-ignore lint/complexity/noStaticOnlyClass: Utility class pattern for organized functionality
 export class DocumentRerankingEngine {
   private static temporalWeights = new Map<string, number>();
   private static userPreferences = new Map<string, RelevanceWeights>();
@@ -99,7 +99,7 @@ export class DocumentRerankingEngine {
       // Step 1: Calculate relevance scores for all documents
       const candidateDocuments = validatedRequest.documents.slice(0, config.maxCandidates);
       
-      scoredDocuments = await this.scoreDocuments(
+      scoredDocuments = await DocumentRerankingEngine.scoreDocuments(
         candidateDocuments,
         validatedRequest.query,
         validatedRequest.queryContext,
@@ -108,7 +108,7 @@ export class DocumentRerankingEngine {
 
       // Step 2: Apply cross-encoder reranking if enabled
       if (config.strategy === 'cross_encoder' || config.strategy === 'neural_rerank') {
-        scoredDocuments = await this.applyCrossEncoderReranking(
+        scoredDocuments = await DocumentRerankingEngine.applyCrossEncoderReranking(
           scoredDocuments,
           validatedRequest.query,
           config
@@ -118,9 +118,9 @@ export class DocumentRerankingEngine {
       // Step 3: Apply diversification if enabled
       let diversificationApplied = false;
       if (config.enableDiversification) {
-        const diversifiedDocs = this.applyDiversification(
+        const diversifiedDocs = DocumentRerankingEngine.applyDiversification(
           scoredDocuments,
-          config.diversityThreshold!
+          config.diversityThreshold || 0.8
         );
         
         if (diversifiedDocs.length !== scoredDocuments.length) {
@@ -131,7 +131,7 @@ export class DocumentRerankingEngine {
 
       // Step 4: Apply temporal decay if enabled
       if (config.temporalDecay) {
-        scoredDocuments = this.applyTemporalDecay(scoredDocuments);
+        scoredDocuments = DocumentRerankingEngine.applyTemporalDecay(scoredDocuments);
       }
 
       // Step 5: Final ranking and limit results
@@ -322,7 +322,7 @@ export class DocumentRerankingEngine {
       const doc = rerankedDocuments[i];
       
       // Simulate cross-encoder scoring with enhanced semantic analysis
-      const crossEncoderScore = this.simulateCrossEncoderScore(doc.content, query);
+      const crossEncoderScore = DocumentRerankingEngine.simulateCrossEncoderScore(doc.content, query);
       
       // Combine original relevance score with cross-encoder score
       const combinedScore = (doc.relevanceScore * 0.7) + (crossEncoderScore * 0.3);
@@ -381,7 +381,7 @@ export class DocumentRerankingEngine {
     score += (maxConsecutive / queryWords.length) * 0.3;
     
     // 3. Semantic relationships (simplified)
-    const semanticPairs = this.getSemanticPairs();
+    const semanticPairs = DocumentRerankingEngine.getSemanticPairs();
     for (const [term1, term2] of semanticPairs) {
       if ((queryLower.includes(term1) && contentLower.includes(term2)) ||
           (queryLower.includes(term2) && contentLower.includes(term1))) {
@@ -390,7 +390,7 @@ export class DocumentRerankingEngine {
     }
     
     // 4. Context window analysis
-    const contextScore = this.analyzeContextWindow(contentLower, queryLower);
+    const contextScore = DocumentRerankingEngine.analyzeContextWindow(contentLower, queryLower);
     score += contextScore * 0.2;
     
     return Math.min(score, 1.0);
@@ -465,7 +465,7 @@ export class DocumentRerankingEngine {
       
       // Check similarity with already selected documents
       for (const selected of diversifiedDocs) {
-        const similarity = this.calculateContentSimilarity(candidate.content, selected.content);
+        const similarity = DocumentRerankingEngine.calculateContentSimilarity(candidate.content, selected.content);
         
         if (similarity > threshold) {
           shouldInclude = false;
@@ -603,7 +603,7 @@ export class DocumentRerankingEngine {
     preferredFactors: string[];
     adjustments: Partial<RelevanceWeights>;
   }): void {
-    const currentPrefs = this.userPreferences.get(userId) || ScoringWeights.parse({});
+    const currentPrefs = DocumentRerankingEngine.userPreferences.get(userId) || ScoringWeights.parse({});
     
     // Apply feedback adjustments
     const updatedPrefs = { ...currentPrefs };
@@ -624,14 +624,14 @@ export class DocumentRerankingEngine {
       }
     }
     
-    this.userPreferences.set(userId, ScoringWeights.parse(updatedPrefs));
+    DocumentRerankingEngine.userPreferences.set(userId, ScoringWeights.parse(updatedPrefs));
   }
 
   /**
    * Get user-specific relevance weights
    */
   static getUserPreferences(userId: string): RelevanceWeights {
-    return this.userPreferences.get(userId) || ScoringWeights.parse({});
+    return DocumentRerankingEngine.userPreferences.get(userId) || ScoringWeights.parse({});
   }
 
   /**
@@ -656,6 +656,7 @@ export class DocumentRerankingEngine {
 /**
  * Learning-to-Rank (LTR) engine for advanced reranking
  */
+// biome-ignore lint/complexity/noStaticOnlyClass: Utility class pattern for organized functionality
 export class LearningToRankEngine {
   private static trainingData = new Map<string, any[]>();
 
@@ -683,15 +684,18 @@ export class LearningToRankEngine {
         doc.factors.semanticMatch,
         doc.factors.userFeedback || 0,
       ],
-      label: this.calculateLabel(doc.id, userInteractions),
+      label: LearningToRankEngine.calculateLabel(doc.id, userInteractions),
     }));
 
-    const queryHash = this.hashQuery(query);
-    if (!this.trainingData.has(queryHash)) {
-      this.trainingData.set(queryHash, []);
+    const queryHash = LearningToRankEngine.hashQuery(query);
+    if (!LearningToRankEngine.trainingData.has(queryHash)) {
+      LearningToRankEngine.trainingData.set(queryHash, []);
     }
     
-    this.trainingData.get(queryHash)!.push(...features);
+    const trainingData = LearningToRankEngine.trainingData.get(queryHash);
+    if (trainingData) {
+      trainingData.push(...features);
+    }
   }
 
   /**
@@ -739,9 +743,9 @@ export class LearningToRankEngine {
     totalSamples: number;
     avgSamplesPerQuery: number;
   } {
-    const totalQueries = this.trainingData.size;
-    const totalSamples = Array.from(this.trainingData.values())
-      .reduce((sum, samples) => sum + samples.length, 0);
+    const totalQueries = LearningToRankEngine.trainingData.size;
+    const totalSamples = Array.from(LearningToRankEngine.trainingData.values())
+      .reduce((sum, samples: any[]) => sum + samples.length, 0);
     
     return {
       totalQueries,

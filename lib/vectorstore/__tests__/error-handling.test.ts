@@ -30,10 +30,10 @@ describe('Vector Store Error Handling', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockFetch.mockClear();
-    
+
     service = createOpenAIVectorStoreService({
       apiKey: 'sk-test-key',
-      defaultVectorStoreId: 'vs_test_store'
+      defaultVectorStoreId: 'vs_test_store',
     });
   });
 
@@ -43,19 +43,24 @@ describe('Vector Store Error Handling', () => {
 
   describe('Network Error Scenarios', () => {
     it('should handle network timeouts gracefully', async () => {
-      mockFetch.mockImplementation(() => 
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Network timeout')), 100)
-        )
+      mockFetch.mockImplementation(
+        () =>
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Network timeout')), 100),
+          ),
       );
 
-      await expect(service.createVectorStore('Test Store')).rejects.toThrow('Network timeout');
+      await expect(service.createVectorStore('Test Store')).rejects.toThrow(
+        'Network timeout',
+      );
     });
 
     it('should handle connection refused errors', async () => {
       mockFetch.mockRejectedValueOnce(new Error('ECONNREFUSED'));
 
-      await expect(service.getVectorStore('vs_test')).rejects.toThrow('ECONNREFUSED');
+      await expect(service.getVectorStore('vs_test')).rejects.toThrow(
+        'ECONNREFUSED',
+      );
     });
 
     it('should handle DNS resolution failures', async () => {
@@ -72,12 +77,15 @@ describe('Vector Store Error Handling', () => {
         ok: false,
         status: 401,
         statusText: 'Unauthorized',
-        json: () => Promise.resolve({
-          error: { message: 'Invalid API key' }
-        }),
+        json: () =>
+          Promise.resolve({
+            error: { message: 'Invalid API key' },
+          }),
       });
 
-      await expect(service.createVectorStore('Test')).rejects.toThrow('Invalid API key');
+      await expect(service.createVectorStore('Test')).rejects.toThrow(
+        'Invalid API key',
+      );
     });
 
     it('should handle 403 Forbidden errors', async () => {
@@ -85,12 +93,15 @@ describe('Vector Store Error Handling', () => {
         ok: false,
         status: 403,
         statusText: 'Forbidden',
-        json: () => Promise.resolve({
-          error: { message: 'Insufficient permissions' }
-        }),
+        json: () =>
+          Promise.resolve({
+            error: { message: 'Insufficient permissions' },
+          }),
       });
 
-      await expect(service.getVectorStore('vs_test')).rejects.toThrow('Insufficient permissions');
+      await expect(service.getVectorStore('vs_test')).rejects.toThrow(
+        'Insufficient permissions',
+      );
     });
 
     it('should handle 404 Not Found errors', async () => {
@@ -98,12 +109,15 @@ describe('Vector Store Error Handling', () => {
         ok: false,
         status: 404,
         statusText: 'Not Found',
-        json: () => Promise.resolve({
-          error: { message: 'Vector store not found' }
-        }),
+        json: () =>
+          Promise.resolve({
+            error: { message: 'Vector store not found' },
+          }),
       });
 
-      await expect(service.getVectorStore('vs_nonexistent')).rejects.toThrow('Vector store not found');
+      await expect(service.getVectorStore('vs_nonexistent')).rejects.toThrow(
+        'Vector store not found',
+      );
     });
 
     it('should handle 429 Rate Limit errors', async () => {
@@ -111,14 +125,15 @@ describe('Vector Store Error Handling', () => {
         ok: false,
         status: 429,
         statusText: 'Too Many Requests',
-        json: () => Promise.resolve({
-          error: { message: 'Rate limit exceeded' }
-        }),
+        json: () =>
+          Promise.resolve({
+            error: { message: 'Rate limit exceeded' },
+          }),
       });
 
       const request: SearchRequest = { query: 'test' };
       const result = await service.searchFiles(request);
-      
+
       expect(result.success).toBe(false);
       expect(result.message).toContain('Rate limit exceeded');
     });
@@ -128,9 +143,10 @@ describe('Vector Store Error Handling', () => {
         ok: false,
         status: 500,
         statusText: 'Internal Server Error',
-        json: () => Promise.resolve({
-          error: { message: 'Internal server error' }
-        }),
+        json: () =>
+          Promise.resolve({
+            error: { message: 'Internal server error' },
+          }),
       });
 
       const result = await service.deleteVectorStore('vs_test');
@@ -142,9 +158,10 @@ describe('Vector Store Error Handling', () => {
         ok: false,
         status: 503,
         statusText: 'Service Unavailable',
-        json: () => Promise.resolve({
-          error: { message: 'Service temporarily unavailable' }
-        }),
+        json: () =>
+          Promise.resolve({
+            error: { message: 'Service temporarily unavailable' },
+          }),
       });
 
       const result = await service.listFiles();
@@ -159,7 +176,9 @@ describe('Vector Store Error Handling', () => {
         json: () => Promise.reject(new Error('Invalid JSON')),
       });
 
-      await expect(service.createVectorStore('Test')).rejects.toThrow('Invalid JSON');
+      await expect(service.createVectorStore('Test')).rejects.toThrow(
+        'Invalid JSON',
+      );
     });
 
     it('should handle missing data fields', async () => {
@@ -174,10 +193,11 @@ describe('Vector Store Error Handling', () => {
     it('should handle corrupted response data', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve({
-          id: null, // Invalid ID
-          status: 'invalid_status', // Invalid status
-        }),
+        json: () =>
+          Promise.resolve({
+            id: null, // Invalid ID
+            status: 'invalid_status', // Invalid status
+          }),
       });
 
       await expect(service.createVectorStore('Test')).rejects.toThrow();
@@ -196,29 +216,45 @@ describe('Vector Store Error Handling', () => {
 
   describe('File Upload Error Scenarios', () => {
     it('should handle file upload failures', async () => {
-      mockOpenAI.files.create.mockRejectedValueOnce(new Error('File upload failed'));
+      mockOpenAI.files.create.mockRejectedValueOnce(
+        new Error('File upload failed'),
+      );
 
       const mockFile = new File(['test'], 'test.txt', { type: 'text/plain' });
-      await expect(service.uploadFile({ file: mockFile })).rejects.toThrow('File upload failed');
+      await expect(service.uploadFile({ file: mockFile })).rejects.toThrow(
+        'File upload failed',
+      );
     });
 
     it('should handle file size limit errors', async () => {
-      mockOpenAI.files.create.mockRejectedValueOnce(new Error('File too large'));
+      mockOpenAI.files.create.mockRejectedValueOnce(
+        new Error('File too large'),
+      );
 
-      const mockFile = new File(['test'], 'large-file.txt', { type: 'text/plain' });
-      await expect(service.uploadFile({ file: mockFile })).rejects.toThrow('File too large');
+      const mockFile = new File(['test'], 'large-file.txt', {
+        type: 'text/plain',
+      });
+      await expect(service.uploadFile({ file: mockFile })).rejects.toThrow(
+        'File too large',
+      );
     });
 
     it('should handle unsupported file type errors', async () => {
-      mockOpenAI.files.create.mockRejectedValueOnce(new Error('Unsupported file type'));
+      mockOpenAI.files.create.mockRejectedValueOnce(
+        new Error('Unsupported file type'),
+      );
 
-      const mockFile = new File(['test'], 'test.exe', { type: 'application/octet-stream' });
-      await expect(service.uploadFile({ file: mockFile })).rejects.toThrow('Unsupported file type');
+      const mockFile = new File(['test'], 'test.exe', {
+        type: 'application/octet-stream',
+      });
+      await expect(service.uploadFile({ file: mockFile })).rejects.toThrow(
+        'Unsupported file type',
+      );
     });
 
     it('should handle vector store attachment failures', async () => {
       const mockFile = new File(['test'], 'test.txt', { type: 'text/plain' });
-      
+
       mockOpenAI.files.create.mockResolvedValueOnce({
         id: 'file_123',
         filename: 'test.txt',
@@ -228,12 +264,15 @@ describe('Vector Store Error Handling', () => {
         ok: false,
         status: 400,
         statusText: 'Bad Request',
-        json: () => Promise.resolve({
-          error: { message: 'Failed to attach file to vector store' }
-        }),
+        json: () =>
+          Promise.resolve({
+            error: { message: 'Failed to attach file to vector store' },
+          }),
       });
 
-      await expect(service.uploadFile({ file: mockFile })).rejects.toThrow('Failed to attach file to vector store');
+      await expect(service.uploadFile({ file: mockFile })).rejects.toThrow(
+        'Failed to attach file to vector store',
+      );
     });
   });
 
@@ -245,7 +284,9 @@ describe('Vector Store Error Handling', () => {
         json: () => Promise.resolve({ status: 'completed' }),
       });
 
-      mockOpenAI.responses.create.mockRejectedValueOnce(new Error('Search API failed'));
+      mockOpenAI.responses.create.mockRejectedValueOnce(
+        new Error('Search API failed'),
+      );
 
       const request: SearchRequest = { query: 'test query' };
       const result = await service.searchFiles(request);
@@ -281,10 +322,11 @@ describe('Vector Store Error Handling', () => {
         json: () => Promise.resolve({ status: 'completed' }),
       });
 
-      mockOpenAI.responses.create.mockImplementation(() =>
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Request timeout')), 100)
-        )
+      mockOpenAI.responses.create.mockImplementation(
+        () =>
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Request timeout')), 100),
+          ),
       );
 
       const request: SearchRequest = { query: 'test' };
@@ -391,7 +433,7 @@ describe('Vector Store Error Handling', () => {
   describe('Resource Cleanup on Errors', () => {
     it('should cleanup partial uploads on failure', async () => {
       const mockFile = new File(['test'], 'test.txt', { type: 'text/plain' });
-      
+
       // File upload succeeds
       mockOpenAI.files.create.mockResolvedValueOnce({
         id: 'file_123',
@@ -419,7 +461,9 @@ describe('Vector Store Error Handling', () => {
       // Simulate network failure during creation
       mockFetch.mockRejectedValueOnce(new Error('Network failure'));
 
-      await expect(service.createVectorStore('Test Store')).rejects.toThrow('Network failure');
+      await expect(service.createVectorStore('Test Store')).rejects.toThrow(
+        'Network failure',
+      );
     });
   });
 
@@ -430,7 +474,9 @@ describe('Vector Store Error Handling', () => {
         maxResults: -1, // Invalid max results
       };
 
-      await expect(service.searchFiles(invalidRequest as any)).rejects.toThrow();
+      await expect(
+        service.searchFiles(invalidRequest as any),
+      ).rejects.toThrow();
     });
 
     it('should handle invalid file upload parameters', async () => {
@@ -444,7 +490,7 @@ describe('Vector Store Error Handling', () => {
     it('should handle invalid vector store IDs', async () => {
       const invalidService = createOpenAIVectorStoreService({
         apiKey: 'sk-test-key',
-        defaultVectorStoreId: 'invalid-id-format' // Should start with 'vs_'
+        defaultVectorStoreId: 'invalid-id-format', // Should start with 'vs_'
       });
 
       // Should warn but not throw
@@ -462,21 +508,23 @@ describe('Vector Store Error Handling', () => {
 
       // Mock some to succeed, some to fail
       let callCount = 0;
-      vi.spyOn(service, 'searchFiles').mockImplementation((req: SearchRequest) => {
-        callCount++;
-        if (callCount === 2) {
-          throw new Error('Second request failed');
-        }
-        return Promise.resolve({
-          success: true,
-          message: 'Success',
-          results: [],
-          sources: [],
-          totalResults: 0,
-          query: req.query,
-          executionTime: 100,
-        });
-      });
+      vi.spyOn(service, 'searchFiles').mockImplementation(
+        (req: SearchRequest) => {
+          callCount++;
+          if (callCount === 2) {
+            throw new Error('Second request failed');
+          }
+          return Promise.resolve({
+            success: true,
+            message: 'Success',
+            results: [],
+            sources: [],
+            totalResults: 0,
+            query: req.query,
+            executionTime: 100,
+          });
+        },
+      );
 
       const results = await Promise.allSettled(requests);
 
@@ -488,7 +536,9 @@ describe('Vector Store Error Handling', () => {
 
   describe('Memory and Resource Error Handling', () => {
     it('should handle out-of-memory scenarios', async () => {
-      mockOpenAI.responses.create.mockRejectedValueOnce(new Error('Out of memory'));
+      mockOpenAI.responses.create.mockRejectedValueOnce(
+        new Error('Out of memory'),
+      );
 
       const request: SearchRequest = { query: 'test' };
       const result = await service.searchFiles(request);
@@ -508,15 +558,17 @@ describe('Vector Store Error Handling', () => {
       const largeResponse = {
         id: 'response_123',
         status: 'completed',
-        output: [{
-          type: 'file_search_call',
-          status: 'completed',
-          results: Array.from({ length: 10000 }, (_, i) => ({
-            file_id: `file_${i}`,
-            text: `Large content block ${i}`.repeat(1000),
-            score: 0.8,
-          })),
-        }],
+        output: [
+          {
+            type: 'file_search_call',
+            status: 'completed',
+            results: Array.from({ length: 10000 }, (_, i) => ({
+              file_id: `file_${i}`,
+              text: `Large content block ${i}`.repeat(1000),
+              score: 0.8,
+            })),
+          },
+        ],
       };
 
       mockOpenAI.responses.create.mockResolvedValueOnce(largeResponse);
