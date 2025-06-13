@@ -1,58 +1,65 @@
-export const BotIcon = () => {
+// Enhanced icons using Radix UI for consistency and accessibility
+import {
+  ActivityLogIcon,
+  BarChartIcon,
+  BellIcon,
+  BookmarkIcon,
+  CalendarIcon,
+  ChatBubbleIcon,
+  ClockIcon,
+  Cross2Icon,
+  DashboardIcon,
+  DotsVerticalIcon,
+  ExitIcon,
+  ExternalLinkIcon,
+  GearIcon,
+  HamburgerMenuIcon,
+  HeartIcon,
+  InfoCircledIcon,
+  LayersIcon,
+  LightningBoltIcon,
+  LoopIcon,
+  MagicWandIcon,
+  MagnifyingGlassIcon,
+  PaperClipIcon,
+  PauseIcon,
+  Pencil1Icon,
+  PersonIcon,
+  CopyIcon as RadixCopyIcon,
+  ReloadIcon,
+  RobotIcon,
+  Share1Icon,
+  StarIcon,
+  StopwatchIcon,
+  TargetIcon,
+  ThumbsDownIcon,
+  ThumbsUpIcon,
+  TimerIcon,
+  UpdateIcon,
+} from '@radix-ui/react-icons';
+
+// Bot icon using Radix Robot icon with enhanced styling
+export const BotIcon = ({ size = 16 }: { size?: number }) => {
   return (
-    <svg
-      height="16"
-      strokeLinejoin="round"
-      viewBox="0 0 16 16"
-      width="16"
-      style={{ color: 'currentcolor' }}
-    >
-      <path
-        fillRule="evenodd"
-        clipRule="evenodd"
-        d="M8.75 2.79933C9.19835 2.53997 9.5 2.05521 9.5 1.5C9.5 0.671573 8.82843 0 8 0C7.17157 0 6.5 0.671573 6.5 1.5C6.5 2.05521 6.80165 2.53997 7.25 2.79933V5H7C4.027 5 1.55904 7.16229 1.08296 10H0V13H1V14.5V16H2.5H13.5H15V14.5V13H16V10H14.917C14.441 7.16229 11.973 5 9 5H8.75V2.79933ZM7 6.5C4.51472 6.5 2.5 8.51472 2.5 11V14.5H13.5V11C13.5 8.51472 11.4853 6.5 9 6.5H7ZM7.25 11.25C7.25 12.2165 6.4665 13 5.5 13C4.5335 13 3.75 12.2165 3.75 11.25C3.75 10.2835 4.5335 9.5 5.5 9.5C6.4665 9.5 7.25 10.2835 7.25 11.25ZM10.5 13C11.4665 13 12.25 12.2165 12.25 11.25C12.25 10.2835 11.4665 9.5 10.5 9.5C9.5335 9.5 8.75 10.2835 8.75 11.25C8.75 12.2165 9.5335 13 10.5 13Z"
-        fill="currentColor"
-      />
-    </svg>
+    <RobotIcon width={size} height={size} style={{ color: 'currentcolor' }} />
   );
 };
 
-export const UserIcon = () => {
+// User icon using Radix PersonIcon with enhanced styling
+export const UserIcon = ({ size = 16 }: { size?: number }) => {
   return (
-    <svg
-      data-testid="geist-icon"
-      height="16"
-      strokeLinejoin="round"
-      viewBox="0 0 16 16"
-      width="16"
-      style={{ color: 'currentcolor' }}
-    >
-      <path
-        fillRule="evenodd"
-        clipRule="evenodd"
-        d="M7.75 0C5.95507 0 4.5 1.45507 4.5 3.25V3.75C4.5 5.54493 5.95507 7 7.75 7H8.25C10.0449 7 11.5 5.54493 11.5 3.75V3.25C11.5 1.45507 10.0449 0 8.25 0H7.75ZM6 3.25C6 2.2835 6.7835 1.5 7.75 1.5H8.25C9.2165 1.5 10 2.2835 10 3.25V3.75C10 4.7165 9.2165 5.5 8.25 5.5H7.75C6.7835 5.5 6 4.7165 6 3.75V3.25ZM2.5 14.5V13.1709C3.31958 11.5377 4.99308 10.5 6.82945 10.5H9.17055C11.0069 10.5 12.6804 11.5377 13.5 13.1709V14.5H2.5ZM6.82945 9C4.35483 9 2.10604 10.4388 1.06903 12.6857L1 12.8353V13V15.25V16H1.75H14.25H15V15.25V13V12.8353L14.931 12.6857C13.894 10.4388 11.6452 9 9.17055 9H6.82945Z"
-        fill="currentColor"
-      />
-    </svg>
+    <PersonIcon width={size} height={size} style={{ color: 'currentcolor' }} />
   );
 };
 
-export const AttachmentIcon = () => {
+// Attachment icon using Radix PaperClipIcon
+export const AttachmentIcon = ({ size = 16 }: { size?: number }) => {
   return (
-    <svg
-      height="16"
-      strokeLinejoin="round"
-      viewBox="0 0 16 16"
-      width="16"
+    <PaperClipIcon
+      width={size}
+      height={size}
       style={{ color: 'currentcolor' }}
-    >
-      <path
-        fillRule="evenodd"
-        clipRule="evenodd"
-        d="M14.5 6.5V13.5C14.5 14.8807 13.3807 16 12 16H4C2.61929 16 1.5 14.8807 1.5 13.5V1.5V0H3H8H9.08579C9.351 0 9.60536 0.105357 9.79289 0.292893L14.2071 4.70711C14.3946 4.89464 14.5 5.149 14.5 5.41421V6.5ZM13 6.5V13.5C13 14.0523 12.5523 14.5 12 14.5H4C3.44772 14.5 3 14.0523 3 13.5V1.5H8V5V6.5H9.5H13ZM9.5 2.12132V5H12.3787L9.5 2.12132Z"
-        fill="currentColor"
-      />
-    </svg>
+    />
   );
 };
 
@@ -379,22 +386,14 @@ export const UploadIcon = ({ size = 16 }: { size?: number }) => {
   );
 };
 
+// Menu icon using Radix HamburgerMenuIcon
 export const MenuIcon = ({ size = 16 }: { size?: number }) => {
   return (
-    <svg
-      height={size}
-      strokeLinejoin="round"
-      viewBox="0 0 16 16"
+    <HamburgerMenuIcon
       width={size}
+      height={size}
       style={{ color: 'currentcolor' }}
-    >
-      <path
-        fillRule="evenodd"
-        clipRule="evenodd"
-        d="M1 2H1.75H14.25H15V3.5H14.25H1.75H1V2ZM1 12.5H1.75H14.25H15V14H14.25H1.75H1V12.5ZM1.75 7.25H1V8.75H1.75H14.25H15V7.25H14.25H1.75Z"
-        fill="currentColor"
-      />
-    </svg>
+    />
   );
 };
 
@@ -458,22 +457,14 @@ export const UncheckedSquare = ({ size = 16 }: { size?: number }) => {
   );
 };
 
+// More options icon using Radix DotsVerticalIcon
 export const MoreIcon = ({ size = 16 }: { size?: number }) => {
   return (
-    <svg
-      height={size}
-      strokeLinejoin="round"
-      viewBox="0 0 16 16"
+    <DotsVerticalIcon
       width={size}
+      height={size}
       style={{ color: 'currentcolor' }}
-    >
-      <path
-        fillRule="evenodd"
-        clipRule="evenodd"
-        d="M8 4C7.17157 4 6.5 3.32843 6.5 2.5C6.5 1.67157 7.17157 1 8 1C8.82843 1 9.5 1.67157 9.5 2.5C9.5 3.32843 8.82843 4 8 4ZM8 9.5C7.17157 9.5 6.5 8.82843 6.5 8C6.5 7.17157 7.17157 6.5 8 6.5C8.82843 6.5 9.5 7.17157 9.5 8C9.5 8.82843 8.82843 9.5 8 9.5ZM6.5 13.5C6.5 14.3284 7.17157 15 8 15C8.82843 15 9.5 14.3284 9.5 13.5C9.5 12.6716 8.82843 12 8 12C7.17157 12 6.5 12.6716 6.5 13.5Z"
-        fill="currentColor"
-      />
-    </svg>
+    />
   );
 };
 
@@ -1192,7 +1183,10 @@ export const CheckIcon = ({ size = 16 }: { size?: number }) => {
   );
 };
 
-export const DatabaseIcon = ({ size = 16, className }: { size?: number; className?: string }) => {
+export const DatabaseIcon = ({
+  size = 16,
+  className,
+}: { size?: number; className?: string }) => {
   return (
     <svg
       height={size}
@@ -1202,11 +1196,154 @@ export const DatabaseIcon = ({ size = 16, className }: { size?: number; classNam
       className={className}
       style={{ color: 'currentcolor' }}
     >
-      <ellipse cx="8" cy="3" rx="6" ry="2" stroke="currentColor" strokeWidth="1.5" fill="none" />
-      <path d="M2 7c0 1.1 2.7 2 6 2s6-.9 6-2" stroke="currentColor" strokeWidth="1.5" fill="none" />
-      <path d="M2 11c0 1.1 2.7 2 6 2s6-.9 6-2" stroke="currentColor" strokeWidth="1.5" fill="none" />
+      <ellipse
+        cx="8"
+        cy="3"
+        rx="6"
+        ry="2"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        fill="none"
+      />
+      <path
+        d="M2 7c0 1.1 2.7 2 6 2s6-.9 6-2"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        fill="none"
+      />
+      <path
+        d="M2 11c0 1.1 2.7 2 6 2s6-.9 6-2"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        fill="none"
+      />
       <path d="M2 3v10" stroke="currentColor" strokeWidth="1.5" />
       <path d="M14 3v10" stroke="currentColor" strokeWidth="1.5" />
     </svg>
   );
 };
+
+// Enhanced icons using Radix UI for better UX
+export const SearchIcon = ({ size = 16 }: { size?: number }) => (
+  <MagnifyingGlassIcon
+    width={size}
+    height={size}
+    style={{ color: 'currentcolor' }}
+  />
+);
+
+export const SettingsIcon = ({ size = 16 }: { size?: number }) => (
+  <GearIcon width={size} height={size} style={{ color: 'currentcolor' }} />
+);
+
+export const LogoutIcon = ({ size = 16 }: { size?: number }) => (
+  <ExitIcon width={size} height={size} style={{ color: 'currentcolor' }} />
+);
+
+export const CloseIcon = ({ size = 16 }: { size?: number }) => (
+  <Cross2Icon width={size} height={size} style={{ color: 'currentcolor' }} />
+);
+
+export const RefreshIcon = ({ size = 16 }: { size?: number }) => (
+  <ReloadIcon width={size} height={size} style={{ color: 'currentcolor' }} />
+);
+
+export const ExternalIcon = ({ size = 16 }: { size?: number }) => (
+  <ExternalLinkIcon
+    width={size}
+    height={size}
+    style={{ color: 'currentcolor' }}
+  />
+);
+
+export const ShareRadixIcon = ({ size = 16 }: { size?: number }) => (
+  <Share1Icon width={size} height={size} style={{ color: 'currentcolor' }} />
+);
+
+export const BookmarkFilledIcon = ({ size = 16 }: { size?: number }) => (
+  <BookmarkIcon width={size} height={size} style={{ color: 'currentcolor' }} />
+);
+
+export const FavoriteIcon = ({ size = 16 }: { size?: number }) => (
+  <StarIcon width={size} height={size} style={{ color: 'currentcolor' }} />
+);
+
+export const LikeIcon = ({ size = 16 }: { size?: number }) => (
+  <HeartIcon width={size} height={size} style={{ color: 'currentcolor' }} />
+);
+
+export const ChatIcon = ({ size = 16 }: { size?: number }) => (
+  <ChatBubbleIcon
+    width={size}
+    height={size}
+    style={{ color: 'currentcolor' }}
+  />
+);
+
+export const NotificationIcon = ({ size = 16 }: { size?: number }) => (
+  <BellIcon width={size} height={size} style={{ color: 'currentcolor' }} />
+);
+
+export const FastIcon = ({ size = 16 }: { size?: number }) => (
+  <LightningBoltIcon
+    width={size}
+    height={size}
+    style={{ color: 'currentcolor' }}
+  />
+);
+
+export const MagicIcon = ({ size = 16 }: { size?: number }) => (
+  <MagicWandIcon width={size} height={size} style={{ color: 'currentcolor' }} />
+);
+
+export const TargetFocusIcon = ({ size = 16 }: { size?: number }) => (
+  <TargetIcon width={size} height={size} style={{ color: 'currentcolor' }} />
+);
+
+export const LayerIcon = ({ size = 16 }: { size?: number }) => (
+  <LayersIcon width={size} height={size} style={{ color: 'currentcolor' }} />
+);
+
+export const DashIcon = ({ size = 16 }: { size?: number }) => (
+  <DashboardIcon width={size} height={size} style={{ color: 'currentcolor' }} />
+);
+
+export const ChartIcon = ({ size = 16 }: { size?: number }) => (
+  <BarChartIcon width={size} height={size} style={{ color: 'currentcolor' }} />
+);
+
+export const ActivityIcon = ({ size = 16 }: { size?: number }) => (
+  <ActivityLogIcon
+    width={size}
+    height={size}
+    style={{ color: 'currentcolor' }}
+  />
+);
+
+export const TimeIcon = ({ size = 16 }: { size?: number }) => (
+  <TimerIcon width={size} height={size} style={{ color: 'currentcolor' }} />
+);
+
+export const StopwatchTimerIcon = ({ size = 16 }: { size?: number }) => (
+  <StopwatchIcon width={size} height={size} style={{ color: 'currentcolor' }} />
+);
+
+export const CalendarDateIcon = ({ size = 16 }: { size?: number }) => (
+  <CalendarIcon width={size} height={size} style={{ color: 'currentcolor' }} />
+);
+
+export const ClockTimeIcon = ({ size = 16 }: { size?: number }) => (
+  <ClockIcon width={size} height={size} style={{ color: 'currentcolor' }} />
+);
+
+export const UpdateRefreshIcon = ({ size = 16 }: { size?: number }) => (
+  <UpdateIcon width={size} height={size} style={{ color: 'currentcolor' }} />
+);
+
+export const LoopRadixIcon = ({ size = 16 }: { size?: number }) => (
+  <LoopIcon width={size} height={size} style={{ color: 'currentcolor' }} />
+);
+
+export const PausePlayerIcon = ({ size = 16 }: { size?: number }) => (
+  <PauseIcon width={size} height={size} style={{ color: 'currentcolor' }} />
+);
