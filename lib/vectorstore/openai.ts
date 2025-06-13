@@ -3,15 +3,11 @@ import 'server-only';
 import { z } from 'zod';
 import OpenAI from 'openai';
 import { OPENAI_API_KEY, OPENAI_VECTORSTORE } from '../env';
-import { getVectorStoreMonitoringService, withPerformanceMonitoring } from './monitoring';
-import { 
-  PromptOptimizationEngine, 
-  ContextWindowManager,
-  PromptOptimizationMetrics,
-  type QueryContext,
-  type PromptConfig,
-  type OptimizedQuery 
-} from './prompt-optimization';
+import {
+  getVectorStoreMonitoringService,
+  withPerformanceMonitoring,
+} from './monitoring';
+// Prompt optimization imports removed - optimization disabled for performance
 
 // Schemas for OpenAI vector store operations
 export const VectorStoreFile = z.object({
@@ -20,10 +16,12 @@ export const VectorStoreFile = z.object({
   created_at: z.number(),
   vector_store_id: z.string(),
   status: z.enum(['in_progress', 'completed', 'cancelled', 'failed']),
-  last_error: z.object({
-    code: z.string(),
-    message: z.string(),
-  }).nullable(),
+  last_error: z
+    .object({
+      code: z.string(),
+      message: z.string(),
+    })
+    .nullable(),
 });
 
 export const VectorStore = z.object({
@@ -40,10 +38,12 @@ export const VectorStore = z.object({
     total: z.number(),
   }),
   status: z.enum(['expired', 'in_progress', 'completed']),
-  expires_after: z.object({
-    anchor: z.enum(['last_active_at']),
-    days: z.number(),
-  }).nullable(),
+  expires_after: z
+    .object({
+      anchor: z.enum(['last_active_at']),
+      days: z.number(),
+    })
+    .nullable(),
   expires_at: z.number().nullable(),
   last_active_at: z.number().nullable(),
   metadata: z.record(z.string()).nullable(),
@@ -62,26 +62,51 @@ export const SearchRequest = z.object({
   includeContent: z.boolean().default(true),
   includeCitations: z.boolean().default(true),
   // Enhanced search options for prompt optimization
-  queryContext: z.object({
-    type: z.enum(['technical', 'conceptual', 'procedural', 'troubleshooting', 'configuration', 'api', 'integration', 'best_practices', 'examples', 'reference', 'multi_turn', 'contextual']).optional(),
-    domain: z.string().optional(),
-    conversationHistory: z.array(z.object({
-      role: z.enum(['user', 'assistant']),
-      content: z.string(),
-      timestamp: z.number(),
-    })).optional(),
-    previousQueries: z.array(z.string()).optional(),
-    userIntent: z.string().optional(),
-    complexity: z.enum(['basic', 'intermediate', 'advanced']).optional(),
-    searchDepth: z.enum(['shallow', 'comprehensive', 'exhaustive']).optional(),
-  }).optional(),
+  queryContext: z
+    .object({
+      type: z
+        .enum([
+          'technical',
+          'conceptual',
+          'procedural',
+          'troubleshooting',
+          'configuration',
+          'api',
+          'integration',
+          'best_practices',
+          'examples',
+          'reference',
+          'multi_turn',
+          'contextual',
+        ])
+        .optional(),
+      domain: z.string().optional(),
+      conversationHistory: z
+        .array(
+          z.object({
+            role: z.enum(['user', 'assistant']),
+            content: z.string(),
+            timestamp: z.number(),
+          }),
+        )
+        .optional(),
+      previousQueries: z.array(z.string()).optional(),
+      userIntent: z.string().optional(),
+      complexity: z.enum(['basic', 'intermediate', 'advanced']).optional(),
+      searchDepth: z
+        .enum(['shallow', 'comprehensive', 'exhaustive'])
+        .optional(),
+    })
+    .optional(),
   optimizePrompts: z.boolean().default(true),
-  promptConfig: z.object({
-    maxTokens: z.number().default(1500),
-    temperature: z.number().min(0).max(1).default(0.1),
-    includeContext: z.boolean().default(true),
-    includeCitations: z.boolean().default(true),
-  }).optional(),
+  promptConfig: z
+    .object({
+      maxTokens: z.number().default(1500),
+      temperature: z.number().min(0).max(1).default(0.1),
+      includeContext: z.boolean().default(true),
+      includeCitations: z.boolean().default(true),
+    })
+    .optional(),
 });
 
 export const SearchResult = z.object({
@@ -94,43 +119,55 @@ export const SearchResult = z.object({
     chunk_id: z.string().optional(),
   }),
   metadata: z.record(z.any()).optional(),
-  annotations: z.array(z.object({
-    type: z.enum(['file_citation', 'file_path']),
-    text: z.string(),
-    start_index: z.number(),
-    end_index: z.number(),
-    file_citation: z.object({
-      file_id: z.string(),
-      quote: z.string().optional(),
-    }).optional(),
-    file_path: z.object({
-      file_id: z.string(),
-    }).optional(),
-  })).optional(),
+  annotations: z
+    .array(
+      z.object({
+        type: z.enum(['file_citation', 'file_path']),
+        text: z.string(),
+        start_index: z.number(),
+        end_index: z.number(),
+        file_citation: z
+          .object({
+            file_id: z.string(),
+            quote: z.string().optional(),
+          })
+          .optional(),
+        file_path: z
+          .object({
+            file_id: z.string(),
+          })
+          .optional(),
+      }),
+    )
+    .optional(),
 });
 
 export const SearchResponse = z.object({
   success: z.boolean(),
   message: z.string(),
   results: z.array(SearchResult),
-  sources: z.array(z.object({
-    id: z.string(),
-    name: z.string(),
-    url: z.string().optional(),
-  })),
+  sources: z.array(
+    z.object({
+      id: z.string(),
+      name: z.string(),
+      url: z.string().optional(),
+    }),
+  ),
   totalResults: z.number(),
   query: z.string(),
   executionTime: z.number(),
   // Enhanced response with optimization metadata
-  optimizationMetadata: z.object({
-    originalQuery: z.string(),
-    optimizedQuery: z.string(),
-    queryType: z.string(),
-    complexity: z.string(),
-    expansionCount: z.number(),
-    estimatedRelevance: z.number(),
-    promptOptimizationUsed: z.boolean(),
-  }).optional(),
+  optimizationMetadata: z
+    .object({
+      originalQuery: z.string(),
+      optimizedQuery: z.string(),
+      queryType: z.string(),
+      complexity: z.string(),
+      expansionCount: z.number(),
+      estimatedRelevance: z.number(),
+      promptOptimizationUsed: z.boolean(),
+    })
+    .optional(),
 });
 
 // Types
@@ -178,33 +215,51 @@ export interface OpenAIVectorStoreService {
   client: OpenAI;
   defaultVectorStoreId: string | null | undefined;
   isEnabled: boolean;
-  
+
   // Vector store management
-  createVectorStore: (name: string, metadata?: Record<string, string>) => Promise<VectorStore>;
+  createVectorStore: (
+    name: string,
+    metadata?: Record<string, string>,
+  ) => Promise<VectorStore>;
   getVectorStore: (vectorStoreId: string) => Promise<VectorStore>;
   listVectorStores: () => Promise<VectorStore[]>;
   deleteVectorStore: (vectorStoreId: string) => Promise<boolean>;
-  
+
   // File management
-  uploadFile: (request: FileUploadRequest, vectorStoreId?: string) => Promise<VectorStoreFile>;
+  uploadFile: (
+    request: FileUploadRequest,
+    vectorStoreId?: string,
+  ) => Promise<VectorStoreFile>;
   listFiles: (vectorStoreId?: string) => Promise<VectorStoreFile[]>;
   deleteFile: (fileId: string, vectorStoreId?: string) => Promise<boolean>;
-  
+
   // Search operations
   searchFiles: (request: SearchRequest) => Promise<SearchResponse>;
-  searchWithRetry: (request: SearchRequest, maxRetries?: number) => Promise<SearchResponse>;
+  searchWithRetry: (
+    request: SearchRequest,
+    maxRetries?: number,
+  ) => Promise<SearchResponse>;
   getFileSearchTool: (vectorStoreId?: string) => any;
-  
+
   // Health checks and utilities
-  healthCheck: () => Promise<{ isHealthy: boolean; vectorStoreStatus?: string; error?: string }>;
+  healthCheck: () => Promise<{
+    isHealthy: boolean;
+    vectorStoreStatus?: string;
+    error?: string;
+  }>;
   validateVectorStore: (vectorStoreId: string) => Promise<boolean>;
-  getSourceFiles: (fileIds: string[]) => Promise<Array<{id: string; name: string; url?: string}>>;
+  getSourceFiles: (
+    fileIds: string[],
+  ) => Promise<Array<{ id: string; name: string; url?: string }>>;
 }
 
 // Create OpenAI vector store service
-export function createOpenAIVectorStoreService(config?: Partial<OpenAIVectorStoreConfig>): OpenAIVectorStoreService {
+export function createOpenAIVectorStoreService(
+  config?: Partial<OpenAIVectorStoreConfig>,
+): OpenAIVectorStoreService {
   const apiKey = config?.apiKey || OPENAI_API_KEY || '';
-  const defaultVectorStoreId = config?.defaultVectorStoreId || OPENAI_VECTORSTORE || null;
+  const defaultVectorStoreId =
+    config?.defaultVectorStoreId || OPENAI_VECTORSTORE || null;
   const isEnabled = !!apiKey;
 
   const validatedConfig: OpenAIVectorStoreConfig = {
@@ -215,31 +270,58 @@ export function createOpenAIVectorStoreService(config?: Partial<OpenAIVectorStor
 
   // Validate API key format
   if (apiKey && !apiKey.startsWith('sk-')) {
-    console.warn('OpenAI API key appears to be invalid (should start with "sk-")');
+    console.warn(
+      'OpenAI API key appears to be invalid (should start with "sk-")',
+    );
   }
 
   // Validate vector store ID format
   if (defaultVectorStoreId && !defaultVectorStoreId.startsWith('vs_')) {
-    console.warn('OpenAI vector store ID appears to be invalid (should start with "vs_")');
+    console.warn(
+      'OpenAI vector store ID appears to be invalid (should start with "vs_")',
+    );
   }
 
   if (!validatedConfig.isEnabled) {
-    console.warn('OpenAI vector store service is disabled - no API key provided');
+    console.warn(
+      'OpenAI vector store service is disabled - no API key provided',
+    );
     return {
       client: null as any,
       defaultVectorStoreId: null,
       isEnabled: false,
-      createVectorStore: async () => { throw new Error('OpenAI vector store service is disabled - no API key provided'); },
-      getVectorStore: async () => { throw new Error('OpenAI vector store service is disabled - no API key provided'); },
-      listVectorStores: async () => { return []; }, // Return empty array instead of throwing
-      deleteVectorStore: async () => { return false; },
-      uploadFile: async () => { throw new Error('OpenAI vector store service is disabled - no API key provided'); },
-      listFiles: async () => { return []; }, // Return empty array instead of throwing
-      deleteFile: async () => { return false; },
-      searchFiles: async () => { 
+      createVectorStore: async () => {
+        throw new Error(
+          'OpenAI vector store service is disabled - no API key provided',
+        );
+      },
+      getVectorStore: async () => {
+        throw new Error(
+          'OpenAI vector store service is disabled - no API key provided',
+        );
+      },
+      listVectorStores: async () => {
+        return [];
+      }, // Return empty array instead of throwing
+      deleteVectorStore: async () => {
+        return false;
+      },
+      uploadFile: async () => {
+        throw new Error(
+          'OpenAI vector store service is disabled - no API key provided',
+        );
+      },
+      listFiles: async () => {
+        return [];
+      }, // Return empty array instead of throwing
+      deleteFile: async () => {
+        return false;
+      },
+      searchFiles: async () => {
         return SearchResponse.parse({
           success: false,
-          message: 'OpenAI vector store service is disabled - no API key provided',
+          message:
+            'OpenAI vector store service is disabled - no API key provided',
           results: [],
           sources: [],
           totalResults: 0,
@@ -247,10 +329,11 @@ export function createOpenAIVectorStoreService(config?: Partial<OpenAIVectorStor
           executionTime: 0,
         });
       },
-      searchWithRetry: async () => { 
+      searchWithRetry: async () => {
         return SearchResponse.parse({
           success: false,
-          message: 'OpenAI vector store service is disabled - no API key provided',
+          message:
+            'OpenAI vector store service is disabled - no API key provided',
           results: [],
           sources: [],
           totalResults: 0,
@@ -258,7 +341,10 @@ export function createOpenAIVectorStoreService(config?: Partial<OpenAIVectorStor
           executionTime: 0,
         });
       },
-      healthCheck: async () => ({ isHealthy: false, error: 'Service disabled' }),
+      healthCheck: async () => ({
+        isHealthy: false,
+        error: 'Service disabled',
+      }),
       validateVectorStore: async () => false,
       getSourceFiles: async () => [],
       getFileSearchTool: () => null, // Return null instead of throwing
@@ -267,33 +353,42 @@ export function createOpenAIVectorStoreService(config?: Partial<OpenAIVectorStor
 
   const client = new OpenAI({ apiKey: validatedConfig.apiKey });
 
-  return {
+  // Create a reference to the service for internal method calls
+  const service = {
     client,
     defaultVectorStoreId: validatedConfig.defaultVectorStoreId,
     isEnabled: true,
 
-    async createVectorStore(name: string, metadata?: Record<string, string>): Promise<VectorStore> {
+    async createVectorStore(
+      name: string,
+      metadata?: Record<string, string>,
+    ): Promise<VectorStore> {
       try {
-        const response = await fetch('https://api.openai.com/v1/vector_stores', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${validatedConfig.apiKey}`,
-            'Content-Type': 'application/json',
-            'OpenAI-Beta': 'assistants=v2'
+        const response = await fetch(
+          'https://api.openai.com/v1/vector_stores',
+          {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${validatedConfig.apiKey}`,
+              'Content-Type': 'application/json',
+              'OpenAI-Beta': 'assistants=v2',
+            },
+            body: JSON.stringify({
+              name,
+              metadata: metadata || {},
+              expires_after: {
+                anchor: 'last_active_at',
+                days: 365,
+              },
+            }),
           },
-          body: JSON.stringify({
-            name,
-            metadata: metadata || {},
-            expires_after: {
-              anchor: 'last_active_at',
-              days: 365
-            }
-          })
-        });
+        );
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
-          throw new Error(`HTTP ${response.status}: ${errorData.error?.message || response.statusText}`);
+          throw new Error(
+            `HTTP ${response.status}: ${errorData.error?.message || response.statusText}`,
+          );
         }
 
         const data = await response.json();
@@ -306,17 +401,22 @@ export function createOpenAIVectorStoreService(config?: Partial<OpenAIVectorStor
 
     async getVectorStore(vectorStoreId: string): Promise<VectorStore> {
       try {
-        const response = await fetch(`https://api.openai.com/v1/vector_stores/${vectorStoreId}`, {
-          headers: {
-            'Authorization': `Bearer ${validatedConfig.apiKey}`,
-            'Content-Type': 'application/json',
-            'OpenAI-Beta': 'assistants=v2'
-          }
-        });
+        const response = await fetch(
+          `https://api.openai.com/v1/vector_stores/${vectorStoreId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${validatedConfig.apiKey}`,
+              'Content-Type': 'application/json',
+              'OpenAI-Beta': 'assistants=v2',
+            },
+          },
+        );
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
-          throw new Error(`HTTP ${response.status}: ${errorData.error?.message || response.statusText}`);
+          throw new Error(
+            `HTTP ${response.status}: ${errorData.error?.message || response.statusText}`,
+          );
         }
 
         const data = await response.json();
@@ -329,17 +429,22 @@ export function createOpenAIVectorStoreService(config?: Partial<OpenAIVectorStor
 
     async listVectorStores(): Promise<VectorStore[]> {
       try {
-        const response = await fetch('https://api.openai.com/v1/vector_stores', {
-          headers: {
-            'Authorization': `Bearer ${validatedConfig.apiKey}`,
-            'Content-Type': 'application/json',
-            'OpenAI-Beta': 'assistants=v2'
-          }
-        });
+        const response = await fetch(
+          'https://api.openai.com/v1/vector_stores',
+          {
+            headers: {
+              Authorization: `Bearer ${validatedConfig.apiKey}`,
+              'Content-Type': 'application/json',
+              'OpenAI-Beta': 'assistants=v2',
+            },
+          },
+        );
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
-          throw new Error(`HTTP ${response.status}: ${errorData.error?.message || response.statusText}`);
+          throw new Error(
+            `HTTP ${response.status}: ${errorData.error?.message || response.statusText}`,
+          );
         }
 
         const data = await response.json();
@@ -353,18 +458,24 @@ export function createOpenAIVectorStoreService(config?: Partial<OpenAIVectorStor
 
     async deleteVectorStore(vectorStoreId: string): Promise<boolean> {
       try {
-        const response = await fetch(`https://api.openai.com/v1/vector_stores/${vectorStoreId}`, {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${validatedConfig.apiKey}`,
-            'Content-Type': 'application/json',
-            'OpenAI-Beta': 'assistants=v2'
-          }
-        });
+        const response = await fetch(
+          `https://api.openai.com/v1/vector_stores/${vectorStoreId}`,
+          {
+            method: 'DELETE',
+            headers: {
+              Authorization: `Bearer ${validatedConfig.apiKey}`,
+              'Content-Type': 'application/json',
+              'OpenAI-Beta': 'assistants=v2',
+            },
+          },
+        );
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
-          console.error(`Failed to delete vector store: HTTP ${response.status}:`, errorData.error?.message || response.statusText);
+          console.error(
+            `Failed to delete vector store: HTTP ${response.status}:`,
+            errorData.error?.message || response.statusText,
+          );
           return false;
         }
 
@@ -375,12 +486,18 @@ export function createOpenAIVectorStoreService(config?: Partial<OpenAIVectorStor
       }
     },
 
-    async uploadFile(request: FileUploadRequest, vectorStoreId?: string): Promise<VectorStoreFile> {
+    async uploadFile(
+      request: FileUploadRequest,
+      vectorStoreId?: string,
+    ): Promise<VectorStoreFile> {
       const validatedRequest = FileUploadRequest.parse(request);
-      const targetVectorStoreId = vectorStoreId || validatedConfig.defaultVectorStoreId;
-      
+      const targetVectorStoreId =
+        vectorStoreId || validatedConfig.defaultVectorStoreId;
+
       if (!targetVectorStoreId) {
-        throw new Error('No vector store ID provided and no default configured');
+        throw new Error(
+          'No vector store ID provided and no default configured',
+        );
       }
 
       try {
@@ -391,21 +508,26 @@ export function createOpenAIVectorStoreService(config?: Partial<OpenAIVectorStor
         });
 
         // Add file to vector store using direct API call
-        const response = await fetch(`https://api.openai.com/v1/vector_stores/${targetVectorStoreId}/files`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${validatedConfig.apiKey}`,
-            'Content-Type': 'application/json',
-            'OpenAI-Beta': 'assistants=v2'
+        const response = await fetch(
+          `https://api.openai.com/v1/vector_stores/${targetVectorStoreId}/files`,
+          {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${validatedConfig.apiKey}`,
+              'Content-Type': 'application/json',
+              'OpenAI-Beta': 'assistants=v2',
+            },
+            body: JSON.stringify({
+              file_id: uploadedFile.id,
+            }),
           },
-          body: JSON.stringify({
-            file_id: uploadedFile.id,
-          })
-        });
+        );
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
-          throw new Error(`HTTP ${response.status}: ${errorData.error?.message || response.statusText}`);
+          throw new Error(
+            `HTTP ${response.status}: ${errorData.error?.message || response.statusText}`,
+          );
         }
 
         const vectorStoreFile = await response.json();
@@ -417,35 +539,45 @@ export function createOpenAIVectorStoreService(config?: Partial<OpenAIVectorStor
     },
 
     async listFiles(vectorStoreId?: string): Promise<VectorStoreFile[]> {
-      const targetVectorStoreId = vectorStoreId || validatedConfig.defaultVectorStoreId;
-      
+      const targetVectorStoreId =
+        vectorStoreId || validatedConfig.defaultVectorStoreId;
+
       if (!targetVectorStoreId) {
-        throw new Error('No vector store ID provided and no default configured');
+        throw new Error(
+          'No vector store ID provided and no default configured',
+        );
       }
 
       try {
         // Use direct API call since SDK might have compatibility issues
-        const response = await fetch(`https://api.openai.com/v1/vector_stores/${targetVectorStoreId}/files`, {
-          headers: {
-            'Authorization': `Bearer ${validatedConfig.apiKey}`,
-            'Content-Type': 'application/json',
-            'OpenAI-Beta': 'assistants=v2'
-          }
-        });
-        
+        const response = await fetch(
+          `https://api.openai.com/v1/vector_stores/${targetVectorStoreId}/files`,
+          {
+            headers: {
+              Authorization: `Bearer ${validatedConfig.apiKey}`,
+              'Content-Type': 'application/json',
+              'OpenAI-Beta': 'assistants=v2',
+            },
+          },
+        );
+
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
-        
+
         const data = await response.json();
-        return data.data?.map((file: any) => VectorStoreFile.parse({
-          id: file.id,
-          object: file.object,
-          created_at: file.created_at,
-          vector_store_id: file.vector_store_id,
-          status: file.status,
-          last_error: file.last_error,
-        })) || [];
+        return (
+          data.data?.map((file: any) =>
+            VectorStoreFile.parse({
+              id: file.id,
+              object: file.object,
+              created_at: file.created_at,
+              vector_store_id: file.vector_store_id,
+              status: file.status,
+              last_error: file.last_error,
+            }),
+          ) || []
+        );
       } catch (error) {
         console.error('Failed to list vector store files:', error);
         // Return empty array instead of throwing to prevent blocking the UI
@@ -454,25 +586,34 @@ export function createOpenAIVectorStoreService(config?: Partial<OpenAIVectorStor
     },
 
     async deleteFile(fileId: string, vectorStoreId?: string): Promise<boolean> {
-      const targetVectorStoreId = vectorStoreId || validatedConfig.defaultVectorStoreId;
-      
+      const targetVectorStoreId =
+        vectorStoreId || validatedConfig.defaultVectorStoreId;
+
       if (!targetVectorStoreId) {
-        throw new Error('No vector store ID provided and no default configured');
+        throw new Error(
+          'No vector store ID provided and no default configured',
+        );
       }
 
       try {
-        const response = await fetch(`https://api.openai.com/v1/vector_stores/${targetVectorStoreId}/files/${fileId}`, {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${validatedConfig.apiKey}`,
-            'Content-Type': 'application/json',
-            'OpenAI-Beta': 'assistants=v2'
-          }
-        });
+        const response = await fetch(
+          `https://api.openai.com/v1/vector_stores/${targetVectorStoreId}/files/${fileId}`,
+          {
+            method: 'DELETE',
+            headers: {
+              Authorization: `Bearer ${validatedConfig.apiKey}`,
+              'Content-Type': 'application/json',
+              'OpenAI-Beta': 'assistants=v2',
+            },
+          },
+        );
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
-          console.error(`Failed to delete vector store file: HTTP ${response.status}:`, errorData.error?.message || response.statusText);
+          console.error(
+            `Failed to delete vector store file: HTTP ${response.status}:`,
+            errorData.error?.message || response.statusText,
+          );
           return false;
         }
 
@@ -483,252 +624,257 @@ export function createOpenAIVectorStoreService(config?: Partial<OpenAIVectorStor
       }
     },
 
-    searchFiles: withPerformanceMonitoring('openai', 'searchFiles', async function(this: any, request: SearchRequest): Promise<SearchResponse> {
-      const monitoringService = getVectorStoreMonitoringService();
-      const startTime = Date.now();
-      const validatedRequest = SearchRequest.parse(request);
-      const targetVectorStoreId = validatedRequest.vectorStoreId || validatedConfig.defaultVectorStoreId;
-      
-      if (!targetVectorStoreId) {
-        const response = SearchResponse.parse({
-          success: false,
-          message: 'No vector store ID provided and no default configured',
-          results: [],
-          sources: [],
-          totalResults: 0,
-          query: validatedRequest.query,
-          executionTime: Date.now() - startTime,
-        });
-        monitoringService.recordSearchError('openai', new Error('No vector store configured'));
-        return response;
-      }
+    searchFiles: withPerformanceMonitoring(
+      'openai',
+      'searchFiles',
+      async function (request: SearchRequest): Promise<SearchResponse> {
+        const monitoringService = getVectorStoreMonitoringService();
+        const startTime = Date.now();
+        const validatedRequest = SearchRequest.parse(request);
+        const targetVectorStoreId =
+          validatedRequest.vectorStoreId ||
+          validatedConfig.defaultVectorStoreId;
 
-      try {
-        console.log(`🔍 Searching vector store ${targetVectorStoreId} for: "${validatedRequest.query}"`);
-        
-        // Validate vector store exists
-        const isValid = await this.validateVectorStore(targetVectorStoreId);
-        if (!isValid) {
+        if (!targetVectorStoreId) {
           const response = SearchResponse.parse({
             success: false,
-            message: `Vector store ${targetVectorStoreId} is not accessible or does not exist`,
+            message: 'No vector store ID provided and no default configured',
             results: [],
             sources: [],
             totalResults: 0,
             query: validatedRequest.query,
             executionTime: Date.now() - startTime,
           });
-          monitoringService.recordSearchError('openai', new Error('Vector store not accessible'));
+          monitoringService.recordSearchError(
+            'openai',
+            new Error('No vector store configured'),
+          );
           return response;
         }
 
-        // Apply prompt optimization if enabled
-        let optimizedQuery: OptimizedQuery | null = null;
-        let searchPrompt = `Search for information about: ${validatedRequest.query}. Please provide comprehensive relevant information with proper citations.`;
-        
-        if (validatedRequest.optimizePrompts && validatedRequest.queryContext && validatedRequest.queryContext.type) {
-          try {
-            console.log('🧠 Applying prompt optimization...');
-            optimizedQuery = await PromptOptimizationEngine.optimizeQuery(
-              validatedRequest.query,
-              {
-                ...validatedRequest.queryContext,
-                type: validatedRequest.queryContext.type!
-              },
-              validatedRequest.promptConfig
+        try {
+          console.log(
+            `🔍 Searching vector store ${targetVectorStoreId} for: "${validatedRequest.query}"`,
+          );
+
+          // Validate vector store exists
+          const isValid =
+            await service.validateVectorStore(targetVectorStoreId);
+          if (!isValid) {
+            const response = SearchResponse.parse({
+              success: false,
+              message: `Vector store ${targetVectorStoreId} is not accessible or does not exist`,
+              results: [],
+              sources: [],
+              totalResults: 0,
+              query: validatedRequest.query,
+              executionTime: Date.now() - startTime,
+            });
+            monitoringService.recordSearchError(
+              'openai',
+              new Error('Vector store not accessible'),
             );
-            
-            searchPrompt = optimizedQuery.contextualPrompt;
-            console.log(`✨ Query optimized: ${optimizedQuery.metadata.queryType} (${optimizedQuery.metadata.complexity})`);
-            console.log(`📊 Expanded to ${optimizedQuery.expandedQueries.length} variations`);
-          } catch (optimizationError) {
-            console.warn('⚠️ Prompt optimization failed, using original query:', optimizationError);
-            // Continue with original query if optimization fails
+            return response;
           }
-        }
 
-        // Use OpenAI Responses API with file search for vector store search
-        const response = await client.responses.create({
-          model: 'gpt-4o-mini', // Use efficient model for search
-          input: searchPrompt,
-          tools: [{
-            type: "file_search",
-            vector_store_ids: [targetVectorStoreId],
-            max_num_results: validatedRequest.maxResults,
-          }],
-          include: ["file_search_call.results"],
-        });
+          // Use simplified search prompt for faster response
+          const searchPrompt = `Find relevant information about: ${validatedRequest.query}`;
 
-        console.log('📄 Search response received:', {
-          id: response.id,
-          status: response.status,
-          outputCount: response.output?.length || 0,
-        });
+          // Skip prompt optimization for better performance
+          console.log(
+            '⚡ Using fast search mode (prompt optimization disabled)',
+          );
 
-        // Extract file search results from output
-        const results: SearchResult[] = [];
-        const sourceFileIds = new Set<string>();
-        
-        if (response.output && Array.isArray(response.output)) {
-          for (const output of response.output) {
-            if (output.type === 'file_search_call' && output.status === 'completed' && output.results) {
-              console.log(`🔍 Found ${output.results.length} search results`);
-              
-              // Process each search result (limit to maxResults)
-              const limitedResults = output.results.slice(0, validatedRequest.maxResults);
-              for (let i = 0; i < limitedResults.length; i++) {
-                const searchItem = limitedResults[i] as OpenAIResponsesAPIResult;
-                const searchId = `${response.id}_result_${i}`;
-                
-                // Track source files
-                if (searchItem.file_id) {
-                  sourceFileIds.add(searchItem.file_id);
+          // Use OpenAI Responses API with file search for vector store search
+          const response = await client.responses.create(
+            {
+              model: 'gpt-4o-mini', // Use efficient model for search
+              input: searchPrompt,
+              tools: [
+                {
+                  type: 'file_search',
+                  vector_store_ids: [targetVectorStoreId],
+                  max_num_results: Math.min(validatedRequest.maxResults, 10), // Limit results for faster response
+                },
+              ],
+              include: ['file_search_call.results'],
+            },
+            {
+              timeout: 10000, // 10 second timeout
+            },
+          );
+
+          console.log('📄 Search response received:', {
+            id: response.id,
+            status: response.status,
+            outputCount: response.output?.length || 0,
+          });
+
+          // Extract file search results from output
+          const results: SearchResult[] = [];
+          const sourceFileIds = new Set<string>();
+
+          if (response.output && Array.isArray(response.output)) {
+            for (const output of response.output) {
+              if (
+                output.type === 'file_search_call' &&
+                output.status === 'completed' &&
+                output.results
+              ) {
+                console.log(`🔍 Found ${output.results.length} search results`);
+
+                // Process each search result (limit to maxResults)
+                const limitedResults = output.results.slice(
+                  0,
+                  validatedRequest.maxResults,
+                );
+                for (let i = 0; i < limitedResults.length; i++) {
+                  const searchItem = limitedResults[
+                    i
+                  ] as OpenAIResponsesAPIResult;
+                  const searchId = `${response.id}_result_${i}`;
+
+                  // Track source files
+                  if (searchItem.file_id) {
+                    sourceFileIds.add(searchItem.file_id);
+                  }
+
+                  // Create search result
+                  results.push(
+                    SearchResult.parse({
+                      id: searchId,
+                      content: searchItem.text || '',
+                      similarity: searchItem.score || 0.8, // Use provided score or default
+                      source: {
+                        file_id: searchItem.file_id || 'unknown',
+                        filename:
+                          searchItem.filename ||
+                          `File ${searchItem.file_id || 'unknown'}`,
+                        chunk_id: searchItem.chunk_id || undefined,
+                      },
+                      metadata: {
+                        responseId: response.id,
+                        vectorStoreId: targetVectorStoreId,
+                        score: searchItem.score,
+                        attributes: searchItem.attributes,
+                        resultIndex: i,
+                        searchQueries: output.queries,
+                      },
+                    }),
+                  );
                 }
-                
-                // Create search result
-                results.push(SearchResult.parse({
-                  id: searchId,
-                  content: searchItem.text || '',
-                  similarity: searchItem.score || 0.8, // Use provided score or default
-                  source: {
-                    file_id: searchItem.file_id || 'unknown',
-                    filename: searchItem.filename || `File ${searchItem.file_id || 'unknown'}`,
-                    chunk_id: searchItem.chunk_id || undefined,
-                  },
-                  metadata: {
-                    responseId: response.id,
-                    vectorStoreId: targetVectorStoreId,
-                    score: searchItem.score,
-                    attributes: searchItem.attributes,
-                    resultIndex: i,
-                    searchQueries: output.queries,
-                  },
-                }));
               }
             }
           }
-        }
 
-        // Fetch file information for sources
-        const sources = await this.getSourceFiles(Array.from(sourceFileIds));
-
-        const executionTime = Date.now() - startTime;
-        console.log(`✅ Search completed in ${executionTime}ms with ${results.length} results`);
-
-        // Record performance metrics including optimization metadata
-        const optimizationMetrics = optimizedQuery ? {
-          queryType: optimizedQuery.metadata.queryType,
-          complexity: optimizedQuery.metadata.complexity,
-          expansionCount: optimizedQuery.expandedQueries.length,
-          estimatedRelevance: optimizedQuery.metadata.estimatedRelevance,
-        } : {};
-
-        monitoringService.recordSearchLatency('openai', executionTime, {
-          query: validatedRequest.query,
-          resultsCount: results.length,
-          vectorStoreId: targetVectorStoreId,
-          ...optimizationMetrics,
-        });
-        monitoringService.recordSearchSuccess('openai', {
-          query: validatedRequest.query,
-          resultsCount: results.length,
-          promptOptimizationUsed: !!optimizedQuery,
-        });
-
-        // Record prompt optimization metrics if used
-        if (optimizedQuery) {
-          const queryId = `${targetVectorStoreId}_${Date.now()}`;
-          PromptOptimizationMetrics.recordOptimizationMetrics(
-            queryId,
-            validatedRequest.query,
-            optimizedQuery,
-            results,
-            executionTime
+          // Fetch file information for sources
+          const sources = await service.getSourceFiles(
+            Array.from(sourceFileIds),
           );
+
+          const executionTime = Date.now() - startTime;
+          console.log(
+            `✅ Search completed in ${executionTime}ms with ${results.length} results`,
+          );
+
+          // Record performance metrics (optimization disabled)
+          monitoringService.recordSearchLatency('openai', executionTime, {
+            query: validatedRequest.query,
+            resultsCount: results.length,
+            vectorStoreId: targetVectorStoreId,
+          });
+          monitoringService.recordSearchSuccess('openai', {
+            query: validatedRequest.query,
+            resultsCount: results.length,
+            promptOptimizationUsed: false,
+          });
+
+          return SearchResponse.parse({
+            success: true,
+            message:
+              results.length > 0
+                ? `Found ${results.length} relevant result(s) with ${sources.length} source file(s)`
+                : 'Search completed but no relevant content found',
+            results,
+            sources: sources.map((s: any) => ({
+              id: s.id,
+              name: s.name,
+              url: s.url,
+            })),
+            totalResults: results.length,
+            query: validatedRequest.query,
+            executionTime,
+            optimizationMetadata: undefined, // Optimization disabled
+          });
+        } catch (error) {
+          const executionTime = Date.now() - startTime;
+          console.error('❌ Vector store search failed:', error);
+
+          // Record error metrics
+          monitoringService.recordSearchError('openai', error as Error, {
+            query: validatedRequest.query,
+            vectorStoreId: targetVectorStoreId,
+            executionTime,
+          });
+
+          return SearchResponse.parse({
+            success: false,
+            message: `Search failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            results: [],
+            sources: [],
+            totalResults: 0,
+            query: validatedRequest.query,
+            executionTime,
+          });
         }
+      },
+    ),
 
-        return SearchResponse.parse({
-          success: true,
-          message: results.length > 0 
-            ? `Found ${results.length} relevant result(s) with ${sources.length} source file(s)`
-            : 'Search completed but no relevant content found',
-          results,
-          sources: sources.map((s: any) => ({ id: s.id, name: s.name, url: s.url })),
-          totalResults: results.length,
-          query: validatedRequest.query,
-          executionTime,
-          optimizationMetadata: optimizedQuery ? {
-            originalQuery: validatedRequest.query,
-            optimizedQuery: optimizedQuery.optimizedQuery,
-            queryType: optimizedQuery.metadata.queryType,
-            complexity: optimizedQuery.metadata.complexity,
-            expansionCount: optimizedQuery.expandedQueries.length,
-            estimatedRelevance: optimizedQuery.metadata.estimatedRelevance,
-            promptOptimizationUsed: true,
-          } : undefined,
-        });
-
-      } catch (error) {
-        const executionTime = Date.now() - startTime;
-        console.error('❌ Vector store search failed:', error);
-        
-        // Record error metrics
-        monitoringService.recordSearchError('openai', error as Error, {
-          query: validatedRequest.query,
-          vectorStoreId: targetVectorStoreId,
-          executionTime,
-        });
-        
-        return SearchResponse.parse({
-          success: false,
-          message: `Search failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          results: [],
-          sources: [],
-          totalResults: 0,
-          query: validatedRequest.query,
-          executionTime,
-        });
-      }
-    }),
-
-    async searchWithRetry(request: SearchRequest, maxRetries = 3): Promise<SearchResponse> {
+    async searchWithRetry(
+      request: SearchRequest,
+      maxRetries = 3,
+    ): Promise<SearchResponse> {
       let lastError: Error | null = null;
-      
+
       for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
           console.log(`🔄 Search attempt ${attempt}/${maxRetries}`);
-          const result = await this.searchFiles(request);
-          
+          const result = await service.searchFiles(request);
+
           if (result.success) {
             if (attempt > 1) {
               console.log(`✅ Search succeeded on attempt ${attempt}`);
             }
             return result;
           }
-          
+
           // If search failed but didn't throw, treat as error for retry
           lastError = new Error(result.message);
-          
         } catch (error) {
           lastError = error instanceof Error ? error : new Error(String(error));
-          console.warn(`⚠️ Search attempt ${attempt} failed:`, lastError.message);
-          
+          console.warn(
+            `⚠️ Search attempt ${attempt} failed:`,
+            lastError.message,
+          );
+
           // Don't retry on certain errors
-          if (lastError.message.includes('No vector store ID') || 
-              lastError.message.includes('not accessible') ||
-              lastError.message.includes('disabled')) {
+          if (
+            lastError.message.includes('No vector store ID') ||
+            lastError.message.includes('not accessible') ||
+            lastError.message.includes('disabled')
+          ) {
             break;
           }
-          
+
           // Wait between retries with exponential backoff
           if (attempt < maxRetries) {
             const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
             console.log(`⏳ Waiting ${delay}ms before retry...`);
-            await new Promise(resolve => setTimeout(resolve, delay));
+            await new Promise((resolve) => setTimeout(resolve, delay));
           }
         }
       }
-      
+
       // All retries failed
       console.error(`❌ All ${maxRetries} search attempts failed`);
       return SearchResponse.parse({
@@ -745,10 +891,12 @@ export function createOpenAIVectorStoreService(config?: Partial<OpenAIVectorStor
     /**
      * Helper method to fetch source file information
      */
-    async getSourceFiles(fileIds: string[]): Promise<Array<{id: string; name: string; url?: string}>> {
+    async getSourceFiles(
+      fileIds: string[],
+    ): Promise<Array<{ id: string; name: string; url?: string }>> {
       if (!fileIds.length) return [];
 
-      const sources: Array<{id: string; name: string; url?: string}> = [];
+      const sources: Array<{ id: string; name: string; url?: string }> = [];
 
       for (const fileId of fileIds) {
         try {
@@ -772,16 +920,24 @@ export function createOpenAIVectorStoreService(config?: Partial<OpenAIVectorStor
       return sources;
     },
 
-    getFileSearchTool(vectorStoreId?: string, optimizationConfig?: { domain?: string, queryType?: string }): any {
-      const targetVectorStoreId = vectorStoreId || validatedConfig.defaultVectorStoreId;
-      
+    getFileSearchTool(
+      vectorStoreId?: string,
+      optimizationConfig?: { domain?: string; queryType?: string },
+    ): any {
+      const targetVectorStoreId =
+        vectorStoreId || validatedConfig.defaultVectorStoreId;
+
       if (!targetVectorStoreId) {
-        console.warn('No vector store ID provided and no default configured for file search tool');
+        console.warn(
+          'No vector store ID provided and no default configured for file search tool',
+        );
         return null;
       }
 
-      console.log(`🔍 Creating optimized file search tool for vector store: ${targetVectorStoreId}`);
-      
+      console.log(
+        `🔍 Creating optimized file search tool for vector store: ${targetVectorStoreId}`,
+      );
+
       // Enhanced configuration with optimization hints
       const toolConfig = {
         type: 'file_search' as const,
@@ -802,22 +958,28 @@ export function createOpenAIVectorStoreService(config?: Partial<OpenAIVectorStor
       return toolConfig;
     },
 
-    async healthCheck(): Promise<{ isHealthy: boolean; vectorStoreStatus?: string; error?: string }> {
+    async healthCheck(): Promise<{
+      isHealthy: boolean;
+      vectorStoreStatus?: string;
+      error?: string;
+    }> {
       const monitoringService = getVectorStoreMonitoringService();
       const startTime = Date.now();
-      
+
       try {
         // Test basic API connectivity
         const testResponse = await fetch('https://api.openai.com/v1/models', {
           method: 'GET',
           headers: {
-            'Authorization': `Bearer ${validatedConfig.apiKey}`,
+            Authorization: `Bearer ${validatedConfig.apiKey}`,
             'Content-Type': 'application/json',
           },
         });
 
         if (!testResponse.ok) {
-          const error = new Error(`API connectivity test failed: HTTP ${testResponse.status}`);
+          const error = new Error(
+            `API connectivity test failed: HTTP ${testResponse.status}`,
+          );
           monitoringService.recordMetric({
             provider: 'openai',
             metricType: 'service_health',
@@ -827,7 +989,7 @@ export function createOpenAIVectorStoreService(config?: Partial<OpenAIVectorStor
             errorMessage: error.message,
             duration: Date.now() - startTime,
           });
-          
+
           return {
             isHealthy: false,
             error: error.message,
@@ -838,7 +1000,7 @@ export function createOpenAIVectorStoreService(config?: Partial<OpenAIVectorStor
         let vectorStoreStatus = 'No default vector store configured';
         if (validatedConfig.defaultVectorStoreId) {
           try {
-            await this.getVectorStore(validatedConfig.defaultVectorStoreId);
+            await service.getVectorStore(validatedConfig.defaultVectorStoreId);
             vectorStoreStatus = 'Default vector store accessible';
           } catch (error) {
             vectorStoreStatus = `Default vector store inaccessible: ${error instanceof Error ? error.message : 'Unknown error'}`;
@@ -867,10 +1029,11 @@ export function createOpenAIVectorStoreService(config?: Partial<OpenAIVectorStor
           value: 0,
           unit: 'status',
           success: false,
-          errorMessage: error instanceof Error ? error.message : 'Unknown error',
+          errorMessage:
+            error instanceof Error ? error.message : 'Unknown error',
           duration: Date.now() - startTime,
         });
-        
+
         return {
           isHealthy: false,
           error: error instanceof Error ? error.message : 'Unknown error',
@@ -880,14 +1043,22 @@ export function createOpenAIVectorStoreService(config?: Partial<OpenAIVectorStor
 
     async validateVectorStore(vectorStoreId: string): Promise<boolean> {
       try {
-        const vectorStore = await this.getVectorStore(vectorStoreId);
-        return vectorStore.status === 'completed' || vectorStore.status === 'in_progress';
+        const vectorStore = await service.getVectorStore(vectorStoreId);
+        return (
+          vectorStore.status === 'completed' ||
+          vectorStore.status === 'in_progress'
+        );
       } catch (error) {
-        console.error(`Vector store ${vectorStoreId} validation failed:`, error);
+        console.error(
+          `Vector store ${vectorStoreId} validation failed:`,
+          error,
+        );
         return false;
       }
     },
   };
+
+  return service;
 }
 
 // Singleton service
