@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # -----------------------------------------------------------------------------
-# setup.sh – Unified installer voor AI Chatbot RAG‑System
-# Gebruik: ./setup.sh [--test-env] [--workspace <dir>] [--quiet]
+# SETUP.sh - Automated Environment Setup for AI Chatbot RAG System
+# Usage: ./SETUP.sh [--test-env] [--workspace <dir>] [--quiet]
 # -----------------------------------------------------------------------------
 set -euo pipefail
-trap 'echo -e "${RED}✖ Fout in lijn $LINENO – script gestopt${NC}"' ERR
+trap 'echo -e "${RED}✖ Error on line $LINENO - setup stopped${NC}"' ERR
 
-# ────────────────────────── Kleuren & logging ────────────────────────────────
+# ────────────────────────── Colors & Logging ────────────────────────────────
 declare -r RED='\033[0;31m' GREEN='\033[0;32m' YELLOW='\033[1;33m'
 declare -r BLUE='\033[0;34m' NC='\033[0m'
 
@@ -20,7 +20,7 @@ ok() { echo -e "${GREEN}✔ $*${NC}"; }
 
 # ────────────────────────────── Helpers ──────────────────────────────────────
 require_cmd() {
-    command -v "$1" &>/dev/null || error "$1 niet gevonden – installeer het eerst."
+    command -v "$1" &>/dev/null || error "$1 not found - please install it first."
 }
 
 semver_ge() { # semver_ge 18 20.10.2  → true | false
@@ -29,22 +29,22 @@ semver_ge() { # semver_ge 18 20.10.2  → true | false
 
 install_pnpm() {
     if ! command -v pnpm &>/dev/null; then
-        log "pnpm niet gevonden – installeren…"
+        log "pnpm not found - installing..."
         npm install -g pnpm@9.12.3 ${QUIET:+--silent}
     fi
-    ok "pnpm $(pnpm --version) beschikbaar"
+    ok "pnpm $(pnpm --version) available"
 }
 
 copy_env() {
     local tpl=".env.example" out=".env.local"
     if [[ ! -f $out ]]; then
         [[ -f $tpl ]] || {
-            warn "Geen $tpl aanwezig"
+            warn "No $tpl found"
             return
         }
-        cp "$tpl" "$out" && warn "$tpl ➜ $out gekopieerd – vul je echte secrets in."
+        cp "$tpl" "$out" && warn "$tpl → $out copied - fill in your real secrets."
     else
-        ok "$out aanwezig"
+        ok "$out exists"
     fi
 }
 
@@ -66,31 +66,31 @@ LANGSMITH_PROJECT=test-project
 LANGSMITH_TRACING=false
 NEON_DATABASE_URL=postgresql://test:test@localhost:5432/test
 EOF
-    ok "Test‑.env.local aangemaakt"
+    ok "Test .env.local created"
 }
 
 install_deps() {
-    log "Dependencies installeren…"
+    log "Installing dependencies..."
     pnpm install --frozen-lockfile ${QUIET:+--silent} ||
         pnpm install ${QUIET:+--silent}
 }
 
 run_quality_checks() {
-    log "TypeScript check…"
-    pnpm exec tsc --noEmit || warn "TypeScript‑fouten gevonden"
+    log "TypeScript check..."
+    pnpm exec tsc --noEmit || warn "TypeScript errors found"
 
-    log "Linten…"
-    pnpm lint || warn "Lint‑issues gevonden"
+    log "Linting..."
+    pnpm lint || warn "Lint issues found"
 }
 
 db_setup() {
     [[ $CLOUD_ENV == true ]] && return
     grep -q "^POSTGRES_URL=" .env.local 2>/dev/null || {
-        warn "POSTGRES_URL ontbreekt – database‑migraties overgeslagen"
+        warn "POSTGRES_URL missing - database migrations skipped"
         return
     }
-    log "Database‑migraties uitvoeren…"
-    pnpm db:migrate || warn "Database‑migratie mislukte"
+    log "Running database migrations..."
+    pnpm db:migrate || warn "Database migration failed"
 }
 
 # ─────────────────────── Argument‑parsing ────────────────────────────────────
@@ -106,15 +106,15 @@ while [[ $# -gt 0 ]]; do
         ;;
     --quiet) QUIET=true ;;
     -h | --help)
-        echo "Gebruik: $0 [--test-env] [--workspace <dir>] [--quiet]"
+        echo "Usage: $0 [--test-env] [--workspace <dir>] [--quiet]"
         exit 0
         ;;
-    *) error "Onbekende flag: $1" ;;
+    *) error "Unknown flag: $1" ;;
     esac
     shift
 done
 
-# ─────────────────────── Start installatieflow ──────────────────────────────
+# ─────────────────────── Start Installation Flow ──────────────────────────────
 echo -e "${BLUE}🤖 Setup AI Chatbot / RAG System…${NC}"
 
 # Detecteer cloud/CI‑omgeving

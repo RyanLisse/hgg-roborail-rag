@@ -43,8 +43,12 @@ yarn-error.log*
 /playwright/*
 
 # Agent-specific files
-AGENT.md.backup
+AGENT*.md.backup
 SETUP.sh.backup
 *.agent.log
 .agent-workspace/
 .agent-temp/
+.agent-cache/
+agent-debug.json
+agent-execution.json
+.codex-workspace/

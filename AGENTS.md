@@ -1,67 +1,50 @@
-# AGENTS.md - Development Guide
+# AGENTS.md - Agentic Development Guide
 
-## Commands
-- **Dev**: `pnpm dev` (Next.js with Turbo)
-- **Build**: `pnpm build` (runs migrations + build)
-- **Lint**: `pnpm lint` (ESLint + Biome)
-- **Format**: `pnpm format` (Biome formatter)
-- **Test Unit**: `pnpm test:unit` (Vitest) - single test: `pnpm test:unit <filename>`
-- **Test E2E**: `pnpm test` (Playwright)
-- **Database**: `pnpm db:studio` (Drizzle Studio), `pnpm db:migrate` (run migrations)
-
-## Architecture
-- **Framework**: Next.js 15 App Router + React 19 + TypeScript
-- **Database**: PostgreSQL with Drizzle ORM + pgvector for embeddings
-- **RAG System**: Multi-modal embeddings (Cohere v4), vector stores (OpenAI/Neon/Memory)
-- **AI**: AI SDK with multiple providers (OpenAI, Anthropic, Cohere, xAI)
-- **Key modules**: `lib/rag/`, `lib/vectorstore/`, `lib/embeddings/`, `lib/db/`
-
-## Code Style (Biome + ESLint)
-- **Formatting**: 2 spaces, single quotes, trailing commas, semicolons
-- **Imports**: Use `@/*` aliases, no unused imports
-- **React**: JSX double quotes, fragment syntax preferred
-- **Types**: TypeScript strict mode, avoid `any` when possible
-- **Database**: Drizzle schema in `lib/db/schema.ts`, migrations auto-generated
-# Agent Configuration for AI Chatbot RAG System
-
-## Project Overview
-Next.js 15 AI chatbot with advanced RAG capabilities, vector stores, and multimodal support.
+## Quick Setup
+```bash
+./SETUP.sh           # Automated environment setup
+pnpm dev              # Start development server
+make fresh            # Clean install + fresh start
+```
 
 ## Essential Commands
 ```bash
 # Development
 pnpm install          # Install dependencies
-pnpm dev              # Start development server
-make dev              # Start dev with port cleanup
+pnpm dev              # Next.js with Turbo
+pnpm build            # Build (runs migrations first)
+pnpm lint             # ESLint + Biome linting
+pnpm format           # Auto-format code
 
-# Database
+# Database Operations
 pnpm db:migrate       # Run migrations
-pnpm db:studio        # Open Drizzle Studio
+pnpm db:studio        # Drizzle Studio (port 4983)
+pnpm db:push          # Push schema changes
 
-# Testing & Quality
+# Testing
 pnpm test             # E2E tests (Playwright)
 pnpm test:unit        # Unit tests (Vitest)
-pnpm lint             # ESLint + Biome
-pnpm format           # Format code
-
-# Vector Store Testing
+pnpm test:coverage    # Coverage reports
 pnpm vectorstore:test # Test vector stores
-pnpm test:roborail    # Test RoboRail responses
 ```
 
-## Environment Setup
-Required: `.env.local` with AUTH_SECRET, XAI_API_KEY, POSTGRES_URL, BLOB_READ_WRITE_TOKEN, REDIS_URL
+## Architecture Overview
+- **Stack**: Next.js 15 + React 19 + TypeScript + Drizzle ORM
+- **AI**: Multi-provider system (20+ models: OpenAI, Anthropic, xAI, etc.)
+- **RAG**: 3-tier vector stores (OpenAI, Neon pgvector, Memory)
+- **Auth**: NextAuth.js with guest/regular user tiers
+- **DB**: PostgreSQL with pgvector extensions
 
-## Key Directories
-- `app/` - Next.js App Router pages
-- `components/` - React components with shadcn/ui
-- `lib/` - Core utilities (AI, DB, RAG, embeddings)
-- `tests/` - E2E and unit tests
+## Environment Requirements
+Copy `.env.example` to `.env.local` and configure:
+- `AUTH_SECRET` - Random 32-byte secret
+- `XAI_API_KEY` - Default AI provider
+- `POSTGRES_URL` - Database with pgvector
+- `REDIS_URL` - For resumable streams
+- `BLOB_READ_WRITE_TOKEN` - File storage
 
-## Development Notes
-- Uses pnpm package manager
-- TypeScript + strict mode
-- Drizzle ORM for PostgreSQL
-- Auth.js for authentication
-- LangSmith for observability
-- Cohere v2 for embeddings
+## Code Standards
+- **Formatting**: Biome (2 spaces, single quotes, trailing commas)
+- **Types**: TypeScript strict mode, avoid `any`
+- **Imports**: Use `@/*` path aliases
+- **DB**: Drizzle schema in `lib/db/schema.ts`
