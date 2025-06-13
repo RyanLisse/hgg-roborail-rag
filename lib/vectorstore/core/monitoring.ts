@@ -37,7 +37,7 @@ export class PerformanceMonitor {
           serviceName,
         };
 
-        this.recordMetric(serviceName, metric);
+        PerformanceMonitor.recordMetric(serviceName, metric);
         
         // Log performance if it's unusually slow
         if (duration > 5000) {
@@ -62,7 +62,7 @@ export class PerformanceMonitor {
     for (const methodName of monitoredMethods) {
       const originalMethod = service[methodName];
       if (typeof originalMethod === 'function') {
-        (wrappedService as any)[methodName] = this.wrapMethod(
+        (wrappedService as any)[methodName] = PerformanceMonitor.wrapMethod(
           service.serviceName,
           String(methodName),
           originalMethod.bind(service)
@@ -77,16 +77,16 @@ export class PerformanceMonitor {
    * Record a metric
    */
   private static recordMetric(serviceName: string, metric: ServiceMetrics): void {
-    if (!this.metrics.has(serviceName)) {
-      this.metrics.set(serviceName, []);
+    if (!PerformanceMonitor.metrics.has(serviceName)) {
+      PerformanceMonitor.metrics.set(serviceName, []);
     }
 
-    const serviceMetrics = this.metrics.get(serviceName)!;
+    const serviceMetrics = PerformanceMonitor.metrics.get(serviceName)!;
     serviceMetrics.push(metric);
 
     // Keep only last 1000 metrics per service
     if (serviceMetrics.length > 1000) {
-      this.metrics.set(serviceName, serviceMetrics.slice(-1000));
+      PerformanceMonitor.metrics.set(serviceName, serviceMetrics.slice(-1000));
     }
   }
 
@@ -94,7 +94,7 @@ export class PerformanceMonitor {
    * Get metrics for a specific service
    */
   static getServiceMetrics(serviceName: string): ServiceMetrics[] {
-    return this.metrics.get(serviceName) || [];
+    return PerformanceMonitor.metrics.get(serviceName) || [];
   }
 
   /**
@@ -102,7 +102,7 @@ export class PerformanceMonitor {
    */
   static getAllMetrics(): Record<string, ServiceMetrics[]> {
     const result: Record<string, ServiceMetrics[]> = {};
-    for (const [serviceName, metrics] of this.metrics.entries()) {
+    for (const [serviceName, metrics] of PerformanceMonitor.metrics.entries()) {
       result[serviceName] = [...metrics];
     }
     return result;
@@ -113,9 +113,9 @@ export class PerformanceMonitor {
    */
   static clearMetrics(serviceName?: string): void {
     if (serviceName) {
-      this.metrics.delete(serviceName);
+      PerformanceMonitor.metrics.delete(serviceName);
     } else {
-      this.metrics.clear();
+      PerformanceMonitor.metrics.clear();
     }
   }
 
@@ -130,7 +130,7 @@ export class PerformanceMonitor {
     slowestOperation: ServiceMetrics | null;
     fastestOperation: ServiceMetrics | null;
   } {
-    const metrics = this.getServiceMetrics(serviceName);
+    const metrics = PerformanceMonitor.getServiceMetrics(serviceName);
     
     let filteredMetrics = metrics;
     if (timeWindow) {
@@ -175,7 +175,7 @@ export class PerformanceMonitor {
    * Log performance summary
    */
   static logPerformanceSummary(serviceName: string, timeWindow?: number): void {
-    const summary = this.getPerformanceSummary(serviceName, timeWindow);
+    const summary = PerformanceMonitor.getPerformanceSummary(serviceName, timeWindow);
     
     console.log(`📊 Performance Summary for ${serviceName}:`);
     console.log(`   Total Requests: ${summary.totalRequests}`);

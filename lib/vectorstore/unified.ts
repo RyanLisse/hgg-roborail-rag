@@ -5,7 +5,6 @@ import { getOpenAIVectorStoreService, type OpenAIVectorStoreService } from './op
 import { getNeonVectorStoreService, type NeonVectorStoreService } from './neon';
 import { getVectorStoreMonitoringService, withPerformanceMonitoring } from './monitoring';
 import { getFaultTolerantUnifiedVectorStoreService } from './unified-fault-tolerant';
-import { BaseVectorStoreService } from './core/base-service';
 import { 
   DocumentRerankingEngine, 
   LearningToRankEngine,

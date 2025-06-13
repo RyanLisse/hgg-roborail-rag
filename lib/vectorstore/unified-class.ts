@@ -5,7 +5,6 @@
 
 import { BaseVectorStoreService } from './core/base-service';
 import { getUnifiedVectorStoreService, type UnifiedVectorStoreService } from './unified';
-import type { z } from 'zod';
 
 export class UnifiedVectorStore extends BaseVectorStoreService {
   private service: Promise<UnifiedVectorStoreService>;

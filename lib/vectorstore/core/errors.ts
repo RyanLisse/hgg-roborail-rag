@@ -9,7 +9,7 @@ export class VectorStoreError extends Error {
   constructor(
     message: string,
     type: ErrorType = ErrorTypeEnum.UNKNOWN,
-    retryable: boolean = false,
+    retryable = false,
     suggestedDelay?: number
   ) {
     super(message);

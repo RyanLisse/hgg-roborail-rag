@@ -105,7 +105,7 @@ export class ScopedContainer implements DIContainer {
     }
 
     // For scoped services, maintain instance within this scope
-    const descriptor = (this.parent as SimpleDIContainer)['services'].get(token);
+    const descriptor = (this.parent as any).services.get(token);
     
     if (descriptor?.lifetime === 'scoped') {
       if (!this.scopedInstances.has(token)) {
@@ -172,6 +172,11 @@ export const ServiceTokens = {
   // Monitoring Services
   VECTOR_STORE_MONITORING: Symbol('VECTOR_STORE_MONITORING'),
   PERFORMANCE_MONITOR: Symbol('PERFORMANCE_MONITOR'),
+  
+  // Cache Services
+  CACHE_BACKEND: Symbol('CACHE_BACKEND'),
+  SMART_CACHE: Symbol('SMART_CACHE'),
+  VECTOR_STORE_CACHE: Symbol('VECTOR_STORE_CACHE'),
   
   // Database Services
   DATABASE_CLIENT: Symbol('DATABASE_CLIENT'),
