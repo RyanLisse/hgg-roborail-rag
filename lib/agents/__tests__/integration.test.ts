@@ -6,12 +6,21 @@ vi.mock('ai', () => ({
   generateText: vi.fn(),
 }));
 
-vi.mock('../ai/providers', () => ({
+vi.mock('../../ai/providers', () => ({
   getModelInstance: vi.fn().mockReturnValue('mocked-model'),
 }));
 
-vi.mock('../vectorstore/unified', () => ({
-  getUnifiedVectorStoreService: vi.fn(),
+vi.mock('../../vectorstore/unified', () => ({
+  getUnifiedVectorStoreService: vi.fn(() => Promise.resolve({
+    searchAcrossSources: vi.fn(() => Promise.resolve([])),
+    getAvailableSources: vi.fn(() => Promise.resolve(['openai', 'memory', 'neon'])),
+    healthCheck: vi.fn(() => Promise.resolve({ isHealthy: true })),
+    config: {
+      sources: ['openai', 'memory', 'neon'],
+      searchThreshold: 0.3,
+      maxResults: 10,
+    },
+  })),
 }));
 
 import { generateText } from 'ai';
@@ -26,11 +35,8 @@ describe('Multi-Agent System Integration Tests', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     router = new SmartAgentRouter();
-    
-    // Mock default vector store service
-    mockGetUnifiedVectorStoreService.mockResolvedValue({
-      getAvailableSources: vi.fn().mockResolvedValue(['openai', 'memory', 'neon']),
-    });
+
+    // Vector store service is already mocked in the module mock above
   });
 
   afterEach(() => {
@@ -67,7 +73,8 @@ describe('Multi-Agent System Integration Tests', () => {
         text: 'rewriting',
       });
 
-      const rewriteQuery = 'Please rewrite this technical document to make it more accessible for non-technical audiences while maintaining accuracy.';
+      const rewriteQuery =
+        'Please rewrite this technical document to make it more accessible for non-technical audiences while maintaining accuracy.';
 
       const decision = await router.routeQuery(rewriteQuery);
 
@@ -82,7 +89,8 @@ describe('Multi-Agent System Integration Tests', () => {
         text: 'planning',
       });
 
-      const planningQuery = 'Help me create a detailed step-by-step plan for launching a new software product, including timeline, resources, and milestones.';
+      const planningQuery =
+        'Help me create a detailed step-by-step plan for launching a new software product, including timeline, resources, and milestones.';
 
       const decision = await router.routeQuery(planningQuery);
 
@@ -144,9 +152,17 @@ describe('Multi-Agent System Integration Tests', () => {
   describe('Context-Aware Routing', () => {
     it('should adapt routing based on available sources', async () => {
       // Test with limited sources
-      mockGetUnifiedVectorStoreService.mockResolvedValueOnce({
+      const mockUnifiedService = await import('../../vectorstore/unified');
+      vi.mocked(mockUnifiedService.getUnifiedVectorStoreService).mockResolvedValueOnce({
+        searchAcrossSources: vi.fn(() => Promise.resolve([])),
         getAvailableSources: vi.fn().mockResolvedValue(['memory']),
-      });
+        healthCheck: vi.fn(() => Promise.resolve({ isHealthy: true })),
+        config: {
+          sources: ['memory'],
+          searchThreshold: 0.3,
+          maxResults: 10,
+        },
+      } as any);
 
       mockGenerateText.mockResolvedValueOnce({
         text: 'research',
@@ -159,7 +175,10 @@ describe('Multi-Agent System Integration Tests', () => {
     });
 
     it('should handle vector store service failures gracefully', async () => {
-      mockGetUnifiedVectorStoreService.mockRejectedValueOnce(new Error('Service unavailable'));
+      const mockUnifiedService = await import('../../vectorstore/unified');
+      vi.mocked(mockUnifiedService.getUnifiedVectorStoreService).mockRejectedValueOnce(
+        new Error('Service unavailable'),
+      );
 
       mockGenerateText.mockResolvedValueOnce({
         text: 'question_answering',
@@ -182,7 +201,10 @@ describe('Multi-Agent System Integration Tests', () => {
         text: 'question_answering',
       });
 
-      const decision = await router.routeQuery('Tell me more about neural networks', context);
+      const decision = await router.routeQuery(
+        'Tell me more about neural networks',
+        context,
+      );
 
       expect(decision.selectedAgent).toBeDefined();
       expect(decision.reasoning).toBeDefined();
@@ -203,27 +225,33 @@ describe('Multi-Agent System Integration Tests', () => {
 
     it('should handle agent selection errors with graceful fallback', async () => {
       // Simulate error in intent classification
-      mockGenerateText.mockRejectedValueOnce(new Error('Classification failed'));
+      mockGenerateText.mockRejectedValueOnce(
+        new Error('Classification failed'),
+      );
 
       const decision = await router.routeQuery('Some query');
 
       expect(decision.selectedAgent).toBe('qa'); // Fallback to QA
       expect(decision.confidence).toBe(0.5);
-      expect(decision.reasoning).toContain('Fallback to QA agent due to routing error');
+      expect(decision.reasoning).toContain(
+        'Fallback to QA agent due to routing error',
+      );
     });
 
     it('should provide valid fallback agents for all agent types', async () => {
       const agentTypes = ['qa', 'rewrite', 'planner', 'research'];
-      
+
       for (const agentType of agentTypes) {
         mockGenerateText.mockResolvedValueOnce({
           text: agentType === 'qa' ? 'question_answering' : agentType,
         });
 
         const decision = await router.routeQuery(`Test query for ${agentType}`);
-        
+
         expect(decision.fallbackAgent).toBeDefined();
-        expect(['qa', 'rewrite', 'planner', 'research']).toContain(decision.fallbackAgent);
+        expect(['qa', 'rewrite', 'planner', 'research']).toContain(
+          decision.fallbackAgent,
+        );
       }
     });
   });
@@ -260,11 +288,13 @@ describe('Multi-Agent System Integration Tests', () => {
         .mockResolvedValueOnce({ text: 'comparison' });
 
       const startTime = Date.now();
-      const decisions = await Promise.all(queries.map(query => router.routeQuery(query)));
+      const decisions = await Promise.all(
+        queries.map((query) => router.routeQuery(query)),
+      );
       const endTime = Date.now();
 
       expect(decisions).toHaveLength(5);
-      expect(decisions.every(d => d.selectedAgent)).toBe(true);
+      expect(decisions.every((d) => d.selectedAgent)).toBe(true);
       expect(endTime - startTime).toBeLessThan(10000); // Concurrent processing should be efficient
     });
 
@@ -287,7 +317,7 @@ describe('Multi-Agent System Integration Tests', () => {
 
       expect(decision1.selectedAgent).toBe(decision2.selectedAgent);
       expect(decision1.estimatedComplexity).toBe(decision2.estimatedComplexity);
-      
+
       // Second request should not be significantly slower
       const duration1 = endTime1 - startTime1;
       const duration2 = endTime2 - startTime2;
@@ -430,10 +460,26 @@ describe('Multi-Agent System Integration Tests', () => {
   describe('Confidence Scoring Accuracy', () => {
     it('should provide high confidence for clear intent signals', async () => {
       const testCases = [
-        { query: 'Please rewrite this document', expectedIntent: 'rewriting', expectedAgent: 'rewrite' },
-        { query: 'Help me plan this project step by step', expectedIntent: 'planning', expectedAgent: 'planner' },
-        { query: 'Research and analyze market trends', expectedIntent: 'research', expectedAgent: 'research' },
-        { query: 'What is the definition of AI?', expectedIntent: 'question_answering', expectedAgent: 'qa' },
+        {
+          query: 'Please rewrite this document',
+          expectedIntent: 'rewriting',
+          expectedAgent: 'rewrite',
+        },
+        {
+          query: 'Help me plan this project step by step',
+          expectedIntent: 'planning',
+          expectedAgent: 'planner',
+        },
+        {
+          query: 'Research and analyze market trends',
+          expectedIntent: 'research',
+          expectedAgent: 'research',
+        },
+        {
+          query: 'What is the definition of AI?',
+          expectedIntent: 'question_answering',
+          expectedAgent: 'qa',
+        },
       ];
 
       for (const testCase of testCases) {
@@ -479,17 +525,17 @@ describe('Multi-Agent System Integration Tests', () => {
   describe('Source Selection Optimization', () => {
     it('should optimize source selection for different agent types', async () => {
       const testCases = [
-        { 
-          intent: 'research', 
+        {
+          intent: 'research',
           agent: 'research',
           expectedMinSources: 2,
-          description: 'Research should use multiple sources'
+          description: 'Research should use multiple sources',
         },
-        { 
-          intent: 'question_answering', 
+        {
+          intent: 'question_answering',
           agent: 'qa',
           expectedMaxSources: 1,
-          description: 'Simple QA can use fewer sources'
+          description: 'Simple QA can use fewer sources',
         },
       ];
 
@@ -498,24 +544,38 @@ describe('Multi-Agent System Integration Tests', () => {
           text: testCase.intent,
         });
 
-        const decision = await router.routeQuery(`Test query for ${testCase.intent}`);
+        const decision = await router.routeQuery(
+          `Test query for ${testCase.intent}`,
+        );
 
         expect(decision.selectedAgent).toBe(testCase.agent);
-        
+
         if (testCase.expectedMinSources) {
-          expect(decision.suggestedSources.length).toBeGreaterThanOrEqual(testCase.expectedMinSources);
+          expect(decision.suggestedSources.length).toBeGreaterThanOrEqual(
+            testCase.expectedMinSources,
+          );
         }
-        
+
         if (testCase.expectedMaxSources) {
-          expect(decision.suggestedSources.length).toBeLessThanOrEqual(testCase.expectedMaxSources);
+          expect(decision.suggestedSources.length).toBeLessThanOrEqual(
+            testCase.expectedMaxSources,
+          );
         }
       }
     });
 
     it('should handle limited source availability gracefully', async () => {
-      mockGetUnifiedVectorStoreService.mockResolvedValueOnce({
+      const mockUnifiedService = await import('../../vectorstore/unified');
+      vi.mocked(mockUnifiedService.getUnifiedVectorStoreService).mockResolvedValueOnce({
+        searchAcrossSources: vi.fn(() => Promise.resolve([])),
         getAvailableSources: vi.fn().mockResolvedValue(['memory']), // Only one source available
-      });
+        healthCheck: vi.fn(() => Promise.resolve({ isHealthy: true })),
+        config: {
+          sources: ['memory'],
+          searchThreshold: 0.3,
+          maxResults: 10,
+        },
+      } as any);
 
       mockGenerateText.mockResolvedValueOnce({
         text: 'research',

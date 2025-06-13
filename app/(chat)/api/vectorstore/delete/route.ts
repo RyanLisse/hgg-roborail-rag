@@ -19,13 +19,13 @@ export async function DELETE(request: NextRequest) {
     const { documentId, source } = DeleteRequest.parse(body);
 
     const vectorStoreService = await getUnifiedVectorStoreService();
-    
+
     const success = await vectorStoreService.deleteDocument(documentId, source);
 
     if (!success) {
       return NextResponse.json(
         { error: 'Failed to delete document' },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -34,7 +34,7 @@ export async function DELETE(request: NextRequest) {
     console.error('Failed to delete document:', error);
     return NextResponse.json(
       { error: 'Failed to delete document' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

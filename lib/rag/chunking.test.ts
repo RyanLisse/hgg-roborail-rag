@@ -1,16 +1,16 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { 
-  DocumentChunkingService, 
-  createChunkingService, 
+import {
+  DocumentChunkingService,
+  createChunkingService,
   chunkDocument,
-  type ChunkingConfig, 
+  type ChunkingConfig,
   type Document,
-  ChunkingConfig as ChunkingConfigSchema
+  ChunkingConfig as ChunkingConfigSchema,
 } from './chunking';
 
 describe('Enhanced Document Chunking', () => {
   let chunkingService: DocumentChunkingService;
-  
+
   beforeEach(() => {
     chunkingService = createChunkingService({
       strategy: 'hybrid',
@@ -40,7 +40,7 @@ describe('Enhanced Document Chunking', () => {
     it('should provide default values for optional config', () => {
       const minimalConfig = {};
       const parsedConfig = ChunkingConfigSchema.parse(minimalConfig);
-      
+
       expect(parsedConfig.strategy).toBe('hybrid');
       expect(parsedConfig.chunkSize).toBe(1500);
       expect(parsedConfig.chunkOverlap).toBe(200);
@@ -66,14 +66,14 @@ describe('Enhanced Document Chunking', () => {
         metadata: { title: 'Character Test' },
       };
 
-      const service = createChunkingService({ 
+      const service = createChunkingService({
         strategy: 'character',
         chunkSize: 1000,
-        chunkOverlap: 100 
+        chunkOverlap: 100,
       });
-      
+
       const result = await service.chunkDocument(document);
-      
+
       expect(result.chunks.length).toBeGreaterThan(1);
       expect(result.strategy).toBe('character');
       expect(result.chunks[0].content.length).toBeLessThanOrEqual(1000);
@@ -87,22 +87,22 @@ describe('Enhanced Document Chunking', () => {
         metadata: {},
       };
 
-      const service = createChunkingService({ 
+      const service = createChunkingService({
         strategy: 'character',
         chunkSize: 800,
-        chunkOverlap: 200 
+        chunkOverlap: 200,
       });
-      
+
       const result = await service.chunkDocument(document);
-      
+
       expect(result.chunks.length).toBeGreaterThan(1);
-      
+
       // Check for overlap between consecutive chunks
       if (result.chunks.length > 1) {
-        const firstChunkEnd = result.chunks[0].content.slice(-100);
-        const secondChunkStart = result.chunks[1].content.slice(0, 100);
-        // There should be some overlap
-        expect(firstChunkEnd).toContain(secondChunkStart.slice(0, 50));
+        const firstChunkEnd = result.chunks[0].content.slice(-200); // Get last 200 chars (overlap size)
+        const secondChunkStart = result.chunks[1].content.slice(0, 200); // Get first 200 chars
+        // The end of first chunk should match the start of second chunk (overlap)
+        expect(firstChunkEnd).toBe(secondChunkStart);
       }
     });
   });
@@ -128,21 +128,22 @@ NLP helps computers understand human language. It has many applications.
         metadata: { title: 'AI Overview' },
       };
 
-      const service = createChunkingService({ 
+      const service = createChunkingService({
         strategy: 'semantic',
         chunkSize: 500,
-        preserveStructure: true 
+        preserveStructure: true,
       });
-      
+
       const result = await service.chunkDocument(document);
-      
+
       expect(result.chunks.length).toBeGreaterThan(1);
       expect(result.strategy).toBe('semantic');
-      
+
       // Check that chunks respect heading boundaries
-      const hasHeadingChunks = result.chunks.some(chunk => 
-        chunk.content.includes('# Introduction') || 
-        chunk.content.includes('## Machine Learning')
+      const hasHeadingChunks = result.chunks.some(
+        (chunk) =>
+          chunk.content.includes('# Introduction') ||
+          chunk.content.includes('## Machine Learning'),
       );
       expect(hasHeadingChunks).toBe(true);
     });
@@ -169,9 +170,18 @@ function test() {
         metadata: {},
       };
 
-      const result = await chunkingService.chunkDocument(document);
-      
-      const chunkTypes = result.chunks.map(chunk => chunk.metadata.chunkType);
+      // Use a smaller chunk size to force multiple chunks
+      const service = createChunkingService({
+        strategy: 'hybrid',
+        chunkSize: 100,
+        minChunkSize: 10,
+        preserveStructure: true,
+        enableQualityValidation: true,
+      });
+
+      const result = await service.chunkDocument(document);
+
+      const chunkTypes = result.chunks.map((chunk) => chunk.metadata.chunkType);
       expect(chunkTypes).toContain('heading');
       expect(chunkTypes).toContain('paragraph');
     });
@@ -186,19 +196,19 @@ function test() {
         metadata: {},
       };
 
-      const service = createChunkingService({ 
+      const service = createChunkingService({
         strategy: 'recursive',
         chunkSize: 1000,
-        maxChunkSize: 1500 
+        maxChunkSize: 1500,
       });
-      
+
       const result = await service.chunkDocument(document);
-      
+
       expect(result.chunks.length).toBeGreaterThan(1);
       expect(result.strategy).toBe('recursive');
-      
+
       // All chunks should be within size limits
-      result.chunks.forEach(chunk => {
+      result.chunks.forEach((chunk) => {
         expect(chunk.content.length).toBeLessThanOrEqual(1500);
       });
     });
@@ -207,7 +217,7 @@ function test() {
       const document: Document = {
         id: 'separator-test',
         content: `
-Section 1
+Section 1 has enough content to meet the minimum chunk size requirement
 
 ---
 
@@ -221,20 +231,22 @@ Section 3 with even more content that definitely exceeds the chunk size limit an
         metadata: {},
       };
 
-      const service = createChunkingService({ 
+      const service = createChunkingService({
         strategy: 'recursive',
         chunkSize: 100,
-        customSeparators: ['\n---\n', '\n***\n', '\n\n', '. ']
+        minChunkSize: 10,
+        customSeparators: ['\n---\n', '\n***\n', '\n\n', '. '],
       });
-      
+
       const result = await service.chunkDocument(document);
-      
+
       expect(result.chunks.length).toBeGreaterThan(1);
-      
+
       // Should respect separator boundaries where possible
-      const hasStructuredSplits = result.chunks.some(chunk => 
-        chunk.content.includes('Section 1') || 
-        chunk.content.includes('Section 2')
+      const hasStructuredSplits = result.chunks.some(
+        (chunk) =>
+          chunk.content.includes('Section 1') ||
+          chunk.content.includes('Section 2'),
       );
       expect(hasStructuredSplits).toBe(true);
     });
@@ -268,26 +280,26 @@ A brief conclusion that wraps up the document.
         metadata: { title: 'Hybrid Test Doc' },
       };
 
-      const service = createChunkingService({ 
+      const service = createChunkingService({
         strategy: 'hybrid',
         chunkSize: 300,
-        maxChunkSize: 500 
+        maxChunkSize: 500,
       });
-      
+
       const result = await service.chunkDocument(document);
-      
+
       expect(result.chunks.length).toBeGreaterThan(3);
       expect(result.strategy).toBe('hybrid');
-      
+
       // Should preserve some structure while respecting size limits
-      result.chunks.forEach(chunk => {
+      result.chunks.forEach((chunk) => {
         expect(chunk.content.length).toBeLessThanOrEqual(500);
         expect(chunk.metadata.chunkType).toBeDefined();
       });
 
       // Should have preserved some headings
-      const hasHeadings = result.chunks.some(chunk => 
-        chunk.content.includes('#')
+      const hasHeadings = result.chunks.some((chunk) =>
+        chunk.content.includes('#'),
       );
       expect(hasHeadings).toBe(true);
     });
@@ -297,22 +309,23 @@ A brief conclusion that wraps up the document.
     it('should chunk by sentences', async () => {
       const document: Document = {
         id: 'sentence-test',
-        content: 'First sentence. Second sentence! Third sentence? Fourth sentence. Fifth sentence with more content.',
+        content:
+          'First sentence. Second sentence! Third sentence? Fourth sentence. Fifth sentence with more content.',
         type: 'text',
         metadata: {},
       };
 
-      const service = createChunkingService({ 
+      const service = createChunkingService({
         strategy: 'sentence',
-        chunkSize: 50 
+        chunkSize: 100,
       });
-      
+
       const result = await service.chunkDocument(document);
-      
+
       expect(result.chunks.length).toBeGreaterThan(1);
-      
+
       // Each chunk should end with sentence punctuation (where possible)
-      result.chunks.forEach(chunk => {
+      result.chunks.forEach((chunk) => {
         const trimmed = chunk.content.trim();
         if (trimmed.length > 0) {
           const lastChar = trimmed[trimmed.length - 1];
@@ -335,13 +348,13 @@ Third paragraph that might be longer and contain more detailed information about
         metadata: {},
       };
 
-      const service = createChunkingService({ 
+      const service = createChunkingService({
         strategy: 'paragraph',
-        chunkSize: 100 
+        chunkSize: 100,
       });
-      
+
       const result = await service.chunkDocument(document);
-      
+
       expect(result.chunks.length).toBeGreaterThan(1);
       expect(result.strategy).toBe('paragraph');
     });
@@ -373,19 +386,21 @@ function secondFunction() {
         metadata: { language: 'javascript' },
       };
 
-      const service = createChunkingService({ 
+      const service = createChunkingService({
         strategy: 'code',
-        chunkSize: 200 
+        chunkSize: 100,
+        minChunkSize: 10,
       });
-      
+
       const result = await service.chunkDocument(document);
-      
+
       expect(result.chunks.length).toBeGreaterThan(1);
-      
+
       // Should try to keep functions/classes together
-      const hasFunctionChunks = result.chunks.some(chunk => 
-        chunk.content.includes('function firstFunction') ||
-        chunk.content.includes('class TestClass')
+      const hasFunctionChunks = result.chunks.some(
+        (chunk) =>
+          chunk.content.includes('function firstFunction') ||
+          chunk.content.includes('class TestClass'),
       );
       expect(hasFunctionChunks).toBe(true);
     });
@@ -410,20 +425,20 @@ This section also maintains quality with coherent content.
         metadata: {},
       };
 
-      const service = createChunkingService({ 
+      const service = createChunkingService({
         enableQualityValidation: true,
-        chunkSize: 200 
+        chunkSize: 200,
       });
-      
+
       const result = await service.chunkDocument(document);
-      
+
       expect(result.qualityMetrics).toBeDefined();
       expect(result.qualityMetrics.avgQualityScore).toBeGreaterThan(0);
       expect(result.qualityMetrics.structurePreservation).toBeGreaterThan(0);
       expect(result.qualityMetrics.boundaryCoverage).toBeGreaterThan(0);
-      
+
       // Each chunk should have quality metadata
-      result.chunks.forEach(chunk => {
+      result.chunks.forEach((chunk) => {
         expect(chunk.metadata.quality).toBeDefined();
         expect(chunk.metadata.quality?.score).toBeGreaterThanOrEqual(0);
         expect(chunk.metadata.quality?.score).toBeLessThanOrEqual(1);
@@ -433,14 +448,15 @@ This section also maintains quality with coherent content.
     it('should validate chunk completeness', async () => {
       const document: Document = {
         id: 'completeness-test',
-        content: 'Complete sentence one. Complete sentence two. Complete sentence three.',
+        content:
+          'Complete sentence one. Complete sentence two. Complete sentence three.',
         type: 'text',
         metadata: {},
       };
 
       const result = await chunkingService.chunkDocument(document);
-      
-      result.chunks.forEach(chunk => {
+
+      result.chunks.forEach((chunk) => {
         if (chunk.metadata.quality) {
           expect(chunk.metadata.quality.completeness).toBeGreaterThan(0);
         }
@@ -458,8 +474,8 @@ This section also maintains quality with coherent content.
       };
 
       const result = await chunkingService.chunkDocument(document);
-      
-      result.chunks.forEach(chunk => {
+
+      result.chunks.forEach((chunk) => {
         expect(chunk.boundaries).toBeDefined();
         expect(chunk.boundaries.start).toBeGreaterThanOrEqual(0);
         expect(chunk.boundaries.end).toBeGreaterThan(chunk.boundaries.start);
@@ -472,17 +488,17 @@ This section also maintains quality with coherent content.
         id: 'metadata-test',
         content: 'Document with metadata.',
         type: 'text',
-        metadata: { 
+        metadata: {
           title: 'Test Document',
           author: 'Test Author',
           tags: ['test', 'metadata'],
-          customField: 'custom value'
+          customField: 'custom value',
         },
       };
 
       const result = await chunkingService.chunkDocument(document);
-      
-      result.chunks.forEach(chunk => {
+
+      result.chunks.forEach((chunk) => {
         expect(chunk.metadata.title).toBe('Test Document');
         expect(chunk.metadata.author).toBe('Test Author');
         expect(chunk.metadata.tags).toEqual(['test', 'metadata']);
@@ -497,7 +513,7 @@ This section also maintains quality with coherent content.
     it('should allow strategy updates', () => {
       const service = createChunkingService({ strategy: 'character' });
       expect(service.getConfig().strategy).toBe('character');
-      
+
       service.updateConfig({ strategy: 'semantic' });
       expect(service.getConfig().strategy).toBe('semantic');
     });
@@ -505,7 +521,7 @@ This section also maintains quality with coherent content.
     it('should allow parameter updates', () => {
       const service = createChunkingService({ chunkSize: 1000 });
       expect(service.getConfig().chunkSize).toBe(1000);
-      
+
       service.updateConfig({ chunkSize: 2000, chunkOverlap: 300 });
       expect(service.getConfig().chunkSize).toBe(2000);
       expect(service.getConfig().chunkOverlap).toBe(300);
@@ -518,7 +534,7 @@ This section also maintains quality with coherent content.
         strategy: 'hybrid',
         chunkSize: 1200,
       });
-      
+
       expect(service).toBeInstanceOf(DocumentChunkingService);
       expect(service.getConfig().strategy).toBe('hybrid');
       expect(service.getConfig().chunkSize).toBe(1200);
@@ -533,7 +549,7 @@ This section also maintains quality with coherent content.
       };
 
       const result = await chunkDocument(document, { strategy: 'character' });
-      
+
       expect(result.chunks).toBeDefined();
       expect(result.strategy).toBe('character');
     });
@@ -549,7 +565,7 @@ This section also maintains quality with coherent content.
       };
 
       const result = await chunkingService.chunkDocument(document);
-      
+
       expect(result.chunks).toHaveLength(0);
     });
 
@@ -562,7 +578,7 @@ This section also maintains quality with coherent content.
       };
 
       const result = await chunkingService.chunkDocument(document);
-      
+
       // Should return at least one chunk even if below min size
       expect(result.chunks.length).toBeGreaterThanOrEqual(1);
     });
@@ -576,9 +592,9 @@ This section also maintains quality with coherent content.
       };
 
       const result = await chunkingService.chunkDocument(document);
-      
+
       // Should filter out empty chunks
-      result.chunks.forEach(chunk => {
+      result.chunks.forEach((chunk) => {
         expect(chunk.content.trim().length).toBeGreaterThan(0);
       });
     });
@@ -594,7 +610,7 @@ This section also maintains quality with coherent content.
       };
 
       const result = await chunkingService.chunkDocument(document);
-      
+
       expect(result.totalTokens).toBeGreaterThan(0);
       expect(result.avgChunkSize).toBeGreaterThan(0);
       expect(result.qualityMetrics).toBeDefined();
@@ -609,7 +625,7 @@ This section also maintains quality with coherent content.
       };
 
       const result = await chunkingService.chunkDocument(document);
-      
+
       // Boundary coverage should be close to 1.0 (full coverage)
       expect(result.qualityMetrics.boundaryCoverage).toBeGreaterThan(0.9);
       expect(result.qualityMetrics.boundaryCoverage).toBeLessThanOrEqual(1.0);

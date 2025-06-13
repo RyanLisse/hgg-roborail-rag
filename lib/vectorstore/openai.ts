@@ -7,7 +7,11 @@ import {
   getVectorStoreMonitoringService,
   withPerformanceMonitoring,
 } from './monitoring';
-// Prompt optimization imports removed - optimization disabled for performance
+import {
+  PromptOptimizationEngine,
+  PromptOptimizationMetrics,
+  type OptimizedQuery,
+} from './prompt-optimization';
 
 // Schemas for OpenAI vector store operations
 export const VectorStoreFile = z.object({
@@ -677,13 +681,43 @@ export function createOpenAIVectorStoreService(
             return response;
           }
 
-          // Use simplified search prompt for faster response
-          const searchPrompt = `Find relevant information about: ${validatedRequest.query}`;
+          // Apply prompt optimization if enabled
+          let optimizedQuery: OptimizedQuery | null = null;
+          let searchPrompt = `Search for information about: ${validatedRequest.query}. Please provide comprehensive relevant information with proper citations.`;
 
-          // Skip prompt optimization for better performance
-          console.log(
-            '⚡ Using fast search mode (prompt optimization disabled)',
-          );
+          if (
+            validatedRequest.optimizePrompts &&
+            validatedRequest.queryContext &&
+            validatedRequest.queryContext.type
+          ) {
+            try {
+              console.log('🧠 Applying prompt optimization...');
+              optimizedQuery = await PromptOptimizationEngine.optimizeQuery(
+                validatedRequest.query,
+                {
+                  ...validatedRequest.queryContext,
+                  type: validatedRequest.queryContext.type || 'general',
+                },
+                validatedRequest.promptConfig,
+              );
+
+              if (optimizedQuery) {
+                searchPrompt = optimizedQuery.optimizedQuery;
+                console.log('✅ Prompt optimization applied successfully');
+              }
+            } catch (error) {
+              console.warn(
+                '⚠️ Prompt optimization failed, using original query:',
+                error,
+              );
+            }
+          } else {
+            // Use simplified search prompt for faster response
+            searchPrompt = `Find relevant information about: ${validatedRequest.query}`;
+            console.log(
+              '⚡ Using fast search mode (prompt optimization disabled)',
+            );
+          }
 
           // Use OpenAI Responses API with file search for vector store search
           const response = await client.responses.create(
@@ -777,7 +811,7 @@ export function createOpenAIVectorStoreService(
             `✅ Search completed in ${executionTime}ms with ${results.length} results`,
           );
 
-          // Record performance metrics (optimization disabled)
+          // Record performance metrics
           monitoringService.recordSearchLatency('openai', executionTime, {
             query: validatedRequest.query,
             resultsCount: results.length,
@@ -786,7 +820,7 @@ export function createOpenAIVectorStoreService(
           monitoringService.recordSearchSuccess('openai', {
             query: validatedRequest.query,
             resultsCount: results.length,
-            promptOptimizationUsed: false,
+            promptOptimizationUsed: !!optimizedQuery,
           });
 
           return SearchResponse.parse({
@@ -804,7 +838,19 @@ export function createOpenAIVectorStoreService(
             totalResults: results.length,
             query: validatedRequest.query,
             executionTime,
-            optimizationMetadata: undefined, // Optimization disabled
+            optimizationMetadata: optimizedQuery
+              ? {
+                  originalQuery: validatedRequest.query,
+                  optimizedQuery: optimizedQuery.optimizedQuery,
+                  queryType: validatedRequest.queryContext?.type || 'general',
+                  complexity:
+                    validatedRequest.queryContext?.complexity || 'basic',
+                  expansionCount: 0, // Expansion count not available in current optimization structure
+                  estimatedRelevance:
+                    optimizedQuery.metadata?.estimatedRelevance || 0.5,
+                  promptOptimizationUsed: true,
+                }
+              : undefined,
           });
         } catch (error) {
           const executionTime = Date.now() - startTime;

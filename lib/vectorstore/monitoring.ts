@@ -331,14 +331,14 @@ export function withPerformanceMonitoring<T extends any[], R>(
   operation: string,
   fn: (...args: T) => Promise<R>
 ) {
-  return async (...args: T): Promise<R> => {
+  return async function(this: any, ...args: T): Promise<R> {
     const startTime = Date.now();
     let success = false;
     let errorCategory: ErrorCategory | undefined;
     let errorMessage: string | undefined;
 
     try {
-      const result = await fn(...args);
+      const result = await fn.call(this, ...args);
       success = true;
       return result;
     } catch (error) {

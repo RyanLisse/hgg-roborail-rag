@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { 
-  DocumentChunkingService, 
-  createChunkingService, 
-  type ChunkingConfig, 
+import {
+  DocumentChunkingService,
+  createChunkingService,
+  type ChunkingConfig,
   type Document,
-  ChunkingConfig as ChunkingConfigSchema
+  ChunkingConfig as ChunkingConfigSchema,
 } from './chunking';
 
 describe('Enhanced Document Chunking - Basic Tests', () => {
@@ -26,7 +26,7 @@ describe('Enhanced Document Chunking - Basic Tests', () => {
 
     it('should provide default values', () => {
       const parsedConfig = ChunkingConfigSchema.parse({});
-      
+
       expect(parsedConfig.strategy).toBe('hybrid');
       expect(parsedConfig.chunkSize).toBe(1500);
       expect(parsedConfig.preserveStructure).toBe(true);
@@ -40,21 +40,22 @@ describe('Enhanced Document Chunking - Basic Tests', () => {
     });
 
     it('should chunk simple document', async () => {
-      const service = createChunkingService({ 
+      const service = createChunkingService({
         strategy: 'character',
         chunkSize: 150,
-        chunkOverlap: 10 
+        chunkOverlap: 10,
       });
 
       const document: Document = {
         id: 'test-doc',
-        content: 'This is a simple test document. It has multiple sentences. Each sentence adds content.',
+        content:
+          'This is a simple test document. It has multiple sentences. Each sentence adds content.',
         type: 'text',
         metadata: { title: 'Test' },
       };
 
       const result = await service.chunkDocument(document);
-      
+
       expect(result.chunks.length).toBeGreaterThan(0);
       expect(result.strategy).toBe('character');
       expect(result.chunks[0].content.length).toBeLessThanOrEqual(150);
@@ -62,7 +63,7 @@ describe('Enhanced Document Chunking - Basic Tests', () => {
 
     it('should preserve metadata', async () => {
       const service = createChunkingService();
-      
+
       const document: Document = {
         id: 'metadata-test',
         content: 'Test content',
@@ -71,8 +72,8 @@ describe('Enhanced Document Chunking - Basic Tests', () => {
       };
 
       const result = await service.chunkDocument(document);
-      
-      result.chunks.forEach(chunk => {
+
+      result.chunks.forEach((chunk) => {
         expect(chunk.metadata.title).toBe('Test Document');
         expect(chunk.metadata.author).toBe('Test Author');
         expect(chunk.metadata.chunkIndex).toBeDefined();
@@ -84,7 +85,7 @@ describe('Enhanced Document Chunking - Basic Tests', () => {
     it('should allow configuration updates', () => {
       const service = createChunkingService({ strategy: 'character' });
       expect(service.getConfig().strategy).toBe('character');
-      
+
       service.updateConfig({ strategy: 'semantic' });
       expect(service.getConfig().strategy).toBe('semantic');
     });
@@ -93,7 +94,7 @@ describe('Enhanced Document Chunking - Basic Tests', () => {
   describe('Edge Cases', () => {
     it('should handle empty documents', async () => {
       const service = createChunkingService();
-      
+
       const document: Document = {
         id: 'empty',
         content: '',
@@ -107,7 +108,7 @@ describe('Enhanced Document Chunking - Basic Tests', () => {
 
     it('should handle very short documents', async () => {
       const service = createChunkingService();
-      
+
       const document: Document = {
         id: 'short',
         content: 'Hi',

@@ -67,17 +67,22 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     let latencyCount = 0;
 
     // Get metrics from individual services
-    if (requestedServices.includes('openai') || requestedServices.includes('all')) {
+    if (
+      requestedServices.includes('openai') ||
+      requestedServices.includes('all')
+    ) {
       try {
         const openaiService = getFaultTolerantOpenAIVectorStoreService();
         const metrics = openaiService.getMetrics();
-        
-        const successRate = metrics.totalRequests > 0 
-          ? metrics.successfulRequests / metrics.totalRequests 
-          : 0;
-        const errorRate = metrics.totalRequests > 0 
-          ? metrics.failedRequests / metrics.totalRequests 
-          : 0;
+
+        const successRate =
+          metrics.totalRequests > 0
+            ? metrics.successfulRequests / metrics.totalRequests
+            : 0;
+        const errorRate =
+          metrics.totalRequests > 0
+            ? metrics.failedRequests / metrics.totalRequests
+            : 0;
 
         services.push({
           name: 'openai',
@@ -92,7 +97,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         totalFailed += metrics.failedRequests;
         totalRetries += metrics.retriedRequests;
         totalFallbacks += metrics.fallbackActivations;
-        
+
         if (metrics.averageLatency > 0) {
           totalLatency += metrics.averageLatency;
           latencyCount++;
@@ -116,17 +121,22 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       }
     }
 
-    if (requestedServices.includes('neon') || requestedServices.includes('all')) {
+    if (
+      requestedServices.includes('neon') ||
+      requestedServices.includes('all')
+    ) {
       try {
         const neonService = await getFaultTolerantNeonVectorStoreService();
         const metrics = neonService.getMetrics();
-        
-        const successRate = metrics.totalRequests > 0 
-          ? metrics.successfulRequests / metrics.totalRequests 
-          : 0;
-        const errorRate = metrics.totalRequests > 0 
-          ? metrics.failedRequests / metrics.totalRequests 
-          : 0;
+
+        const successRate =
+          metrics.totalRequests > 0
+            ? metrics.successfulRequests / metrics.totalRequests
+            : 0;
+        const errorRate =
+          metrics.totalRequests > 0
+            ? metrics.failedRequests / metrics.totalRequests
+            : 0;
 
         services.push({
           name: 'neon',
@@ -141,7 +151,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         totalFailed += metrics.failedRequests;
         totalRetries += metrics.retriedRequests;
         totalFallbacks += metrics.fallbackActivations;
-        
+
         if (metrics.averageLatency > 0) {
           totalLatency += metrics.averageLatency;
           latencyCount++;
@@ -165,19 +175,25 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       }
     }
 
-    if (requestedServices.includes('unified') || requestedServices.includes('all')) {
+    if (
+      requestedServices.includes('unified') ||
+      requestedServices.includes('all')
+    ) {
       try {
-        const unifiedService = await getFaultTolerantUnifiedVectorStoreService();
+        const unifiedService =
+          await getFaultTolerantUnifiedVectorStoreService();
         const metrics = unifiedService.getMetrics();
-        
+
         // Get unified service metrics
         const unifiedMetrics = metrics.unified;
-        const successRate = unifiedMetrics.totalRequests > 0 
-          ? unifiedMetrics.successfulRequests / unifiedMetrics.totalRequests 
-          : 0;
-        const errorRate = unifiedMetrics.totalRequests > 0 
-          ? unifiedMetrics.failedRequests / unifiedMetrics.totalRequests 
-          : 0;
+        const successRate =
+          unifiedMetrics.totalRequests > 0
+            ? unifiedMetrics.successfulRequests / unifiedMetrics.totalRequests
+            : 0;
+        const errorRate =
+          unifiedMetrics.totalRequests > 0
+            ? unifiedMetrics.failedRequests / unifiedMetrics.totalRequests
+            : 0;
 
         services.push({
           name: 'unified',
@@ -192,7 +208,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         totalFailed += unifiedMetrics.failedRequests;
         totalRetries += unifiedMetrics.retriedRequests;
         totalFallbacks += unifiedMetrics.fallbackActivations;
-        
+
         if (unifiedMetrics.averageLatency > 0) {
           totalLatency += unifiedMetrics.averageLatency;
           latencyCount++;
@@ -217,8 +233,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
 
     // Calculate summary metrics
-    const overallSuccessRate = totalRequests > 0 ? totalSuccessful / totalRequests : 0;
-    const overallErrorRate = totalRequests > 0 ? totalFailed / totalRequests : 0;
+    const overallSuccessRate =
+      totalRequests > 0 ? totalSuccessful / totalRequests : 0;
+    const overallErrorRate =
+      totalRequests > 0 ? totalFailed / totalRequests : 0;
     const averageLatency = latencyCount > 0 ? totalLatency / latencyCount : 0;
 
     const response = MetricsResponse.parse({
@@ -239,19 +257,19 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       success: true,
       data: response,
     });
-
   } catch (error) {
     console.error('Metrics API error:', error);
-    
+
     return NextResponse.json(
       {
         success: false,
         error: {
-          message: error instanceof Error ? error.message : 'Unknown error occurred',
+          message:
+            error instanceof Error ? error.message : 'Unknown error occurred',
           code: 'METRICS_FETCH_FAILED',
         },
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -260,9 +278,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const body = await request.json();
-    const resetRequest = z.object({
-      services: z.array(z.enum(['openai', 'neon', 'unified', 'all'])).optional(),
-    }).parse(body);
+    const resetRequest = z
+      .object({
+        services: z
+          .array(z.enum(['openai', 'neon', 'unified', 'all']))
+          .optional(),
+      })
+      .parse(body);
 
     const servicesToReset = resetRequest.services || ['all'];
     const resetResults: any[] = [];
@@ -273,10 +295,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         openaiService.reset();
         resetResults.push({ service: 'openai', reset: true });
       } catch (error) {
-        resetResults.push({ 
-          service: 'openai', 
-          reset: false, 
-          error: error instanceof Error ? error.message : 'Unknown error' 
+        resetResults.push({
+          service: 'openai',
+          reset: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
         });
       }
     }
@@ -287,24 +309,28 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         neonService.reset();
         resetResults.push({ service: 'neon', reset: true });
       } catch (error) {
-        resetResults.push({ 
-          service: 'neon', 
-          reset: false, 
-          error: error instanceof Error ? error.message : 'Unknown error' 
+        resetResults.push({
+          service: 'neon',
+          reset: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
         });
       }
     }
 
-    if (servicesToReset.includes('unified') || servicesToReset.includes('all')) {
+    if (
+      servicesToReset.includes('unified') ||
+      servicesToReset.includes('all')
+    ) {
       try {
-        const unifiedService = await getFaultTolerantUnifiedVectorStoreService();
+        const unifiedService =
+          await getFaultTolerantUnifiedVectorStoreService();
         unifiedService.reset();
         resetResults.push({ service: 'unified', reset: true });
       } catch (error) {
-        resetResults.push({ 
-          service: 'unified', 
-          reset: false, 
-          error: error instanceof Error ? error.message : 'Unknown error' 
+        resetResults.push({
+          service: 'unified',
+          reset: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
         });
       }
     }
@@ -315,10 +341,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         FaultToleranceFactory.resetAll();
         resetResults.push({ service: 'system', reset: true });
       } catch (error) {
-        resetResults.push({ 
-          service: 'system', 
-          reset: false, 
-          error: error instanceof Error ? error.message : 'Unknown error' 
+        resetResults.push({
+          service: 'system',
+          reset: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
         });
       }
     }
@@ -330,19 +356,19 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         timestamp: Date.now(),
       },
     });
-
   } catch (error) {
     console.error('Metrics reset API error:', error);
-    
+
     return NextResponse.json(
       {
         success: false,
         error: {
-          message: error instanceof Error ? error.message : 'Unknown error occurred',
+          message:
+            error instanceof Error ? error.message : 'Unknown error occurred',
           code: 'METRICS_RESET_FAILED',
         },
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

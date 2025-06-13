@@ -1,5 +1,10 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { getFeedbackService, hasUserVoted, type MessageFeedback, type FeedbackUpdate } from '@/lib/feedback/feedback';
+import {
+  getFeedbackService,
+  hasUserVoted,
+  type MessageFeedback,
+  type FeedbackUpdate,
+} from '@/lib/feedback/feedback';
 import { auth } from '@/app/(auth)/auth';
 
 export async function POST(request: NextRequest) {
@@ -11,7 +16,7 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const feedbackService = await getFeedbackService();
-    
+
     const feedback: MessageFeedback = {
       ...body,
       userId: session.user.id,
@@ -22,8 +27,8 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Failed to submit feedback:', error);
     return NextResponse.json(
-      { error: 'Failed to submit feedback' }, 
-      { status: 500 }
+      { error: 'Failed to submit feedback' },
+      { status: 500 },
     );
   }
 }
@@ -37,21 +42,24 @@ export async function PUT(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const feedbackId = searchParams.get('id');
-    
+
     if (!feedbackId) {
-      return NextResponse.json({ error: 'Feedback ID required' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Feedback ID required' },
+        { status: 400 },
+      );
     }
 
     const updates: FeedbackUpdate = await request.json();
     const feedbackService = await getFeedbackService();
-    
+
     const result = await feedbackService.updateFeedback(feedbackId, updates);
     return NextResponse.json(result);
   } catch (error) {
     console.error('Failed to update feedback:', error);
     return NextResponse.json(
-      { error: 'Failed to update feedback' }, 
-      { status: 500 }
+      { error: 'Failed to update feedback' },
+      { status: 500 },
     );
   }
 }
@@ -69,7 +77,7 @@ export async function GET(request: NextRequest) {
     const userId = session.user.id;
 
     const feedbackService = await getFeedbackService();
-    
+
     if (messageId) {
       // Get feedback for specific message
       const result = await hasUserVoted(feedbackService, messageId, userId);
@@ -79,13 +87,16 @@ export async function GET(request: NextRequest) {
       const result = await feedbackService.getFeedbackByRunId(runId);
       return NextResponse.json(result);
     } else {
-      return NextResponse.json({ error: 'messageId or runId required' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'messageId or runId required' },
+        { status: 400 },
+      );
     }
   } catch (error) {
     console.error('Failed to get feedback:', error);
     return NextResponse.json(
-      { error: 'Failed to get feedback' }, 
-      { status: 500 }
+      { error: 'Failed to get feedback' },
+      { status: 500 },
     );
   }
 }

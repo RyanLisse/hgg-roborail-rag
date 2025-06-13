@@ -15,7 +15,6 @@ import {
   RelevanceScoringEngine, 
   type UserFeedback, 
   type RelevanceWeights,
-  type ScoredDocument,
   type RerankingRequest,
   type HybridSearchRequest
 } from './relevance-scoring';

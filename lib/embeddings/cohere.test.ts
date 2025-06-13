@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { 
+import {
   type CohereEmbeddingService,
   createCohereEmbeddingService,
   embedText,
   embedImage,
   embedDocuments,
   type TextEmbeddingRequest,
-  type ImageEmbeddingRequest
+  type ImageEmbeddingRequest,
 } from './cohere';
 
 // Mock Cohere client
@@ -14,11 +14,11 @@ vi.mock('cohere-ai', () => ({
   CohereClient: vi.fn().mockImplementation(() => ({
     v2: {
       embed: vi.fn().mockResolvedValue({
-        embeddings: [
-          {
-            values: Array.from({ length: 1024 }, () => Math.random()),
-          },
-        ],
+        embeddings: {
+          float: [
+            Array.from({ length: 1024 }, () => Math.random()),
+          ],
+        },
       }),
     },
   })),
@@ -34,7 +34,7 @@ describe('Cohere Embedding Service', () => {
     cohereService = createCohereEmbeddingService({
       apiKey: 'test-api-key',
     });
-    
+
     vi.clearAllMocks();
   });
 
@@ -48,7 +48,7 @@ describe('Cohere Embedding Service', () => {
       const service = createCohereEmbeddingService({
         apiKey: '',
       });
-      
+
       expect(service.isEnabled).toBe(false);
     });
   });
@@ -82,24 +82,28 @@ describe('Cohere Embedding Service', () => {
       };
 
       cohereService.client.v2.embed = vi.fn().mockResolvedValue({
-        embeddings: [
-          { values: Array.from({ length: 1024 }, () => Math.random()) },
-          { values: Array.from({ length: 1024 }, () => Math.random()) },
-          { values: Array.from({ length: 1024 }, () => Math.random()) },
-        ],
+        embeddings: {
+          float: [
+            Array.from({ length: 1024 }, () => Math.random()),
+            Array.from({ length: 1024 }, () => Math.random()),
+            Array.from({ length: 1024 }, () => Math.random()),
+          ],
+        },
       });
 
       const embeddings = await embedText(cohereService, request);
 
       expect(embeddings).toBeDefined();
       expect(embeddings.length).toBe(3);
-      embeddings.forEach(embedding => {
+      embeddings.forEach((embedding) => {
         expect(embedding.length).toBe(1024);
       });
     });
 
     it('should handle text embedding errors', async () => {
-      cohereService.client.v2.embed = vi.fn().mockRejectedValue(new Error('API Error'));
+      cohereService.client.v2.embed = vi
+        .fn()
+        .mockRejectedValue(new Error('API Error'));
 
       const request: TextEmbeddingRequest = {
         texts: ['Hello world'],
@@ -107,7 +111,9 @@ describe('Cohere Embedding Service', () => {
         inputType: 'search_query',
       };
 
-      await expect(embedText(cohereService, request)).rejects.toThrow('API Error');
+      await expect(embedText(cohereService, request)).rejects.toThrow(
+        'API Error',
+      );
     });
   });
 
@@ -116,7 +122,7 @@ describe('Cohere Embedding Service', () => {
       (global.fetch as any).mockResolvedValue({
         arrayBuffer: () => Promise.resolve(new ArrayBuffer(100)),
         headers: {
-          get: (name: string) => name === 'content-type' ? 'image/png' : null,
+          get: (name: string) => (name === 'content-type' ? 'image/png' : null),
         },
       });
     });
@@ -132,8 +138,10 @@ describe('Cohere Embedding Service', () => {
       expect(embeddings).toBeDefined();
       expect(embeddings.length).toBe(1);
       expect(embeddings[0].length).toBe(1024);
-      
-      expect(global.fetch).toHaveBeenCalledWith('https://example.com/image.png');
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        'https://example.com/image.png',
+      );
       expect(cohereService.client.v2.embed).toHaveBeenCalledWith({
         model: 'embed-v4.0',
         inputType: 'image',
@@ -152,10 +160,12 @@ describe('Cohere Embedding Service', () => {
       };
 
       cohereService.client.v2.embed = vi.fn().mockResolvedValue({
-        embeddings: [
-          { values: Array.from({ length: 1024 }, () => Math.random()) },
-          { values: Array.from({ length: 1024 }, () => Math.random()) },
-        ],
+        embeddings: {
+          float: [
+            Array.from({ length: 1024 }, () => Math.random()),
+            Array.from({ length: 1024 }, () => Math.random()),
+          ],
+        },
       });
 
       const embeddings = await embedImage(cohereService, request);
@@ -166,8 +176,9 @@ describe('Cohere Embedding Service', () => {
     });
 
     it('should handle base64 images directly', async () => {
-      const base64Image = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==';
-      
+      const base64Image =
+        'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==';
+
       const request: ImageEmbeddingRequest = {
         images: [base64Image],
         model: 'embed-v4.0',
@@ -194,24 +205,52 @@ describe('Cohere Embedding Service', () => {
         model: 'embed-v4.0',
       };
 
-      await expect(embedImage(cohereService, request)).rejects.toThrow('Network Error');
+      await expect(embedImage(cohereService, request)).rejects.toThrow(
+        'Network Error',
+      );
     });
   });
 
   describe('Document Embeddings', () => {
+    beforeEach(() => {
+      (global.fetch as any).mockResolvedValue({
+        arrayBuffer: () => Promise.resolve(new ArrayBuffer(100)),
+        headers: {
+          get: (name: string) => (name === 'content-type' ? 'image/png' : null),
+        },
+      });
+    });
+
     it('should embed mixed documents (text and images)', async () => {
       const documents = [
-        { type: 'text' as const, content: 'Hello world', metadata: { title: 'Text Doc' } },
-        { type: 'image' as const, content: 'https://example.com/image.png', metadata: { title: 'Image Doc' } },
+        {
+          type: 'text' as const,
+          content: 'Hello world',
+          metadata: { title: 'Text Doc' },
+        },
+        {
+          type: 'image' as const,
+          content: 'https://example.com/image.png',
+          metadata: { title: 'Image Doc' },
+        },
       ];
 
       // Mock both text and image embedding responses
-      cohereService.client.v2.embed = vi.fn()
+      cohereService.client.v2.embed = vi
+        .fn()
         .mockResolvedValueOnce({
-          embeddings: [{ values: Array.from({ length: 1024 }, () => Math.random()) }],
+          embeddings: {
+            float: [
+              Array.from({ length: 1024 }, () => Math.random()),
+            ],
+          },
         })
         .mockResolvedValueOnce({
-          embeddings: [{ values: Array.from({ length: 1024 }, () => Math.random()) }],
+          embeddings: {
+            float: [
+              Array.from({ length: 1024 }, () => Math.random()),
+            ],
+          },
         });
 
       const embeddings = await embedDocuments(cohereService, documents);
@@ -225,17 +264,31 @@ describe('Cohere Embedding Service', () => {
 
     it('should batch text documents efficiently', async () => {
       const documents = [
-        { type: 'text' as const, content: 'Doc 1', metadata: { title: 'Document 1' } },
-        { type: 'text' as const, content: 'Doc 2', metadata: { title: 'Document 2' } },
-        { type: 'text' as const, content: 'Doc 3', metadata: { title: 'Document 3' } },
+        {
+          type: 'text' as const,
+          content: 'Doc 1',
+          metadata: { title: 'Document 1' },
+        },
+        {
+          type: 'text' as const,
+          content: 'Doc 2',
+          metadata: { title: 'Document 2' },
+        },
+        {
+          type: 'text' as const,
+          content: 'Doc 3',
+          metadata: { title: 'Document 3' },
+        },
       ];
 
       cohereService.client.v2.embed = vi.fn().mockResolvedValue({
-        embeddings: [
-          { values: Array.from({ length: 1024 }, () => Math.random()) },
-          { values: Array.from({ length: 1024 }, () => Math.random()) },
-          { values: Array.from({ length: 1024 }, () => Math.random()) },
-        ],
+        embeddings: {
+          float: [
+            Array.from({ length: 1024 }, () => Math.random()),
+            Array.from({ length: 1024 }, () => Math.random()),
+            Array.from({ length: 1024 }, () => Math.random()),
+          ],
+        },
       });
 
       const embeddings = await embedDocuments(cohereService, documents);
@@ -259,7 +312,9 @@ describe('Cohere Embedding Service', () => {
         inputType: 'search_query',
       };
 
-      await expect(embedText(cohereService, request)).rejects.toThrow('Cohere service is not enabled');
+      await expect(embedText(cohereService, request)).rejects.toThrow(
+        'Cohere service is not enabled',
+      );
     });
 
     it('should throw error when trying to embed images with disabled service', async () => {
@@ -268,7 +323,9 @@ describe('Cohere Embedding Service', () => {
         model: 'embed-v4.0',
       };
 
-      await expect(embedImage(cohereService, request)).rejects.toThrow('Cohere service is not enabled');
+      await expect(embedImage(cohereService, request)).rejects.toThrow(
+        'Cohere service is not enabled',
+      );
     });
   });
 });

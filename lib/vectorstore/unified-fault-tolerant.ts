@@ -3,7 +3,7 @@ import {
   type VectorStoreType,
   UnifiedDocument,
   BasicSearchRequest,
-  UnifiedSearchRequest,
+  type UnifiedSearchRequest,
   UnifiedSearchResult,
   DocumentUploadRequest,
   type UnifiedVectorStoreService,
@@ -11,11 +11,11 @@ import {
   type UserFeedback,
   type RelevanceWeights,
 } from './unified';
-import {
-  type RerankingRequest,
-  type RerankingResult,
-  type HybridSearchRequest,
-  type FusionScore,
+import type {
+  RerankingRequest,
+  RerankingResult,
+  HybridSearchRequest,
+  FusionScore,
 } from './reranking';
 import { type FaultTolerantOpenAIVectorStoreService, getFaultTolerantOpenAIVectorStoreService } from './openai-fault-tolerant';
 import { type FaultTolerantNeonVectorStoreService, getFaultTolerantNeonVectorStoreService } from './neon-fault-tolerant';
