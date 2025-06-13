@@ -5,6 +5,28 @@ import { useEffect, useRef } from 'react';
 import { artifactDefinitions, type ArtifactKind } from './artifact';
 import type { Suggestion } from '@/lib/db/schema';
 import { initialArtifactData, useArtifact } from '@/hooks/use-artifact';
+import { useAgentInfo } from '@/hooks/use-agent-info';
+
+export type AgentRouting = {
+  selectedAgent: 'qa' | 'rewrite' | 'planner' | 'research';
+  confidence: number;
+  reasoning: string;
+  estimatedComplexity: 'simple' | 'moderate' | 'complex';
+};
+
+export type AgentMetadata = {
+  agent: 'qa' | 'rewrite' | 'planner' | 'research';
+  modelUsed: string;
+  sources?: Array<{
+    id: string;
+    content: string;
+    score: number;
+    metadata?: Record<string, any>;
+  }>;
+  citations?: string[];
+  confidence?: number;
+  responseTime?: number;
+};
 
 export type DataStreamDelta = {
   type:
@@ -17,13 +39,18 @@ export type DataStreamDelta = {
     | 'suggestion'
     | 'clear'
     | 'finish'
-    | 'kind';
-  content: string | Suggestion;
+    | 'kind'
+    | 'agent-routing'
+    | 'agent-metadata';
+  content?: string | Suggestion;
+  routing?: AgentRouting;
+  metadata?: AgentMetadata;
 };
 
 export function DataStreamHandler({ id }: { id: string }) {
   const { data: dataStream } = useChat({ id });
   const { artifact, setArtifact, setMetadata } = useArtifact();
+  const { setRouting, setMetadata: setAgentMetadata, clear } = useAgentInfo();
   const lastProcessedIndex = useRef(-1);
 
   useEffect(() => {
@@ -85,12 +112,31 @@ export function DataStreamHandler({ id }: { id: string }) {
               status: 'idle',
             };
 
+          case 'agent-routing':
+            if (delta.routing) {
+              setRouting(delta.routing);
+            }
+            return draftArtifact;
+
+          case 'agent-metadata':
+            if (delta.metadata) {
+              setAgentMetadata(delta.metadata);
+            }
+            return draftArtifact;
+
           default:
             return draftArtifact;
         }
       });
     });
-  }, [dataStream, setArtifact, setMetadata, artifact]);
+  }, [dataStream, setArtifact, setMetadata, artifact, setRouting, setAgentMetadata]);
+
+  // Clear agent info when starting a new conversation
+  useEffect(() => {
+    if (!dataStream?.length) {
+      clear();
+    }
+  }, [dataStream?.length, clear]);
 
   return null;
 }

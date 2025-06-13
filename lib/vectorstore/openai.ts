@@ -9,7 +9,6 @@ import {
 } from './monitoring';
 import {
   PromptOptimizationEngine,
-  PromptOptimizationMetrics,
   type OptimizedQuery,
 } from './prompt-optimization';
 
@@ -631,7 +630,7 @@ export function createOpenAIVectorStoreService(
     searchFiles: withPerformanceMonitoring(
       'openai',
       'searchFiles',
-      async function (request: SearchRequest): Promise<SearchResponse> {
+      async (request: SearchRequest): Promise<SearchResponse> => {
         const monitoringService = getVectorStoreMonitoringService();
         const startTime = Date.now();
         const validatedRequest = SearchRequest.parse(request);

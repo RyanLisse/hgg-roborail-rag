@@ -6,6 +6,7 @@ import {
   streamText,
 } from 'ai';
 import { auth, type UserType } from '@/app/(auth)/auth';
+import { initializeDI, isDIInitialized } from '@/lib/di';
 import { type RequestHints, systemPrompt } from '@/lib/ai/prompts';
 import {
   createStreamId,
@@ -64,6 +65,11 @@ function getStreamContext() {
 }
 
 export async function POST(request: Request) {
+  // Initialize DI system if not already done
+  if (!isDIInitialized()) {
+    initializeDI();
+  }
+
   let requestBody: PostRequestBody;
 
   try {

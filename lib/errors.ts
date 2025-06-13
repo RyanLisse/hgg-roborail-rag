@@ -4,7 +4,12 @@ export type ErrorType =
   | 'forbidden'
   | 'not_found'
   | 'rate_limit'
-  | 'offline';
+  | 'offline'
+  | 'network'
+  | 'authentication'
+  | 'validation'
+  | 'service_unavailable'
+  | 'unknown';
 
 export type Surface =
   | 'chat'
@@ -15,7 +20,9 @@ export type Surface =
   | 'history'
   | 'vote'
   | 'document'
-  | 'suggestions';
+  | 'suggestions'
+  | 'vectorstore'
+  | 'agent';
 
 export type ErrorCode = `${ErrorType}:${Surface}`;
 
@@ -31,14 +38,18 @@ export const visibilityBySurface: Record<Surface, ErrorVisibility> = {
   vote: 'response',
   document: 'response',
   suggestions: 'response',
+  vectorstore: 'log',
+  agent: 'response',
 };
 
 export class ChatSDKError extends Error {
   public type: ErrorType;
   public surface: Surface;
   public statusCode: number;
+  public retryable?: boolean;
+  public suggestedDelay?: number;
 
-  constructor(errorCode: ErrorCode, cause?: string) {
+  constructor(errorCode: ErrorCode, cause?: string, retryable?: boolean, suggestedDelay?: number) {
     super();
 
     const [type, surface] = errorCode.split(':');
@@ -48,6 +59,33 @@ export class ChatSDKError extends Error {
     this.surface = surface as Surface;
     this.message = getMessageByErrorCode(errorCode);
     this.statusCode = getStatusCodeByType(this.type);
+    this.retryable = retryable;
+    this.suggestedDelay = suggestedDelay;
+  }
+
+  /**
+   * Create ChatSDKError from vector store error
+   */
+  static fromVectorStoreError(error: any, surface: Surface = 'vectorstore'): ChatSDKError {
+    // Map vector store error types to ChatSDK error types
+    const typeMapping: Record<string, ErrorType> = {
+      'network': 'network',
+      'authentication': 'authentication',
+      'validation': 'validation',
+      'rate_limit': 'rate_limit',
+      'service_unavailable': 'service_unavailable',
+      'unknown': 'unknown',
+    };
+
+    const errorType = typeMapping[error.type] || 'unknown';
+    const errorCode: ErrorCode = `${errorType}:${surface}`;
+    
+    return new ChatSDKError(
+      errorCode,
+      error.message,
+      error.retryable,
+      error.suggestedDelay
+    );
   }
 
   public toResponse() {
@@ -107,6 +145,26 @@ export function getMessageByErrorCode(errorCode: ErrorCode): string {
     case 'bad_request:document':
       return 'The request to create or update the document was invalid. Please check your input and try again.';
 
+    case 'network:vectorstore':
+      return 'Network connection to vector store failed. Please check your internet connection and try again.';
+    case 'authentication:vectorstore':
+      return 'Vector store authentication failed. Please check your API configuration.';
+    case 'validation:vectorstore':
+      return 'Invalid vector store request parameters. Please check your input and try again.';
+    case 'service_unavailable:vectorstore':
+      return 'Vector store service is temporarily unavailable. Please try again later.';
+    case 'rate_limit:vectorstore':
+      return 'Vector store rate limit exceeded. Please wait and try again.';
+
+    case 'network:agent':
+      return 'Agent service network error. Please check your connection and try again.';
+    case 'authentication:agent':
+      return 'Agent service authentication failed. Please check your configuration.';
+    case 'validation:agent':
+      return 'Invalid agent request parameters. Please check your input and try again.';
+    case 'service_unavailable:agent':
+      return 'Agent service is temporarily unavailable. Please try again later.';
+
     default:
       return 'Something went wrong. Please try again later.';
   }
@@ -115,8 +173,10 @@ export function getMessageByErrorCode(errorCode: ErrorCode): string {
 function getStatusCodeByType(type: ErrorType) {
   switch (type) {
     case 'bad_request':
+    case 'validation':
       return 400;
     case 'unauthorized':
+    case 'authentication':
       return 401;
     case 'forbidden':
       return 403;
@@ -125,7 +185,11 @@ function getStatusCodeByType(type: ErrorType) {
     case 'rate_limit':
       return 429;
     case 'offline':
+    case 'service_unavailable':
       return 503;
+    case 'network':
+      return 502;
+    case 'unknown':
     default:
       return 500;
   }
