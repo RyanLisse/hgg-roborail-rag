@@ -26,12 +26,13 @@ import {
   FallbackMode,
 } from './fault-tolerance';
 import { getVectorStoreMonitoringService, withPerformanceMonitoring } from './monitoring';
+import { BaseVectorStoreService } from './core/base-service';
 
 // ====================================
 // FAULT-TOLERANT UNIFIED SERVICE
 // ====================================
 
-export class FaultTolerantUnifiedVectorStoreService implements UnifiedVectorStoreService {
+export class FaultTolerantUnifiedVectorStoreService extends BaseVectorStoreService implements UnifiedVectorStoreService {
   openaiService: FaultTolerantOpenAIVectorStoreService;
   neonService: FaultTolerantNeonVectorStoreService;
   
@@ -41,6 +42,7 @@ export class FaultTolerantUnifiedVectorStoreService implements UnifiedVectorStor
     openaiService?: FaultTolerantOpenAIVectorStoreService,
     neonService?: FaultTolerantNeonVectorStoreService
   ) {
+    super('unified-vector-store');
     this.openaiService = openaiService || getFaultTolerantOpenAIVectorStoreService();
     this.neonService = neonService || null as any; // Will be initialized async
 

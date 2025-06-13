@@ -43,6 +43,11 @@ import { ChatSDKError } from '../errors';
 const client = postgres(POSTGRES_URL);
 const db = drizzle(client);
 
+// Export the database instance for DI container
+export function getDb() {
+  return db;
+}
+
 export async function getUser(email: string): Promise<Array<User>> {
   try {
     return await db.select().from(user).where(eq(user.email, email));

@@ -34,16 +34,33 @@ import { PlannerAgent } from './planner-agent';
 import { ResearchAgent } from './research-agent';
 import { SmartAgentRouter } from './router';
 import type { AgentConfig, AgentRequest, AgentResponse, AgentType, UserIntent, QueryComplexity, AgentRoutingDecision } from './types';
+import { getService, hasService, ServiceTokens, createRequestScope } from '../di/services';
 
 // Factory functions and utilities
 let globalOrchestrator: AgentOrchestrator | null = null;
 
 /**
  * Get or create the global agent orchestrator instance
+ * Uses DI container if services are initialized, otherwise falls back to direct instantiation
  */
 export function getAgentOrchestrator(config?: Partial<AgentConfig>): AgentOrchestrator {
   if (!globalOrchestrator) {
-    globalOrchestrator = new AgentOrchestrator(config);
+    // Try to get from DI container first
+    if (hasService(ServiceTokens.AGENT_ORCHESTRATOR)) {
+      const scope = createRequestScope();
+      globalOrchestrator = scope.resolve(ServiceTokens.AGENT_ORCHESTRATOR);
+    } else {
+      // Fallback to direct instantiation
+      const defaultConfig: Partial<AgentConfig> = {
+        vectorStoreConfig: {
+          defaultSources: ['memory'],
+          searchThreshold: 0.3,
+          maxResults: 10,
+        },
+        ...config
+      };
+      globalOrchestrator = new AgentOrchestrator(defaultConfig);
+    }
   }
   return globalOrchestrator;
 }
@@ -59,7 +76,15 @@ export function resetGlobalOrchestrator(): void {
  * Create a new agent orchestrator instance
  */
 export function createAgentOrchestrator(config?: Partial<AgentConfig>): AgentOrchestrator {
-  return new AgentOrchestrator(config);
+  const defaultConfig: Partial<AgentConfig> = {
+    vectorStoreConfig: {
+      defaultSources: ['memory'],
+      searchThreshold: 0.3,
+      maxResults: 10,
+    },
+    ...config
+  };
+  return new AgentOrchestrator(defaultConfig);
 }
 
 /**
@@ -161,14 +186,30 @@ export async function useAgent(
     modelId?: string;
   }
 ): Promise<AgentResponse> {
-  const agents = {
-    qa: () => new QAAgent(),
-    rewrite: () => new RewriteAgent(),
-    planner: () => new PlannerAgent(),
-    research: () => new ResearchAgent(),
+  // Try to get from DI container first
+  const agentTokens = {
+    qa: ServiceTokens.QA_AGENT,
+    rewrite: ServiceTokens.REWRITE_AGENT,
+    planner: ServiceTokens.PLANNER_AGENT,
+    research: ServiceTokens.RESEARCH_AGENT,
   };
 
-  const agent = agents[agentType]();
+  let agent: any;
+  const token = agentTokens[agentType];
+  
+  if (hasService(token)) {
+    const scope = createRequestScope();
+    agent = scope.resolve(token);
+  } else {
+    // Fallback to direct instantiation
+    const agentClasses = {
+      qa: () => new QAAgent(),
+      rewrite: () => new RewriteAgent(),
+      planner: () => new PlannerAgent(),
+      research: () => new ResearchAgent(),
+    };
+    agent = agentClasses[agentType]();
+  }
   
   const request: AgentRequest = {
     query,
@@ -198,7 +239,13 @@ export async function useAgent(
  * Classify user intent for a query
  */
 export async function classifyIntent(query: string): Promise<UserIntent> {
-  const router = new SmartAgentRouter();
+  let router: any;
+  if (hasService(ServiceTokens.AGENT_ROUTER)) {
+    const scope = createRequestScope();
+    router = scope.resolve(ServiceTokens.AGENT_ROUTER);
+  } else {
+    router = new SmartAgentRouter();
+  }
   return router.classifyIntent(query);
 }
 
@@ -206,7 +253,13 @@ export async function classifyIntent(query: string): Promise<UserIntent> {
  * Analyze query complexity
  */
 export async function analyzeComplexity(query: string): Promise<QueryComplexity> {
-  const router = new SmartAgentRouter();
+  let router: any;
+  if (hasService(ServiceTokens.AGENT_ROUTER)) {
+    const scope = createRequestScope();
+    router = scope.resolve(ServiceTokens.AGENT_ROUTER);
+  } else {
+    router = new SmartAgentRouter();
+  }
   return router.analyzeComplexity(query);
 }
 
@@ -217,7 +270,13 @@ export async function getRoutingDecision(
   query: string,
   context?: AgentRequest['context']
 ): Promise<AgentRoutingDecision> {
-  const router = new SmartAgentRouter();
+  let router: any;
+  if (hasService(ServiceTokens.AGENT_ROUTER)) {
+    const scope = createRequestScope();
+    router = scope.resolve(ServiceTokens.AGENT_ROUTER);
+  } else {
+    router = new SmartAgentRouter();
+  }
   return router.routeQuery(query, context);
 }
 

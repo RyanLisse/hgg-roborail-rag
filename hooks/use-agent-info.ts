@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import type { AgentRouting, AgentMetadata } from '@/components/data-stream-handler';
 
 // Simple global state management for agent info
-let globalAgentInfo: {
+const globalAgentInfo: {
   routing: AgentRouting | null;
   metadata: AgentMetadata | null;
 } = {
@@ -19,33 +19,36 @@ function notifyListeners() {
 }
 
 export function useAgentInfo() {
-  const [, forceUpdate] = useState({});
+  const [updateCount, setUpdateCount] = useState(0);
 
-  const rerender = () => forceUpdate({});
-
-  // Subscribe to changes
+  // Subscribe to changes only once per component
   React.useEffect(() => {
-    listeners.add(rerender);
-    return () => {
-      listeners.delete(rerender);
-    };
-  }, [rerender]);
+    const listener = () => setUpdateCount(prev => prev + 1);
+    listeners.add(listener);
+    return () => listeners.delete(listener);
+  }, []); // Empty dependency array - only run once
 
-  const setRouting = (routing: AgentRouting) => {
-    globalAgentInfo.routing = routing;
-    notifyListeners();
-  };
+  const setRouting = React.useCallback((routing: AgentRouting) => {
+    if (globalAgentInfo.routing !== routing) {
+      globalAgentInfo.routing = routing;
+      notifyListeners();
+    }
+  }, []);
 
-  const setMetadata = (metadata: AgentMetadata) => {
-    globalAgentInfo.metadata = metadata;
-    notifyListeners();
-  };
+  const setMetadata = React.useCallback((metadata: AgentMetadata) => {
+    if (globalAgentInfo.metadata !== metadata) {
+      globalAgentInfo.metadata = metadata;
+      notifyListeners();
+    }
+  }, []);
 
-  const clear = () => {
-    globalAgentInfo.routing = null;
-    globalAgentInfo.metadata = null;
-    notifyListeners();
-  };
+  const clear = React.useCallback(() => {
+    if (globalAgentInfo.routing !== null || globalAgentInfo.metadata !== null) {
+      globalAgentInfo.routing = null;
+      globalAgentInfo.metadata = null;
+      notifyListeners();
+    }
+  }, []);
 
   return {
     routing: globalAgentInfo.routing,
