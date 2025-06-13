@@ -15,7 +15,10 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { useFeedback } from '@/hooks/use-feedback';
-import { ThumbsUp, ThumbsDown, MessageSquare, AlertCircle } from 'lucide-react';
+import ThumbsUp from 'lucide-react/dist/esm/icons/thumbs-up';
+import ThumbsDown from 'lucide-react/dist/esm/icons/thumbs-down';
+import MessageSquare from 'lucide-react/dist/esm/icons/message-square';
+import AlertCircle from 'lucide-react/dist/esm/icons/alert-circle';
 import { cn } from '@/lib/utils';
 
 interface MessageFeedbackProps {

@@ -15,33 +15,26 @@ import {
   GearIcon,
   HamburgerMenuIcon,
   HeartIcon,
-  InfoCircledIcon,
   LayersIcon,
   LightningBoltIcon,
   LoopIcon,
   MagicWandIcon,
   MagnifyingGlassIcon,
-  PaperClipIcon,
   PauseIcon,
-  Pencil1Icon,
   PersonIcon,
-  CopyIcon as RadixCopyIcon,
   ReloadIcon,
-  RobotIcon,
   Share1Icon,
   StarIcon,
   StopwatchIcon,
   TargetIcon,
-  ThumbsDownIcon,
-  ThumbsUpIcon,
   TimerIcon,
   UpdateIcon,
 } from '@radix-ui/react-icons';
 
-// Bot icon using Radix Robot icon with enhanced styling
+// Bot icon using a simple robot-like design
 export const BotIcon = ({ size = 16 }: { size?: number }) => {
   return (
-    <RobotIcon width={size} height={size} style={{ color: 'currentcolor' }} />
+    <PersonIcon width={size} height={size} style={{ color: 'currentcolor' }} />
   );
 };
 
@@ -52,10 +45,10 @@ export const UserIcon = ({ size = 16 }: { size?: number }) => {
   );
 };
 
-// Attachment icon using Radix PaperClipIcon
+// Attachment icon using Share1Icon as alternative
 export const AttachmentIcon = ({ size = 16 }: { size?: number }) => {
   return (
-    <PaperClipIcon
+    <Share1Icon
       width={size}
       height={size}
       style={{ color: 'currentcolor' }}

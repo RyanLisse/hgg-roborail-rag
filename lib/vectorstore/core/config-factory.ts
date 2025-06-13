@@ -37,7 +37,7 @@ export class VectorStoreConfigFactory<TConfig extends BaseServiceConfig>
           (configData as any)[configKey] = envValue === 'true';
         }
         // Handle number conversion
-        else if (!isNaN(Number(envValue))) {
+        else if (!Number.isNaN(Number(envValue))) {
           (configData as any)[configKey] = Number(envValue);
         }
         // String value

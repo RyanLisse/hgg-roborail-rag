@@ -2,7 +2,8 @@
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ChevronDownIcon, ChevronRightIcon } from 'lucide-react';
+import ChevronDownIcon from 'lucide-react/dist/esm/icons/chevron-down';
+import ChevronRightIcon from 'lucide-react/dist/esm/icons/chevron-right';
 import { useState } from 'react';
 import { useAgentInfo } from '@/hooks/use-agent-info';
 import { cn } from '@/lib/utils';
