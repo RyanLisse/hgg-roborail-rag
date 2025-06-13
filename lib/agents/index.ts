@@ -49,6 +49,13 @@ export function getAgentOrchestrator(config?: Partial<AgentConfig>): AgentOrches
 }
 
 /**
+ * Reset the global orchestrator (mainly for testing)
+ */
+export function resetGlobalOrchestrator(): void {
+  globalOrchestrator = null;
+}
+
+/**
  * Create a new agent orchestrator instance
  */
 export function createAgentOrchestrator(config?: Partial<AgentConfig>): AgentOrchestrator {

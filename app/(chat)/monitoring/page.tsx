@@ -20,5 +20,6 @@ export default async function MonitoringPage() {
 
 export const metadata = {
   title: 'Vector Store Monitoring | RRA',
-  description: 'Real-time monitoring and analytics for vector store performance',
+  description:
+    'Real-time monitoring and analytics for vector store performance',
 };

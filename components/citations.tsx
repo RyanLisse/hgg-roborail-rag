@@ -30,6 +30,7 @@ export function Citations({ citations, sources, className = '' }: CitationsProps
   return (
     <div className={`border-t pt-4 mt-4 ${className}`}>
       <button
+        type="button"
         onClick={() => setIsExpanded(!isExpanded)}
         className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
       >
@@ -109,6 +110,7 @@ export function InlineCitation({ number, citationId, className = '' }: InlineCit
 
   return (
     <button
+      type="button"
       onClick={handleClick}
       className={`inline-flex items-center justify-center size-5 text-xs font-medium text-blue-700 bg-blue-100 rounded-full hover:bg-blue-200 hover:text-blue-800 transition-colors cursor-pointer ${className}`}
       title={`Jump to source ${number}`}
@@ -129,6 +131,7 @@ export function CitationBadge({ count, onClick, className = '' }: CitationBadgeP
 
   return (
     <button
+      type="button"
       onClick={onClick}
       className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-700 bg-blue-100 rounded-md hover:bg-blue-200 transition-colors ${className}`}
     >

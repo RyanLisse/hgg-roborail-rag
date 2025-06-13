@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { 
+import {
   type FeedbackService,
   createFeedbackService,
   submitFeedback,
@@ -62,11 +62,13 @@ describe('Feedback Service', () => {
 
       mockDb.insert.mockReturnValue({
         values: vi.fn().mockReturnValue({
-          returning: vi.fn().mockResolvedValue([{ 
-            id: 'feedback-123',
-            ...feedback,
-            createdAt: new Date(),
-          }]),
+          returning: vi.fn().mockResolvedValue([
+            {
+              id: 'feedback-123',
+              ...feedback,
+              createdAt: new Date(),
+            },
+          ]),
         }),
       });
 
@@ -87,11 +89,13 @@ describe('Feedback Service', () => {
 
       mockDb.insert.mockReturnValue({
         values: vi.fn().mockReturnValue({
-          returning: vi.fn().mockResolvedValue([{ 
-            id: 'feedback-124',
-            ...feedback,
-            createdAt: new Date(),
-          }]),
+          returning: vi.fn().mockResolvedValue([
+            {
+              id: 'feedback-124',
+              ...feedback,
+              createdAt: new Date(),
+            },
+          ]),
         }),
       });
 
@@ -110,8 +114,9 @@ describe('Feedback Service', () => {
         vote: 'invalid' as any, // Invalid vote value
       };
 
-      await expect(submitFeedback(feedbackService, invalidFeedback))
-        .rejects.toThrow();
+      await expect(
+        submitFeedback(feedbackService, invalidFeedback),
+      ).rejects.toThrow();
     });
 
     it('should handle database errors gracefully', async () => {
@@ -128,8 +133,9 @@ describe('Feedback Service', () => {
         }),
       });
 
-      await expect(submitFeedback(feedbackService, feedback))
-        .rejects.toThrow('Database error');
+      await expect(submitFeedback(feedbackService, feedback)).rejects.toThrow(
+        'Database error',
+      );
     });
   });
 
@@ -181,15 +187,21 @@ describe('Feedback Service', () => {
 
       mockDb.update.mockReturnValue({
         set: vi.fn().mockReturnValue({
-          where: vi.fn().mockResolvedValue([{
-            id: 'feedback-123',
-            comment: 'Updated comment',
-            metadata: { updated: true },
-          }]),
+          where: vi.fn().mockResolvedValue([
+            {
+              id: 'feedback-123',
+              comment: 'Updated comment',
+              metadata: { updated: true },
+            },
+          ]),
         }),
       });
 
-      const result = await updateFeedback(feedbackService, 'feedback-123', updates);
+      const result = await updateFeedback(
+        feedbackService,
+        'feedback-123',
+        updates,
+      );
 
       expect(result).toBeDefined();
       expect(result.comment).toBe('Updated comment');
@@ -203,8 +215,9 @@ describe('Feedback Service', () => {
         }),
       });
 
-      await expect(updateFeedback(feedbackService, 'feedback-123', {}))
-        .rejects.toThrow('Update failed');
+      await expect(
+        updateFeedback(feedbackService, 'feedback-123', {}),
+      ).rejects.toThrow('Update failed');
     });
   });
 
@@ -228,7 +241,7 @@ describe('Feedback Service', () => {
         total: 3,
         upvotes: 2,
         downvotes: 1,
-        ratio: 2/3,
+        ratio: 2 / 3,
         hasComments: 0,
       });
     });

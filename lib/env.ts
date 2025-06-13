@@ -133,9 +133,6 @@ export function validateEnv(): Env {
   }
 }
 
-// Validate environment variables at module load
-let env: Env;
-
 // Function to initialize env
 function initializeEnv(): Env {
   try {
@@ -175,8 +172,8 @@ function initializeEnv(): Env {
   }
 }
 
-// Initialize env lazily
-env = initializeEnv();
+// Validate environment variables at module load
+const env: Env = initializeEnv();
 
 // Export validated environment variables with type safety
 export default env;

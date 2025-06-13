@@ -16,15 +16,21 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const source = searchParams.get('source') as 'openai' | 'neon' | 'memory' | null;
+    const source = searchParams.get('source') as
+      | 'openai'
+      | 'neon'
+      | 'memory'
+      | null;
     const vectorStoreId = searchParams.get('vectorStoreId');
 
     const vectorStoreService = await getUnifiedVectorStoreService();
 
     // If a specific source is requested, get files from that source
     if (source === 'openai') {
-      const files = await vectorStoreService.openaiService.listFiles(vectorStoreId || undefined);
-      return NextResponse.json({ 
+      const files = await vectorStoreService.openaiService.listFiles(
+        vectorStoreId || undefined,
+      );
+      return NextResponse.json({
         files: files.map((file: any) => ({
           id: file.id,
           name: `file-${file.id}`, // OpenAI doesn't store original filename in vector store
@@ -32,7 +38,7 @@ export async function GET(request: NextRequest) {
           createdAt: new Date(file.created_at * 1000),
           source: 'openai',
           vectorStoreId: file.vector_store_id,
-        }))
+        })),
       });
     }
 
@@ -59,20 +65,22 @@ export async function GET(request: NextRequest) {
     if (availableSources.includes('openai')) {
       try {
         const openaiFiles = await vectorStoreService.openaiService.listFiles();
-        allFiles.push(...openaiFiles.map((file: any) => ({
-          id: file.id,
-          name: `file-${file.id}`,
-          status: file.status,
-          createdAt: new Date(file.created_at * 1000),
-          source: 'openai' as const,
-          vectorStoreId: file.vector_store_id,
-        })));
+        allFiles.push(
+          ...openaiFiles.map((file: any) => ({
+            id: file.id,
+            name: `file-${file.id}`,
+            status: file.status,
+            createdAt: new Date(file.created_at * 1000),
+            source: 'openai' as const,
+            vectorStoreId: file.vector_store_id,
+          })),
+        );
       } catch (error) {
         console.warn('Failed to list OpenAI files:', error);
       }
     }
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       files: allFiles,
       availableSources,
       sourceStats,
@@ -81,7 +89,7 @@ export async function GET(request: NextRequest) {
     console.error('Failed to list files:', error);
     return NextResponse.json(
       { error: 'Failed to list files' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -7,28 +7,33 @@ import { getUnifiedVectorStoreService } from '@/lib/vectorstore/unified';
 
 // Request schemas
 const HealthCheckRequest = z.object({
-  provider: z.enum(['openai', 'neon', 'unified', 'all']).optional().default('all'),
+  provider: z
+    .enum(['openai', 'neon', 'unified', 'all'])
+    .optional()
+    .default('all'),
 });
 
 const MetricsRequest = z.object({
   provider: z.enum(['openai', 'neon', 'unified', 'memory']).optional(),
-  metricType: z.enum([
-    'search_latency',
-    'search_success',
-    'search_error',
-    'token_usage',
-    'file_upload',
-    'file_upload_error',
-    'vector_store_health',
-    'embedding_generation',
-    'retrieval_accuracy',
-    'cache_hit',
-    'cache_miss',
-    'connection_error',
-    'rate_limit_error',
-    'quota_exceeded',
-    'service_health',
-  ]).optional(),
+  metricType: z
+    .enum([
+      'search_latency',
+      'search_success',
+      'search_error',
+      'token_usage',
+      'file_upload',
+      'file_upload_error',
+      'vector_store_health',
+      'embedding_generation',
+      'retrieval_accuracy',
+      'cache_hit',
+      'cache_miss',
+      'connection_error',
+      'rate_limit_error',
+      'quota_exceeded',
+      'service_health',
+    ])
+    .optional(),
   timeWindow: z.string().optional().default('24h'),
 });
 
@@ -51,14 +56,15 @@ export async function GET(request: NextRequest) {
 
         if (params.provider === 'all') {
           // Perform health checks for all providers
-          const [openaiService, neonService, unifiedService] = await Promise.all([
-            getOpenAIVectorStoreService(),
-            getNeonVectorStoreService(),
-            getUnifiedVectorStoreService(),
-          ]);
+          const [openaiService, neonService, unifiedService] =
+            await Promise.all([
+              getOpenAIVectorStoreService(),
+              getNeonVectorStoreService(),
+              getUnifiedVectorStoreService(),
+            ]);
 
           const healthChecks = await Promise.all([
-            openaiService.healthCheck().catch(error => ({
+            openaiService.healthCheck().catch((error) => ({
               isHealthy: false,
               error: error.message,
             })),
@@ -93,8 +99,8 @@ export async function GET(request: NextRequest) {
           });
         } else {
           // Perform health check for specific provider
-          let healthResult;
-          
+          let healthResult: { isHealthy: boolean; error?: string };
+
           if (params.provider === 'openai') {
             const service = await getOpenAIVectorStoreService();
             healthResult = await service.healthCheck();
@@ -129,7 +135,7 @@ export async function GET(request: NextRequest) {
         const metrics = monitoringService.getMetrics(
           params.provider,
           params.metricType,
-          params.timeWindow
+          params.timeWindow,
         );
 
         return NextResponse.json({
@@ -152,7 +158,7 @@ export async function GET(request: NextRequest) {
 
         const performance = monitoringService.getPerformanceMetrics(
           params.provider,
-          params.timeWindow
+          params.timeWindow,
         );
 
         return NextResponse.json({
@@ -163,10 +169,10 @@ export async function GET(request: NextRequest) {
 
       case 'dashboard': {
         const dashboardData = await monitoringService.getDashboardData();
-        
+
         // Add real-time health status
         const healthStatus = monitoringService.getHealthStatus();
-        
+
         return NextResponse.json({
           success: true,
           data: {
@@ -180,7 +186,7 @@ export async function GET(request: NextRequest) {
       case 'export': {
         const timeWindow = searchParams.get('timeWindow') || '24h';
         const metrics = await monitoringService.exportMetrics(timeWindow);
-        
+
         return NextResponse.json({
           success: true,
           data: {
@@ -194,7 +200,7 @@ export async function GET(request: NextRequest) {
 
       case 'alerts': {
         const dashboardData = await monitoringService.getDashboardData();
-        
+
         return NextResponse.json({
           success: true,
           data: {
@@ -209,20 +215,27 @@ export async function GET(request: NextRequest) {
           {
             success: false,
             error: `Unknown action: ${action}`,
-            availableActions: ['health', 'metrics', 'performance', 'dashboard', 'export', 'alerts'],
+            availableActions: [
+              'health',
+              'metrics',
+              'performance',
+              'dashboard',
+              'export',
+              'alerts',
+            ],
           },
-          { status: 400 }
+          { status: 400 },
         );
     }
   } catch (error) {
     console.error('Vector store monitoring API error:', error);
-    
+
     return NextResponse.json(
       {
         success: false,
         error: error instanceof Error ? error.message : 'Internal server error',
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -230,7 +243,7 @@ export async function GET(request: NextRequest) {
 // For testing metrics recording
 export async function POST(request: NextRequest) {
   const monitoringService = getVectorStoreMonitoringService();
-  
+
   try {
     const body = await request.json();
     const { action, ...params } = body;
@@ -246,7 +259,10 @@ export async function POST(request: NextRequest) {
           monitoringService.recordSearchLatency(provider, latency);
           monitoringService.recordSearchSuccess(provider, { test: true });
         } else {
-          monitoringService.recordSearchError(provider, new Error('Test error'));
+          monitoringService.recordSearchError(
+            provider,
+            new Error('Test error'),
+          );
         }
 
         return NextResponse.json({
@@ -271,18 +287,18 @@ export async function POST(request: NextRequest) {
             error: `Unknown action: ${action}`,
             availableActions: ['test_search', 'cleanup'],
           },
-          { status: 400 }
+          { status: 400 },
         );
     }
   } catch (error) {
     console.error('Vector store monitoring POST error:', error);
-    
+
     return NextResponse.json(
       {
         success: false,
         error: error instanceof Error ? error.message : 'Internal server error',
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

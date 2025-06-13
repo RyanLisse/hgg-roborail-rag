@@ -186,18 +186,19 @@ export const CONTEXT_OPTIMIZATION = {
 /**
  * Query expansion strategies for better retrieval
  */
+// biome-ignore lint/complexity/noStaticOnlyClass: Utility class pattern for organized functionality
 export class QueryExpansionEngine {
   /**
    * Expand query with synonyms and related terms
    */
   static expandWithSynonyms(query: string, domain?: string): string[] {
-    const baseTerms = this.extractKeyTerms(query);
-    const synonyms = this.getSynonyms(baseTerms, domain);
-    const related = this.getRelatedTerms(baseTerms, domain);
+    const baseTerms = QueryExpansionEngine.extractKeyTerms(query);
+    const synonyms = QueryExpansionEngine.getSynonyms(baseTerms, domain);
+    const related = QueryExpansionEngine.getRelatedTerms(baseTerms, domain);
     
     return [
       query,
-      ...synonyms.map(syn => this.replaceTerm(query, syn.original, syn.synonym)),
+      ...synonyms.map(syn => QueryExpansionEngine.replaceTerm(query, syn.original, syn.synonym)),
       ...related.map(rel => `${query} ${rel}`),
     ];
   }
@@ -236,7 +237,7 @@ export class QueryExpansionEngine {
         .map(msg => msg.content)
         .join(' ');
       
-      const contextTerms = this.extractKeyTerms(recentContext);
+      const contextTerms = QueryExpansionEngine.extractKeyTerms(recentContext);
       if (contextTerms.length > 0) {
         variations.push(
           `${query} considering ${contextTerms.slice(0, 3).join(' ')}`,
@@ -260,7 +261,7 @@ export class QueryExpansionEngine {
     return text
       .toLowerCase()
       .split(/\s+/)
-      .filter(term => term.length > 3 && !this.isStopWord(term))
+      .filter(term => term.length > 3 && !QueryExpansionEngine.isStopWord(term))
       .slice(0, 10);
   }
 
@@ -335,6 +336,7 @@ export class QueryExpansionEngine {
 /**
  * Prompt optimization engine for improving retrieval accuracy
  */
+// biome-ignore lint/complexity/noStaticOnlyClass: Utility class pattern for organized functionality
 export class PromptOptimizationEngine {
   /**
    * Optimize query and generate enhanced prompts
@@ -350,20 +352,20 @@ export class PromptOptimizationEngine {
     }
     
     // Classify query type if not provided
-    const queryType = context.type || this.classifyQuery(originalQuery);
+    const queryType = context.type || PromptOptimizationEngine.classifyQuery(originalQuery);
     
     // Determine complexity and search depth
-    const complexity = context.complexity || this.determineComplexity(originalQuery);
+    const complexity = context.complexity || PromptOptimizationEngine.determineComplexity(originalQuery);
     const searchDepth = context.searchDepth || 'comprehensive';
     
     // Generate expanded queries
-    const expandedQueries = this.generateExpandedQueries(originalQuery, context, queryType);
+    const expandedQueries = PromptOptimizationEngine.generateExpandedQueries(originalQuery, context, queryType);
     
     // Create optimized query
-    const optimizedQuery = this.createOptimizedQuery(originalQuery, queryType, complexity);
+    const optimizedQuery = PromptOptimizationEngine.createOptimizedQuery(originalQuery, queryType, complexity);
     
     // Generate contextual prompt
-    const contextualPrompt = this.createContextualPrompt(
+    const contextualPrompt = PromptOptimizationEngine.createContextualPrompt(
       originalQuery,
       context,
       queryType,
@@ -371,7 +373,7 @@ export class PromptOptimizationEngine {
     );
     
     // Create search instructions
-    const searchInstructions = this.createSearchInstructions(
+    const searchInstructions = PromptOptimizationEngine.createSearchInstructions(
       queryType,
       complexity,
       searchDepth,
@@ -379,7 +381,7 @@ export class PromptOptimizationEngine {
     );
     
     // Estimate relevance score
-    const estimatedRelevance = this.estimateRelevance(originalQuery, queryType, context);
+    const estimatedRelevance = PromptOptimizationEngine.estimateRelevance(originalQuery, queryType, context);
     
     return OptimizedQuery.parse({
       originalQuery,
@@ -390,7 +392,7 @@ export class PromptOptimizationEngine {
       metadata: {
         queryType,
         complexity,
-        optimizationStrategy: this.getOptimizationStrategy(queryType, complexity),
+        optimizationStrategy: PromptOptimizationEngine.getOptimizationStrategy(queryType, complexity),
         estimatedRelevance,
       },
     });
@@ -403,7 +405,7 @@ export class PromptOptimizationEngine {
     const lowerQuery = query.toLowerCase();
     
     // API indicators (check before technical)
-    if (this.hasPatterns(lowerQuery, [
+    if (PromptOptimizationEngine.hasPatterns(lowerQuery, [
       'api', 'endpoint', 'rest', 'graphql', 'request', 'response',
       'authentication', 'authorization', 'token'
     ])) {
@@ -411,7 +413,7 @@ export class PromptOptimizationEngine {
     }
     
     // Technical indicators
-    if (this.hasPatterns(lowerQuery, [
+    if (PromptOptimizationEngine.hasPatterns(lowerQuery, [
       'method', 'function', 'class', 'parameter',
       'specification', 'implementation', 'code', 'syntax', 'technical'
     ])) {
@@ -419,7 +421,7 @@ export class PromptOptimizationEngine {
     }
     
     // Configuration indicators
-    if (this.hasPatterns(lowerQuery, [
+    if (PromptOptimizationEngine.hasPatterns(lowerQuery, [
       'configure', 'setup', 'install', 'setting', 'config', 'parameter',
       'environment', 'variable', 'option'
     ])) {
@@ -427,7 +429,7 @@ export class PromptOptimizationEngine {
     }
     
     // Troubleshooting indicators
-    if (this.hasPatterns(lowerQuery, [
+    if (PromptOptimizationEngine.hasPatterns(lowerQuery, [
       'error', 'issue', 'problem', 'fix', 'solve', 'troubleshoot',
       'debug', 'fail', 'broken', 'not working'
     ])) {
@@ -435,15 +437,15 @@ export class PromptOptimizationEngine {
     }
     
     // Procedural indicators (check before configuration)
-    if (this.hasPatterns(lowerQuery, [
+    if (PromptOptimizationEngine.hasPatterns(lowerQuery, [
       'how to', 'step by step', 'procedure', 'process', 'guide',
       'tutorial', 'walkthrough', 'instruction'
-    ]) && !this.hasPatterns(lowerQuery, ['configure', 'config', 'setup'])) {
+    ]) && !PromptOptimizationEngine.hasPatterns(lowerQuery, ['configure', 'config', 'setup'])) {
       return 'procedural';
     }
     
     // Integration indicators
-    if (this.hasPatterns(lowerQuery, [
+    if (PromptOptimizationEngine.hasPatterns(lowerQuery, [
       'integrate', 'connect', 'link', 'interface', 'bridge',
       'webhook', 'connector', 'third party'
     ])) {
@@ -451,7 +453,7 @@ export class PromptOptimizationEngine {
     }
     
     // Best practices indicators
-    if (this.hasPatterns(lowerQuery, [
+    if (PromptOptimizationEngine.hasPatterns(lowerQuery, [
       'best practice', 'recommendation', 'optimize', 'improve',
       'performance', 'efficient', 'pattern'
     ])) {
@@ -459,7 +461,7 @@ export class PromptOptimizationEngine {
     }
     
     // Examples indicators
-    if (this.hasPatterns(lowerQuery, [
+    if (PromptOptimizationEngine.hasPatterns(lowerQuery, [
       'example', 'sample', 'demo', 'use case', 'scenario',
       'illustration', 'template'
     ])) {
@@ -469,7 +471,7 @@ export class PromptOptimizationEngine {
     // Skip duplicate API check since it's already done above
     
     // Reference indicators
-    if (this.hasPatterns(lowerQuery, [
+    if (PromptOptimizationEngine.hasPatterns(lowerQuery, [
       'reference', 'documentation', 'spec', 'manual',
       'command', 'option', 'flag'
     ])) {
@@ -531,7 +533,7 @@ export class PromptOptimizationEngine {
     expansions.push(...QueryExpansionEngine.generateContextualVariations(originalQuery, context));
     
     // Add type-specific expansions
-    expansions.push(...this.getTypeSpecificExpansions(originalQuery, queryType));
+    expansions.push(...PromptOptimizationEngine.getTypeSpecificExpansions(originalQuery, queryType));
     
     // Remove duplicates and limit to reasonable number
     return [...new Set(expansions)].slice(0, 8);
@@ -720,6 +722,7 @@ export class PromptOptimizationEngine {
 /**
  * Context window manager for handling large documents and conversation history
  */
+// biome-ignore lint/complexity/noStaticOnlyClass: Utility class pattern for organized functionality
 export class ContextWindowManager {
   private static readonly MAX_CONTEXT_TOKENS = 8000; // Conservative limit
   private static readonly BUFFER_TOKENS = 1000; // Reserve for response
@@ -730,29 +733,29 @@ export class ContextWindowManager {
   static optimizeDocumentContext(
     documents: Array<{content: string; metadata?: any}>,
     query: string,
-    maxTokens: number = this.MAX_CONTEXT_TOKENS
+    maxTokens: number = ContextWindowManager.MAX_CONTEXT_TOKENS
   ): Array<{content: string; metadata?: any}> {
-    const availableTokens = maxTokens - this.BUFFER_TOKENS;
+    const availableTokens = maxTokens - ContextWindowManager.BUFFER_TOKENS;
     let currentTokens = 0;
     const optimizedDocs: Array<{content: string; metadata?: any}> = [];
     
     // Sort documents by relevance (simplified - in production use semantic similarity)
     const sortedDocs = documents.sort((a, b) => {
-      const aRelevance = this.calculateDocumentRelevance(a.content, query);
-      const bRelevance = this.calculateDocumentRelevance(b.content, query);
+      const aRelevance = ContextWindowManager.calculateDocumentRelevance(a.content, query);
+      const bRelevance = ContextWindowManager.calculateDocumentRelevance(b.content, query);
       return bRelevance - aRelevance;
     });
     
     for (const doc of sortedDocs) {
-      const docTokens = this.estimateTokens(doc.content);
+      const docTokens = ContextWindowManager.estimateTokens(doc.content);
       
       if (currentTokens + docTokens <= availableTokens) {
         optimizedDocs.push(doc);
         currentTokens += docTokens;
       } else {
         // Try to include a summary if there's space
-        const summary = this.summarizeDocument(doc.content, query);
-        const summaryTokens = this.estimateTokens(summary);
+        const summary = ContextWindowManager.summarizeDocument(doc.content, query);
+        const summaryTokens = ContextWindowManager.estimateTokens(summary);
         
         if (currentTokens + summaryTokens <= availableTokens) {
           optimizedDocs.push({
@@ -774,7 +777,7 @@ export class ContextWindowManager {
   static optimizeConversationContext(
     history: Array<{role: string; content: string; timestamp: number}>,
     currentQuery: string,
-    maxTokens: number = 2000
+    maxTokens = 2000
   ): Array<{role: string; content: string; timestamp: number}> {
     if (!history.length) return [];
     
@@ -785,7 +788,7 @@ export class ContextWindowManager {
     const recentHistory = [...history].reverse();
     
     for (const message of recentHistory) {
-      const messageTokens = this.estimateTokens(message.content);
+      const messageTokens = ContextWindowManager.estimateTokens(message.content);
       
       if (currentTokens + messageTokens <= maxTokens) {
         optimizedHistory.unshift(message); // Add to beginning to maintain order
@@ -834,7 +837,7 @@ export class ContextWindowManager {
     const relevantSentences = sentences
       .map(sentence => ({
         sentence: sentence.trim(),
-        relevance: this.calculateSentenceRelevance(sentence, queryTerms)
+        relevance: ContextWindowManager.calculateSentenceRelevance(sentence, queryTerms)
       }))
       .filter(item => item.relevance > 0)
       .sort((a, b) => b.relevance - a.relevance)
@@ -843,10 +846,10 @@ export class ContextWindowManager {
     
     if (relevantSentences.length === 0) {
       // If no relevant sentences, take first few sentences
-      return sentences.slice(0, 2).join('. ') + '.';
+      return `${sentences.slice(0, 2).join('. ')}.`;
     }
     
-    return relevantSentences.join('. ') + '.';
+    return `${relevantSentences.join('. ')}.`;
   }
 
   /**
@@ -869,6 +872,7 @@ export class ContextWindowManager {
 /**
  * Performance monitoring for prompt optimization
  */
+// biome-ignore lint/complexity/noStaticOnlyClass: Utility class pattern for organized functionality
 export class PromptOptimizationMetrics {
   private static metrics: Map<string, any> = new Map();
 
@@ -879,7 +883,7 @@ export class PromptOptimizationMetrics {
     searchResults: any[],
     responseTime: number
   ): void {
-    this.metrics.set(queryId, {
+    PromptOptimizationMetrics.metrics.set(queryId, {
       timestamp: Date.now(),
       originalQuery,
       optimizedQuery: optimizedQuery.optimizedQuery,
@@ -893,11 +897,11 @@ export class PromptOptimizationMetrics {
   }
 
   static getMetrics(queryId: string): any {
-    return this.metrics.get(queryId);
+    return PromptOptimizationMetrics.metrics.get(queryId);
   }
 
   static getAggregatedMetrics(): any {
-    const allMetrics = Array.from(this.metrics.values());
+    const allMetrics = Array.from(PromptOptimizationMetrics.metrics.values());
     
     if (allMetrics.length === 0) return null;
     
@@ -906,8 +910,8 @@ export class PromptOptimizationMetrics {
       avgResponseTime: allMetrics.reduce((sum, m) => sum + m.responseTime, 0) / allMetrics.length,
       avgResultsCount: allMetrics.reduce((sum, m) => sum + m.resultsCount, 0) / allMetrics.length,
       avgEstimatedRelevance: allMetrics.reduce((sum, m) => sum + m.estimatedRelevance, 0) / allMetrics.length,
-      queryTypeDistribution: this.getDistribution(allMetrics, 'queryType'),
-      complexityDistribution: this.getDistribution(allMetrics, 'complexity'),
+      queryTypeDistribution: PromptOptimizationMetrics.getDistribution(allMetrics, 'queryType'),
+      complexityDistribution: PromptOptimizationMetrics.getDistribution(allMetrics, 'complexity'),
     };
   }
 

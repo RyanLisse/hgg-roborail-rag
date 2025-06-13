@@ -1,96 +1,96 @@
 #!/usr/bin/env node
 
 /**
- * Performance benchmarking script for prompt optimization system
- * Tests retrieval accuracy improvements with optimized prompts vs standard prompts
+ * Test script for RoboRail prompt optimization functionality
+ * Run with: node scripts/test-prompt-optimization.cjs
  */
 
-const { performance } = require('perf_hooks');
+const { performance } = require('node:perf_hooks');
 
 // Test configuration
-const TEST_CONFIG = {
-  // Test queries representing different types and complexities
-  testQueries: [
-    {
-      query: 'How to configure RoboRail automation webhooks?',
-      expectedType: 'configuration',
-      expectedComplexity: 'intermediate',
-      domain: 'automation',
-      userIntent: 'Setup webhook configuration'
-    },
-    {
-      query: 'RoboRail API authentication error 401',
-      expectedType: 'troubleshooting',
-      expectedComplexity: 'intermediate',
-      domain: 'api',
-      userIntent: 'Fix authentication issues'
-    },
-    {
-      query: 'Step by step RoboRail integration guide',
-      expectedType: 'procedural',
-      expectedComplexity: 'basic',
-      domain: 'integration',
-      userIntent: 'Follow integration process'
-    },
-    {
-      query: 'Advanced RoboRail microservices architecture patterns',
-      expectedType: 'technical',
-      expectedComplexity: 'advanced',
-      domain: 'architecture',
-      userIntent: 'Understand advanced patterns'
-    },
-    {
-      query: 'Best practices for RoboRail performance optimization',
-      expectedType: 'best_practices',
-      expectedComplexity: 'intermediate',
-      domain: 'performance',
-      userIntent: 'Optimize system performance'
-    }
-  ],
-
-  // Conversation contexts for multi-turn testing
-  conversationContexts: [
-    {
-      history: [
-        { role: 'user', content: 'I am setting up RoboRail for the first time', timestamp: Date.now() - 300000 },
-        { role: 'assistant', content: 'Great! Let me help you with the initial setup. What specific area do you want to start with?', timestamp: Date.now() - 240000 },
-        { role: 'user', content: 'I need to configure the automation system', timestamp: Date.now() - 180000 },
-      ],
-      followUpQuery: 'How do I test the automation rules?',
-      expectedContext: 'automation setup and testing'
-    },
-    {
-      history: [
-        { role: 'user', content: 'Having issues with webhook authentication', timestamp: Date.now() - 120000 },
-        { role: 'assistant', content: 'Authentication issues can be caused by several factors. Are you getting specific error codes?', timestamp: Date.now() - 60000 },
-      ],
-      followUpQuery: 'Getting 403 forbidden errors',
-      expectedContext: 'webhook authentication troubleshooting'
-    }
-  ]
+const testConfig = {
+  verbose: true,
+  runPerformanceTests: true,
+  testCount: 10,
 };
+
+// Test data
+const testQueries = [
+  {
+    query: 'How do I integrate RoboRail with my existing automation system?',
+    context: {
+      type: 'integration',
+      domain: 'automation',
+      userIntent: 'Setup integration between RoboRail and external system',
+    },
+    expectedType: 'integration',
+    expectedComplexity: 'intermediate',
+  },
+  {
+    query: 'RoboRail API authentication not working, getting 401 error',
+    context: {
+      type: 'troubleshooting',
+      domain: 'api',
+      previousQueries: ['How to setup API keys', 'API endpoint documentation'],
+    },
+    expectedType: 'troubleshooting',
+    expectedComplexity: 'intermediate',
+  },
+  {
+    query: 'What is RoboRail?',
+    context: {
+      type: 'conceptual',
+    },
+    expectedType: 'conceptual',
+    expectedComplexity: 'basic',
+  },
+  {
+    query: 'Configure RoboRail webhook handlers with OAuth2 authentication and implement retry logic for failed requests',
+    context: {
+      type: 'configuration',
+      domain: 'integration',
+      complexity: 'advanced',
+    },
+    expectedType: 'configuration',
+    expectedComplexity: 'advanced',
+  },
+  {
+    query: 'Step by step guide to deploy RoboRail on Kubernetes with monitoring',
+    context: {
+      type: 'procedural',
+      domain: 'deployment',
+    },
+    expectedType: 'procedural',
+    expectedComplexity: 'advanced',
+  },
+];
+
+// Test conversation contexts
+const conversationContexts = [
+  {
+    description: 'Continuation of automation discussion',
+    history: [
+      { role: 'user', content: 'I need help with RoboRail automation workflows', timestamp: Date.now() - 180000 },
+      { role: 'assistant', content: 'RoboRail automation workflows help you automate repetitive tasks...', timestamp: Date.now() - 120000 },
+      { role: 'user', content: 'How do I trigger workflows based on events?', timestamp: Date.now() - 60000 },
+    ],
+    currentQuery: 'What about error handling?',
+  },
+];
 
 /**
  * Mock implementation for testing (replace with actual imports in real testing)
  */
-class MockPromptOptimizationEngine {
-  static async optimizeQuery(query, context, config = {}) {
-    const startTime = performance.now();
-    
-    // Simulate processing time
-    await new Promise(resolve => setTimeout(resolve, Math.random() * 50 + 10));
-    
+const MockPromptOptimizationEngine = {
+  async optimizeQuery(query, context = {}) {
     // Mock classification logic
-    const queryType = this.classifyQuery(query);
-    const complexity = this.determineComplexity(query);
-    const expandedQueries = this.generateExpandedQueries(query, context);
+    const queryType = MockPromptOptimizationEngine.classifyQuery(query);
+    const complexity = MockPromptOptimizationEngine.determineComplexity(query);
+    const expandedQueries = MockPromptOptimizationEngine.generateExpandedQueries(query, context);
     
     const optimizedQuery = `Enhanced ${queryType} query: ${query}`;
-    const contextualPrompt = `Contextual search for ${queryType} information about: ${query}`;
-    const searchInstructions = `Focus on ${queryType} documentation with ${complexity} complexity`;
-    const estimatedRelevance = Math.random() * 0.4 + 0.6; // 0.6 - 1.0
-    
-    const endTime = performance.now();
+    const contextualPrompt = MockPromptOptimizationEngine.generateContextualPrompt(query, queryType, context);
+    const searchInstructions = MockPromptOptimizationEngine.generateSearchInstructions(queryType, complexity);
     
     return {
       originalQuery: query,
@@ -102,402 +102,338 @@ class MockPromptOptimizationEngine {
         queryType,
         complexity,
         optimizationStrategy: `${queryType}_${complexity}_optimization`,
-        estimatedRelevance,
-        processingTime: endTime - startTime
+        estimatedRelevance: MockPromptOptimizationEngine.estimateRelevance(query, context),
       }
     };
-  }
+  },
 
-  static classifyQuery(query) {
-    const lowerQuery = query.toLowerCase();
+  classifyQuery(query) {
+    const queryLower = query.toLowerCase();
     
-    if (lowerQuery.includes('error') || lowerQuery.includes('issue') || lowerQuery.includes('problem')) {
+    if (queryLower.includes('error') || queryLower.includes('not working') || queryLower.includes('issue')) {
       return 'troubleshooting';
     }
-    if (lowerQuery.includes('configure') || lowerQuery.includes('setup') || lowerQuery.includes('setting')) {
+    if (queryLower.includes('configure') || queryLower.includes('setup') || queryLower.includes('setting')) {
       return 'configuration';
     }
-    if (lowerQuery.includes('step') || lowerQuery.includes('guide') || lowerQuery.includes('tutorial')) {
-      return 'procedural';
+    if (queryLower.includes('integrate') || queryLower.includes('integration') || queryLower.includes('connect')) {
+      return 'integration';
     }
-    if (lowerQuery.includes('api') || lowerQuery.includes('endpoint')) {
+    if (queryLower.includes('api') || queryLower.includes('endpoint') || queryLower.includes('request')) {
       return 'api';
     }
-    if (lowerQuery.includes('best practice') || lowerQuery.includes('optimize')) {
-      return 'best_practices';
+    if (queryLower.includes('step by step') || queryLower.includes('guide') || queryLower.includes('how to')) {
+      return 'procedural';
     }
-    if (lowerQuery.includes('architecture') || lowerQuery.includes('technical') || lowerQuery.includes('implementation')) {
-      return 'technical';
+    if (queryLower.includes('what is') || queryLower.includes('explain') || queryLower.includes('define')) {
+      return 'conceptual';
     }
     
-    return 'conceptual';
-  }
+    return 'technical';
+  },
 
-  static determineComplexity(query) {
-    const wordCount = query.split(' ').length;
-    const technicalTerms = ['microservices', 'architecture', 'authentication', 'optimization', 'integration'].filter(term => 
-      query.toLowerCase().includes(term)
-    ).length;
+  determineComplexity(query) {
+    const words = query.split(/\s+/).length;
+    const technicalTerms = ['oauth', 'kubernetes', 'microservice', 'webhook', 'authentication', 'deployment'];
+    const technicalCount = technicalTerms.filter(term => query.toLowerCase().includes(term)).length;
     
-    if (wordCount > 12 || technicalTerms > 2) return 'advanced';
-    if (wordCount > 6 || technicalTerms > 0) return 'intermediate';
-    return 'basic';
-  }
+    if (words < 10 && technicalCount === 0) return 'basic';
+    if (words > 20 || technicalCount >= 2) return 'advanced';
+    return 'intermediate';
+  },
 
-  static generateExpandedQueries(query, context) {
-    const expansions = [query];
-    
-    // Add RoboRail context
-    expansions.push(`RoboRail ${query}`);
-    expansions.push(`${query} in RoboRail`);
+  generateExpandedQueries(query, context) {
+    const expansions = [query]; // Always include original
     
     // Add domain-specific expansions
-    if (context?.domain) {
-      expansions.push(`${context.domain} ${query}`);
+    if (context.domain) {
       expansions.push(`${query} ${context.domain}`);
+      expansions.push(`RoboRail ${context.domain} ${query}`);
     }
     
-    // Add conversation context
+    // Add type-specific expansions
+    const queryType = MockPromptOptimizationEngine.classifyQuery(query);
+    if (queryType === 'troubleshooting') {
+      expansions.push(`${query} solution fix resolve`);
+    } else if (queryType === 'configuration') {
+      expansions.push(`${query} setup guide tutorial`);
+    }
+    
+    // Add context from conversation history
     if (context?.conversationHistory && context.conversationHistory.length > 0) {
       const lastMessage = context.conversationHistory[context.conversationHistory.length - 1];
-      const contextTerms = this.extractKeyTerms(lastMessage.content);
+      const contextTerms = MockPromptOptimizationEngine.extractKeyTerms(lastMessage.content);
       if (contextTerms.length > 0) {
         expansions.push(`${query} ${contextTerms[0]}`);
       }
     }
     
-    return expansions.slice(0, 6); // Limit expansions
-  }
+    return [...new Set(expansions)]; // Remove duplicates
+  },
 
-  static extractKeyTerms(text) {
+  extractKeyTerms(text) {
     return text.toLowerCase()
       .split(/\s+/)
-      .filter(word => word.length > 4 && !this.isStopWord(word))
+      .filter(word => word.length > 4 && !MockPromptOptimizationEngine.isStopWord(word))
       .slice(0, 3);
-  }
+  },
 
-  static isStopWord(word) {
-    const stopWords = ['with', 'from', 'they', 'have', 'this', 'that', 'were', 'been', 'their', 'said', 'each', 'which'];
+  isStopWord(word) {
+    const stopWords = ['about', 'which', 'where', 'would', 'should', 'could', 'these', 'those', 'there'];
     return stopWords.includes(word);
+  },
+
+  generateContextualPrompt(query, queryType, context) {
+    let prompt = `Search for ${queryType} information about: ${query}. `;
+    
+    if (context.domain) {
+      prompt += `Focus on RoboRail ${context.domain} features. `;
+    }
+    
+    if (context.userIntent) {
+      prompt += `User intent: ${context.userIntent}. `;
+    }
+    
+    return prompt.trim();
+  },
+
+  generateSearchInstructions(queryType, complexity) {
+    const instructions = {
+      troubleshooting: 'Look for error messages, solutions, and troubleshooting guides.',
+      configuration: 'Find configuration examples, settings documentation, and setup guides.',
+      integration: 'Search for integration guides, API documentation, and connector information.',
+      api: 'Focus on API reference, endpoint documentation, and authentication details.',
+      procedural: 'Find step-by-step guides, tutorials, and procedural documentation.',
+      conceptual: 'Look for explanations, definitions, and conceptual overviews.',
+      technical: 'Search technical documentation, implementation details, and specifications.',
+    };
+    
+    let instruction = instructions[queryType] || instructions.technical;
+    
+    if (complexity === 'advanced') {
+      instruction += ' Include advanced topics and edge cases.';
+    } else if (complexity === 'basic') {
+      instruction += ' Focus on introductory and basic information.';
+    }
+    
+    return instruction;
+  },
+
+  estimateRelevance(query, context) {
+    let score = 0.5; // Base score
+    
+    // Boost for specific query
+    if (query.split(/\s+/).length > 3) score += 0.1;
+    
+    // Boost for context
+    if (context.domain) score += 0.1;
+    if (context.userIntent) score += 0.1;
+    if (context.conversationHistory) score += 0.1;
+    
+    // Boost for RoboRail mention
+    if (query.toLowerCase().includes('roborail')) score += 0.1;
+    
+    return Math.min(score, 1.0);
   }
-}
+};
 
 /**
  * Mock vector store search for comparison
  */
-class MockVectorStoreService {
-  static async searchWithOptimization(query, context, useOptimization = true) {
+const mockVectorSearch = async (query) => {
+  // Simulate search delay
+  await new Promise(resolve => setTimeout(resolve, 50));
+  
+  return [
+    { id: 'doc1', content: `Sample document about ${query}`, similarity: 0.85 },
+    { id: 'doc2', content: `Another document related to ${query}`, similarity: 0.75 },
+    { id: 'doc3', content: `Documentation for ${query}`, similarity: 0.65 },
+  ];
+};
+
+// Test functions
+async function testQueryOptimization() {
+  console.log('\n===== Testing Query Optimization =====\n');
+  
+  for (const testCase of testQueries) {
+    console.log(`\nQuery: "${testCase.query}"`);
+    console.log('Context:', JSON.stringify(testCase.context, null, 2));
+    
     const startTime = performance.now();
-    
-    let searchQuery = query;
-    let metadata = { optimizationUsed: false };
-    
-    if (useOptimization) {
-      const optimized = await MockPromptOptimizationEngine.optimizeQuery(query, context);
-      searchQuery = optimized.optimizedQuery;
-      metadata = {
-        optimizationUsed: true,
-        queryType: optimized.metadata.queryType,
-        complexity: optimized.metadata.complexity,
-        estimatedRelevance: optimized.metadata.estimatedRelevance,
-        expansionCount: optimized.expandedQueries.length
-      };
-    }
-    
-    // Simulate search processing
-    await new Promise(resolve => setTimeout(resolve, Math.random() * 100 + 50));
-    
-    // Mock results - optimization should improve relevance
-    const baseRelevance = Math.random() * 0.4 + 0.4; // 0.4 - 0.8
-    const optimizationBoost = useOptimization ? 0.15 : 0;
-    const resultsCount = Math.floor(Math.random() * 8) + 2; // 2-10 results
-    
-    const results = Array.from({ length: resultsCount }, (_, i) => ({
-      id: `result_${i}`,
-      content: `Mock result ${i} for query: ${searchQuery}`,
-      relevance: Math.min(baseRelevance + optimizationBoost + (Math.random() * 0.2 - 0.1), 1.0),
-      source: 'openai'
-    }));
-    
+    const result = await MockPromptOptimizationEngine.optimizeQuery(testCase.query, testCase.context);
     const endTime = performance.now();
     
-    return {
-      success: true,
-      results,
-      searchTime: endTime - startTime,
-      metadata
-    };
+    console.log('\nOptimization Result:');
+    console.log(`  Query Type: ${result.metadata.queryType} (expected: ${testCase.expectedType})`);
+    console.log(`  Complexity: ${result.metadata.complexity} (expected: ${testCase.expectedComplexity})`);
+    console.log(`  Optimized Query: ${result.optimizedQuery}`);
+    console.log(`  Expanded Queries: ${result.expandedQueries.length} variations`);
+    result.expandedQueries.forEach((q, i) => console.log(`    ${i + 1}. ${q}`));
+    console.log(`  Search Instructions: ${result.searchInstructions}`);
+    console.log(`  Estimated Relevance: ${result.metadata.estimatedRelevance}`);
+    console.log(`  Processing Time: ${(endTime - startTime).toFixed(2)}ms`);
+    
+    // Validate expectations
+    if (result.metadata.queryType !== testCase.expectedType) {
+      console.warn(`  ⚠️  Query type mismatch!`);
+    }
+    if (result.metadata.complexity !== testCase.expectedComplexity) {
+      console.warn(`  ⚠️  Complexity mismatch!`);
+    }
   }
 }
 
-/**
- * Performance metrics calculator
- */
-class PerformanceMetrics {
-  constructor() {
-    this.metrics = {
-      optimization: {
-        totalQueries: 0,
-        totalTime: 0,
-        averageRelevance: 0,
-        averageResultsCount: 0,
-        classificationAccuracy: 0
-      },
-      standard: {
-        totalQueries: 0,
-        totalTime: 0,
-        averageRelevance: 0,
-        averageResultsCount: 0
-      }
+async function testConversationContext() {
+  console.log('\n===== Testing Conversation Context Optimization =====\n');
+  
+  for (const context of conversationContexts) {
+    console.log(`\nScenario: ${context.description}`);
+    console.log(`Current Query: "${context.currentQuery}"`);
+    console.log('Conversation History:');
+    context.history.forEach((msg, i) => {
+      console.log(`  ${i + 1}. [${msg.role}]: ${msg.content.substring(0, 50)}...`);
+    });
+    
+    const queryContext = {
+      conversationHistory: context.history,
+      type: 'contextual',
     };
-  }
-
-  recordOptimizationTest(result, expected, timeTaken) {
-    const metrics = this.metrics.optimization;
-    metrics.totalQueries++;
-    metrics.totalTime += timeTaken;
     
-    if (result.results && result.results.length > 0) {
-      const avgRelevance = result.results.reduce((sum, r) => sum + r.relevance, 0) / result.results.length;
-      metrics.averageRelevance = ((metrics.averageRelevance * (metrics.totalQueries - 1)) + avgRelevance) / metrics.totalQueries;
-      metrics.averageResultsCount = ((metrics.averageResultsCount * (metrics.totalQueries - 1)) + result.results.length) / metrics.totalQueries;
-    }
+    const result = await MockPromptOptimizationEngine.optimizeQuery(context.currentQuery, queryContext);
     
-    // Check classification accuracy
-    if (result.metadata && result.metadata.queryType === expected.expectedType) {
-      metrics.classificationAccuracy = ((metrics.classificationAccuracy * (metrics.totalQueries - 1)) + 1) / metrics.totalQueries;
-    } else {
-      metrics.classificationAccuracy = (metrics.classificationAccuracy * (metrics.totalQueries - 1)) / metrics.totalQueries;
-    }
-  }
-
-  recordStandardTest(result, timeTaken) {
-    const metrics = this.metrics.standard;
-    metrics.totalQueries++;
-    metrics.totalTime += timeTaken;
-    
-    if (result.results && result.results.length > 0) {
-      const avgRelevance = result.results.reduce((sum, r) => sum + r.relevance, 0) / result.results.length;
-      metrics.averageRelevance = ((metrics.averageRelevance * (metrics.totalQueries - 1)) + avgRelevance) / metrics.totalQueries;
-      metrics.averageResultsCount = ((metrics.averageResultsCount * (metrics.totalQueries - 1)) + result.results.length) / metrics.totalQueries;
-    }
-  }
-
-  getComparison() {
-    const opt = this.metrics.optimization;
-    const std = this.metrics.standard;
-    
-    return {
-      relevanceImprovement: ((opt.averageRelevance - std.averageRelevance) / std.averageRelevance * 100).toFixed(2),
-      performanceOverhead: ((opt.totalTime / opt.totalQueries) - (std.totalTime / std.totalQueries)).toFixed(2),
-      classificationAccuracy: (opt.classificationAccuracy * 100).toFixed(1),
-      optimizedQueries: opt.totalQueries,
-      standardQueries: std.totalQueries,
-      metrics: {
-        optimization: {
-          averageTime: (opt.totalTime / opt.totalQueries).toFixed(2),
-          averageRelevance: opt.averageRelevance.toFixed(3),
-          averageResults: opt.averageResultsCount.toFixed(1)
-        },
-        standard: {
-          averageTime: (std.totalTime / std.totalQueries).toFixed(2),
-          averageRelevance: std.averageRelevance.toFixed(3),
-          averageResults: std.averageResultsCount.toFixed(1)
-        }
-      }
-    };
+    console.log('\nOptimization with Context:');
+    console.log(`  Contextual Prompt: ${result.contextualPrompt}`);
+    console.log(`  Expanded Queries:`);
+    result.expandedQueries.forEach((q, i) => console.log(`    ${i + 1}. ${q}`));
   }
 }
 
-/**
- * Main test runner
- */
-async function runPromptOptimizationBenchmark() {
-  console.log('🚀 Starting Prompt Optimization Benchmark');
-  console.log('=' .repeat(60));
+async function testPerformanceComparison() {
+  if (!testConfig.runPerformanceTests) return;
   
-  const metrics = new PerformanceMetrics();
+  console.log('\n===== Performance Comparison =====\n');
   
-  // Test 1: Basic query optimization
-  console.log('\n📊 Test 1: Basic Query Optimization');
-  console.log('-'.repeat(40));
+  const queries = [
+    'RoboRail automation configuration',
+    'How to fix webhook authentication errors',
+    'Integrate RoboRail with external systems',
+  ];
   
-  for (const testCase of TEST_CONFIG.testQueries) {
-    console.log(`\nTesting: "${testCase.query}"`);
+  for (const query of queries) {
+    console.log(`\nQuery: "${query}"`);
+    
+    // Test without optimization
+    const startBasic = performance.now();
+    const basicResults = await mockVectorSearch(query);
+    const endBasic = performance.now();
     
     // Test with optimization
     const startOptimized = performance.now();
-    const optimizedResult = await MockVectorStoreService.searchWithOptimization(
-      testCase.query,
-      { domain: testCase.domain, userIntent: testCase.userIntent },
-      true
-    );
-    const optimizedTime = performance.now() - startOptimized;
+    const optimized = await MockPromptOptimizationEngine.optimizeQuery(query, { domain: 'roborail' });
+    const optimizedResults = await mockVectorSearch(optimized.optimizedQuery);
+    const endOptimized = performance.now();
     
-    // Test without optimization
-    const startStandard = performance.now();
-    const standardResult = await MockVectorStoreService.searchWithOptimization(
-      testCase.query,
-      { domain: testCase.domain, userIntent: testCase.userIntent },
-      false
-    );
-    const standardTime = performance.now() - startStandard;
-    
-    // Record metrics
-    metrics.recordOptimizationTest(optimizedResult, testCase, optimizedTime);
-    metrics.recordStandardTest(standardResult, standardTime);
-    
-    // Display results
-    console.log(`  Optimized: ${optimizedResult.results.length} results, avg relevance: ${(optimizedResult.results.reduce((s, r) => s + r.relevance, 0) / optimizedResult.results.length).toFixed(3)}, time: ${optimizedTime.toFixed(2)}ms`);
-    console.log(`  Standard:  ${standardResult.results.length} results, avg relevance: ${(standardResult.results.reduce((s, r) => s + r.relevance, 0) / standardResult.results.length).toFixed(3)}, time: ${standardTime.toFixed(2)}ms`);
-    
-    if (optimizedResult.metadata?.queryType) {
-      const correct = optimizedResult.metadata.queryType === testCase.expectedType ? '✅' : '❌';
-      console.log(`  Classification: ${optimizedResult.metadata.queryType} (expected: ${testCase.expectedType}) ${correct}`);
-    }
+    console.log(`  Basic search time: ${(endBasic - startBasic).toFixed(2)}ms`);
+    console.log(`  Optimized search time: ${(endOptimized - startOptimized).toFixed(2)}ms`);
+    console.log(`  Optimization overhead: ${((endOptimized - startOptimized) - (endBasic - startBasic)).toFixed(2)}ms`);
   }
-  
-  // Test 2: Conversation context optimization
-  console.log('\n📈 Test 2: Conversation Context Optimization');
-  console.log('-'.repeat(40));
-  
-  for (const contextTest of TEST_CONFIG.conversationContexts) {
-    console.log(`\nTesting context-aware query: "${contextTest.followUpQuery}"`);
-    
-    // Test with conversation context
-    const contextOptimized = await MockVectorStoreService.searchWithOptimization(
-      contextTest.followUpQuery,
-      { conversationHistory: contextTest.history },
-      true
-    );
-    
-    // Test without conversation context
-    const noContextOptimized = await MockVectorStoreService.searchWithOptimization(
-      contextTest.followUpQuery,
-      {},
-      true
-    );
-    
-    console.log(`  With context:    ${contextOptimized.results.length} results, avg relevance: ${(contextOptimized.results.reduce((s, r) => s + r.relevance, 0) / contextOptimized.results.length).toFixed(3)}`);
-    console.log(`  Without context: ${noContextOptimized.results.length} results, avg relevance: ${(noContextOptimized.results.reduce((s, r) => s + r.relevance, 0) / noContextOptimized.results.length).toFixed(3)}`);
-  }
-  
-  // Test 3: Query expansion effectiveness
-  console.log('\n🔍 Test 3: Query Expansion Analysis');
-  console.log('-'.repeat(40));
-  
-  for (const testCase of TEST_CONFIG.testQueries.slice(0, 3)) {
-    const optimized = await MockPromptOptimizationEngine.optimizeQuery(
-      testCase.query,
-      { domain: testCase.domain }
-    );
-    
-    console.log(`\nOriginal: "${optimized.originalQuery}"`);
-    console.log(`Optimized: "${optimized.optimizedQuery}"`);
-    console.log(`Expansions (${optimized.expandedQueries.length}):`);
-    optimized.expandedQueries.forEach((expansion, i) => {
-      console.log(`  ${i + 1}. ${expansion}`);
-    });
-    console.log(`Estimated relevance: ${optimized.metadata.estimatedRelevance.toFixed(3)}`);
-  }
-  
-  // Final comparison
-  console.log('\n📋 Performance Comparison Summary');
-  console.log('=' .repeat(60));
-  
-  const comparison = metrics.getComparison();
-  
-  console.log(`\n🎯 Relevance Improvement: ${comparison.relevanceImprovement}%`);
-  console.log(`⏱️  Performance Overhead: +${comparison.performanceOverhead}ms per query`);
-  console.log(`🎪 Classification Accuracy: ${comparison.classificationAccuracy}%`);
-  
-  console.log('\n📊 Detailed Metrics:');
-  console.log(`Optimized Queries:`);
-  console.log(`  - Average time: ${comparison.metrics.optimization.averageTime}ms`);
-  console.log(`  - Average relevance: ${comparison.metrics.optimization.averageRelevance}`);
-  console.log(`  - Average results: ${comparison.metrics.optimization.averageResults}`);
-  
-  console.log(`Standard Queries:`);
-  console.log(`  - Average time: ${comparison.metrics.standard.averageTime}ms`);
-  console.log(`  - Average relevance: ${comparison.metrics.standard.averageRelevance}`);
-  console.log(`  - Average results: ${comparison.metrics.standard.averageResults}`);
-  
-  // Recommendations
-  console.log('\n💡 Recommendations:');
-  
-  const relevanceImprovementNum = parseFloat(comparison.relevanceImprovement);
-  const performanceOverheadNum = parseFloat(comparison.performanceOverhead);
-  const classificationAccuracyNum = parseFloat(comparison.classificationAccuracy);
-  
-  if (relevanceImprovementNum > 10) {
-    console.log('✅ Prompt optimization shows significant relevance improvement');
-  } else if (relevanceImprovementNum > 5) {
-    console.log('⚠️  Prompt optimization shows moderate improvement');
-  } else {
-    console.log('❌ Prompt optimization may need fine-tuning');
-  }
-  
-  if (performanceOverheadNum < 50) {
-    console.log('✅ Performance overhead is acceptable');
-  } else if (performanceOverheadNum < 100) {
-    console.log('⚠️  Performance overhead is moderate');
-  } else {
-    console.log('❌ Performance overhead may be too high for real-time use');
-  }
-  
-  if (classificationAccuracyNum > 80) {
-    console.log('✅ Query classification is highly accurate');
-  } else if (classificationAccuracyNum > 60) {
-    console.log('⚠️  Query classification needs improvement');
-  } else {
-    console.log('❌ Query classification requires significant optimization');
-  }
-  
-  console.log('\n🏁 Benchmark completed successfully!');
-  
-  return comparison;
 }
 
-/**
- * Additional utility functions for production testing
- */
-function generateTestReport(results) {
-  const timestamp = new Date().toISOString();
-  const report = {
-    timestamp,
-    testConfiguration: TEST_CONFIG,
-    results,
-    summary: {
-      totalQueries: results.optimizedQueries + results.standardQueries,
-      relevanceImprovement: results.relevanceImprovement,
-      performanceOverhead: results.performanceOverhead,
-      classificationAccuracy: results.classificationAccuracy
-    }
-  };
+async function testBatchOptimization() {
+  console.log('\n===== Testing Batch Query Optimization =====\n');
   
-  return JSON.stringify(report, null, 2);
+  const batchQueries = [
+    'RoboRail API authentication',
+    'webhook configuration',
+    'error handling best practices',
+    'deployment on cloud platforms',
+    'monitoring and observability',
+  ];
+  
+  console.log(`Processing ${batchQueries.length} queries...`);
+  
+  const startTime = performance.now();
+  const results = await Promise.all(
+    batchQueries.map(q => MockPromptOptimizationEngine.optimizeQuery(q, { domain: 'roborail' }))
+  );
+  const endTime = performance.now();
+  
+  console.log(`\nBatch processing completed in ${(endTime - startTime).toFixed(2)}ms`);
+  console.log(`Average time per query: ${((endTime - startTime) / batchQueries.length).toFixed(2)}ms`);
+  
+  // Summary statistics
+  const queryTypes = {};
+  const complexities = {};
+  
+  results.forEach((result, i) => {
+    queryTypes[result.metadata.queryType] = (queryTypes[result.metadata.queryType] || 0) + 1;
+    complexities[result.metadata.complexity] = (complexities[result.metadata.complexity] || 0) + 1;
+  });
+  
+  console.log('\nQuery Type Distribution:');
+  Object.entries(queryTypes).forEach(([type, count]) => {
+    console.log(`  ${type}: ${count} (${((count / results.length) * 100).toFixed(0)}%)`);
+  });
+  
+  console.log('\nComplexity Distribution:');
+  Object.entries(complexities).forEach(([complexity, count]) => {
+    console.log(`  ${complexity}: ${count} (${((count / results.length) * 100).toFixed(0)}%)`);
+  });
 }
 
-// Run the benchmark if this script is executed directly
+async function testEdgeCases() {
+  console.log('\n===== Testing Edge Cases =====\n');
+  
+  const edgeCases = [
+    { query: '', description: 'Empty query' },
+    { query: 'a', description: 'Single character' },
+    { query: 'help', description: 'Very vague query' },
+    { query: `RoboRail ${'complex '.repeat(50)}query`, description: 'Very long query' },
+    { query: '!!!@#$%^&*()', description: 'Special characters only' },
+    { query: 'роборейл конфигурация', description: 'Non-English query' },
+  ];
+  
+  for (const testCase of edgeCases) {
+    console.log(`\nEdge case: ${testCase.description}`);
+    console.log(`Query: "${testCase.query.substring(0, 50)}${testCase.query.length > 50 ? '...' : ''}"`);
+    
+    try {
+      const result = await MockPromptOptimizationEngine.optimizeQuery(testCase.query);
+      console.log(`  ✅ Handled successfully`);
+      console.log(`  Query Type: ${result.metadata.queryType}`);
+      console.log(`  Complexity: ${result.metadata.complexity}`);
+    } catch (error) {
+      console.log(`  ❌ Error: ${error.message}`);
+    }
+  }
+}
+
+// Main test runner
+async function runAllTests() {
+  console.log('Starting RoboRail Prompt Optimization Tests...\n');
+  console.log('Configuration:', testConfig);
+  
+  try {
+    await testQueryOptimization();
+    await testConversationContext();
+    await testPerformanceComparison();
+    await testBatchOptimization();
+    await testEdgeCases();
+    
+    console.log('\n===== All Tests Completed Successfully =====\n');
+  } catch (error) {
+    console.error('\nError during testing:', error);
+    process.exit(1);
+  }
+}
+
+// Run tests if this script is executed directly
 if (require.main === module) {
-  runPromptOptimizationBenchmark()
-    .then(results => {
-      const report = generateTestReport(results);
-      console.log('\n📄 Test Report Generated');
-      console.log('(In production, this would be saved to a file)');
-      
-      process.exit(0);
-    })
-    .catch(error => {
-      console.error('❌ Benchmark failed:', error);
-      process.exit(1);
-    });
+  runAllTests();
 }
 
 module.exports = {
-  runPromptOptimizationBenchmark,
-  generateTestReport,
   MockPromptOptimizationEngine,
-  MockVectorStoreService,
-  PerformanceMetrics
+  testQueries,
+  runAllTests,
 };

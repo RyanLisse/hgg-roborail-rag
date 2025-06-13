@@ -57,7 +57,7 @@ export async function initializeVectorStoreMonitoring(): Promise<void> {
       const startTime = Date.now();
       
       try {
-        let result;
+        let result: any;
         
         switch (provider) {
           case 'openai':

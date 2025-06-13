@@ -107,6 +107,7 @@ export type CircuitBreakerConfig = z.infer<typeof CircuitBreakerConfig>;
 // ERROR CLASSIFIER
 // ====================================
 
+// biome-ignore lint/complexity/noStaticOnlyClass: Utility class pattern for organized functionality
 export class ErrorClassifier {
   static classify(error: Error, context?: Record<string, any>): ClassifiedError {
     const errorMessage = error.message.toLowerCase();
@@ -356,18 +357,27 @@ export class RetryMechanism {
 
     while (attempt <= this.config.maxRetries) {
       try {
-        // Add timeout wrapper
+        // Add timeout wrapper with cleanup
+        let timeoutId: NodeJS.Timeout | null = null;
         const timeoutPromise = new Promise<never>((_, reject) => {
-          setTimeout(() => reject(new Error('Operation timeout')), this.config.timeoutMs);
+          timeoutId = setTimeout(() => reject(new Error('Operation timeout')), this.config.timeoutMs);
         });
 
-        const result = await Promise.race([operation(), timeoutPromise]);
-        
-        if (attempt > 0) {
-          console.log(`✅ Operation succeeded on attempt ${attempt + 1}`);
+        try {
+          const result = await Promise.race([operation(), timeoutPromise]);
+          // Clear timeout on success
+          if (timeoutId) clearTimeout(timeoutId);
+          
+          if (attempt > 0) {
+            console.log(`✅ Operation succeeded on attempt ${attempt + 1}`);
+          }
+          
+          return result;
+        } catch (error) {
+          // Clear timeout on error before rethrowing
+          if (timeoutId) clearTimeout(timeoutId);
+          throw error;
         }
-        
-        return result;
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
         attempt++;

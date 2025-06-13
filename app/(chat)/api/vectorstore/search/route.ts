@@ -10,32 +10,33 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { 
-      query, 
-      sources, 
-      maxResults, 
-      threshold, 
+    const {
+      query,
+      sources,
+      maxResults,
+      threshold,
       metadata,
       // Enhanced search options for prompt optimization
       queryContext,
       optimizePrompts = true,
-      promptConfig
+      promptConfig,
     } = body;
 
     if (!query) {
-      return NextResponse.json(
-        { error: 'Query is required' },
-        { status: 400 }
+      return NextResponse.json({ error: 'Query is required' }, { status: 400 });
+    }
+
+    console.log(
+      `🔍 Vector store search request with optimization: ${optimizePrompts}`,
+    );
+    if (queryContext) {
+      console.log(
+        `📊 Query context: ${queryContext.type || 'auto-detect'} (${queryContext.domain || 'general'})`,
       );
     }
 
-    console.log(`🔍 Vector store search request with optimization: ${optimizePrompts}`);
-    if (queryContext) {
-      console.log(`📊 Query context: ${queryContext.type || 'auto-detect'} (${queryContext.domain || 'general'})`);
-    }
-
     const vectorStoreService = await getUnifiedVectorStoreService();
-    
+
     const searchRequest = {
       query,
       sources: sources || ['openai', 'memory'], // Prioritize OpenAI for RoboRail docs
@@ -63,7 +64,8 @@ export async function POST(request: NextRequest) {
     };
 
     // Use enhanced search with relevance scoring for better results
-    const enhancedResponse = await vectorStoreService.searchEnhanced(searchRequest);
+    const enhancedResponse =
+      await vectorStoreService.searchEnhanced(searchRequest);
     const results = enhancedResponse.results;
 
     // Enhanced response with optimization metadata and relevance scoring info
@@ -83,17 +85,19 @@ export async function POST(request: NextRequest) {
       },
     };
 
-    console.log(`✅ Search completed: ${results.length} results across ${searchRequest.sources.join(', ')}`);
+    console.log(
+      `✅ Search completed: ${results.length} results across ${searchRequest.sources.join(', ')}`,
+    );
 
     return NextResponse.json(response);
   } catch (error) {
     console.error('Failed to search vector stores:', error);
     return NextResponse.json(
-      { 
+      {
         error: 'Failed to search vector stores',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
