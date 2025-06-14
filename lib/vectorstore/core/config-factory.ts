@@ -77,8 +77,8 @@ export class VectorStoreConfigFactory<TConfig extends BaseServiceConfig>
     console.warn(`⚠️  ${this.serviceName} service disabled: ${reason}`);
     
     const baseConfig = {
-      isEnabled: false,
       ...BaseConfigSchema.parse({}),
+      isEnabled: false,
     };
 
     return this.schema.parse(baseConfig);

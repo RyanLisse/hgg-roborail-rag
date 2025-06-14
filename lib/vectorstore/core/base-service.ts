@@ -284,6 +284,6 @@ export abstract class BaseVectorStoreService<
         lastChecked: new Date(),
       }),
       getMetrics: async () => [],
-    } as T;
+    } as unknown as T;
   }
 }

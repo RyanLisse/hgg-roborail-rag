@@ -29,6 +29,10 @@ export {
   createRequestScope,
 } from './services';
 
+// Import for direct use
+import { initializeServices } from './services';
+import { getContainer, ServiceTokens } from './container';
+
 /**
  * Initialize the DI system
  * Call this on application startup
