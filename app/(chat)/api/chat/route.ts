@@ -5,7 +5,9 @@ import {
   smoothStream,
   streamText,
 } from 'ai';
+import { NextResponse } from 'next/server';
 import { auth, type UserType } from '@/app/(auth)/auth';
+import { checkEnvironment } from '@/lib/utils/env-check';
 import { initializeDI, isDIInitialized } from '@/lib/di';
 import { type RequestHints, systemPrompt } from '@/lib/ai/prompts';
 import {
@@ -65,9 +67,31 @@ function getStreamContext() {
 }
 
 export async function POST(request: Request) {
-  // Initialize DI system if not already done
-  if (!isDIInitialized()) {
-    initializeDI();
+  // Check environment configuration
+  const envStatus = checkEnvironment();
+  if (!envStatus.isValid) {
+    console.error('Environment validation failed:', envStatus.errors);
+    return NextResponse.json(
+      { 
+        error: 'Service unavailable - configuration issues',
+        details: envStatus.errors 
+      },
+      { status: 503 }
+    );
+  }
+
+  // Log any warnings for debugging
+  if (envStatus.warnings.length > 0) {
+    console.warn('Environment warnings:', envStatus.warnings);
+  }
+
+  // Initialize DI system if not already done (with error handling)
+  try {
+    if (!isDIInitialized()) {
+      initializeDI();
+    }
+  } catch (error) {
+    console.warn('DI initialization failed, continuing with limited functionality:', error);
   }
 
   let requestBody: PostRequestBody;
