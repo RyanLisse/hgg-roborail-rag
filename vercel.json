@@ -1,5 +1,6 @@
 {
   "buildCommand": "pnpm build",
-  "devCommand": "pnpm dev",
-  "installCommand": "pnpm install"
+  "devCommand": "pnpm dev", 
+  "installCommand": "pnpm install",
+  "outputDirectory": ".next"
 }

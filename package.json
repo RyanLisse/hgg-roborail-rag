@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "next dev --turbo",
-    "build": "(tsx lib/db/migrate || echo 'Migration skipped') && next build",
+    "build": "./scripts/build.sh",
     "start": "next start",
     "lint": "next lint && biome lint",
     "lint:fix": "next lint --fix && biome lint --write --unsafe",
