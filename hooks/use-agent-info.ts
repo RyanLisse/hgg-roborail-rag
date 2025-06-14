@@ -25,7 +25,9 @@ export function useAgentInfo() {
   React.useEffect(() => {
     const listener = () => setUpdateCount(prev => prev + 1);
     listeners.add(listener);
-    return () => listeners.delete(listener);
+    return () => {
+      listeners.delete(listener);
+    };
   }, []); // Empty dependency array - only run once
 
   const setRouting = React.useCallback((routing: AgentRouting) => {

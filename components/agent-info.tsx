@@ -2,7 +2,7 @@
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ChevronDownIcon, ChevronRightIcon } from 'lucide-react';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 import type { AgentRouting, AgentMetadata } from './data-stream-handler';
 import { cn } from '@/lib/utils';
@@ -62,9 +62,9 @@ export function AgentInfo({
           </span>
         </div>
         {isOpen ? (
-          <ChevronDownIcon className="size-4" />
+          <ChevronDown className="size-4" />
         ) : (
-          <ChevronRightIcon className="size-4" />
+          <ChevronRight className="size-4" />
         )}
       </Button>
       

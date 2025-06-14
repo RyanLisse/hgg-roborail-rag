@@ -197,57 +197,40 @@ function initializeLazyServices(): void {
 
   // Monitoring Services with lazy loading
   registerSingleton(ServiceTokens.VECTOR_STORE_MONITORING, async () => {
-    const { VectorStoreMonitoring } = await import('../vectorstore/core/monitoring');
-    return new VectorStoreMonitoring();
+    const { PerformanceMonitor } = await import('../vectorstore/core/monitoring');
+    return new PerformanceMonitor();
   });
 
   // Agent Services with lazy loading
-  registerScoped(ServiceTokens.QA_AGENT, async (container) => {
+  registerScoped(ServiceTokens.QA_AGENT, async () => {
     const { QAAgent } = await import('../agents/qa-agent');
-    const vectorStore = await container.resolve(ServiceTokens.UNIFIED_VECTOR_STORE);
-    return new QAAgent({ vectorStore });
+    return new QAAgent();
   });
 
-  registerScoped(ServiceTokens.REWRITE_AGENT, async (container) => {
+  registerScoped(ServiceTokens.REWRITE_AGENT, async () => {
     const { RewriteAgent } = await import('../agents/rewrite-agent');
-    const vectorStore = await container.resolve(ServiceTokens.UNIFIED_VECTOR_STORE);
-    return new RewriteAgent({ vectorStore });
+    return new RewriteAgent();
   });
 
-  registerScoped(ServiceTokens.PLANNER_AGENT, async (container) => {
+  registerScoped(ServiceTokens.PLANNER_AGENT, async () => {
     const { PlannerAgent } = await import('../agents/planner-agent');
-    const vectorStore = await container.resolve(ServiceTokens.UNIFIED_VECTOR_STORE);
-    return new PlannerAgent({ vectorStore });
+    return new PlannerAgent();
   });
 
-  registerScoped(ServiceTokens.RESEARCH_AGENT, async (container) => {
+  registerScoped(ServiceTokens.RESEARCH_AGENT, async () => {
     const { ResearchAgent } = await import('../agents/research-agent');
-    const vectorStore = await container.resolve(ServiceTokens.UNIFIED_VECTOR_STORE);
-    return new ResearchAgent({ vectorStore });
+    return new ResearchAgent();
   });
 
-  registerScoped(ServiceTokens.AGENT_ROUTER, async (container) => {
+  registerScoped(ServiceTokens.AGENT_ROUTER, async () => {
     const { SmartAgentRouter } = await import('../agents/router');
-    const qaAgent = await container.resolve(ServiceTokens.QA_AGENT);
-    const rewriteAgent = await container.resolve(ServiceTokens.REWRITE_AGENT);
-    const plannerAgent = await container.resolve(ServiceTokens.PLANNER_AGENT);
-    const researchAgent = await container.resolve(ServiceTokens.RESEARCH_AGENT);
-    
-    return new SmartAgentRouter({
-      qaAgent,
-      rewriteAgent,
-      plannerAgent,
-      researchAgent,
-    });
+    return new SmartAgentRouter();
   });
 
-  registerScoped(ServiceTokens.AGENT_ORCHESTRATOR, async (container) => {
+  registerScoped(ServiceTokens.AGENT_ORCHESTRATOR, async () => {
     const { AgentOrchestrator } = await import('../agents/orchestrator');
-    const router = await container.resolve(ServiceTokens.AGENT_ROUTER);
-    const vectorStore = await container.resolve(ServiceTokens.UNIFIED_VECTOR_STORE);
     
     return new AgentOrchestrator({
-      router,
       vectorStoreConfig: {
         defaultSources: ['memory', 'neon', 'openai'],
         searchThreshold: 0.3,
