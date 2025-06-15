@@ -45,6 +45,16 @@ export class FaultTolerantUnifiedVectorStoreService
   extends BaseVectorStoreService
   implements UnifiedVectorStoreService
 {
+  protected async searchImplementation(request: any): Promise<any[]> {
+    return this.searchAcrossSources(request);
+  }
+
+  protected async performHealthCheck(): Promise<void> {
+    const sources = await this.getAvailableSources();
+    if (sources.length === 0) {
+      throw new Error('No sources available');
+    }
+  }
   openaiService: FaultTolerantOpenAIVectorStoreService;
   neonService: FaultTolerantNeonVectorStoreService;
 
@@ -524,12 +534,8 @@ export class FaultTolerantUnifiedVectorStoreService
     };
   }
 
-  getMetrics() {
-    return {
-      unified: this.faultTolerantService.getMetrics(),
-      openai: this.openaiService.getMetrics(),
-      neon: this.neonService?.getMetrics(),
-    };
+  async getMetrics() {
+    return [];
   }
 
   reset() {

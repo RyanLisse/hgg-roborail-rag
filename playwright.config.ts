@@ -7,7 +7,9 @@ import { defineConfig, devices } from '@playwright/test';
 import { config } from 'dotenv';
 
 // Set test environment
-process.env.NODE_ENV = 'test';
+if (!process.env.NODE_ENV) {
+  Object.assign(process.env, { NODE_ENV: 'test' });
+}
 process.env.PLAYWRIGHT = 'true';
 
 config({
@@ -40,7 +42,7 @@ export default defineConfig({
   reporter: [
     ['html'],
     ['list'], // Better CI output
-    ...(process.env.CI ? [['github']] : []),
+    ...(process.env.CI ? [['github'] as any] : []),
   ],
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {

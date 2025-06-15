@@ -7,10 +7,10 @@
  * - Optimized reranking algorithms
  */
 
-import type {
+import {
   VectorStoreType,
-  UnifiedSearchRequest,
-  EnhancedSearchResponse,
+  type UnifiedSearchRequest,
+  type EnhancedSearchResponse,
 } from './core/types';
 
 interface SearchCacheKey {
@@ -37,7 +37,7 @@ class OptimizedVectorSearch {
   private generateCacheKey(request: UnifiedSearchRequest): string {
     const key: SearchCacheKey = {
       query: request.query,
-      sources: request.sources,
+      sources: request.sources || [],
       maxResults: request.maxResults,
       threshold: request.threshold,
     };
@@ -83,7 +83,9 @@ class OptimizedVectorSearch {
       // Clean up old entries if cache gets too large
       if (this.searchCache.size > 100) {
         const oldestKey = this.searchCache.keys().next().value;
-        this.searchCache.delete(oldestKey);
+        if (oldestKey) {
+          this.searchCache.delete(oldestKey);
+        }
       }
     }
   }
@@ -171,12 +173,12 @@ class OptimizedVectorSearch {
       // Create search methods for each enabled source
       const searchMethods: Array<() => Promise<any[]>> = [];
 
-      if (request.sources.includes('openai')) {
+      if (request.sources?.includes(VectorStoreType.OPENAI)) {
         searchMethods.push(async () => {
           console.log('🔍 Searching OpenAI...');
           return await vectorStoreService.searchOpenAI(
             request.query,
-            Math.ceil(request.maxResults / request.sources.length),
+            Math.ceil(request.maxResults / (request.sources?.length || 1)),
             request.queryContext,
             request.optimizePrompts,
             request.promptConfig,
@@ -184,19 +186,19 @@ class OptimizedVectorSearch {
         });
       }
 
-      if (request.sources.includes('neon')) {
+      if (request.sources?.includes(VectorStoreType.NEON)) {
         searchMethods.push(async () => {
           console.log('🔍 Searching Neon...');
           return await vectorStoreService.searchNeon(
             request.query,
-            Math.ceil(request.maxResults / request.sources.length),
+            Math.ceil(request.maxResults / (request.sources?.length || 1)),
             request.threshold,
             request.queryContext,
           );
         });
       }
 
-      if (request.sources.includes('memory')) {
+      if (request.sources?.includes(VectorStoreType.MEMORY)) {
         searchMethods.push(async () => {
           console.log('🔍 Searching Memory...');
           // Memory search implementation
@@ -231,7 +233,7 @@ class OptimizedVectorSearch {
           totalTime,
           cacheHit: false,
           parallelExecution: true,
-          timeoutUsed: this.SEARCH_TIMEOUT,
+          timeoutUsed: false,
         },
       };
 
@@ -260,12 +262,12 @@ class OptimizedVectorSearch {
           searchTime: totalTime,
           totalTime,
           cacheHit: false,
-          error: true,
+          error: 'Search failed',
         },
-        debugInfo: {
-          error: error instanceof Error ? error.message : 'Unknown error',
-          fallbackUsed: true,
-        },
+        // debugInfo: {
+        //   error: error instanceof Error ? error.message : 'Unknown error',
+        //   fallbackUsed: true,
+        // },
       };
     }
   }

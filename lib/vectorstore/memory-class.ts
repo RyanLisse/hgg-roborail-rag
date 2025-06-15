@@ -11,8 +11,21 @@ export class MemoryVectorStore extends BaseVectorStoreService {
     super('memory-vector-store');
   }
 
+  protected async searchImplementation(request: any): Promise<any[]> {
+    const { query, maxResults = 10 } = request;
+    return Array.from(this.documents.values())
+      .filter((doc) =>
+        doc.content.toLowerCase().includes(query.toLowerCase()),
+      )
+      .slice(0, maxResults);
+  }
+
+  protected async performHealthCheck(): Promise<void> {
+    // Memory store is always healthy
+  }
+
   async search(query: string, options: any = {}) {
-    return this.withErrorHandling(async () => {
+    return this.withRetry(async () => {
       const { maxResults = 10, threshold = 0.3 } = options;
 
       // Simple keyword-based search for memory store
@@ -29,19 +42,12 @@ export class MemoryVectorStore extends BaseVectorStoreService {
           source: 'memory' as const,
         }));
 
-      return {
-        results,
-        metadata: {
-          totalResults: results.length,
-          searchTime: Date.now(),
-          source: 'memory',
-        },
-      };
+      return results;
     }, 'search');
   }
 
   async upload(documents: any[]) {
-    return this.withErrorHandling(async () => {
+    return this.withRetry(async () => {
       const uploadedIds: string[] = [];
 
       for (const doc of documents) {
@@ -64,7 +70,7 @@ export class MemoryVectorStore extends BaseVectorStoreService {
   }
 
   async delete(ids: string[]) {
-    return this.withErrorHandling(async () => {
+    return this.withRetry(async () => {
       const deletedIds: string[] = [];
 
       for (const id of ids) {
@@ -83,18 +89,19 @@ export class MemoryVectorStore extends BaseVectorStoreService {
   }
 
   async healthCheck() {
-    return this.withErrorHandling(
+    return this.withRetry(
       async () => ({
-        status: 'healthy',
-        documentsCount: this.documents.size,
-        memoryUsage: process.memoryUsage(),
+        message: 'Memory store is healthy',
+        isHealthy: true,
+        responseTime: 0,
+        lastChecked: new Date(),
       }),
       'healthCheck',
     );
   }
 
   async getStats() {
-    return this.withErrorHandling(
+    return this.withRetry(
       async () => ({
         totalDocuments: this.documents.size,
         averageDocumentSize:

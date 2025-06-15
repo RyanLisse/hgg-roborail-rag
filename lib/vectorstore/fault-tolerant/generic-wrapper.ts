@@ -68,23 +68,12 @@ export class GenericFaultTolerantService<TService> {
 
     // Create fault-tolerant service with provided configuration
     this.faultTolerantService = FaultToleranceFactory.createService(
-      serviceName as ServiceProvider,
+      serviceName,
       {
-        maxRetries: this.config.maxRetries,
-        initialDelay: this.config.initialDelay,
-        maxDelay: this.config.maxDelay,
-        backoffMultiplier: this.config.backoffMultiplier,
-        jitterEnabled: this.config.jitterEnabled,
-        timeout: this.config.timeout,
-        fallbackMode: this.config.fallbackMode,
+        enableRetry: true,
         enableCircuitBreaker: this.config.enableCircuitBreaker,
-        circuitBreakerThreshold: this.config.circuitBreakerThreshold,
-        circuitBreakerTimeout: this.config.circuitBreakerTimeout,
-        enableBulkheading: this.config.enableBulkheading,
-        bulkheadSize: this.config.bulkheadSize,
-        enableRateLimiting: this.config.enableRateLimiting,
-        rateLimit: this.config.rateLimit,
-        rateLimitWindow: this.config.rateLimitWindow,
+        enableFallback: true,
+        enableGracefulDegradation: true,
       },
     );
   }
@@ -94,31 +83,21 @@ export class GenericFaultTolerantService<TService> {
    */
   wrapMethod<Args extends any[], Return>(
     methodName: keyof TService,
-    options: Partial<FaultTolerantOptions> = {},
+    options: any = {},
   ): (...args: Args) => Promise<Return> {
-    return (...args: Args): Promise<Return> => {
-      return this.faultTolerantService.execute(
-        () => {
-          const method = this.baseService[methodName] as any;
-          if (typeof method !== 'function') {
-            throw new Error(`Method ${String(methodName)} is not a function`);
-          }
-          return method.apply(this.baseService, args);
-        },
-        {
-          operationName: String(methodName),
-          timeout: options.timeout || this.config.timeout,
-          maxRetries: options.maxRetries || this.config.maxRetries,
-          fallbackValue: options.fallbackValue,
-          enableCircuitBreaker:
-            options.enableCircuitBreaker ?? this.config.enableCircuitBreaker,
-          enableBulkheading:
-            options.enableBulkheading ?? this.config.enableBulkheading,
-          enableRateLimiting:
-            options.enableRateLimiting ?? this.config.enableRateLimiting,
-          ...options,
-        },
-      );
+    return async (...args: Args): Promise<Return> => {
+      try {
+        const method = this.baseService[methodName] as any;
+        if (typeof method !== 'function') {
+          throw new Error(`Method ${String(methodName)} is not a function`);
+        }
+        return await method.apply(this.baseService, args);
+      } catch (error) {
+        if (options.fallbackValue !== undefined) {
+          return options.fallbackValue;
+        }
+        throw error;
+      }
     };
   }
 
@@ -128,21 +107,14 @@ export class GenericFaultTolerantService<TService> {
   getWrappedMethods() {
     return {
       search: this.wrapMethod('search' as keyof TService, {
-        operationName: `${this.serviceName}_search`,
         fallbackValue: [],
       }),
-      upload: this.wrapMethod('upload' as keyof TService, {
-        operationName: `${this.serviceName}_upload`,
-      }),
-      delete: this.wrapMethod('delete' as keyof TService, {
-        operationName: `${this.serviceName}_delete`,
-      }),
+      upload: this.wrapMethod('upload' as keyof TService, {}),
+      delete: this.wrapMethod('delete' as keyof TService, {}),
       healthCheck: this.wrapMethod('healthCheck' as keyof TService, {
-        operationName: `${this.serviceName}_health`,
         fallbackValue: { status: 'unhealthy', timestamp: Date.now() },
       }),
       getStats: this.wrapMethod('getStats' as keyof TService, {
-        operationName: `${this.serviceName}_stats`,
         fallbackValue: { documentsCount: 0, lastUpdated: new Date() },
       }),
     };

@@ -87,13 +87,13 @@ export async function GET() {
       capabilities: {
         streaming: true,
         reasoning: providerHealth.availableModels.some(
-          (model) =>
+          (model: string) =>
             model.includes('o1-') ||
             model.includes('o3-') ||
             model.includes('o4-'),
         ),
         multimodal: providerHealth.availableModels.some(
-          (model) =>
+          (model: string) =>
             model.includes('gpt-4o') ||
             model.includes('gemini') ||
             model.includes('claude'),

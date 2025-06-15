@@ -83,9 +83,7 @@ function createDynamicLanguageModel(modelId: string): LanguageModel {
       middleware: [
         extractReasoningMiddleware({
           tagName: 'thinking',
-          // Enhanced reasoning extraction for June 2025 models
-          extractThinking: true,
-          includeInResponse: true,
+          separator: '\n\n',
         }),
       ],
     });
@@ -247,10 +245,6 @@ function getFallbackModel(originalModelId: string): string | null {
 // Enhanced provider with comprehensive model support and error handling
 export const myProvider = customProvider({
   languageModels: createAllLanguageModels(),
-  // Provider-level configuration
-  fallbackModel: 'chat-model',
-  maxRetries: 3,
-  retryDelay: 1000,
 });
 
 // Provider health check

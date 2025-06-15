@@ -12,6 +12,7 @@ export enum FallbackMode {
   SILENT = 'SILENT', // Return empty/default values
   CACHED = 'CACHED', // Return cached values if available
   PARTIAL = 'PARTIAL', // Return partial results
+  RETURN_EMPTY = 'RETURN_EMPTY', // Return empty results when fallback fails
 }
 
 export const FallbackConfig = z.object({

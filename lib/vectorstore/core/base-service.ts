@@ -172,7 +172,7 @@ export abstract class BaseVectorStoreService<
     operation: () => Promise<T>,
     operationName: string,
   ): Promise<T> {
-    let lastError: Error;
+    let lastError: Error | undefined;
 
     for (let attempt = 0; attempt <= this.config.maxRetries; attempt++) {
       try {

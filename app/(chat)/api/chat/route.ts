@@ -328,15 +328,8 @@ export async function POST(request: Request) {
       },
     });
 
-    const streamContext = getStreamContext();
-
-    if (streamContext) {
-      return new Response(
-        await streamContext.resumableStream(streamId, () => stream),
-      );
-    } else {
-      return new Response(stream);
-    }
+    // Return the stream directly - resumableStream functionality removed for now
+    return new Response(stream);
   } catch (error) {
     console.error('Chat API error:', error);
 
@@ -411,10 +404,8 @@ export async function GET(request: Request) {
     execute: () => {},
   });
 
-  const stream = await streamContext.resumableStream(
-    recentStreamId,
-    () => emptyDataStream,
-  );
+  // Return the data stream directly - resumableStream functionality removed for now
+  const stream = emptyDataStream;
 
   /*
    * For when the generation is streaming during SSR

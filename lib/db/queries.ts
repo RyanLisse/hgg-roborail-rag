@@ -680,7 +680,7 @@ export async function deleteMessagesByChatIdAfterTimestamp({
         and(eq(message.chatId, chatId), gte(message.createdAt, timestamp)),
       );
 
-    const messageIds = messagesToDelete.map((message) => message.id);
+    const messageIds = messagesToDelete.map((message: any) => message.id);
 
     if (messageIds.length > 0) {
       await database
@@ -810,7 +810,7 @@ export async function getStreamIdsByChatId({ chatId }: { chatId: string }) {
       .orderBy(asc(stream.createdAt))
       .execute();
 
-    return streamIds.map(({ id }) => id);
+    return streamIds.map(({ id }: any) => id);
   } catch (error) {
     throw new ChatSDKError(
       'bad_request:database',
