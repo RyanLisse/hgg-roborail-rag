@@ -112,3 +112,42 @@ export interface ServiceFactory<TConfig, TService> {
   create(config: TConfig): TService;
   createDisabled(reason: string): TService;
 }
+
+// Vector store types for optimized search
+export enum VectorStoreType {
+  OPENAI = 'openai',
+  NEON = 'neon',
+  UNIFIED = 'unified',
+  MEMORY = 'memory',
+}
+
+// Enhanced search request
+export interface UnifiedSearchRequest extends BaseSearchRequest {
+  includeMetadata?: boolean;
+  enableReranking?: boolean;
+  diversityThreshold?: number;
+  sources?: VectorStoreType[];
+  queryContext?: string;
+  optimizePrompts?: boolean;
+  promptConfig?: any;
+}
+
+// Enhanced search response
+export interface EnhancedSearchResponse {
+  results: BaseSearchResult[];
+  totalResults: number;
+  processingTime: number;
+  query: string;
+  rerankingApplied: boolean;
+  diversificationApplied: boolean;
+  hybridSearchUsed: boolean;
+  scoringStrategy: string;
+  performance: {
+    searchTime: number;
+    totalTime: number;
+    cacheHit?: boolean;
+    parallelExecution?: boolean;
+    timeoutUsed?: boolean;
+    error?: string;
+  };
+}

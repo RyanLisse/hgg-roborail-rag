@@ -19,7 +19,7 @@ export {
   type FaultTolerantConfig,
 } from './generic-wrapper';
 
-// Service-specific implementations
+// Service-specific implementations (placeholder implementations)
 export {
   FaultTolerantOpenAIVectorStoreService,
   createFaultTolerantOpenAIService,
@@ -48,6 +48,10 @@ export {
  * Migration helper: Create fault-tolerant services with the same interface
  * as the original implementations for backward compatibility
  */
+import { createFaultTolerantOpenAIService } from './openai';
+import { createFaultTolerantNeonService } from './neon';
+import { createFaultTolerantUnifiedService } from './unified';
+
 export const FaultTolerantServices = {
   createOpenAI: createFaultTolerantOpenAIService,
   createNeon: createFaultTolerantNeonService,

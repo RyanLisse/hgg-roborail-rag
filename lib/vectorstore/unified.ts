@@ -627,15 +627,6 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
     async searchEnhanced(
       request: UnifiedSearchRequest,
     ): Promise<EnhancedSearchResponse> {
-      // Use optimized search for better performance
-      const { optimizedVectorSearch } = await import('./optimized-search');
-      return optimizedVectorSearch.search(request, this);
-    },
-
-    // Legacy enhanced search (kept for fallback)
-    async searchEnhancedLegacy(
-      request: UnifiedSearchRequest,
-    ): Promise<EnhancedSearchResponse> {
       const startTime = Date.now();
       const validatedRequest = UnifiedSearchRequest.parse(request);
 

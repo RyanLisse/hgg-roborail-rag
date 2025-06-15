@@ -35,6 +35,9 @@ export const FaultToleranceConfig = z.object({
 
 export type FaultToleranceConfig = z.infer<typeof FaultToleranceConfig>;
 
+// Alias for backward compatibility
+export type FaultTolerantOptions = FaultToleranceConfig;
+
 // ====================================
 // METRICS COLLECTION
 // ====================================
