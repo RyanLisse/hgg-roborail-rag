@@ -40,7 +40,7 @@ import { getContainer, ServiceTokens } from './container';
 export function initializeDI(): void {
   // Initialize all services
   initializeServices();
-  
+
   console.log('✅ Dependency injection system initialized');
 }
 

@@ -12,7 +12,7 @@ export class PerformanceMonitor {
   static wrapMethod<T extends any[], R>(
     serviceName: string,
     methodName: string,
-    fn: (...args: T) => Promise<R>
+    fn: (...args: T) => Promise<R>,
   ): (...args: T) => Promise<R> {
     return async (...args: T): Promise<R> => {
       const startTime = Date.now();
@@ -28,7 +28,7 @@ export class PerformanceMonitor {
         throw err;
       } finally {
         const duration = Date.now() - startTime;
-        
+
         const metric: ServiceMetrics = {
           operationName: methodName,
           success,
@@ -38,13 +38,13 @@ export class PerformanceMonitor {
         };
 
         PerformanceMonitor.recordMetric(serviceName, metric);
-        
+
         // Log performance if it's unusually slow
         if (duration > 5000) {
-          console.warn(
-            `⚠️  Slow ${serviceName}.${methodName}: ${duration}ms`,
-            { args: args.length > 0 ? args[0] : undefined, error: error?.message }
-          );
+          console.warn(`⚠️  Slow ${serviceName}.${methodName}: ${duration}ms`, {
+            args: args.length > 0 ? args[0] : undefined,
+            error: error?.message,
+          });
         }
       }
     };
@@ -55,7 +55,7 @@ export class PerformanceMonitor {
    */
   static wrapService<T extends VectorStoreService>(
     service: T,
-    monitoredMethods: (keyof T)[] = ['search', 'healthCheck']
+    monitoredMethods: (keyof T)[] = ['search', 'healthCheck'],
   ): T {
     const wrappedService = { ...service };
 
@@ -65,7 +65,7 @@ export class PerformanceMonitor {
         (wrappedService as any)[methodName] = PerformanceMonitor.wrapMethod(
           service.serviceName,
           String(methodName),
-          originalMethod.bind(service)
+          originalMethod.bind(service),
         );
       }
     }
@@ -76,12 +76,16 @@ export class PerformanceMonitor {
   /**
    * Record a metric
    */
-  private static recordMetric(serviceName: string, metric: ServiceMetrics): void {
+  private static recordMetric(
+    serviceName: string,
+    metric: ServiceMetrics,
+  ): void {
     if (!PerformanceMonitor.metrics.has(serviceName)) {
       PerformanceMonitor.metrics.set(serviceName, []);
     }
 
-    const serviceMetrics = PerformanceMonitor.metrics.get(serviceName)!;
+    const serviceMetrics = PerformanceMonitor.metrics.get(serviceName);
+    if (!serviceMetrics) return;
     serviceMetrics.push(metric);
 
     // Keep only last 1000 metrics per service
@@ -122,7 +126,10 @@ export class PerformanceMonitor {
   /**
    * Get performance summary for a service
    */
-  static getPerformanceSummary(serviceName: string, timeWindow?: number): {
+  static getPerformanceSummary(
+    serviceName: string,
+    timeWindow?: number,
+  ): {
     totalRequests: number;
     successRate: number;
     averageResponseTime: number;
@@ -131,11 +138,11 @@ export class PerformanceMonitor {
     fastestOperation: ServiceMetrics | null;
   } {
     const metrics = PerformanceMonitor.getServiceMetrics(serviceName);
-    
+
     let filteredMetrics = metrics;
     if (timeWindow) {
       const cutoff = Date.now() - timeWindow;
-      filteredMetrics = metrics.filter(m => m.timestamp.getTime() > cutoff);
+      filteredMetrics = metrics.filter((m) => m.timestamp.getTime() > cutoff);
     }
 
     if (filteredMetrics.length === 0) {
@@ -149,17 +156,21 @@ export class PerformanceMonitor {
       };
     }
 
-    const successful = filteredMetrics.filter(m => m.success);
+    const successful = filteredMetrics.filter((m) => m.success);
     const totalRequests = filteredMetrics.length;
     const successRate = (successful.length / totalRequests) * 100;
-    const errorRate = ((totalRequests - successful.length) / totalRequests) * 100;
-    
-    const averageResponseTime = 
+    const errorRate =
+      ((totalRequests - successful.length) / totalRequests) * 100;
+
+    const averageResponseTime =
       filteredMetrics.reduce((sum, m) => sum + m.duration, 0) / totalRequests;
 
-    const sortedByDuration = [...filteredMetrics].sort((a, b) => a.duration - b.duration);
+    const sortedByDuration = [...filteredMetrics].sort(
+      (a, b) => a.duration - b.duration,
+    );
     const fastestOperation = sortedByDuration[0] || null;
-    const slowestOperation = sortedByDuration[sortedByDuration.length - 1] || null;
+    const slowestOperation =
+      sortedByDuration[sortedByDuration.length - 1] || null;
 
     return {
       totalRequests,
@@ -175,20 +186,29 @@ export class PerformanceMonitor {
    * Log performance summary
    */
   static logPerformanceSummary(serviceName: string, timeWindow?: number): void {
-    const summary = PerformanceMonitor.getPerformanceSummary(serviceName, timeWindow);
-    
+    const summary = PerformanceMonitor.getPerformanceSummary(
+      serviceName,
+      timeWindow,
+    );
+
     console.log(`📊 Performance Summary for ${serviceName}:`);
     console.log(`   Total Requests: ${summary.totalRequests}`);
     console.log(`   Success Rate: ${summary.successRate.toFixed(1)}%`);
     console.log(`   Error Rate: ${summary.errorRate.toFixed(1)}%`);
-    console.log(`   Average Response Time: ${summary.averageResponseTime.toFixed(0)}ms`);
-    
+    console.log(
+      `   Average Response Time: ${summary.averageResponseTime.toFixed(0)}ms`,
+    );
+
     if (summary.fastestOperation) {
-      console.log(`   Fastest: ${summary.fastestOperation.duration}ms (${summary.fastestOperation.operationName})`);
+      console.log(
+        `   Fastest: ${summary.fastestOperation.duration}ms (${summary.fastestOperation.operationName})`,
+      );
     }
-    
+
     if (summary.slowestOperation) {
-      console.log(`   Slowest: ${summary.slowestOperation.duration}ms (${summary.slowestOperation.operationName})`);
+      console.log(
+        `   Slowest: ${summary.slowestOperation.duration}ms (${summary.slowestOperation.operationName})`,
+      );
     }
   }
 }

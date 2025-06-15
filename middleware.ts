@@ -10,11 +10,17 @@ export async function middleware(request: NextRequest) {
    * Playwright starts the dev server and requires a 200 status to
    * begin the tests, so this ensures that the tests can start
    */
-  if (pathname.startsWith('/ping')) {
+  if (pathname.startsWith('/ping') || pathname.startsWith('/api/ping')) {
     return new Response('pong', { status: 200 });
   }
 
-  if (pathname.startsWith('/api/auth')) {
+  // Skip authentication for specific API routes
+  if (
+    pathname.startsWith('/api/auth') ||
+    pathname.startsWith('/api/health') ||
+    pathname.startsWith('/api/ping') ||
+    pathname === '/api/vectorstore/sources' // Allow health check for vector stores
+  ) {
     return NextResponse.next();
   }
 

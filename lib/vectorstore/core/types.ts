@@ -88,11 +88,14 @@ export interface ServiceMetrics {
 }
 
 // Generic service interface
-export interface VectorStoreService<TSearchRequest = BaseSearchRequest, TSearchResult = BaseSearchResult> {
+export interface VectorStoreService<
+  TSearchRequest = BaseSearchRequest,
+  TSearchResult = BaseSearchResult,
+> {
   readonly serviceName: string;
   readonly isEnabled: boolean;
   readonly status: ServiceStatus;
-  
+
   search(request: TSearchRequest): Promise<TSearchResult[]>;
   healthCheck(): Promise<HealthCheckResult>;
   getMetrics?(): Promise<ServiceMetrics[]>;

@@ -117,10 +117,10 @@ describe('RetryMechanism', { timeout: 10000 }, () => {
       .mockResolvedValue('success');
 
     const promise = retryMechanism.execute(mockOperation);
-    
+
     // Run all timers to completion
     await vi.runAllTimersAsync();
-    
+
     const result = await promise;
 
     expect(result).toBe('success');
@@ -132,10 +132,10 @@ describe('RetryMechanism', { timeout: 10000 }, () => {
       .fn()
       .mockRejectedValue(new Error('Unauthorized - 401'));
 
-    await expect(
-      retryMechanism.execute(mockOperation)
-    ).rejects.toThrow('Unauthorized - 401');
-    
+    await expect(retryMechanism.execute(mockOperation)).rejects.toThrow(
+      'Unauthorized - 401',
+    );
+
     expect(mockOperation).toHaveBeenCalledTimes(1);
   });
 
@@ -143,31 +143,38 @@ describe('RetryMechanism', { timeout: 10000 }, () => {
     const mockOperation = vi.fn().mockRejectedValue(new Error('network error'));
 
     const promise = retryMechanism.execute(mockOperation);
-    
+
     // Run all timers to completion
     await vi.runAllTimersAsync();
-    
+
     await expect(promise).rejects.toThrow('network error');
     expect(mockOperation).toHaveBeenCalledTimes(4); // 1 initial + 3 retries
   });
 
-  test('should timeout long-running operations', { timeout: 20000 }, async () => {
-    // Use real timers for this specific test as it's testing timeout behavior
-    vi.useRealTimers();
-    
-    const slowOperation = vi.fn().mockImplementation(() => 
-      new Promise((resolve) => {
-        setTimeout(() => resolve('never'), 10000);
-      })
-    );
+  test(
+    'should timeout long-running operations',
+    { timeout: 20000 },
+    async () => {
+      // Use real timers for this specific test as it's testing timeout behavior
+      vi.useRealTimers();
 
-    const shortTimeoutRetry = new RetryMechanism({ timeoutMs: 1000 });
+      const slowOperation = vi.fn().mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            setTimeout(() => resolve('never'), 10000);
+          }),
+      );
 
-    await expect(shortTimeoutRetry.execute(slowOperation)).rejects.toThrow('Operation timeout');
-    
-    // Re-enable fake timers for subsequent tests
-    vi.useFakeTimers();
-  });
+      const shortTimeoutRetry = new RetryMechanism({ timeoutMs: 1000 });
+
+      await expect(shortTimeoutRetry.execute(slowOperation)).rejects.toThrow(
+        'Operation timeout',
+      );
+
+      // Re-enable fake timers for subsequent tests
+      vi.useFakeTimers();
+    },
+  );
 });
 
 // ====================================
@@ -181,8 +188,8 @@ describe('CircuitBreaker', () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     circuitBreaker = new CircuitBreaker('test', {
       failureThreshold: 3,
-      recoveryTimeoutMs: 5000,  // Changed from 1000 to meet minimum
-      monitorWindowMs: 10000,   // Changed from 5000 to meet minimum
+      recoveryTimeoutMs: 5000, // Changed from 1000 to meet minimum
+      monitorWindowMs: 10000, // Changed from 5000 to meet minimum
       minimumThroughput: 2,
       successThreshold: 2,
     });
@@ -410,24 +417,25 @@ describe('FallbackManager', { timeout: 10000 }, () => {
     // Create a promise that never resolves to simulate a timeout
     let primaryResolve: any;
     vi.mocked(primaryProvider.execute).mockImplementation(
-      () => new Promise((resolve) => {
-        primaryResolve = resolve;
-        // Never call resolve to simulate hanging
-      })
+      () =>
+        new Promise((resolve) => {
+          primaryResolve = resolve;
+          // Never call resolve to simulate hanging
+        }),
     );
 
     const promise = fallbackManager.execute('test-operation', []);
-    
+
     // Advance timers to trigger fallback timeout
     await vi.advanceTimersByTimeAsync(1100);
-    
+
     const result = await promise;
 
     // Should timeout and use secondary provider
     expect(result).toBe('secondary-result');
     expect(primaryProvider.execute).toHaveBeenCalled();
     expect(secondaryProvider.execute).toHaveBeenCalled();
-    
+
     // Clean up - resolve the hanging promise
     if (primaryResolve) {
       primaryResolve('cleanup');
@@ -526,13 +534,13 @@ describe('FaultTolerantService', { timeout: 10000 }, () => {
       healthCheckIntervalMs: 60000, // Set to a high value to avoid frequent health checks in tests
       retryConfig: {
         maxRetries: 2,
-        baseDelayMs: 100,    // Changed from 50 to meet minimum
+        baseDelayMs: 100, // Changed from 50 to meet minimum
         timeoutMs: 1000,
       },
       circuitBreakerConfig: {
         failureThreshold: 2,
-        recoveryTimeoutMs: 5000,  // Changed from 500 to meet minimum
-        monitorWindowMs: 10000,   // Added to meet minimum requirement
+        recoveryTimeoutMs: 5000, // Changed from 500 to meet minimum
+        monitorWindowMs: 10000, // Added to meet minimum requirement
       },
     });
   });
@@ -565,41 +573,51 @@ describe('FaultTolerantService', { timeout: 10000 }, () => {
     expect(operation).toHaveBeenCalledTimes(2);
   });
 
-  test('should enforce service level requirements', { timeout: 20000 }, async () => {
-    const operation = vi.fn().mockResolvedValue('success');
+  test(
+    'should enforce service level requirements',
+    { timeout: 20000 },
+    async () => {
+      const operation = vi.fn().mockResolvedValue('success');
 
-    // Degrade service to level 2 by causing failures
-    const failOperation = vi.fn().mockRejectedValue(new Error('service unavailable'));
-    
-    // First failure - degrade to level 1
-    try {
-      const promise1 = faultTolerantService.execute(failOperation, { bypassRetry: true });
-      await vi.runAllTimersAsync();
-      await promise1;
-    } catch {
-      // Expected to fail
-    }
+      // Degrade service to level 2 by causing failures
+      const failOperation = vi
+        .fn()
+        .mockRejectedValue(new Error('service unavailable'));
 
-    // Second failure - degrade to level 2
-    try {
-      const promise2 = faultTolerantService.execute(failOperation, { bypassRetry: true });
-      await vi.runAllTimersAsync();
-      await promise2;
-    } catch {
-      // Expected to fail
-    }
+      // First failure - degrade to level 1
+      try {
+        const promise1 = faultTolerantService.execute(failOperation, {
+          bypassRetry: true,
+        });
+        await vi.runAllTimersAsync();
+        await promise1;
+      } catch {
+        // Expected to fail
+      }
 
-    // Operation requiring level 0 should fail
-    await expect(
-      faultTolerantService.execute(operation, { requiredServiceLevel: 0 }),
-    ).rejects.toThrow('Service degraded');
+      // Second failure - degrade to level 2
+      try {
+        const promise2 = faultTolerantService.execute(failOperation, {
+          bypassRetry: true,
+        });
+        await vi.runAllTimersAsync();
+        await promise2;
+      } catch {
+        // Expected to fail
+      }
 
-    // Operation requiring level 3 should succeed
-    const result = await faultTolerantService.execute(operation, {
-      requiredServiceLevel: 3,
-    });
-    expect(result).toBe('success');
-  });
+      // Operation requiring level 0 should fail
+      await expect(
+        faultTolerantService.execute(operation, { requiredServiceLevel: 0 }),
+      ).rejects.toThrow('Service degraded');
+
+      // Operation requiring level 3 should succeed
+      const result = await faultTolerantService.execute(operation, {
+        requiredServiceLevel: 3,
+      });
+      expect(result).toBe('success');
+    },
+  );
 
   test('should collect metrics', { timeout: 20000 }, async () => {
     const successOperation = vi.fn().mockResolvedValue('success');

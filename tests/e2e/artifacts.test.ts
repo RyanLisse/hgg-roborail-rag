@@ -19,9 +19,8 @@ test.describe('Artifacts activity', () => {
     await chatPage.sendUserMessage(
       'Help me write an essay about Silicon Valley',
     );
-    await artifactPage.isGenerationComplete();
-
-    expect(artifactPage.artifact).toBeVisible();
+    await chatPage.isGenerationComplete();
+    await artifactPage.waitForArtifactToBeReady();
 
     const assistantMessage = await chatPage.getRecentAssistantMessage();
     expect(assistantMessage.content).toBe(
@@ -37,9 +36,8 @@ test.describe('Artifacts activity', () => {
     await chatPage.sendUserMessage(
       'Help me write an essay about Silicon Valley',
     );
-    await artifactPage.isGenerationComplete();
-
-    expect(artifactPage.artifact).toBeVisible();
+    await chatPage.isGenerationComplete();
+    await artifactPage.waitForArtifactToBeReady();
 
     const assistantMessage = await chatPage.getRecentAssistantMessage();
     expect(assistantMessage.content).toBe(
@@ -56,11 +54,10 @@ test.describe('Artifacts activity', () => {
     await chatPage.sendUserMessage(
       'Help me write an essay about Silicon Valley',
     );
-    await artifactPage.isGenerationComplete();
+    await chatPage.isGenerationComplete();
+    await artifactPage.waitForArtifactToBeReady();
 
-    expect(artifactPage.artifact).toBeVisible();
-
-    const assistantMessage = await artifactPage.getRecentAssistantMessage();
+    const assistantMessage = await chatPage.getRecentAssistantMessage();
     expect(assistantMessage.content).toBe(
       'A document was created and is now visible to the user.',
     );

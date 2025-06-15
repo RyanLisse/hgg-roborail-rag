@@ -27,6 +27,29 @@ export class ArtifactPage {
     await response.finished();
   }
 
+  async waitForArtifactToBeReady() {
+    // Wait for the artifact to be visible
+    await expect(this.artifact).toBeVisible({ timeout: 15000 });
+
+    // Wait for the artifact to finish streaming (no more loading indicators)
+    await this.page.waitForFunction(
+      () => {
+        const artifact = document.querySelector('[data-testid="artifact"]');
+        if (!artifact) return false;
+
+        // Check if there are any loading indicators still active
+        const loadingElements = artifact.querySelectorAll(
+          '.animate-pulse, .animate-spin',
+        );
+        return loadingElements.length === 0;
+      },
+      { timeout: 10000 },
+    );
+
+    // Extra buffer for content to fully populate
+    await this.page.waitForTimeout(1000);
+  }
+
   async sendUserMessage(message: string) {
     await this.artifact.getByTestId('multimodal-input').click();
     await this.artifact.getByTestId('multimodal-input').fill(message);

@@ -64,7 +64,10 @@ export type RerankingResult = z.infer<typeof RerankingResult>;
 export type FusionScore = z.infer<typeof FusionScore>;
 
 // Re-export types from relevance-scoring for convenience
-export type { RerankingRequest, HybridSearchRequest } from './relevance-scoring';
+export type {
+  RerankingRequest,
+  HybridSearchRequest,
+} from './relevance-scoring';
 
 /**
  * Advanced document reranking engine
@@ -77,12 +80,16 @@ export class DocumentRerankingEngine {
   /**
    * Rerank documents using multi-factor relevance scoring
    */
-  static async rerankDocuments(request: RerankingRequest): Promise<RerankingResult> {
+  static async rerankDocuments(
+    request: RerankingRequest,
+  ): Promise<RerankingResult> {
     const startTime = Date.now();
     const validatedRequest = RerankingRequest.parse(request);
-    
+
     const config = RerankingConfig.parse({
-      strategy: validatedRequest.enableCrossEncoder ? 'cross_encoder' : 'relevance_only',
+      strategy: validatedRequest.enableCrossEncoder
+        ? 'cross_encoder'
+        : 'relevance_only',
       weights: validatedRequest.weights,
       maxCandidates: Math.min(validatedRequest.documents.length, 50),
       enableDiversification: true,
@@ -97,22 +104,29 @@ export class DocumentRerankingEngine {
 
     try {
       // Step 1: Calculate relevance scores for all documents
-      const candidateDocuments = validatedRequest.documents.slice(0, config.maxCandidates);
-      
+      const candidateDocuments = validatedRequest.documents.slice(
+        0,
+        config.maxCandidates,
+      );
+
       scoredDocuments = await DocumentRerankingEngine.scoreDocuments(
         candidateDocuments,
         validatedRequest.query,
         validatedRequest.queryContext,
-        config
+        config,
       );
 
       // Step 2: Apply cross-encoder reranking if enabled
-      if (config.strategy === 'cross_encoder' || config.strategy === 'neural_rerank') {
-        scoredDocuments = await DocumentRerankingEngine.applyCrossEncoderReranking(
-          scoredDocuments,
-          validatedRequest.query,
-          config
-        );
+      if (
+        config.strategy === 'cross_encoder' ||
+        config.strategy === 'neural_rerank'
+      ) {
+        scoredDocuments =
+          await DocumentRerankingEngine.applyCrossEncoderReranking(
+            scoredDocuments,
+            validatedRequest.query,
+            config,
+          );
       }
 
       // Step 3: Apply diversification if enabled
@@ -120,9 +134,9 @@ export class DocumentRerankingEngine {
       if (config.enableDiversification) {
         const diversifiedDocs = DocumentRerankingEngine.applyDiversification(
           scoredDocuments,
-          config.diversityThreshold || 0.8
+          config.diversityThreshold || 0.8,
         );
-        
+
         if (diversifiedDocs.length !== scoredDocuments.length) {
           scoredDocuments = diversifiedDocs;
           diversificationApplied = true;
@@ -131,7 +145,8 @@ export class DocumentRerankingEngine {
 
       // Step 4: Apply temporal decay if enabled
       if (config.temporalDecay) {
-        scoredDocuments = DocumentRerankingEngine.applyTemporalDecay(scoredDocuments);
+        scoredDocuments =
+          DocumentRerankingEngine.applyTemporalDecay(scoredDocuments);
       }
 
       // Step 5: Final ranking and limit results
@@ -146,9 +161,9 @@ export class DocumentRerankingEngine {
       // Step 6: Collect debug information
       if (config.debugMode) {
         debugInfo = {
-          originalOrder: validatedRequest.documents.map(d => d.id),
-          rerankedOrder: scoredDocuments.map(d => d.id),
-          scoringBreakdown: scoredDocuments.map(d => ({
+          originalOrder: validatedRequest.documents.map((d) => d.id),
+          rerankedOrder: scoredDocuments.map((d) => d.id),
+          scoringBreakdown: scoredDocuments.map((d) => ({
             id: d.id,
             factors: d.factors,
             weights: d.weights,
@@ -168,14 +183,13 @@ export class DocumentRerankingEngine {
         diversificationApplied,
         debugInfo: config.debugMode ? debugInfo : undefined,
       });
-
     } catch (error) {
       console.error('Document reranking failed:', error);
-      
+
       // Fallback: return original order with basic scoring
       const fallbackDocuments = validatedRequest.documents
         .slice(0, validatedRequest.maxResults)
-        .map((doc, index) => 
+        .map((doc, index) =>
           ScoredDocument.parse({
             ...doc,
             relevanceScore: doc.similarity || 0.5,
@@ -192,9 +206,11 @@ export class DocumentRerankingEngine {
             scoringMetadata: {
               scoringStrategy: 'fallback',
               processingTime: Date.now() - startTime,
-              debugInfo: { error: error instanceof Error ? error.message : 'Unknown error' },
+              debugInfo: {
+                error: error instanceof Error ? error.message : 'Unknown error',
+              },
             },
-          })
+          }),
         );
 
       return RerankingResult.parse({
@@ -223,7 +239,7 @@ export class DocumentRerankingEngine {
     }>,
     query: string,
     queryContext?: any,
-    config: Partial<RerankingConfig> = {}
+    config: Partial<RerankingConfig> = {},
   ): Promise<ScoredDocument[]> {
     const weights = config.weights || ScoringWeights.parse({});
     const scoredDocuments: ScoredDocument[] = [];
@@ -235,7 +251,7 @@ export class DocumentRerankingEngine {
         const scoringResult = await scoringEngine.scoreAndRankDocuments(
           query,
           [doc],
-          queryContext
+          queryContext,
         );
 
         const scoreData = scoringResult.documents[0];
@@ -248,7 +264,8 @@ export class DocumentRerankingEngine {
           semanticMatch: 0.5,
           userFeedback: 0.5,
         };
-        const relevanceScore = scoreData?.relevanceScore || doc.similarity || 0.5;
+        const relevanceScore =
+          scoreData?.relevanceScore || doc.similarity || 0.5;
 
         // Create scored document
         const scoredDoc = ScoredDocument.parse({
@@ -273,32 +290,34 @@ export class DocumentRerankingEngine {
         scoredDocuments.push(scoredDoc);
       } catch (error) {
         console.warn(`Failed to score document ${doc.id}:`, error);
-        
+
         // Add fallback scored document
-        scoredDocuments.push(ScoredDocument.parse({
-          id: doc.id,
-          content: doc.content,
-          metadata: doc.metadata,
-          source: doc.source || 'unknown',
-          createdAt: doc.createdAt,
-          updatedAt: doc.updatedAt,
-          relevanceScore: doc.similarity || 0.5,
-          factors: {
-            similarity: doc.similarity || 0.5,
-            recency: 0.5,
-            authority: 0.5,
-            contextRelevance: 0.5,
-            keywordMatch: 0.5,
-            semanticMatch: 0.5,
-          },
-          weights,
-          rank: 0,
-          scoringMetadata: {
-            scoringStrategy: 'fallback',
-            processingTime: Date.now(),
-            debugInfo: { error: 'Scoring failed, using fallback' },
-          },
-        }));
+        scoredDocuments.push(
+          ScoredDocument.parse({
+            id: doc.id,
+            content: doc.content,
+            metadata: doc.metadata,
+            source: doc.source || 'unknown',
+            createdAt: doc.createdAt,
+            updatedAt: doc.updatedAt,
+            relevanceScore: doc.similarity || 0.5,
+            factors: {
+              similarity: doc.similarity || 0.5,
+              recency: 0.5,
+              authority: 0.5,
+              contextRelevance: 0.5,
+              keywordMatch: 0.5,
+              semanticMatch: 0.5,
+            },
+            weights,
+            rank: 0,
+            scoringMetadata: {
+              scoringStrategy: 'fallback',
+              processingTime: Date.now(),
+              debugInfo: { error: 'Scoring failed, using fallback' },
+            },
+          }),
+        );
       }
     }
 
@@ -311,22 +330,23 @@ export class DocumentRerankingEngine {
   private static async applyCrossEncoderReranking(
     documents: ScoredDocument[],
     query: string,
-    config: RerankingConfig
+    config: RerankingConfig,
   ): Promise<ScoredDocument[]> {
     // In production, this would use a real cross-encoder model like sentence-transformers
     // For now, we'll implement a simplified version that improves upon basic similarity
-    
+
     const rerankedDocuments = [...documents];
-    
+
     for (let i = 0; i < rerankedDocuments.length; i++) {
       const doc = rerankedDocuments[i];
-      
+
       // Simulate cross-encoder scoring with enhanced semantic analysis
-      const crossEncoderScore = DocumentRerankingEngine.simulateCrossEncoderScore(doc.content, query);
-      
+      const crossEncoderScore =
+        DocumentRerankingEngine.simulateCrossEncoderScore(doc.content, query);
+
       // Combine original relevance score with cross-encoder score
-      const combinedScore = (doc.relevanceScore * 0.7) + (crossEncoderScore * 0.3);
-      
+      const combinedScore = doc.relevanceScore * 0.7 + crossEncoderScore * 0.3;
+
       rerankedDocuments[i] = {
         ...doc,
         relevanceScore: combinedScore,
@@ -340,32 +360,37 @@ export class DocumentRerankingEngine {
         },
       };
     }
-    
-    return rerankedDocuments.sort((a, b) => b.relevanceScore - a.relevanceScore);
+
+    return rerankedDocuments.sort(
+      (a, b) => b.relevanceScore - a.relevanceScore,
+    );
   }
 
   /**
    * Simulate cross-encoder scoring (replace with real model in production)
    */
-  private static simulateCrossEncoderScore(content: string, query: string): number {
+  private static simulateCrossEncoderScore(
+    content: string,
+    query: string,
+  ): number {
     const contentLower = content.toLowerCase();
     const queryLower = query.toLowerCase();
-    
+
     // Enhanced semantic matching
     let score = 0;
-    
+
     // 1. Exact phrase matching
     if (contentLower.includes(queryLower)) {
       score += 0.4;
     }
-    
+
     // 2. Word order preservation
     const queryWords = queryLower.split(/\s+/);
     const contentWords = contentLower.split(/\s+/);
-    
+
     let consecutiveMatches = 0;
     let maxConsecutive = 0;
-    
+
     for (let i = 0; i < contentWords.length - queryWords.length + 1; i++) {
       consecutiveMatches = 0;
       for (let j = 0; j < queryWords.length; j++) {
@@ -377,22 +402,27 @@ export class DocumentRerankingEngine {
       }
       maxConsecutive = Math.max(maxConsecutive, consecutiveMatches);
     }
-    
+
     score += (maxConsecutive / queryWords.length) * 0.3;
-    
+
     // 3. Semantic relationships (simplified)
     const semanticPairs = DocumentRerankingEngine.getSemanticPairs();
     for (const [term1, term2] of semanticPairs) {
-      if ((queryLower.includes(term1) && contentLower.includes(term2)) ||
-          (queryLower.includes(term2) && contentLower.includes(term1))) {
+      if (
+        (queryLower.includes(term1) && contentLower.includes(term2)) ||
+        (queryLower.includes(term2) && contentLower.includes(term1))
+      ) {
         score += 0.1;
       }
     }
-    
+
     // 4. Context window analysis
-    const contextScore = DocumentRerankingEngine.analyzeContextWindow(contentLower, queryLower);
+    const contextScore = DocumentRerankingEngine.analyzeContextWindow(
+      contentLower,
+      queryLower,
+    );
     score += contextScore * 0.2;
-    
+
     return Math.min(score, 1.0);
   }
 
@@ -420,20 +450,20 @@ export class DocumentRerankingEngine {
   private static analyzeContextWindow(content: string, query: string): number {
     const queryWords = query.split(/\s+/);
     const sentences = content.split(/[.!?]+/);
-    
+
     let maxContextScore = 0;
-    
+
     for (const sentence of sentences) {
       const sentenceLower = sentence.toLowerCase();
       let sentenceScore = 0;
       let wordsFound = 0;
-      
+
       for (const word of queryWords) {
         if (sentenceLower.includes(word)) {
           wordsFound++;
         }
       }
-      
+
       if (wordsFound > 0) {
         sentenceScore = wordsFound / queryWords.length;
         // Boost score if multiple query words appear in same sentence
@@ -441,10 +471,10 @@ export class DocumentRerankingEngine {
           sentenceScore *= 1.5;
         }
       }
-      
+
       maxContextScore = Math.max(maxContextScore, sentenceScore);
     }
-    
+
     return maxContextScore;
   }
 
@@ -453,63 +483,74 @@ export class DocumentRerankingEngine {
    */
   private static applyDiversification(
     documents: ScoredDocument[],
-    threshold: number
+    threshold: number,
   ): ScoredDocument[] {
     if (documents.length <= 1) return documents;
-    
+
     const diversifiedDocs: ScoredDocument[] = [documents[0]]; // Always include top result
-    
+
     for (let i = 1; i < documents.length; i++) {
       const candidate = documents[i];
       let shouldInclude = true;
-      
+
       // Check similarity with already selected documents
       for (const selected of diversifiedDocs) {
-        const similarity = DocumentRerankingEngine.calculateContentSimilarity(candidate.content, selected.content);
-        
+        const similarity = DocumentRerankingEngine.calculateContentSimilarity(
+          candidate.content,
+          selected.content,
+        );
+
         if (similarity > threshold) {
           shouldInclude = false;
           break;
         }
       }
-      
+
       if (shouldInclude) {
         diversifiedDocs.push(candidate);
       }
-      
+
       // Limit diversified results
       if (diversifiedDocs.length >= 10) break;
     }
-    
+
     return diversifiedDocs;
   }
 
   /**
    * Calculate content similarity for diversification
    */
-  private static calculateContentSimilarity(content1: string, content2: string): number {
+  private static calculateContentSimilarity(
+    content1: string,
+    content2: string,
+  ): number {
     const words1 = new Set(content1.toLowerCase().split(/\s+/));
     const words2 = new Set(content2.toLowerCase().split(/\s+/));
-    
-    const intersection = new Set([...words1].filter(word => words2.has(word)));
+
+    const intersection = new Set(
+      [...words1].filter((word) => words2.has(word)),
+    );
     const union = new Set([...words1, ...words2]);
-    
+
     return intersection.size / union.size; // Jaccard similarity
   }
 
   /**
    * Apply temporal decay to boost recent documents
    */
-  private static applyTemporalDecay(documents: ScoredDocument[]): ScoredDocument[] {
+  private static applyTemporalDecay(
+    documents: ScoredDocument[],
+  ): ScoredDocument[] {
     const now = new Date();
-    
-    return documents.map(doc => {
+
+    return documents.map((doc) => {
       let temporalBoost = 1.0;
-      
+
       const relevantDate = doc.updatedAt || doc.createdAt;
       if (relevantDate) {
-        const ageInDays = (now.getTime() - relevantDate.getTime()) / (1000 * 60 * 60 * 24);
-        
+        const ageInDays =
+          (now.getTime() - relevantDate.getTime()) / (1000 * 60 * 60 * 24);
+
         // Apply temporal decay: newer documents get a boost
         if (ageInDays <= 7) temporalBoost = 1.1;
         else if (ageInDays <= 30) temporalBoost = 1.05;
@@ -517,9 +558,9 @@ export class DocumentRerankingEngine {
         else if (ageInDays <= 365) temporalBoost = 0.95;
         else temporalBoost = 0.9;
       }
-      
+
       const adjustedScore = Math.min(doc.relevanceScore * temporalBoost, 1.0);
-      
+
       return {
         ...doc,
         relevanceScore: adjustedScore,
@@ -536,15 +577,21 @@ export class DocumentRerankingEngine {
    */
   static fuseHybridResults(request: HybridSearchRequest): FusionScore[] {
     const validatedRequest = HybridSearchRequest.parse(request);
-    const fusionWeights = validatedRequest.fusionWeights || { vectorWeight: 0.7, keywordWeight: 0.3 };
-    
+    const fusionWeights = validatedRequest.fusionWeights || {
+      vectorWeight: 0.7,
+      keywordWeight: 0.3,
+    };
+
     // Create document index for merging
-    const documentMap = new Map<string, {
-      vectorScore?: number;
-      keywordScore?: number;
-      document?: any;
-    }>();
-    
+    const documentMap = new Map<
+      string,
+      {
+        vectorScore?: number;
+        keywordScore?: number;
+        document?: any;
+      }
+    >();
+
     // Add vector results
     for (const result of validatedRequest.vectorResults) {
       documentMap.set(result.id, {
@@ -552,7 +599,7 @@ export class DocumentRerankingEngine {
         document: result,
       });
     }
-    
+
     // Add keyword results
     if (validatedRequest.keywordResults) {
       for (const result of validatedRequest.keywordResults) {
@@ -564,28 +611,30 @@ export class DocumentRerankingEngine {
         });
       }
     }
-    
+
     // Calculate fusion scores
     const fusionScores: FusionScore[] = [];
-    
+
     for (const [docId, scores] of documentMap.entries()) {
       const vectorScore = scores.vectorScore || 0;
       const keywordScore = scores.keywordScore || 0;
-      
+
       // Reciprocal Rank Fusion (RRF) with weighted combination
-      const finalScore = 
-        (vectorScore * fusionWeights.vectorWeight) + 
-        (keywordScore * fusionWeights.keywordWeight);
-      
-      fusionScores.push(FusionScore.parse({
-        documentId: docId,
-        vectorScore,
-        keywordScore,
-        finalScore,
-        rank: 0, // Will be set after sorting
-      }));
+      const finalScore =
+        vectorScore * fusionWeights.vectorWeight +
+        keywordScore * fusionWeights.keywordWeight;
+
+      fusionScores.push(
+        FusionScore.parse({
+          documentId: docId,
+          vectorScore,
+          keywordScore,
+          finalScore,
+          rank: 0, // Will be set after sorting
+        }),
+      );
     }
-    
+
     // Sort by final score and assign ranks
     return fusionScores
       .sort((a, b) => b.finalScore - a.finalScore)
@@ -598,40 +647,55 @@ export class DocumentRerankingEngine {
   /**
    * Learn user preferences from feedback
    */
-  static updateUserPreferences(userId: string, feedback: {
-    queryType: string;
-    preferredFactors: string[];
-    adjustments: Partial<RelevanceWeights>;
-  }): void {
-    const currentPrefs = DocumentRerankingEngine.userPreferences.get(userId) || ScoringWeights.parse({});
-    
+  static updateUserPreferences(
+    userId: string,
+    feedback: {
+      queryType: string;
+      preferredFactors: string[];
+      adjustments: Partial<RelevanceWeights>;
+    },
+  ): void {
+    const currentPrefs =
+      DocumentRerankingEngine.userPreferences.get(userId) ||
+      ScoringWeights.parse({});
+
     // Apply feedback adjustments
     const updatedPrefs = { ...currentPrefs };
-    
+
     for (const [factor, adjustment] of Object.entries(feedback.adjustments)) {
       if (factor in updatedPrefs && typeof adjustment === 'number') {
-        (updatedPrefs as any)[factor] = Math.max(0, Math.min(1, 
-          (updatedPrefs as any)[factor] + adjustment
-        ));
+        (updatedPrefs as any)[factor] = Math.max(
+          0,
+          Math.min(1, (updatedPrefs as any)[factor] + adjustment),
+        );
       }
     }
-    
+
     // Normalize weights to ensure they sum to approximately 1
-    const totalWeight = Object.values(updatedPrefs).reduce((sum, weight) => sum + weight, 0);
+    const totalWeight = Object.values(updatedPrefs).reduce(
+      (sum, weight) => sum + weight,
+      0,
+    );
     if (totalWeight > 0) {
       for (const key of Object.keys(updatedPrefs)) {
         (updatedPrefs as any)[key] = (updatedPrefs as any)[key] / totalWeight;
       }
     }
-    
-    DocumentRerankingEngine.userPreferences.set(userId, ScoringWeights.parse(updatedPrefs));
+
+    DocumentRerankingEngine.userPreferences.set(
+      userId,
+      ScoringWeights.parse(updatedPrefs),
+    );
   }
 
   /**
    * Get user-specific relevance weights
    */
   static getUserPreferences(userId: string): RelevanceWeights {
-    return DocumentRerankingEngine.userPreferences.get(userId) || ScoringWeights.parse({});
+    return (
+      DocumentRerankingEngine.userPreferences.get(userId) ||
+      ScoringWeights.parse({})
+    );
   }
 
   /**
@@ -671,9 +735,9 @@ export class LearningToRankEngine {
       clicked: boolean;
       timeSpent: number;
       rating?: number;
-    }>
+    }>,
   ): void {
-    const features = documents.map(doc => ({
+    const features = documents.map((doc) => ({
       documentId: doc.id,
       features: [
         doc.factors.similarity,
@@ -691,7 +755,7 @@ export class LearningToRankEngine {
     if (!LearningToRankEngine.trainingData.has(queryHash)) {
       LearningToRankEngine.trainingData.set(queryHash, []);
     }
-    
+
     const trainingData = LearningToRankEngine.trainingData.get(queryHash);
     if (trainingData) {
       trainingData.push(...features);
@@ -708,9 +772,9 @@ export class LearningToRankEngine {
       clicked: boolean;
       timeSpent: number;
       rating?: number;
-    }>
+    }>,
   ): number {
-    const interaction = interactions.find(i => i.documentId === documentId);
+    const interaction = interactions.find((i) => i.documentId === documentId);
     if (!interaction) return 0;
 
     let label = 0;
@@ -729,7 +793,7 @@ export class LearningToRankEngine {
     let hash = 0;
     for (let i = 0; i < query.length; i++) {
       const char = query.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash; // Convert to 32-bit integer
     }
     return hash.toString();
@@ -744,9 +808,10 @@ export class LearningToRankEngine {
     avgSamplesPerQuery: number;
   } {
     const totalQueries = LearningToRankEngine.trainingData.size;
-    const totalSamples = Array.from(LearningToRankEngine.trainingData.values())
-      .reduce((sum, samples: any[]) => sum + samples.length, 0);
-    
+    const totalSamples = Array.from(
+      LearningToRankEngine.trainingData.values(),
+    ).reduce((sum, samples: any[]) => sum + samples.length, 0);
+
     return {
       totalQueries,
       totalSamples,

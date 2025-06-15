@@ -1,13 +1,13 @@
-import { NextResponse } from 'next/server';
 import { checkEnvironment, logEnvironmentStatus } from '@/lib/utils/env-check';
+import { withApiErrorHandling, ApiResponses } from '@/lib/api/error-handling';
 
-export async function GET() {
-  try {
+export const GET = withApiErrorHandling(
+  async () => {
     // Log environment status for debugging
     logEnvironmentStatus();
-    
+
     const envStatus = checkEnvironment();
-    
+
     // Test database connection if available
     let dbStatus = 'not_configured';
     if (process.env.POSTGRES_URL) {
@@ -22,7 +22,7 @@ export async function GET() {
       }
     }
 
-    return NextResponse.json({
+    return ApiResponses.success({
       status: 'ok',
       timestamp: new Date().toISOString(),
       environment: {
@@ -35,18 +35,14 @@ export async function GET() {
       services: {
         database: dbStatus,
         redis: process.env.REDIS_URL ? 'configured' : 'not_configured',
-        blob_storage: process.env.BLOB_READ_WRITE_TOKEN ? 'configured' : 'not_configured',
+        blob_storage: process.env.BLOB_READ_WRITE_TOKEN
+          ? 'configured'
+          : 'not_configured',
       },
     });
-  } catch (error) {
-    console.error('Health check failed:', error);
-    return NextResponse.json(
-      {
-        status: 'error',
-        timestamp: new Date().toISOString(),
-        error: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
-    );
-  }
-}
+  },
+  {
+    requireAuth: false,
+    requireRateLimit: false,
+  },
+);

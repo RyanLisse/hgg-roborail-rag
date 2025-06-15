@@ -1,20 +1,20 @@
 import 'server-only';
 
 import { z } from 'zod';
-import { 
-  ErrorClassifier, 
-  RetryMechanism, 
-  CircuitBreaker, 
-  type ClassifiedError, 
+import {
+  ErrorClassifier,
+  RetryMechanism,
+  CircuitBreaker,
+  type ClassifiedError,
   ErrorCategory,
   RetryConfig,
-  CircuitBreakerConfig 
+  CircuitBreakerConfig,
 } from './error-handling';
-import { 
-  FallbackManager, 
-  type ServiceProvider, 
-  FallbackConfig, 
-  GracefulDegradation 
+import {
+  FallbackManager,
+  type ServiceProvider,
+  FallbackConfig,
+  GracefulDegradation,
 } from './fallback';
 
 // ====================================
@@ -66,16 +66,19 @@ export class FaultTolerantService<T> {
 
   constructor(
     private serviceName: string,
-    config?: Partial<FaultToleranceConfig>
+    config?: Partial<FaultToleranceConfig>,
   ) {
     this.config = FaultToleranceConfig.parse(config || {});
-    
+
     // Initialize components
     this.retryMechanism = new RetryMechanism(this.config.retryConfig);
-    this.circuitBreaker = new CircuitBreaker(serviceName, this.config.circuitBreakerConfig);
+    this.circuitBreaker = new CircuitBreaker(
+      serviceName,
+      this.config.circuitBreakerConfig,
+    );
     this.fallbackManager = new FallbackManager<T>(this.config.fallbackConfig);
     this.gracefulDegradation = new GracefulDegradation();
-    
+
     // Initialize metrics
     this.metrics = {
       totalRequests: 0,
@@ -112,18 +115,24 @@ export class FaultTolerantService<T> {
       bypassCircuitBreaker?: boolean;
       bypassRetry?: boolean;
       requiredServiceLevel?: number;
-    }
+    },
   ): Promise<R> {
     const startTime = Date.now();
     const operationName = context?.operationName || 'unknown_operation';
-    
+
     this.metrics.totalRequests++;
 
     try {
       // Check service degradation level
       if (context?.requiredServiceLevel !== undefined) {
-        if (!this.gracefulDegradation.canPerformOperation(context.requiredServiceLevel)) {
-          throw new Error(`Service degraded: operation requires level ${context.requiredServiceLevel}, current level is ${this.gracefulDegradation.getCurrentLevel()}`);
+        if (
+          !this.gracefulDegradation.canPerformOperation(
+            context.requiredServiceLevel,
+          )
+        ) {
+          throw new Error(
+            `Service degraded: operation requires level ${context.requiredServiceLevel}, current level is ${this.gracefulDegradation.getCurrentLevel()}`,
+          );
         }
       }
 
@@ -134,10 +143,10 @@ export class FaultTolerantService<T> {
         result = await this.circuitBreaker.execute(async () => {
           // Apply retry mechanism if enabled
           if (this.config.enableRetry && !context?.bypassRetry) {
-            return await this.retryMechanism.execute(operation, { 
+            return await this.retryMechanism.execute(operation, {
               operationName,
               serviceName: this.serviceName,
-              ...context 
+              ...context,
             });
           } else {
             return await operation();
@@ -146,10 +155,10 @@ export class FaultTolerantService<T> {
       } else {
         // Apply retry mechanism if enabled
         if (this.config.enableRetry && !context?.bypassRetry) {
-          result = await this.retryMechanism.execute(operation, { 
+          result = await this.retryMechanism.execute(operation, {
             operationName,
             serviceName: this.serviceName,
-            ...context 
+            ...context,
           });
         } else {
           result = await operation();
@@ -159,41 +168,46 @@ export class FaultTolerantService<T> {
       // Record success metrics
       this.metrics.successfulRequests++;
       this.updateLatencyMetrics(Date.now() - startTime);
-      
+
       // Attempt service recovery on success
       if (this.gracefulDegradation.isDegraded()) {
         this.gracefulDegradation.recover();
       }
 
       return result;
-
     } catch (error) {
       this.metrics.failedRequests++;
-      const classifiedError = ErrorClassifier.classify(error instanceof Error ? error : new Error(String(error)));
-      
+      const classifiedError = ErrorClassifier.classify(
+        error instanceof Error ? error : new Error(String(error)),
+      );
+
       // Update error metrics
       this.updateErrorMetrics(classifiedError);
-      
+
       // Check if we should degrade service
       this.handleServiceDegradation(classifiedError, operationName);
-      
+
       // Try fallback if enabled and error is suitable for fallback
-      if (this.config.enableFallback && this.shouldUseFallback(classifiedError)) {
+      if (
+        this.config.enableFallback &&
+        this.shouldUseFallback(classifiedError)
+      ) {
         try {
-          console.log(`🔄 Attempting fallback for ${operationName} due to ${classifiedError.category}`);
-          
+          console.log(
+            `🔄 Attempting fallback for ${operationName} due to ${classifiedError.category}`,
+          );
+
           // Use fallback manager to try alternative approaches
           const fallbackResult = await this.fallbackManager.execute(
             operationName,
             [], // No args for now - could be enhanced
-            context?.cacheKey
+            context?.cacheKey,
           );
-          
+
           this.metrics.fallbackActivations++;
           console.log(`✅ Fallback succeeded for ${operationName}`);
-          
+
           return fallbackResult as R;
-          
         } catch (fallbackError) {
           console.log(`❌ Fallback also failed for ${operationName}`);
           // Continue to throw original error
@@ -212,13 +226,17 @@ export class FaultTolerantService<T> {
   async executeWithProviders(
     operationName: string,
     args: any[] = [],
-    cacheKey?: string
+    cacheKey?: string,
   ): Promise<T> {
     const startTime = Date.now();
     this.metrics.totalRequests++;
 
     try {
-      const result = await this.fallbackManager.execute(operationName, args, cacheKey);
+      const result = await this.fallbackManager.execute(
+        operationName,
+        args,
+        cacheKey,
+      );
       this.metrics.successfulRequests++;
       this.updateLatencyMetrics(Date.now() - startTime);
       return result;
@@ -243,10 +261,11 @@ export class FaultTolerantService<T> {
   }> {
     const fallbackHealth = await this.fallbackManager.healthCheck();
     const circuitBreakerMetrics = this.circuitBreaker.getMetrics();
-    
-    const overallHealthy = fallbackHealth.healthy && 
-                           circuitBreakerMetrics.state !== 'OPEN' &&
-                           !this.gracefulDegradation.isDegraded();
+
+    const overallHealthy =
+      fallbackHealth.healthy &&
+      circuitBreakerMetrics.state !== 'OPEN' &&
+      !this.gracefulDegradation.isDegraded();
 
     return {
       serviceName: this.serviceName,
@@ -272,7 +291,7 @@ export class FaultTolerantService<T> {
   reset(): void {
     this.gracefulDegradation.reset();
     this.fallbackManager.clearCache();
-    
+
     // Reset metrics
     this.metrics = {
       totalRequests: 0,
@@ -314,7 +333,10 @@ export class FaultTolerantService<T> {
     return fallbackableCategories.includes(classifiedError.category);
   }
 
-  private handleServiceDegradation(classifiedError: ClassifiedError, operationName: string): void {
+  private handleServiceDegradation(
+    classifiedError: ClassifiedError,
+    operationName: string,
+  ): void {
     if (!this.config.enableGracefulDegradation) {
       return;
     }
@@ -333,17 +355,19 @@ export class FaultTolerantService<T> {
 
   private updateErrorMetrics(classifiedError: ClassifiedError): void {
     const category = classifiedError.category.toString();
-    this.metrics.errorsByCategory[category] = (this.metrics.errorsByCategory[category] || 0) + 1;
+    this.metrics.errorsByCategory[category] =
+      (this.metrics.errorsByCategory[category] || 0) + 1;
     this.metrics.lastUpdated = Date.now();
   }
 
   private updateLatencyMetrics(latency: number): void {
     // Simple moving average
     const alpha = 0.1; // Smoothing factor
-    this.metrics.averageLatency = this.metrics.averageLatency === 0 
-      ? latency 
-      : (alpha * latency) + ((1 - alpha) * this.metrics.averageLatency);
-    
+    this.metrics.averageLatency =
+      this.metrics.averageLatency === 0
+        ? latency
+        : alpha * latency + (1 - alpha) * this.metrics.averageLatency;
+
     this.metrics.lastUpdated = Date.now();
   }
 
@@ -359,7 +383,7 @@ export class FaultTolerantService<T> {
 
   private async performPeriodicHealthCheck(): Promise<void> {
     const health = await this.healthCheck();
-    
+
     // Log health status periodically
     if (!health.healthy) {
       console.warn(`⚠️ Service ${this.serviceName} health check failed:`, {
@@ -387,7 +411,7 @@ export class FaultToleranceFactory {
 
   static createService<T>(
     serviceName: string,
-    config?: Partial<FaultToleranceConfig>
+    config?: Partial<FaultToleranceConfig>,
   ): FaultTolerantService<T> {
     const existingService = FaultToleranceFactory.services.get(serviceName);
     if (existingService) {
@@ -413,25 +437,29 @@ export class FaultToleranceFactory {
     timestamp: number;
   }> {
     const serviceHealthChecks = await Promise.all(
-      Array.from(FaultToleranceFactory.services.entries()).map(async ([name, service]) => {
-        try {
-          const health = await service.healthCheck();
-          return {
-            name,
-            healthy: health.healthy,
-            status: health,
-          };
-        } catch (error) {
-          return {
-            name,
-            healthy: false,
-            status: { error: error instanceof Error ? error.message : String(error) },
-          };
-        }
-      })
+      Array.from(FaultToleranceFactory.services.entries()).map(
+        async ([name, service]) => {
+          try {
+            const health = await service.healthCheck();
+            return {
+              name,
+              healthy: health.healthy,
+              status: health,
+            };
+          } catch (error) {
+            return {
+              name,
+              healthy: false,
+              status: {
+                error: error instanceof Error ? error.message : String(error),
+              },
+            };
+          }
+        },
+      ),
     );
 
-    const overallHealthy = serviceHealthChecks.every(s => s.healthy);
+    const overallHealthy = serviceHealthChecks.every((s) => s.healthy);
 
     return {
       healthy: overallHealthy,
@@ -460,11 +488,14 @@ export class FaultToleranceFactory {
 
 export function withFaultTolerance<T extends any[], R>(
   serviceName: string,
-  config?: Partial<FaultToleranceConfig>
+  config?: Partial<FaultToleranceConfig>,
 ) {
   return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
     const originalMethod = descriptor.value;
-    const faultTolerantService = FaultToleranceFactory.createService<R>(serviceName, config);
+    const faultTolerantService = FaultToleranceFactory.createService<R>(
+      serviceName,
+      config,
+    );
 
     descriptor.value = async function (...args: T): Promise<R> {
       return faultTolerantService.execute(
@@ -472,7 +503,7 @@ export function withFaultTolerance<T extends any[], R>(
         {
           operationName: `${target.constructor.name}.${propertyKey}`,
           cacheKey: `${serviceName}:${propertyKey}:${JSON.stringify(args).slice(0, 100)}`,
-        }
+        },
       );
     };
 
@@ -488,7 +519,7 @@ export {
   type ClassifiedError,
   ErrorCategory,
   type RetryConfig,
-  type CircuitBreakerConfig
+  type CircuitBreakerConfig,
 } from './error-handling';
 
 export type {

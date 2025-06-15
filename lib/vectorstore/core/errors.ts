@@ -10,7 +10,7 @@ export class VectorStoreError extends Error {
     message: string,
     type: ErrorType = ErrorTypeEnum.UNKNOWN,
     retryable = false,
-    suggestedDelay?: number
+    suggestedDelay?: number,
   ) {
     super(message);
     this.name = 'VectorStoreError';
@@ -26,7 +26,7 @@ export class VectorStoreErrorHandler {
    */
   static classify(error: Error): ClassifiedError {
     const message = error.message.toLowerCase();
-    
+
     // Network errors
     if (
       message.includes('network') ||
@@ -137,7 +137,11 @@ export class VectorStoreErrorHandler {
   /**
    * Determines if an error should trigger a retry
    */
-  static shouldRetry(error: ClassifiedError, attempt: number, maxRetries: number): boolean {
+  static shouldRetry(
+    error: ClassifiedError,
+    attempt: number,
+    maxRetries: number,
+  ): boolean {
     if (!error.retryable || attempt >= maxRetries) {
       return false;
     }
@@ -158,7 +162,11 @@ export class VectorStoreErrorHandler {
   /**
    * Calculates retry delay with exponential backoff
    */
-  static calculateRetryDelay(error: ClassifiedError, attempt: number, baseDelay: number): number {
+  static calculateRetryDelay(
+    error: ClassifiedError,
+    attempt: number,
+    baseDelay: number,
+  ): number {
     if (error.suggestedDelay) {
       return error.suggestedDelay;
     }
@@ -174,7 +182,7 @@ export class VectorStoreErrorHandler {
     serviceName: string,
     operation: string,
     error: ClassifiedError,
-    context?: Record<string, any>
+    context?: Record<string, any>,
   ): void {
     const logData = {
       service: serviceName,

@@ -27,37 +27,40 @@ export class FaultTolerantNeonVectorStoreService {
     this.baseService = baseService || createNeonVectorStoreService();
 
     // Create fault-tolerant wrapper with Neon-specific configuration
-    this.faultTolerantService = FaultToleranceFactory.createService('neon_vector_store', {
-      enableRetry: true,
-      enableCircuitBreaker: true,
-      enableFallback: true,
-      enableGracefulDegradation: true,
-      retryConfig: {
-        maxRetries: 3,
-        baseDelayMs: 500, // Database operations can be faster
-        maxDelayMs: 15000,
-        backoffMultiplier: 2,
-        jitterFactor: 0.1,
-        timeoutMs: 30000,
+    this.faultTolerantService = FaultToleranceFactory.createService(
+      'neon_vector_store',
+      {
+        enableRetry: true,
+        enableCircuitBreaker: true,
+        enableFallback: true,
+        enableGracefulDegradation: true,
+        retryConfig: {
+          maxRetries: 3,
+          baseDelayMs: 500, // Database operations can be faster
+          maxDelayMs: 15000,
+          backoffMultiplier: 2,
+          jitterFactor: 0.1,
+          timeoutMs: 30000,
+        },
+        circuitBreakerConfig: {
+          failureThreshold: 5,
+          recoveryTimeoutMs: 30000, // Faster recovery for database
+          monitorWindowMs: 180000,
+          minimumThroughput: 5,
+          successThreshold: 2,
+        },
+        fallbackConfig: {
+          mode: FallbackMode.GRACEFUL,
+          enableCaching: true,
+          cacheRetentionMs: 1800000, // 30 minutes for database results
+          maxCacheSize: 2000,
+          fallbackTimeoutMs: 5000,
+          enablePartialResults: true,
+          partialResultsThreshold: 0.3, // More lenient for database queries
+        },
+        healthCheckIntervalMs: 30000, // More frequent health checks for database
       },
-      circuitBreakerConfig: {
-        failureThreshold: 5,
-        recoveryTimeoutMs: 30000, // Faster recovery for database
-        monitorWindowMs: 180000,
-        minimumThroughput: 5,
-        successThreshold: 2,
-      },
-      fallbackConfig: {
-        mode: FallbackMode.GRACEFUL,
-        enableCaching: true,
-        cacheRetentionMs: 1800000, // 30 minutes for database results
-        maxCacheSize: 2000,
-        fallbackTimeoutMs: 5000,
-        enablePartialResults: true,
-        partialResultsThreshold: 0.3, // More lenient for database queries
-      },
-      healthCheckIntervalMs: 30000, // More frequent health checks for database
-    });
+    );
 
     this.setupFallbackProviders();
   }
@@ -77,7 +80,7 @@ export class FaultTolerantNeonVectorStoreService {
       {
         operationName: 'addDocument',
         requiredServiceLevel: 1, // Requires higher service level for writes
-      }
+      },
     );
   }
 
@@ -92,7 +95,7 @@ export class FaultTolerantNeonVectorStoreService {
       {
         operationName: 'addDocuments',
         requiredServiceLevel: 1, // Requires higher service level for bulk writes
-      }
+      },
     );
   }
 
@@ -110,11 +113,14 @@ export class FaultTolerantNeonVectorStoreService {
         operationName: 'getDocument',
         cacheKey,
         requiredServiceLevel: 3, // Can work in basic service mode
-      }
+      },
     );
   }
 
-  async updateDocument(id: string, document: Partial<NeonDocumentInsert>): Promise<NeonDocument> {
+  async updateDocument(
+    id: string,
+    document: Partial<NeonDocumentInsert>,
+  ): Promise<NeonDocument> {
     return this.faultTolerantService.execute(
       async () => {
         if (!this.baseService.isEnabled) {
@@ -125,7 +131,7 @@ export class FaultTolerantNeonVectorStoreService {
       {
         operationName: 'updateDocument',
         requiredServiceLevel: 1, // Requires higher service level for updates
-      }
+      },
     );
   }
 
@@ -140,7 +146,7 @@ export class FaultTolerantNeonVectorStoreService {
       {
         operationName: 'deleteDocument',
         requiredServiceLevel: 1, // Requires higher service level for deletes
-      }
+      },
     );
   }
 
@@ -158,14 +164,14 @@ export class FaultTolerantNeonVectorStoreService {
         operationName: 'searchSimilar',
         cacheKey,
         requiredServiceLevel: 2, // Can operate in reduced functionality mode
-      }
+      },
     );
   }
 
   async searchSimilarByEmbedding(
     embedding: number[],
     maxResults = 10,
-    threshold = 0.3
+    threshold = 0.3,
   ): Promise<NeonSearchResult[]> {
     const cacheKey = `embeddingSearch:${embedding.slice(0, 5).join(',')}:${maxResults}:${threshold}`;
 
@@ -174,13 +180,17 @@ export class FaultTolerantNeonVectorStoreService {
         if (!this.baseService.isEnabled) {
           return []; // Graceful degradation
         }
-        return await this.baseService.searchSimilarByEmbedding(embedding, maxResults, threshold);
+        return await this.baseService.searchSimilarByEmbedding(
+          embedding,
+          maxResults,
+          threshold,
+        );
       },
       {
         operationName: 'searchSimilarByEmbedding',
         cacheKey,
         requiredServiceLevel: 2,
-      }
+      },
     );
   }
 
@@ -198,7 +208,7 @@ export class FaultTolerantNeonVectorStoreService {
         operationName: 'generateEmbedding',
         cacheKey,
         requiredServiceLevel: 2, // Embedding generation is core functionality
-      }
+      },
     );
   }
 
@@ -214,7 +224,7 @@ export class FaultTolerantNeonVectorStoreService {
         operationName: 'initializeExtensions',
         requiredServiceLevel: 0, // Requires full service for initialization
         bypassRetry: true, // Extension initialization should not be retried
-      }
+      },
     );
   }
 
@@ -222,13 +232,15 @@ export class FaultTolerantNeonVectorStoreService {
   // FALLBACK SEARCH WITH PROVIDERS
   // ====================================
 
-  async searchWithFallback(request: NeonSearchRequest): Promise<NeonSearchResult[]> {
+  async searchWithFallback(
+    request: NeonSearchRequest,
+  ): Promise<NeonSearchResult[]> {
     const cacheKey = `searchWithFallback:${request.query}:${request.maxResults}:${request.threshold}`;
 
     return this.faultTolerantService.executeWithProviders(
       'search',
       [request],
-      cacheKey
+      cacheKey,
     );
   }
 
@@ -238,7 +250,7 @@ export class FaultTolerantNeonVectorStoreService {
 
   async batchAddDocuments(
     documents: NeonDocumentInsert[],
-    batchSize = 10
+    batchSize = 10,
   ): Promise<NeonDocument[]> {
     const results: NeonDocument[] = [];
     const errors: Error[] = [];
@@ -258,7 +270,7 @@ export class FaultTolerantNeonVectorStoreService {
           {
             operationName: 'batchAddDocuments',
             requiredServiceLevel: 1,
-          }
+          },
         );
 
         results.push(...batchResults);
@@ -277,7 +289,9 @@ export class FaultTolerantNeonVectorStoreService {
     }
 
     if (errors.length > 0) {
-      console.warn(`${errors.length} out of ${Math.ceil(documents.length / batchSize)} batches failed`);
+      console.warn(
+        `${errors.length} out of ${Math.ceil(documents.length / batchSize)} batches failed`,
+      );
     }
 
     return results;
@@ -317,7 +331,10 @@ export class FaultTolerantNeonVectorStoreService {
         } catch (error) {
           return {
             isHealthy: false,
-            error: error instanceof Error ? error.message : 'Database connection failed',
+            error:
+              error instanceof Error
+                ? error.message
+                : 'Database connection failed',
           };
         }
       },
@@ -325,7 +342,7 @@ export class FaultTolerantNeonVectorStoreService {
         operationName: 'healthCheck',
         bypassCircuitBreaker: true,
         bypassRetry: true,
-      }
+      },
     );
   }
 
@@ -381,11 +398,13 @@ export class FaultTolerantNeonVectorStoreService {
       },
       execute: async (request: NeonSearchRequest) => {
         // Generate embedding first, then search
-        const embedding = await this.baseService.generateEmbedding(request.query);
+        const embedding = await this.baseService.generateEmbedding(
+          request.query,
+        );
         return await this.baseService.searchSimilarByEmbedding(
           embedding,
           request.maxResults,
-          request.threshold
+          request.threshold,
         );
       },
       fallbackValue: [] as NeonSearchResult[],
@@ -397,7 +416,9 @@ export class FaultTolerantNeonVectorStoreService {
       priority: 3,
       isAvailable: async () => true, // Always available
       execute: async (request: NeonSearchRequest) => {
-        console.log(`🚨 Neon emergency mode: returning empty results for query: ${request.query}`);
+        console.log(
+          `🚨 Neon emergency mode: returning empty results for query: ${request.query}`,
+        );
         return [] as NeonSearchResult[];
       },
       fallbackValue: [] as NeonSearchResult[],
@@ -419,15 +440,24 @@ let faultTolerantNeonService: FaultTolerantNeonVectorStoreService | null = null;
 export async function getFaultTolerantNeonVectorStoreService(): Promise<FaultTolerantNeonVectorStoreService> {
   if (!faultTolerantNeonService) {
     const baseService = createNeonVectorStoreService();
-    faultTolerantNeonService = new FaultTolerantNeonVectorStoreService(baseService);
+    faultTolerantNeonService = new FaultTolerantNeonVectorStoreService(
+      baseService,
+    );
 
-    // Initialize extensions if service is enabled
-    if (baseService.isEnabled) {
+    // Initialize extensions if service is enabled and not in test mode
+    const isTestMode =
+      process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT === 'true';
+    if (baseService.isEnabled && !isTestMode) {
       try {
         await faultTolerantNeonService.initializeExtensions();
       } catch (error) {
-        console.warn('Failed to initialize Neon extensions with fault tolerance:', error);
+        console.warn(
+          'Failed to initialize Neon extensions with fault tolerance:',
+          error,
+        );
       }
+    } else if (isTestMode) {
+      console.log('Test mode: Skipping Neon extensions initialization');
     }
   }
   return faultTolerantNeonService;

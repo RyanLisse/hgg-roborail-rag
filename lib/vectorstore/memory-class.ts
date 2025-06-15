@@ -12,83 +12,74 @@ export class MemoryVectorStore extends BaseVectorStoreService {
   }
 
   async search(query: string, options: any = {}) {
-    return this.withErrorHandling(
-      async () => {
-        const { maxResults = 10, threshold = 0.3 } = options;
-        
-        // Simple keyword-based search for memory store
-        const results = Array.from(this.documents.values())
-          .filter(doc => 
-            doc.content.toLowerCase().includes(query.toLowerCase())
-          )
-          .slice(0, maxResults)
-          .map(doc => ({
-            id: doc.id,
-            content: doc.content,
-            metadata: doc.metadata,
-            similarity: 0.8, // Mock similarity score
-            source: 'memory' as const,
-          }));
+    return this.withErrorHandling(async () => {
+      const { maxResults = 10, threshold = 0.3 } = options;
 
-        return {
-          results,
-          metadata: {
-            totalResults: results.length,
-            searchTime: Date.now(),
-            source: 'memory',
-          },
-        };
-      },
-      'search'
-    );
+      // Simple keyword-based search for memory store
+      const results = Array.from(this.documents.values())
+        .filter((doc) =>
+          doc.content.toLowerCase().includes(query.toLowerCase()),
+        )
+        .slice(0, maxResults)
+        .map((doc) => ({
+          id: doc.id,
+          content: doc.content,
+          metadata: doc.metadata,
+          similarity: 0.8, // Mock similarity score
+          source: 'memory' as const,
+        }));
+
+      return {
+        results,
+        metadata: {
+          totalResults: results.length,
+          searchTime: Date.now(),
+          source: 'memory',
+        },
+      };
+    }, 'search');
   }
 
   async upload(documents: any[]) {
-    return this.withErrorHandling(
-      async () => {
-        const uploadedIds: string[] = [];
-        
-        for (const doc of documents) {
-          const id = doc.id || crypto.randomUUID();
-          this.documents.set(id, {
-            id,
-            content: doc.content,
-            metadata: doc.metadata || {},
-            createdAt: new Date(),
-          });
-          uploadedIds.push(id);
-        }
+    return this.withErrorHandling(async () => {
+      const uploadedIds: string[] = [];
 
-        return {
-          success: true,
-          uploadedIds,
-          count: uploadedIds.length,
-        };
-      },
-      'upload'
-    );
+      for (const doc of documents) {
+        const id = doc.id || crypto.randomUUID();
+        this.documents.set(id, {
+          id,
+          content: doc.content,
+          metadata: doc.metadata || {},
+          createdAt: new Date(),
+        });
+        uploadedIds.push(id);
+      }
+
+      return {
+        success: true,
+        uploadedIds,
+        count: uploadedIds.length,
+      };
+    }, 'upload');
   }
 
   async delete(ids: string[]) {
-    return this.withErrorHandling(
-      async () => {
-        const deletedIds: string[] = [];
-        
-        for (const id of ids) {
-          if (this.documents.has(id)) {
-            this.documents.delete(id);
-            deletedIds.push(id);
-          }
-        }
+    return this.withErrorHandling(async () => {
+      const deletedIds: string[] = [];
 
-        return {
-          success: true,
-          deletedIds,
-          count: deletedIds.length,
-        };
-      },
-      'delete'
-    );
+      for (const id of ids) {
+        if (this.documents.has(id)) {
+          this.documents.delete(id);
+          deletedIds.push(id);
+        }
+      }
+
+      return {
+        success: true,
+        deletedIds,
+        count: deletedIds.length,
+      };
+    }, 'delete');
   }
 
   async healthCheck() {
@@ -98,7 +89,7 @@ export class MemoryVectorStore extends BaseVectorStoreService {
         documentsCount: this.documents.size,
         memoryUsage: process.memoryUsage(),
       }),
-      'healthCheck'
+      'healthCheck',
     );
   }
 
@@ -106,18 +97,21 @@ export class MemoryVectorStore extends BaseVectorStoreService {
     return this.withErrorHandling(
       async () => ({
         totalDocuments: this.documents.size,
-        averageDocumentSize: this.documents.size > 0 
-          ? Array.from(this.documents.values())
-              .reduce((sum, doc) => sum + doc.content.length, 0) / this.documents.size
-          : 0,
-        oldestDocument: this.documents.size > 0
-          ? Array.from(this.documents.values())
-              .reduce((oldest, doc) => 
-                doc.createdAt < oldest.createdAt ? doc : oldest
+        averageDocumentSize:
+          this.documents.size > 0
+            ? Array.from(this.documents.values()).reduce(
+                (sum, doc) => sum + doc.content.length,
+                0,
+              ) / this.documents.size
+            : 0,
+        oldestDocument:
+          this.documents.size > 0
+            ? Array.from(this.documents.values()).reduce((oldest, doc) =>
+                doc.createdAt < oldest.createdAt ? doc : oldest,
               ).createdAt
-          : null,
+            : null,
       }),
-      'getStats'
+      'getStats',
     );
   }
 }

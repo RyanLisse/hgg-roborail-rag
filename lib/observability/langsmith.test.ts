@@ -134,7 +134,7 @@ describe('LangSmith Service', () => {
           score: 1,
           value: 'thumbs_up',
           comment: 'Great response!',
-        }
+        },
       );
     });
 
@@ -156,7 +156,7 @@ describe('LangSmith Service', () => {
           score: 0,
           value: 'thumbs_down',
           comment: undefined,
-        }
+        },
       );
     });
 

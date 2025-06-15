@@ -129,7 +129,14 @@ export function DataStreamHandler({ id }: { id: string }) {
         }
       });
     });
-  }, [dataStream, setArtifact, setMetadata, artifact, setRouting, setAgentMetadata]);
+  }, [
+    dataStream,
+    setArtifact,
+    setMetadata,
+    artifact,
+    setRouting,
+    setAgentMetadata,
+  ]);
 
   // Clear agent info when starting a new conversation
   useEffect(() => {

@@ -17,6 +17,10 @@ export function checkEnvironment(): EnvironmentStatus {
   const warnings: string[] = [];
   const availableProviders: string[] = [];
 
+  // In test mode, be more lenient with requirements
+  const isTestMode =
+    process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT === 'true';
+
   // Check AI providers
   if (process.env.OPENAI_API_KEY) {
     availableProviders.push('OpenAI');
@@ -29,7 +33,14 @@ export function checkEnvironment(): EnvironmentStatus {
   }
 
   if (availableProviders.length === 0) {
-    errors.push('No AI provider API keys found. Please set at least one: OPENAI_API_KEY, ANTHROPIC_API_KEY, or GOOGLE_GENERATIVE_AI_API_KEY');
+    if (isTestMode) {
+      warnings.push('Test mode: Using mock AI providers');
+      availableProviders.push('MockAI');
+    } else {
+      errors.push(
+        'No AI provider API keys found. Please set at least one: OPENAI_API_KEY, ANTHROPIC_API_KEY, or GOOGLE_GENERATIVE_AI_API_KEY',
+      );
+    }
   }
 
   // Check database
@@ -39,12 +50,18 @@ export function checkEnvironment(): EnvironmentStatus {
 
   // Check auth secret
   if (!process.env.AUTH_SECRET) {
-    errors.push('AUTH_SECRET is required for authentication');
+    if (isTestMode) {
+      warnings.push('Test mode: Using default AUTH_SECRET');
+    } else {
+      errors.push('AUTH_SECRET is required for authentication');
+    }
   }
 
   // Check optional but recommended services
   if (!process.env.COHERE_API_KEY) {
-    warnings.push('COHERE_API_KEY not set - vector search features may be limited');
+    warnings.push(
+      'COHERE_API_KEY not set - vector search features may be limited',
+    );
   }
 
   if (!process.env.REDIS_URL) {
@@ -68,23 +85,27 @@ export function checkEnvironment(): EnvironmentStatus {
  */
 export function logEnvironmentStatus(): void {
   const status = checkEnvironment();
-  
+
   console.log('🔧 Environment Status:');
-  console.log(`✅ Available AI Providers: ${status.availableProviders.join(', ') || 'None'}`);
-  
+  console.log(
+    `✅ Available AI Providers: ${status.availableProviders.join(', ') || 'None'}`,
+  );
+
   if (status.errors.length > 0) {
     console.error('❌ Critical Issues:');
-    status.errors.forEach(error => console.error(`  - ${error}`));
+    status.errors.forEach((error) => console.error(`  - ${error}`));
   }
-  
+
   if (status.warnings.length > 0) {
     console.warn('⚠️ Warnings:');
-    status.warnings.forEach(warning => console.warn(`  - ${warning}`));
+    status.warnings.forEach((warning) => console.warn(`  - ${warning}`));
   }
-  
+
   if (status.isValid) {
     console.log('✅ Environment is valid for basic operation');
   } else {
-    console.error('❌ Environment has critical issues that may prevent operation');
+    console.error(
+      '❌ Environment has critical issues that may prevent operation',
+    );
   }
 }

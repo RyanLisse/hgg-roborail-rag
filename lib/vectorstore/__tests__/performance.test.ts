@@ -104,7 +104,7 @@ describe('Vector Store Performance Tests', () => {
         last_active_at: null,
         metadata: {},
       };
-      
+
       mockFetch.mockResolvedValue({
         ok: true,
         json: () => Promise.resolve(mockVectorStore),
@@ -289,13 +289,13 @@ describe('Vector Store Performance Tests', () => {
         last_active_at: null,
         metadata: {},
       };
-      
+
       mockFetch.mockResolvedValue({
         ok: true,
         json: () => Promise.resolve(mockVectorStore),
       });
     });
-    
+
     it('should handle small file uploads efficiently', async () => {
       const smallFile = new File(['small content'], 'small.txt', {
         type: 'text/plain',
@@ -407,13 +407,13 @@ describe('Vector Store Performance Tests', () => {
         last_active_at: null,
         metadata: {},
       };
-      
+
       mockFetch.mockResolvedValue({
         ok: true,
         json: () => Promise.resolve(mockVectorStore),
       });
     });
-    
+
     it('should not accumulate memory during repeated operations', async () => {
       const mockResponse = {
         id: 'response_memory',
@@ -486,13 +486,13 @@ describe('Vector Store Performance Tests', () => {
   describe('Retry Performance', () => {
     it('should implement exponential backoff efficiently', async () => {
       let attemptCount = 0;
-      
+
       // Create a new service instance to avoid conflicts with spies
       const testService = createOpenAIVectorStoreService({
         apiKey: 'sk-test-key',
         defaultVectorStoreId: 'vs_test_store',
       });
-      
+
       // Mock the searchFiles method directly
       testService.searchFiles = vi.fn().mockImplementation(() => {
         attemptCount++;
@@ -536,7 +536,7 @@ describe('Vector Store Performance Tests', () => {
         apiKey: 'sk-test-key',
         defaultVectorStoreId: 'vs_test_store',
       });
-      
+
       testService.searchFiles = vi.fn().mockResolvedValue({
         success: false,
         message: 'No vector store ID provided',
@@ -578,13 +578,13 @@ describe('Vector Store Performance Tests', () => {
         last_active_at: null,
         metadata: {},
       };
-      
+
       mockFetch.mockResolvedValue({
         ok: true,
         json: () => Promise.resolve(mockVectorStore),
       });
     });
-    
+
     it('should handle increasing query complexity gracefully', async () => {
       const queries = [
         'simple',
@@ -703,13 +703,13 @@ describe('Vector Store Performance Tests', () => {
         last_active_at: null,
         metadata: {},
       };
-      
+
       mockFetch.mockResolvedValue({
         ok: true,
         json: () => Promise.resolve(mockVectorStore),
       });
     });
-    
+
     it('should efficiently handle batch operations', async () => {
       const batchSize = 20;
       const mockResponse = {

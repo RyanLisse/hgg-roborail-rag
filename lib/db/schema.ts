@@ -141,8 +141,12 @@ export type Stream = InferSelectModel<typeof stream>;
 export const feedback = pgTable('Feedback', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   runId: varchar('runId', { length: 255 }).notNull(), // LangSmith run ID
-  messageId: uuid('messageId').notNull().references(() => message.id),
-  userId: uuid('userId').notNull().references(() => user.id),
+  messageId: uuid('messageId')
+    .notNull()
+    .references(() => message.id),
+  userId: uuid('userId')
+    .notNull()
+    .references(() => user.id),
   vote: varchar('vote', { enum: ['up', 'down'] }).notNull(),
   comment: text('comment'),
   metadata: json('metadata'),

@@ -6,6 +6,7 @@ import type {
   ServiceMetrics,
   ClassifiedError,
 } from './types';
+import { BaseServiceConfig as BaseConfigSchema } from './types';
 import { ServiceStatus as ServiceStatusEnum } from './types';
 import { VectorStoreErrorHandler } from './errors';
 
@@ -16,19 +17,33 @@ import { VectorStoreErrorHandler } from './errors';
 export abstract class BaseVectorStoreService<
   TConfig extends BaseServiceConfig = BaseServiceConfig,
   TSearchRequest = any,
-  TSearchResult = any
-> implements VectorStoreService<TSearchRequest, TSearchResult> {
-  
+  TSearchResult = any,
+> implements VectorStoreService<TSearchRequest, TSearchResult>
+{
   protected readonly config: TConfig;
   protected readonly _serviceName: string;
   protected _status: ServiceStatus;
   protected _metrics: ServiceMetrics[] = [];
   protected _lastHealthCheck?: HealthCheckResult;
 
-  constructor(serviceName: string, config: TConfig) {
+  constructor(serviceName: string, config?: TConfig) {
     this._serviceName = serviceName;
-    this.config = config;
-    this._status = config.isEnabled ? ServiceStatusEnum.ENABLED : ServiceStatusEnum.DISABLED;
+
+    // Provide default config if none is provided
+    if (!config) {
+      // In test environments, services are typically disabled by default for safety
+      const isTestEnv = process.env.NODE_ENV === 'test';
+      const defaultConfig = BaseConfigSchema.parse({
+        isEnabled: !isTestEnv, // Disabled in test by default, enabled otherwise
+      });
+      this.config = defaultConfig as TConfig;
+    } else {
+      this.config = config;
+    }
+
+    this._status = this.config.isEnabled
+      ? ServiceStatusEnum.ENABLED
+      : ServiceStatusEnum.DISABLED;
   }
 
   // Public getters
@@ -45,7 +60,9 @@ export abstract class BaseVectorStoreService<
   }
 
   // Abstract methods that must be implemented by subclasses
-  protected abstract searchImplementation(request: TSearchRequest): Promise<TSearchResult[]>;
+  protected abstract searchImplementation(
+    request: TSearchRequest,
+  ): Promise<TSearchResult[]>;
   protected abstract performHealthCheck(): Promise<void>;
 
   /**
@@ -63,13 +80,15 @@ export abstract class BaseVectorStoreService<
     try {
       const results = await this.withRetry(
         () => this.searchImplementation(request),
-        'search'
+        'search',
       );
       success = true;
       return results;
     } catch (err) {
       error = VectorStoreErrorHandler.classify(err as Error);
-      VectorStoreErrorHandler.logError(this._serviceName, 'search', error, { request });
+      VectorStoreErrorHandler.logError(this._serviceName, 'search', error, {
+        request,
+      });
       throw err;
     } finally {
       this.recordMetric('search', success, Date.now() - startTime, error);
@@ -96,22 +115,21 @@ export abstract class BaseVectorStoreService<
       }
 
       await this.performHealthCheck();
-      
+
       const result: HealthCheckResult = {
         isHealthy: true,
         message: `${this._serviceName} service is healthy`,
         responseTime: Date.now() - startTime,
         lastChecked: now,
       };
-      
+
       this._lastHealthCheck = result;
       this._status = ServiceStatusEnum.ENABLED;
       return result;
-      
     } catch (err) {
       const error = VectorStoreErrorHandler.classify(err as Error);
       VectorStoreErrorHandler.logError(this._serviceName, 'healthCheck', error);
-      
+
       const result: HealthCheckResult = {
         isHealthy: false,
         message: error.message,
@@ -119,7 +137,7 @@ export abstract class BaseVectorStoreService<
         error: error.originalError.message,
         lastChecked: now,
       };
-      
+
       this._lastHealthCheck = result;
       this._status = ServiceStatusEnum.ERROR;
       return result;
@@ -152,36 +170,42 @@ export abstract class BaseVectorStoreService<
    */
   protected async withRetry<T>(
     operation: () => Promise<T>,
-    operationName: string
+    operationName: string,
   ): Promise<T> {
     let lastError: Error;
-    
+
     for (let attempt = 0; attempt <= this.config.maxRetries; attempt++) {
       try {
         return await operation();
       } catch (err) {
         lastError = err as Error;
         const classifiedError = VectorStoreErrorHandler.classify(lastError);
-        
-        if (!VectorStoreErrorHandler.shouldRetry(classifiedError, attempt, this.config.maxRetries)) {
+
+        if (
+          !VectorStoreErrorHandler.shouldRetry(
+            classifiedError,
+            attempt,
+            this.config.maxRetries,
+          )
+        ) {
           throw lastError;
         }
-        
+
         const delay = VectorStoreErrorHandler.calculateRetryDelay(
           classifiedError,
           attempt,
-          this.config.retryDelay
+          this.config.retryDelay,
         );
-        
+
         console.warn(
-          `🔄 ${this._serviceName} ${operationName} attempt ${attempt + 1}/${this.config.maxRetries + 1} failed, retrying in ${delay}ms...`
+          `🔄 ${this._serviceName} ${operationName} attempt ${attempt + 1}/${this.config.maxRetries + 1} failed, retrying in ${delay}ms...`,
         );
-        
+
         await this.sleep(delay);
       }
     }
-    
-    throw lastError!;
+
+    throw lastError || new Error('Operation failed after retries');
   }
 
   /**
@@ -191,7 +215,7 @@ export abstract class BaseVectorStoreService<
     operationName: string,
     success: boolean,
     duration: number,
-    error?: ClassifiedError
+    error?: ClassifiedError,
   ): void {
     const metric: ServiceMetrics = {
       operationName,
@@ -203,7 +227,7 @@ export abstract class BaseVectorStoreService<
     };
 
     this._metrics.push(metric);
-    
+
     // Keep only last 100 metrics to prevent memory leaks
     if (this._metrics.length > 100) {
       this._metrics = this._metrics.slice(-100);
@@ -216,16 +240,18 @@ export abstract class BaseVectorStoreService<
   protected static validateApiKey(
     apiKey: string | undefined,
     expectedPrefix: string,
-    serviceName: string
+    serviceName: string,
   ): boolean {
     if (!apiKey) {
-      console.warn(`⚠️  ${serviceName}: No API key provided - service will be disabled`);
+      console.warn(
+        `⚠️  ${serviceName}: No API key provided - service will be disabled`,
+      );
       return false;
     }
 
     if (!apiKey.startsWith(expectedPrefix)) {
       console.warn(
-        `⚠️  ${serviceName}: API key should start with '${expectedPrefix}' - service may not work properly`
+        `⚠️  ${serviceName}: API key should start with '${expectedPrefix}' - service may not work properly`,
       );
       return false;
     }
@@ -238,10 +264,12 @@ export abstract class BaseVectorStoreService<
    */
   protected static validateUrl(
     url: string | undefined,
-    serviceName: string
+    serviceName: string,
   ): boolean {
     if (!url) {
-      console.warn(`⚠️  ${serviceName}: No URL provided - service will be disabled`);
+      console.warn(
+        `⚠️  ${serviceName}: No URL provided - service will be disabled`,
+      );
       return false;
     }
 
@@ -249,7 +277,9 @@ export abstract class BaseVectorStoreService<
       new URL(url);
       return true;
     } catch {
-      console.warn(`⚠️  ${serviceName}: Invalid URL format - service will be disabled`);
+      console.warn(
+        `⚠️  ${serviceName}: Invalid URL format - service will be disabled`,
+      );
       return false;
     }
   }
@@ -258,7 +288,7 @@ export abstract class BaseVectorStoreService<
    * Sleep utility for retry delays
    */
   private async sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**
@@ -266,7 +296,7 @@ export abstract class BaseVectorStoreService<
    */
   protected static createDisabledService<T extends VectorStoreService>(
     serviceName: string,
-    reason: string
+    reason: string,
   ): T {
     const disabledError = () => {
       throw new Error(`${serviceName} service is disabled: ${reason}`);

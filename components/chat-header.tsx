@@ -5,7 +5,7 @@ import { useWindowSize } from 'usehooks-ts';
 import { ModelSelector } from '@/components/model-selector';
 import { SidebarToggle } from '@/components/sidebar-toggle';
 import { Button } from '@/components/ui/button';
-import { PlusIcon, } from './icons';
+import { PlusIcon } from './icons';
 import { useSidebar } from './ui/sidebar';
 import { memo } from 'react';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
@@ -61,11 +61,7 @@ function PureChatHeader({
         </Tooltip>
       )}
 
-      {!isReadonly && (
-        <ModelSelector
-          className="order-1 md:order-2"
-        />
-      )}
+      {!isReadonly && <ModelSelector className="order-2 md:order-2" />}
 
       {!isReadonly && (
         <DatabaseSelector
@@ -73,11 +69,10 @@ function PureChatHeader({
           onSourcesChange={onSourcesChange}
           availableSources={availableSources}
           sourceStats={sourceStats}
-          className="order-1 md:order-3 hidden md:flex"
+          className="order-3 md:order-3 flex"
           data-testid="database-selector"
         />
       )}
-
     </header>
   );
 }
@@ -85,7 +80,9 @@ function PureChatHeader({
 export const ChatHeader = memo(PureChatHeader, (prevProps, nextProps) => {
   return (
     prevProps.selectedModelId === nextProps.selectedModelId &&
-    JSON.stringify(prevProps.selectedSources) === JSON.stringify(nextProps.selectedSources) &&
-    JSON.stringify(prevProps.sourceStats) === JSON.stringify(nextProps.sourceStats)
+    JSON.stringify(prevProps.selectedSources) ===
+      JSON.stringify(nextProps.selectedSources) &&
+    JSON.stringify(prevProps.sourceStats) ===
+      JSON.stringify(nextProps.sourceStats)
   );
 });

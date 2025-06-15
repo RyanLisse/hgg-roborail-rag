@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, } from 'react';
+import { useState } from 'react';
 import useSWR from 'swr';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -52,10 +52,16 @@ interface DashboardData {
 
 export function VectorStoreMonitoring() {
   const [selectedTimeWindow, setSelectedTimeWindow] = useState('24h');
-  const [selectedProvider, setSelectedProvider] = useState<string | 'all'>('all');
+  const [selectedProvider, setSelectedProvider] = useState<string | 'all'>(
+    'all',
+  );
 
   // Fetch dashboard data
-  const { data: dashboardData, error: dashboardError, mutate: mutateDashboard } = useSWR<{
+  const {
+    data: dashboardData,
+    error: dashboardError,
+    mutate: mutateDashboard,
+  } = useSWR<{
     success: boolean;
     data: DashboardData;
   }>('/api/vectorstore/monitoring?action=dashboard', fetcher, {
@@ -85,7 +91,7 @@ export function VectorStoreMonitoring() {
 
   const getPerformanceBadgeVariant = (successRate: number) => {
     if (successRate >= 0.95) return 'default';
-    if (successRate >= 0.90) return 'secondary';
+    if (successRate >= 0.9) return 'secondary';
     return 'destructive';
   };
 
@@ -101,7 +107,7 @@ export function VectorStoreMonitoring() {
           success: Math.random() > 0.1, // 90% success rate
         }),
       });
-      
+
       if (response.ok) {
         mutateDashboard();
       }
@@ -196,7 +202,8 @@ export function VectorStoreMonitoring() {
               )}
               <div className="flex items-center justify-between mt-3">
                 <p className="text-xs text-gray-500">
-                  Last checked: {new Date(status.lastChecked).toLocaleTimeString()}
+                  Last checked:{' '}
+                  {new Date(status.lastChecked).toLocaleTimeString()}
                 </p>
                 <Button
                   onClick={() => testSearch(provider)}
@@ -213,44 +220,58 @@ export function VectorStoreMonitoring() {
 
       {/* Performance Metrics */}
       <Card className="p-6">
-        <h2 className="text-xl font-semibold mb-4">Performance Metrics ({selectedTimeWindow})</h2>
+        <h2 className="text-xl font-semibold mb-4">
+          Performance Metrics ({selectedTimeWindow})
+        </h2>
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
           {Object.entries(overview).map(([provider, metrics]) => (
             <div key={provider} className="border rounded p-4">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-medium capitalize">{provider}</h3>
-                <Badge variant={getPerformanceBadgeVariant(metrics.successRate)}>
+                <Badge
+                  variant={getPerformanceBadgeVariant(metrics.successRate)}
+                >
                   {formatSuccessRate(metrics.successRate)}
                 </Badge>
               </div>
-              
+
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Total Requests:</span>
-                  <span className="font-medium">{metrics.totalRequests.toLocaleString()}</span>
+                  <span className="font-medium">
+                    {metrics.totalRequests.toLocaleString()}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Avg Latency:</span>
-                  <span className="font-medium">{formatLatency(metrics.averageLatency)}</span>
+                  <span className="font-medium">
+                    {formatLatency(metrics.averageLatency)}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">P95 Latency:</span>
-                  <span className="font-medium">{formatLatency(metrics.p95Latency)}</span>
+                  <span className="font-medium">
+                    {formatLatency(metrics.p95Latency)}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Error Rate:</span>
-                  <span className={`font-medium ${metrics.errorRate > 0.05 ? 'text-red-600' : ''}`}>
+                  <span
+                    className={`font-medium ${metrics.errorRate > 0.05 ? 'text-red-600' : ''}`}
+                  >
                     {formatSuccessRate(metrics.errorRate)}
                   </span>
                 </div>
                 {metrics.tokensUsed && (
                   <div className="flex justify-between">
                     <span className="text-gray-600">Tokens Used:</span>
-                    <span className="font-medium">{metrics.tokensUsed.toLocaleString()}</span>
+                    <span className="font-medium">
+                      {metrics.tokensUsed.toLocaleString()}
+                    </span>
                   </div>
                 )}
               </div>
-              
+
               <Separator className="my-3" />
               <p className="text-xs text-gray-500">
                 Updated: {new Date(metrics.lastUpdated).toLocaleString()}
@@ -263,23 +284,32 @@ export function VectorStoreMonitoring() {
       {/* Recent Errors */}
       {recentErrors.length > 0 && (
         <Card className="p-6">
-          <h2 className="text-xl font-semibold mb-4">Recent Errors (Last Hour)</h2>
+          <h2 className="text-xl font-semibold mb-4">
+            Recent Errors (Last Hour)
+          </h2>
           <div className="space-y-3">
             {recentErrors.slice(0, 5).map((error) => (
-              <div key={error.id} className="border-l-4 border-red-500 pl-4 py-2">
+              <div
+                key={error.id}
+                className="border-l-4 border-red-500 pl-4 py-2"
+              >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Badge variant="destructive" className="text-xs">
                       {error.provider}
                     </Badge>
-                    <span className="text-sm font-medium">{error.metricType}</span>
+                    <span className="text-sm font-medium">
+                      {error.metricType}
+                    </span>
                   </div>
                   <span className="text-xs text-gray-500">
                     {new Date(error.timestamp).toLocaleString()}
                   </span>
                 </div>
                 {error.errorMessage && (
-                  <p className="text-sm text-red-600 mt-1">{error.errorMessage}</p>
+                  <p className="text-sm text-red-600 mt-1">
+                    {error.errorMessage}
+                  </p>
                 )}
                 {error.metadata && (
                   <details className="mt-2">
@@ -322,7 +352,8 @@ export function VectorStoreMonitoring() {
         </div>
         <Separator className="my-4" />
         <p className="text-xs text-gray-500">
-          Last updated: {new Date(dashboardData.data.timestamp).toLocaleString()}
+          Last updated:{' '}
+          {new Date(dashboardData.data.timestamp).toLocaleString()}
         </p>
       </Card>
     </div>

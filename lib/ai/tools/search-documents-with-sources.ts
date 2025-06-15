@@ -1,6 +1,9 @@
 import { tool } from 'ai';
 import { z } from 'zod';
-import { getUnifiedVectorStoreService, type VectorStoreType } from '@/lib/vectorstore/unified';
+import {
+  getUnifiedVectorStoreService,
+  type VectorStoreType,
+} from '@/lib/vectorstore/unified';
 import { getOpenAIResponsesService, type SourceFile } from '@/lib/ai/responses';
 
 export interface DocumentSearchResult {
@@ -11,22 +14,33 @@ export interface DocumentSearchResult {
   citations?: SourceFile[];
 }
 
-export const searchDocumentsWithSources = (sources: VectorStoreType[] = ['memory']) => 
+export const searchDocumentsWithSources = (
+  sources: VectorStoreType[] = ['memory'],
+) =>
   tool({
-    description: 'Search through uploaded documents with comprehensive source citations and annotations',
+    description:
+      'Search through uploaded documents with comprehensive source citations and annotations',
     parameters: z.object({
       query: z.string().describe('The search query to find relevant documents'),
-      limit: z.number().optional().describe('Maximum number of results to return (default: 5)'),
-      includeOpenAISources: z.boolean().optional().describe('Include OpenAI vector store sources with citations (default: true)'),
+      limit: z
+        .number()
+        .optional()
+        .describe('Maximum number of results to return (default: 5)'),
+      includeOpenAISources: z
+        .boolean()
+        .optional()
+        .describe(
+          'Include OpenAI vector store sources with citations (default: true)',
+        ),
     }),
     execute: async ({ query, limit = 5, includeOpenAISources = true }) => {
       try {
         const vectorStore = await getUnifiedVectorStoreService();
-        
+
         // Search across unified vector stores with enhanced capabilities
         const enhancedSearchResponse = await vectorStore.searchEnhanced({
           query,
-          sources: sources.filter(s => s !== 'openai'), // Exclude OpenAI for separate handling
+          sources: sources.filter((s) => s !== 'openai'), // Exclude OpenAI for separate handling
           maxResults: limit,
           threshold: 0.3,
           optimizePrompts: true,
@@ -39,7 +53,7 @@ export const searchDocumentsWithSources = (sources: VectorStoreType[] = ['memory
             domain: 'roborail',
           },
         });
-        
+
         const unifiedResults = enhancedSearchResponse.results;
 
         let openAIResults: any = null;
@@ -49,13 +63,14 @@ export const searchDocumentsWithSources = (sources: VectorStoreType[] = ['memory
         if (includeOpenAISources && sources.includes('openai')) {
           try {
             const responsesService = getOpenAIResponsesService();
-            
+
             // Create a search-focused response to get citations
-            const searchResponse = await responsesService.createResponseWithSources({
-              model: 'gpt-4o-mini', // Use efficient model for search
-              input: `Search for information about: ${query}. Please provide relevant information with proper citations.`,
-              maxResults: limit,
-            });
+            const searchResponse =
+              await responsesService.createResponseWithSources({
+                model: 'gpt-4o-mini', // Use efficient model for search
+                input: `Search for information about: ${query}. Please provide relevant information with proper citations.`,
+                maxResults: limit,
+              });
 
             openAIResults = {
               content: searchResponse.content,
@@ -63,7 +78,9 @@ export const searchDocumentsWithSources = (sources: VectorStoreType[] = ['memory
             };
             openAISources = searchResponse.sources;
 
-            console.log(`🔍 OpenAI search completed with ${openAISources.length} sources`);
+            console.log(
+              `🔍 OpenAI search completed with ${openAISources.length} sources`,
+            );
           } catch (error) {
             console.warn('OpenAI Responses API search failed:', error);
             // Continue with unified results only
@@ -74,7 +91,7 @@ export const searchDocumentsWithSources = (sources: VectorStoreType[] = ['memory
         const combinedResults: DocumentSearchResult[] = [];
 
         // Add unified vector store results with enhanced metadata
-        unifiedResults.forEach(result => {
+        unifiedResults.forEach((result) => {
           combinedResults.push({
             content: result.document.content,
             source: result.source,
@@ -122,7 +139,6 @@ export const searchDocumentsWithSources = (sources: VectorStoreType[] = ['memory
           sources: openAISources,
           openAIAnnotations: openAIResults?.annotations || [],
         };
-
       } catch (error) {
         console.error('Error searching documents with sources:', error);
         return {

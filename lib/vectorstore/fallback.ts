@@ -7,11 +7,11 @@ import { z } from 'zod';
 // ====================================
 
 export enum FallbackMode {
-  FAIL_FAST = 'FAIL_FAST',         // Fail immediately without fallback
-  GRACEFUL = 'GRACEFUL',           // Try fallbacks gracefully
-  SILENT = 'SILENT',               // Return empty/default values
-  CACHED = 'CACHED',               // Return cached values if available
-  PARTIAL = 'PARTIAL',             // Return partial results
+  FAIL_FAST = 'FAIL_FAST', // Fail immediately without fallback
+  GRACEFUL = 'GRACEFUL', // Try fallbacks gracefully
+  SILENT = 'SILENT', // Return empty/default values
+  CACHED = 'CACHED', // Return cached values if available
+  PARTIAL = 'PARTIAL', // Return partial results
 }
 
 export const FallbackConfig = z.object({
@@ -43,7 +43,7 @@ export class FallbackCache {
 
   constructor(config?: Partial<FallbackConfig>) {
     this.config = FallbackConfig.parse(config || {});
-    
+
     // Cleanup expired entries periodically
     setInterval(() => this.cleanup(), this.config.cacheRetentionMs / 4);
   }
@@ -51,7 +51,7 @@ export class FallbackCache {
   set<T>(key: string, value: T, customTtlMs?: number): void {
     const now = Date.now();
     const ttl = customTtlMs || this.config.cacheRetentionMs;
-    
+
     // Enforce cache size limit
     if (this.cache.size >= this.config.maxCacheSize) {
       this.evictOldest();
@@ -66,7 +66,7 @@ export class FallbackCache {
 
   get<T>(key: string): T | null {
     const entry = this.cache.get(key);
-    
+
     if (!entry) {
       return null;
     }
@@ -168,11 +168,7 @@ export class FallbackManager<T> {
     this.providers.sort((a, b) => a.priority - b.priority);
   }
 
-  async execute(
-    operation: string,
-    args: any[],
-    cacheKey?: string
-  ): Promise<T> {
+  async execute(operation: string, args: any[], cacheKey?: string): Promise<T> {
     // Try to get from cache first
     if (cacheKey && this.config.enableCaching) {
       const cached = this.cache.get<T>(cacheKey);
@@ -182,7 +178,11 @@ export class FallbackManager<T> {
       }
     }
 
-    const results: Array<{ provider: string; result: T | null; error: Error | null }> = [];
+    const results: Array<{
+      provider: string;
+      result: T | null;
+      error: Error | null;
+    }> = [];
     let lastError: Error | null = null;
 
     // Try each provider in priority order
@@ -192,12 +192,16 @@ export class FallbackManager<T> {
         const isAvailable = await this.timeoutPromise(
           provider.isAvailable(),
           5000, // 5 second timeout for availability check
-          false
+          false,
         );
 
         if (!isAvailable) {
           console.log(`⚠️ Provider ${provider.name} is not available`);
-          results.push({ provider: provider.name, result: null, error: new Error('Provider not available') });
+          results.push({
+            provider: provider.name,
+            result: null,
+            error: new Error('Provider not available'),
+          });
           continue;
         }
 
@@ -207,21 +211,22 @@ export class FallbackManager<T> {
         const result = await this.timeoutPromise(
           provider.execute(...args),
           this.config.fallbackTimeoutMs,
-          null
+          null,
         );
 
         if (result !== null) {
-          console.log(`✅ Provider ${provider.name} succeeded for ${operation}`);
-          
+          console.log(
+            `✅ Provider ${provider.name} succeeded for ${operation}`,
+          );
+
           // Cache successful result
           if (cacheKey && this.config.enableCaching) {
             this.cache.set(cacheKey, result);
           }
-          
+
           results.push({ provider: provider.name, result, error: null });
           return result;
         }
-
       } catch (error) {
         const err = error instanceof Error ? error : new Error(String(error));
         console.log(`❌ Provider ${provider.name} failed: ${err.message}`);
@@ -238,9 +243,11 @@ export class FallbackManager<T> {
     operation: string,
     results: Array<{ provider: string; result: T | null; error: Error | null }>,
     lastError: Error | null,
-    cacheKey?: string
+    cacheKey?: string,
   ): Promise<T> {
-    console.log(`🔧 Applying fallback strategy: ${this.config.mode} for ${operation}`);
+    console.log(
+      `🔧 Applying fallback strategy: ${this.config.mode} for ${operation}`,
+    );
 
     switch (this.config.mode) {
       case FallbackMode.FAIL_FAST:
@@ -255,7 +262,10 @@ export class FallbackManager<T> {
             return cached;
           }
         }
-        throw lastError || new Error(`No cached fallback available for ${operation}`);
+        throw (
+          lastError ||
+          new Error(`No cached fallback available for ${operation}`)
+        );
 
       case FallbackMode.PARTIAL:
         if (this.config.enablePartialResults) {
@@ -265,7 +275,10 @@ export class FallbackManager<T> {
             return partialResult;
           }
         }
-        throw lastError || new Error(`No partial results available for ${operation}`);
+        throw (
+          lastError ||
+          new Error(`No partial results available for ${operation}`)
+        );
 
       case FallbackMode.SILENT: {
         const defaultValue = this.getDefaultValue();
@@ -296,7 +309,9 @@ export class FallbackManager<T> {
         // Use provider fallback values
         for (const provider of this.providers) {
           if (provider.fallbackValue !== undefined) {
-            console.log(`🎯 Using provider ${provider.name} fallback value for ${operation}`);
+            console.log(
+              `🎯 Using provider ${provider.name} fallback value for ${operation}`,
+            );
             return provider.fallbackValue;
           }
         }
@@ -310,9 +325,9 @@ export class FallbackManager<T> {
   }
 
   private buildPartialResult(
-    results: Array<{ provider: string; result: T | null; error: Error | null }>
+    results: Array<{ provider: string; result: T | null; error: Error | null }>,
   ): T | null {
-    const successfulResults = results.filter(r => r.result !== null);
+    const successfulResults = results.filter((r) => r.result !== null);
     const successRate = successfulResults.length / results.length;
 
     if (successRate < this.config.partialResultsThreshold) {
@@ -322,7 +337,7 @@ export class FallbackManager<T> {
     // For search results, combine all successful results
     if (successfulResults.length > 0) {
       const firstResult = successfulResults[0].result;
-      
+
       // If results are arrays (like search results), combine them
       if (Array.isArray(firstResult)) {
         const combined = [];
@@ -350,7 +365,7 @@ export class FallbackManager<T> {
   private async timeoutPromise<U>(
     promise: Promise<U>,
     timeoutMs: number,
-    defaultValue: U
+    defaultValue: U,
   ): Promise<U> {
     const timeoutPromise = new Promise<U>((resolve) => {
       setTimeout(() => resolve(defaultValue), timeoutMs);
@@ -371,8 +386,12 @@ export class FallbackManager<T> {
     const providerHealth = await Promise.all(
       this.providers.map(async (provider) => {
         try {
-          const available = await this.timeoutPromise(provider.isAvailable(), 5000, false);
-          const healthy = provider.healthCheck 
+          const available = await this.timeoutPromise(
+            provider.isAvailable(),
+            5000,
+            false,
+          );
+          const healthy = provider.healthCheck
             ? await this.timeoutPromise(provider.healthCheck(), 5000, false)
             : available;
 
@@ -388,10 +407,10 @@ export class FallbackManager<T> {
             available: false,
           };
         }
-      })
+      }),
     );
 
-    const healthyCount = providerHealth.filter(p => p.healthy).length;
+    const healthyCount = providerHealth.filter((p) => p.healthy).length;
     const overallHealthy = healthyCount > 0;
 
     return {
@@ -424,7 +443,7 @@ export class GracefulDegradation {
     'reduced_functionality',
     'basic_service',
     'minimal_service',
-    'emergency_mode'
+    'emergency_mode',
   ];
 
   private currentLevel = 0; // Start with full service
@@ -432,23 +451,30 @@ export class GracefulDegradation {
 
   degrade(reason: string, level?: number): void {
     this.degradationReasons.push(reason);
-    
+
     if (level !== undefined) {
       this.currentLevel = Math.max(this.currentLevel, level);
     } else {
-      this.currentLevel = Math.min(this.currentLevel + 1, GracefulDegradation.degradationLevels.length - 1);
+      this.currentLevel = Math.min(
+        this.currentLevel + 1,
+        GracefulDegradation.degradationLevels.length - 1,
+      );
     }
 
-    console.log(`⬇️ Service degraded to level ${this.currentLevel} (${this.getCurrentLevelName()}) due to: ${reason}`);
+    console.log(
+      `⬇️ Service degraded to level ${this.currentLevel} (${this.getCurrentLevelName()}) due to: ${reason}`,
+    );
   }
 
   recover(steps = 1): void {
     const previousLevel = this.currentLevel;
     this.currentLevel = Math.max(0, this.currentLevel - steps);
-    
+
     if (this.currentLevel < previousLevel) {
-      console.log(`⬆️ Service recovered to level ${this.currentLevel} (${this.getCurrentLevelName()})`);
-      
+      console.log(
+        `⬆️ Service recovered to level ${this.currentLevel} (${this.getCurrentLevelName()})`,
+      );
+
       // Clear some degradation reasons on recovery
       if (this.currentLevel === 0) {
         this.degradationReasons = [];
@@ -461,7 +487,9 @@ export class GracefulDegradation {
   }
 
   getCurrentLevelName(): string {
-    return GracefulDegradation.degradationLevels[this.currentLevel] || 'unknown';
+    return (
+      GracefulDegradation.degradationLevels[this.currentLevel] || 'unknown'
+    );
   }
 
   isDegraded(): boolean {

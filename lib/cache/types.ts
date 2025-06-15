@@ -36,21 +36,23 @@ export interface CacheOptions {
 export interface CacheBackend {
   name: string;
   isConnected: boolean;
-  
+
   // Core operations
   get<T>(key: string): Promise<T | null>;
   set<T>(key: string, value: T, ttl?: number): Promise<boolean>;
   delete(key: string): Promise<boolean>;
   clear(pattern?: string): Promise<number>;
-  
+
   // Advanced operations
   mget<T>(keys: string[]): Promise<Array<T | null>>;
-  mset<T>(entries: Array<{ key: string; value: T; ttl?: number }>): Promise<boolean>;
-  
+  mset<T>(
+    entries: Array<{ key: string; value: T; ttl?: number }>,
+  ): Promise<boolean>;
+
   // Stats and health
   getStats(): Promise<CacheStats>;
   healthCheck(): Promise<boolean>;
-  
+
   // Lifecycle
   connect?(): Promise<void>;
   disconnect?(): Promise<void>;
@@ -61,7 +63,7 @@ export interface DistributedCacheBackend extends CacheBackend {
   publish(channel: string, message: any): Promise<boolean>;
   subscribe(channel: string, handler: (message: any) => void): Promise<void>;
   unsubscribe(channel: string): Promise<void>;
-  
+
   // Distributed invalidation
   invalidatePattern(pattern: string): Promise<number>;
   notifyInvalidation(pattern: string): Promise<boolean>;
@@ -100,7 +102,7 @@ export type HealthCheckCacheKey = {
   endpoint: string;
 };
 
-export type CacheKeyTypes = 
+export type CacheKeyTypes =
   | VectorSearchCacheKey
   | AgentRoutingCacheKey
   | AgentResponseCacheKey

@@ -10,23 +10,26 @@ const CHAT_API_URL = 'http://localhost:3000/api/chat';
 
 async function testChatAPI() {
   console.log('🧪 Testing Chat API with selectedSources...');
-  
+
   const testPayload = {
     messages: [
-      { role: 'user', content: 'Hello, can you help me with data analysis?' }
+      { role: 'user', content: 'Hello, can you help me with data analysis?' },
     ],
-    selectedSources: ['neon', 'openai']
+    selectedSources: ['neon', 'openai'],
   };
 
   try {
-    console.log('📤 Sending request with payload:', JSON.stringify(testPayload, null, 2));
-    
+    console.log(
+      '📤 Sending request with payload:',
+      JSON.stringify(testPayload, null, 2),
+    );
+
     const response = await fetch(CHAT_API_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(testPayload)
+      body: JSON.stringify(testPayload),
     });
 
     console.log('📥 Response status:', response.status);
@@ -43,19 +46,22 @@ async function testChatAPI() {
       console.log('✅ Received streaming response');
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
-      
+
       let buffer = '';
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-        
+
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split('\n');
         buffer = lines.pop() || '';
-        
+
         for (const line of lines) {
           if (line.trim()) {
-            console.log('📄 Stream chunk:', line.substring(0, 100) + (line.length > 100 ? '...' : ''));
+            console.log(
+              '📄 Stream chunk:',
+              line.substring(0, 100) + (line.length > 100 ? '...' : ''),
+            );
           }
         }
       }
@@ -63,7 +69,6 @@ async function testChatAPI() {
       const data = await response.json();
       console.log('✅ Chat API Response:', JSON.stringify(data, null, 2));
     }
-
   } catch (error) {
     console.error('❌ Test failed:', error.message);
   }

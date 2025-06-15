@@ -3,7 +3,10 @@
  */
 
 import { BaseVectorStoreService } from './core/base-service';
-import { getOpenAIVectorStoreService, type OpenAIVectorStoreService } from './openai';
+import {
+  getOpenAIVectorStoreService,
+  type OpenAIVectorStoreService,
+} from './openai';
 
 export class OpenAIVectorStore extends BaseVectorStoreService {
   private service: Promise<OpenAIVectorStoreService>;
@@ -17,39 +20,27 @@ export class OpenAIVectorStore extends BaseVectorStoreService {
     const service = await this.service;
     return this.withErrorHandling(
       () => service.search({ query, ...options }),
-      'search'
+      'search',
     );
   }
 
   async upload(documents: any[]) {
     const service = await this.service;
-    return this.withErrorHandling(
-      () => service.upload(documents),
-      'upload'
-    );
+    return this.withErrorHandling(() => service.upload(documents), 'upload');
   }
 
   async delete(ids: string[]) {
     const service = await this.service;
-    return this.withErrorHandling(
-      () => service.delete(ids),
-      'delete'
-    );
+    return this.withErrorHandling(() => service.delete(ids), 'delete');
   }
 
   async healthCheck() {
     const service = await this.service;
-    return this.withErrorHandling(
-      () => service.healthCheck(),
-      'healthCheck'
-    );
+    return this.withErrorHandling(() => service.healthCheck(), 'healthCheck');
   }
 
   async getStats() {
     const service = await this.service;
-    return this.withErrorHandling(
-      () => service.getStats(),
-      'getStats'
-    );
+    return this.withErrorHandling(() => service.getStats(), 'getStats');
   }
 }

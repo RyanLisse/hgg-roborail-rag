@@ -55,7 +55,7 @@ export function DatabaseSelector({
   const handleSourceToggle = (source: VectorStoreType) => {
     if (selectedSources.includes(source)) {
       // Remove source if already selected
-      onSourcesChange(selectedSources.filter(s => s !== source));
+      onSourcesChange(selectedSources.filter((s) => s !== source));
     } else {
       // Add source if not selected
       onSourcesChange([...selectedSources, source]);
@@ -66,15 +66,15 @@ export function DatabaseSelector({
     if (selectedSources.length === 0) {
       return 'No sources selected';
     }
-    
+
     if (selectedSources.length === 1) {
       return sourceLabels[selectedSources[0]];
     }
-    
+
     if (selectedSources.length === availableSources.length) {
       return 'All sources';
     }
-    
+
     return `${selectedSources.length} sources`;
   };
 
@@ -87,7 +87,7 @@ export function DatabaseSelector({
             className={cn(
               'w-full justify-between gap-2 text-sm font-medium',
               'data-[state=open]:bg-accent data-[state=open]:text-accent-foreground',
-              disabled && 'opacity-50 cursor-not-allowed'
+              disabled && 'opacity-50 cursor-not-allowed',
             )}
             disabled={disabled}
           >
@@ -100,18 +100,18 @@ export function DatabaseSelector({
             </div>
           </Button>
         </DropdownMenuTrigger>
-        
+
         <DropdownMenuContent className="w-80">
           <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground px-2 py-1.5">
             Vector Store Sources
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          
+
           {availableSources.map((source) => {
             const isSelected = selectedSources.includes(source);
             const stats = sourceStats?.[source];
             const isEnabled = stats?.enabled !== false;
-            
+
             return (
               <DropdownMenuCheckboxItem
                 key={source}
@@ -122,7 +122,7 @@ export function DatabaseSelector({
                   'flex cursor-pointer items-start justify-between',
                   'py-2 px-2 my-0.5 rounded-md',
                   'hover:bg-accent/50',
-                  !isEnabled && 'opacity-50 cursor-not-allowed'
+                  !isEnabled && 'opacity-50 cursor-not-allowed',
                 )}
               >
                 <div className="flex-1 space-y-1">
@@ -143,7 +143,7 @@ export function DatabaseSelector({
                     {sourceDescriptions[source]}
                   </div>
                 </div>
-                
+
                 {isSelected && (
                   <div className="text-primary ml-2 mt-1">
                     <CheckIcon size={16} />
@@ -152,17 +152,18 @@ export function DatabaseSelector({
               </DropdownMenuCheckboxItem>
             );
           })}
-          
+
           <DropdownMenuSeparator />
-          
+
           <div className="px-2 py-1.5">
             <div className="text-xs text-muted-foreground">
-              Select multiple sources to search across all of them simultaneously.
+              Select multiple sources to search across all of them
+              simultaneously.
             </div>
           </div>
         </DropdownMenuContent>
       </DropdownMenu>
-      
+
       {/* Selected sources badges */}
       {selectedSources.length > 0 && (
         <div className="flex flex-wrap gap-1">
@@ -188,9 +189,16 @@ export function DatabaseSelector({
 
 // Hook for managing database selection state
 export function useDatabaseSelection() {
-  const [selectedSources, setSelectedSources] = useState<VectorStoreType[]>(['openai']);
-  const [availableSources, setAvailableSources] = useState<VectorStoreType[]>(['openai', 'memory']);
-  const [sourceStats, setSourceStats] = useState<Record<VectorStoreType, { enabled: boolean; count?: number }>>({
+  const [selectedSources, setSelectedSources] = useState<VectorStoreType[]>([
+    'openai',
+  ]);
+  const [availableSources, setAvailableSources] = useState<VectorStoreType[]>([
+    'openai',
+    'memory',
+  ]);
+  const [sourceStats, setSourceStats] = useState<
+    Record<VectorStoreType, { enabled: boolean; count?: number }>
+  >({
     openai: { enabled: true, count: 0 },
     memory: { enabled: true },
     neon: { enabled: false },
@@ -201,22 +209,29 @@ export function useDatabaseSelection() {
     const loadAvailableSources = async () => {
       try {
         setIsLoading(true);
-        
+
         // Load available sources from the unified service
         const response = await fetch('/api/vectorstore/sources');
         if (response.ok) {
           const data = await response.json();
           setAvailableSources(data.availableSources || ['openai', 'memory']);
-          setSourceStats(data.sourceStats || {
-            openai: { enabled: true, count: 0 },
-            memory: { enabled: true },
-            neon: { enabled: false },
-          });
-          
+          setSourceStats(
+            data.sourceStats || {
+              openai: { enabled: true, count: 0 },
+              memory: { enabled: true },
+              neon: { enabled: false },
+            },
+          );
+
           // Update selected sources to prioritize OpenAI, fallback to available ones
-          const defaultSources = data.availableSources?.includes('openai') ? ['openai'] : ['memory'];
-          setSelectedSources(prev => 
-            prev.filter(source => data.availableSources?.includes(source)) || defaultSources
+          const defaultSources = data.availableSources?.includes('openai')
+            ? ['openai']
+            : ['memory'];
+          setSelectedSources(
+            (prev) =>
+              prev.filter((source) =>
+                data.availableSources?.includes(source),
+              ) || defaultSources,
           );
         }
       } catch (error) {

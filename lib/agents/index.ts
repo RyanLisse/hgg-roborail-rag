@@ -19,14 +19,23 @@ export type {
 export { BaseAgent } from './base-agent';
 
 // Import only types and DI utilities (lightweight imports)
-import type { AgentConfig, AgentRequest, AgentResponse, AgentType, UserIntent, QueryComplexity, AgentRoutingDecision } from './types';
+import type {
+  AgentConfig,
+  AgentRequest,
+  AgentResponse,
+  AgentType,
+  UserIntent,
+  QueryComplexity,
+  AgentRoutingDecision,
+} from './types';
 import { hasService, createRequestScope } from '../di/services';
 import { ServiceTokens } from '../di/container';
 
 /**
  * Environment flag to enable/disable code splitting for agents
  */
-export const AGENT_CODE_SPLITTING_ENABLED = process.env.ENABLE_CODE_SPLITTING !== 'false';
+export const AGENT_CODE_SPLITTING_ENABLED =
+  process.env.ENABLE_CODE_SPLITTING !== 'false';
 
 /**
  * Lazy loading factory functions for agents
@@ -40,7 +49,7 @@ export async function createQAAgent() {
     const { QAAgent } = require('./qa-agent');
     return new QAAgent();
   }
-  
+
   const { QAAgent } = await import('./qa-agent');
   return new QAAgent();
 }
@@ -53,7 +62,7 @@ export async function createRewriteAgent() {
     const { RewriteAgent } = require('./rewrite-agent');
     return new RewriteAgent();
   }
-  
+
   const { RewriteAgent } = await import('./rewrite-agent');
   return new RewriteAgent();
 }
@@ -66,7 +75,7 @@ export async function createPlannerAgent() {
     const { PlannerAgent } = require('./planner-agent');
     return new PlannerAgent();
   }
-  
+
   const { PlannerAgent } = await import('./planner-agent');
   return new PlannerAgent();
 }
@@ -79,7 +88,7 @@ export async function createResearchAgent() {
     const { ResearchAgent } = require('./research-agent');
     return new ResearchAgent();
   }
-  
+
   const { ResearchAgent } = await import('./research-agent');
   return new ResearchAgent();
 }
@@ -92,7 +101,7 @@ export async function createSmartAgentRouter() {
     const { SmartAgentRouter } = require('./router');
     return new SmartAgentRouter();
   }
-  
+
   const { SmartAgentRouter } = await import('./router');
   return new SmartAgentRouter();
 }
@@ -105,7 +114,7 @@ export async function createAgentOrchestrator(config?: Partial<AgentConfig>) {
     const { AgentOrchestrator } = require('./orchestrator');
     return new AgentOrchestrator(config);
   }
-  
+
   const { AgentOrchestrator } = await import('./orchestrator');
   return new AgentOrchestrator(config);
 }
@@ -140,7 +149,7 @@ export async function getAgent(agentType: AgentType) {
   if (agentCache.has(agentType)) {
     return agentCache.get(agentType);
   }
-  
+
   const agent = await createAgent(agentType);
   agentCache.set(agentType, agent);
   return agent;
@@ -157,7 +166,7 @@ export function clearAgentCache() {
  * Preload commonly used agents
  */
 export async function preloadAgents(types: AgentType[] = ['qa']) {
-  const loadPromises = types.map(type => getAgent(type));
+  const loadPromises = types.map((type) => getAgent(type));
   await Promise.allSettled(loadPromises);
 }
 
@@ -182,7 +191,7 @@ export async function getAgentOrchestrator(config?: Partial<AgentConfig>) {
           searchThreshold: 0.3,
           maxResults: 10,
         },
-        ...config
+        ...config,
       };
       globalOrchestrator = await createAgentOrchestrator(defaultConfig);
     }
@@ -201,7 +210,9 @@ export function resetGlobalOrchestrator(): void {
  * Create a new agent orchestrator instance (already implemented above with lazy loading)
  * This is kept for backward compatibility
  */
-export async function createAgentOrchestratorLegacy(config?: Partial<AgentConfig>) {
+export async function createAgentOrchestratorLegacy(
+  config?: Partial<AgentConfig>,
+) {
   return createAgentOrchestrator(config);
 }
 
@@ -219,10 +230,10 @@ export async function processQuery(
     sources?: ('openai' | 'neon' | 'memory')[];
     modelId?: string;
     streaming?: boolean;
-  }
+  },
 ): Promise<AgentResponse> {
   const orchestrator = await getAgentOrchestrator();
-  
+
   const request: AgentRequest = {
     query,
     chatHistory: options?.chatHistory || [],
@@ -252,10 +263,10 @@ export async function* processQueryStream(
     chatHistory?: AgentRequest['chatHistory'];
     sources?: ('openai' | 'neon' | 'memory')[];
     modelId?: string;
-  }
+  },
 ): AsyncGenerator<string, AgentResponse, unknown> {
   const orchestrator = await getAgentOrchestrator();
-  
+
   const request: AgentRequest = {
     query,
     chatHistory: options?.chatHistory || [],
@@ -284,12 +295,14 @@ export async function* processQueryStream(
     }
   }
 
-  return finalResponse || {
-    content: '',
-    agent: 'qa',
-    metadata: { modelUsed: 'unknown' },
-    streamingSupported: true,
-  };
+  return (
+    finalResponse || {
+      content: '',
+      agent: 'qa',
+      metadata: { modelUsed: 'unknown' },
+      streamingSupported: true,
+    }
+  );
 }
 
 /**
@@ -302,7 +315,7 @@ export async function useAgent(
     chatHistory?: AgentRequest['chatHistory'];
     sources?: ('openai' | 'neon' | 'memory')[];
     modelId?: string;
-  }
+  },
 ): Promise<AgentResponse> {
   // Try to get from DI container first
   const agentTokens = {
@@ -314,7 +327,7 @@ export async function useAgent(
 
   let agent: any;
   const token = agentTokens[agentType];
-  
+
   if (hasService(token)) {
     const scope = createRequestScope();
     agent = scope.resolve(token);
@@ -322,7 +335,7 @@ export async function useAgent(
     // Fallback to lazy-loaded instantiation
     agent = await getAgent(agentType);
   }
-  
+
   const request: AgentRequest = {
     query,
     chatHistory: options?.chatHistory || [],
@@ -366,7 +379,7 @@ async function getRouter() {
   } else {
     routerCache = await createSmartAgentRouter();
   }
-  
+
   return routerCache;
 }
 
@@ -381,7 +394,9 @@ export async function classifyIntent(query: string): Promise<UserIntent> {
 /**
  * Analyze query complexity
  */
-export async function analyzeComplexity(query: string): Promise<QueryComplexity> {
+export async function analyzeComplexity(
+  query: string,
+): Promise<QueryComplexity> {
   const router = await getRouter();
   return router.analyzeComplexity(query);
 }
@@ -391,7 +406,7 @@ export async function analyzeComplexity(query: string): Promise<QueryComplexity>
  */
 export async function getRoutingDecision(
   query: string,
-  context?: AgentRequest['context']
+  context?: AgentRequest['context'],
 ): Promise<AgentRoutingDecision> {
   const router = await getRouter();
   return router.routeQuery(query, context);

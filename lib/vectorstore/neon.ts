@@ -8,7 +8,10 @@ import { desc, gt, sql } from 'drizzle-orm';
 import postgres from 'postgres';
 import { vectorDocuments } from '../db/schema';
 import { POSTGRES_URL } from '../env';
-import { getVectorStoreMonitoringService, withPerformanceMonitoring } from './monitoring';
+import {
+  getVectorStoreMonitoringService,
+  withPerformanceMonitoring,
+} from './monitoring';
 
 // Schemas
 export const NeonDocument = z.object({
@@ -55,46 +58,84 @@ export interface NeonVectorStoreService {
   db: ReturnType<typeof drizzle>;
   isEnabled: boolean;
   embeddingModel: string;
-  
+
   // Document management
   addDocument: (document: NeonDocumentInsert) => Promise<NeonDocument>;
   addDocuments: (documents: NeonDocumentInsert[]) => Promise<NeonDocument[]>;
   getDocument: (id: string) => Promise<NeonDocument | null>;
-  updateDocument: (id: string, document: Partial<NeonDocumentInsert>) => Promise<NeonDocument>;
+  updateDocument: (
+    id: string,
+    document: Partial<NeonDocumentInsert>,
+  ) => Promise<NeonDocument>;
   deleteDocument: (id: string) => Promise<boolean>;
-  
+
   // Search operations
   searchSimilar: (request: NeonSearchRequest) => Promise<NeonSearchResult[]>;
-  searchSimilarByEmbedding: (embedding: number[], maxResults?: number, threshold?: number) => Promise<NeonSearchResult[]>;
-  
+  searchSimilarByEmbedding: (
+    embedding: number[],
+    maxResults?: number,
+    threshold?: number,
+  ) => Promise<NeonSearchResult[]>;
+
   // Utility methods
   generateEmbedding: (text: string) => Promise<number[]>;
   initializeExtensions: () => Promise<void>;
 }
 
 // Create Neon vector store service
-export function createNeonVectorStoreService(config?: Partial<NeonVectorStoreConfig>): NeonVectorStoreService {
+export function createNeonVectorStoreService(
+  config?: Partial<NeonVectorStoreConfig>,
+): NeonVectorStoreService {
+  // Check if we're in test mode first
+  const isTestMode =
+    process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT === 'true';
+
   const validatedConfig: NeonVectorStoreConfig = {
     connectionString: config?.connectionString || POSTGRES_URL || '',
     embeddingModel: config?.embeddingModel || 'text-embedding-3-small',
-    isEnabled: !!(config?.connectionString || POSTGRES_URL),
+    isEnabled: !isTestMode && !!(config?.connectionString || POSTGRES_URL),
   };
 
-  if (!validatedConfig.isEnabled) {
-    console.warn('Neon vector store service is disabled - no connection string provided');
+  // In test mode, always return disabled service
+  if (isTestMode || !validatedConfig.isEnabled) {
+    if (isTestMode) {
+      console.log('Test mode: Neon vector store service disabled');
+    } else {
+      console.warn(
+        'Neon vector store service is disabled - no connection string provided',
+      );
+    }
     return {
       db: null as any,
       isEnabled: false,
       embeddingModel: validatedConfig.embeddingModel,
-      addDocument: async () => { throw new Error('Neon vector store service is disabled'); },
-      addDocuments: async () => { throw new Error('Neon vector store service is disabled'); },
-      getDocument: async () => { throw new Error('Neon vector store service is disabled'); },
-      updateDocument: async () => { throw new Error('Neon vector store service is disabled'); },
-      deleteDocument: async () => { throw new Error('Neon vector store service is disabled'); },
-      searchSimilar: async () => { throw new Error('Neon vector store service is disabled'); },
-      searchSimilarByEmbedding: async () => { throw new Error('Neon vector store service is disabled'); },
-      generateEmbedding: async () => { throw new Error('Neon vector store service is disabled'); },
-      initializeExtensions: async () => { throw new Error('Neon vector store service is disabled'); },
+      addDocument: async () => {
+        throw new Error('Neon vector store service is disabled');
+      },
+      addDocuments: async () => {
+        throw new Error('Neon vector store service is disabled');
+      },
+      getDocument: async () => {
+        throw new Error('Neon vector store service is disabled');
+      },
+      updateDocument: async () => {
+        throw new Error('Neon vector store service is disabled');
+      },
+      deleteDocument: async () => {
+        throw new Error('Neon vector store service is disabled');
+      },
+      searchSimilar: async () => {
+        throw new Error('Neon vector store service is disabled');
+      },
+      searchSimilarByEmbedding: async () => {
+        throw new Error('Neon vector store service is disabled');
+      },
+      generateEmbedding: async () => {
+        throw new Error('Neon vector store service is disabled');
+      },
+      initializeExtensions: async () => {
+        throw new Error('Neon vector store service is disabled');
+      },
     };
   }
 
@@ -110,7 +151,7 @@ export function createNeonVectorStoreService(config?: Partial<NeonVectorStoreCon
       try {
         // Enable pgvector extension
         await this.db.execute(sql`CREATE EXTENSION IF NOT EXISTS vector;`);
-        
+
         // Create index for faster similarity search
         await this.db.execute(sql`
           CREATE INDEX IF NOT EXISTS vector_documents_embedding_idx 
@@ -118,7 +159,7 @@ export function createNeonVectorStoreService(config?: Partial<NeonVectorStoreCon
           USING ivfflat (embedding vector_cosine_ops) 
           WITH (lists = 100);
         `);
-        
+
         console.log('Neon pgvector extensions initialized successfully');
       } catch (error) {
         console.error('Failed to initialize Neon pgvector extensions:', error);
@@ -126,48 +167,58 @@ export function createNeonVectorStoreService(config?: Partial<NeonVectorStoreCon
       }
     },
 
-    generateEmbedding: withPerformanceMonitoring('neon', 'generateEmbedding', async (text: string): Promise<number[]> => {
-      const monitoringService = getVectorStoreMonitoringService();
-      
-      try {
-        const { embedding } = await embed({
-          model: getEmbeddingModelInstance(validatedConfig.embeddingModel),
-          value: text,
-        });
-        
-        // Record embedding generation metrics
-        monitoringService.recordMetric({
-          provider: 'neon',
-          metricType: 'embedding_generation',
-          value: 1,
-          unit: 'count',
-          success: true,
-          metadata: { textLength: text.length, modelName: validatedConfig.embeddingModel },
-        });
-        
-        return embedding;
-      } catch (error) {
-        monitoringService.recordMetric({
-          provider: 'neon',
-          metricType: 'embedding_generation',
-          value: 0,
-          unit: 'count',
-          success: false,
-          errorMessage: error instanceof Error ? error.message : 'Unknown error',
-        });
-        
-        console.error('Failed to generate embedding:', error);
-        throw error;
-      }
-    }),
+    generateEmbedding: withPerformanceMonitoring(
+      'neon',
+      'generateEmbedding',
+      async (text: string): Promise<number[]> => {
+        const monitoringService = getVectorStoreMonitoringService();
+
+        try {
+          const { embedding } = await embed({
+            model: getEmbeddingModelInstance(validatedConfig.embeddingModel),
+            value: text,
+          });
+
+          // Record embedding generation metrics
+          monitoringService.recordMetric({
+            provider: 'neon',
+            metricType: 'embedding_generation',
+            value: 1,
+            unit: 'count',
+            success: true,
+            metadata: {
+              textLength: text.length,
+              modelName: validatedConfig.embeddingModel,
+            },
+          });
+
+          return embedding;
+        } catch (error) {
+          monitoringService.recordMetric({
+            provider: 'neon',
+            metricType: 'embedding_generation',
+            value: 0,
+            unit: 'count',
+            success: false,
+            errorMessage:
+              error instanceof Error ? error.message : 'Unknown error',
+          });
+
+          console.error('Failed to generate embedding:', error);
+          throw error;
+        }
+      },
+    ),
 
     async addDocument(document: NeonDocumentInsert): Promise<NeonDocument> {
       const validatedDocument = NeonDocumentInsert.parse(document);
-      
+
       try {
         // Generate embedding if not provided
-        const embedding = validatedDocument.embedding || await this.generateEmbedding(validatedDocument.content);
-        
+        const embedding =
+          validatedDocument.embedding ||
+          (await this.generateEmbedding(validatedDocument.content));
+
         const [insertedDocument] = await this.db
           .insert(vectorDocuments)
           .values({
@@ -187,31 +238,40 @@ export function createNeonVectorStoreService(config?: Partial<NeonVectorStoreCon
       }
     },
 
-    async addDocuments(documents: NeonDocumentInsert[]): Promise<NeonDocument[]> {
-      const validatedDocuments = documents.map(doc => NeonDocumentInsert.parse(doc));
-      
+    async addDocuments(
+      documents: NeonDocumentInsert[],
+    ): Promise<NeonDocument[]> {
+      const validatedDocuments = documents.map((doc) =>
+        NeonDocumentInsert.parse(doc),
+      );
+
       try {
         // Generate embeddings for documents that don't have them
         const documentsWithEmbeddings = await Promise.all(
           validatedDocuments.map(async (doc) => ({
             ...doc,
-            embedding: doc.embedding || await this.generateEmbedding(doc.content),
-          }))
+            embedding:
+              doc.embedding || (await this.generateEmbedding(doc.content)),
+          })),
         );
 
         const insertedDocuments = await this.db
           .insert(vectorDocuments)
-          .values(documentsWithEmbeddings.map(doc => ({
-            content: doc.content,
-            metadata: doc.metadata || {},
-            embedding: doc.embedding as any,
-          })))
+          .values(
+            documentsWithEmbeddings.map((doc) => ({
+              content: doc.content,
+              metadata: doc.metadata || {},
+              embedding: doc.embedding as any,
+            })),
+          )
           .returning();
 
-        return insertedDocuments.map((doc, index) => NeonDocument.parse({
-          ...doc,
-          embedding: documentsWithEmbeddings[index].embedding,
-        }));
+        return insertedDocuments.map((doc, index) =>
+          NeonDocument.parse({
+            ...doc,
+            embedding: documentsWithEmbeddings[index].embedding,
+          }),
+        );
       } catch (error) {
         console.error('Failed to add documents to Neon vector store:', error);
         throw error;
@@ -233,7 +293,10 @@ export function createNeonVectorStoreService(config?: Partial<NeonVectorStoreCon
       }
     },
 
-    async updateDocument(id: string, document: Partial<NeonDocumentInsert>): Promise<NeonDocument> {
+    async updateDocument(
+      id: string,
+      document: Partial<NeonDocumentInsert>,
+    ): Promise<NeonDocument> {
       try {
         const updateData: any = {
           ...document,
@@ -266,58 +329,73 @@ export function createNeonVectorStoreService(config?: Partial<NeonVectorStoreCon
 
         return true;
       } catch (error) {
-        console.error('Failed to delete document from Neon vector store:', error);
+        console.error(
+          'Failed to delete document from Neon vector store:',
+          error,
+        );
         return false;
       }
     },
 
-    searchSimilar: withPerformanceMonitoring('neon', 'searchSimilar', async function(this: any, request: NeonSearchRequest): Promise<NeonSearchResult[]> {
-      const monitoringService = getVectorStoreMonitoringService();
-      const validatedRequest = NeonSearchRequest.parse(request);
-      const startTime = Date.now();
-      
-      try {
-        // Generate embedding for the query
-        const queryEmbedding = await this.generateEmbedding(validatedRequest.query);
-        const results = await this.searchSimilarByEmbedding(
-          queryEmbedding, 
-          validatedRequest.maxResults, 
-          validatedRequest.threshold
-        );
-        
-        const executionTime = Date.now() - startTime;
-        
-        // Record successful search metrics
-        monitoringService.recordSearchLatency('neon', executionTime, {
-          query: validatedRequest.query,
-          resultsCount: results.length,
-          threshold: validatedRequest.threshold,
-        });
-        monitoringService.recordSearchSuccess('neon', {
-          query: validatedRequest.query,
-          resultsCount: results.length,
-        });
-        
-        return results;
-      } catch (error) {
-        // Record search error
-        monitoringService.recordSearchError('neon', error as Error, {
-          query: validatedRequest.query,
-        });
-        
-        console.error('Failed to search similar documents in Neon vector store:', error);
-        throw error;
-      }
-    }),
+    searchSimilar: withPerformanceMonitoring(
+      'neon',
+      'searchSimilar',
+      async function (
+        this: any,
+        request: NeonSearchRequest,
+      ): Promise<NeonSearchResult[]> {
+        const monitoringService = getVectorStoreMonitoringService();
+        const validatedRequest = NeonSearchRequest.parse(request);
+        const startTime = Date.now();
+
+        try {
+          // Generate embedding for the query
+          const queryEmbedding = await this.generateEmbedding(
+            validatedRequest.query,
+          );
+          const results = await this.searchSimilarByEmbedding(
+            queryEmbedding,
+            validatedRequest.maxResults,
+            validatedRequest.threshold,
+          );
+
+          const executionTime = Date.now() - startTime;
+
+          // Record successful search metrics
+          monitoringService.recordSearchLatency('neon', executionTime, {
+            query: validatedRequest.query,
+            resultsCount: results.length,
+            threshold: validatedRequest.threshold,
+          });
+          monitoringService.recordSearchSuccess('neon', {
+            query: validatedRequest.query,
+            resultsCount: results.length,
+          });
+
+          return results;
+        } catch (error) {
+          // Record search error
+          monitoringService.recordSearchError('neon', error as Error, {
+            query: validatedRequest.query,
+          });
+
+          console.error(
+            'Failed to search similar documents in Neon vector store:',
+            error,
+          );
+          throw error;
+        }
+      },
+    ),
 
     async searchSimilarByEmbedding(
-      embedding: number[], 
-      maxResults = 10, 
-      threshold = 0.3
+      embedding: number[],
+      maxResults = 10,
+      threshold = 0.3,
     ): Promise<NeonSearchResult[]> {
       try {
         const similarity = sql<number>`1 - (${vectorDocuments.embedding} <=> ${JSON.stringify(embedding)})`;
-        
+
         const results = await this.db
           .select({
             id: vectorDocuments.id,
@@ -333,7 +411,7 @@ export function createNeonVectorStoreService(config?: Partial<NeonVectorStoreCon
           .orderBy(desc(similarity))
           .limit(maxResults);
 
-        return results.map(result => {
+        return results.map((result) => {
           const { similarity, ...document } = result;
           return NeonSearchResult.parse({
             document: NeonDocument.parse(document),
@@ -342,7 +420,10 @@ export function createNeonVectorStoreService(config?: Partial<NeonVectorStoreCon
           });
         });
       } catch (error) {
-        console.error('Failed to search by embedding in Neon vector store:', error);
+        console.error(
+          'Failed to search by embedding in Neon vector store:',
+          error,
+        );
         throw error;
       }
     },
@@ -355,14 +436,20 @@ let neonVectorStoreService: NeonVectorStoreService | null = null;
 export async function getNeonVectorStoreService(): Promise<NeonVectorStoreService> {
   if (!neonVectorStoreService) {
     neonVectorStoreService = createNeonVectorStoreService();
-    
-    // Initialize extensions on first use
-    if (neonVectorStoreService.isEnabled) {
+
+    // Initialize extensions on first use, but not in test mode
+    const isTestMode =
+      process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT === 'true';
+    if (neonVectorStoreService.isEnabled && !isTestMode) {
       try {
         await neonVectorStoreService.initializeExtensions();
       } catch (error) {
         console.warn('Failed to initialize Neon pgvector extensions:', error);
       }
+    } else if (isTestMode) {
+      console.log(
+        'Test mode: Skipping Neon pgvector extensions initialization',
+      );
     }
   }
   return neonVectorStoreService;

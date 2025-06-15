@@ -23,18 +23,22 @@ export const UserFeedback = z.object({
 export const RagGenerationData = z.object({
   question: z.string(),
   answer: z.string(),
-  sources: z.array(z.object({
-    documentId: z.string(),
-    content: z.string(),
-    score: z.number(),
-    metadata: z.record(z.any()).optional(),
-  })),
+  sources: z.array(
+    z.object({
+      documentId: z.string(),
+      content: z.string(),
+      score: z.number(),
+      metadata: z.record(z.any()).optional(),
+    }),
+  ),
   model: z.string(),
-  usage: z.object({
-    promptTokens: z.number().optional(),
-    completionTokens: z.number().optional(),
-    totalTokens: z.number().optional(),
-  }).optional(),
+  usage: z
+    .object({
+      promptTokens: z.number().optional(),
+      completionTokens: z.number().optional(),
+      totalTokens: z.number().optional(),
+    })
+    .optional(),
 });
 
 // Types
@@ -49,9 +53,11 @@ export interface LangSmithService {
 }
 
 // Create LangSmith service
-export function createLangSmithService(config: LangSmithConfig): LangSmithService {
+export function createLangSmithService(
+  config: LangSmithConfig,
+): LangSmithService {
   const validatedConfig = LangSmithConfig.parse(config);
-  
+
   if (!validatedConfig.apiKey) {
     console.warn('LangSmith API key not provided. Observability disabled.');
     return {
@@ -85,7 +91,7 @@ export function createLangSmithService(config: LangSmithConfig): LangSmithServic
 // Track RAG generation
 export async function trackRagGeneration(
   service: LangSmithService,
-  data: RagGenerationData
+  data: RagGenerationData,
 ): Promise<string | null> {
   if (!service.isEnabled) {
     return null;
@@ -93,10 +99,10 @@ export async function trackRagGeneration(
 
   try {
     const validatedData = RagGenerationData.parse(data);
-    
+
     // Generate a unique run ID for tracking
     const runId = crypto.randomUUID();
-    
+
     await service.client.createRun({
       id: runId,
       name: 'rag_generation',
@@ -131,7 +137,7 @@ export async function trackRagGeneration(
 // Submit user feedback
 export async function submitUserFeedback(
   service: LangSmithService,
-  feedback: UserFeedback
+  feedback: UserFeedback,
 ): Promise<string | null> {
   if (!service.isEnabled) {
     return null;
@@ -139,7 +145,7 @@ export async function submitUserFeedback(
 
   try {
     const validatedFeedback = UserFeedback.parse(feedback);
-    
+
     await service.client.createFeedback(
       validatedFeedback.runId,
       'user_feedback',
@@ -147,7 +153,7 @@ export async function submitUserFeedback(
         score: validatedFeedback.score,
         value: validatedFeedback.value,
         comment: validatedFeedback.comment,
-      }
+      },
     );
 
     return validatedFeedback.runId;
@@ -161,7 +167,7 @@ export async function submitUserFeedback(
 export async function updateRunMetadata(
   service: LangSmithService,
   runId: string,
-  metadata: Record<string, any>
+  metadata: Record<string, any>,
 ): Promise<boolean> {
   if (!service.isEnabled) {
     return false;
@@ -195,7 +201,7 @@ export function getLangSmithService(): LangSmithService {
       baseUrl: langSmithConfig.baseUrl,
     });
   }
-  
+
   return langSmithService;
 }
 

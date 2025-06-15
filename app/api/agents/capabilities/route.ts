@@ -21,14 +21,14 @@ export async function GET(request: Request) {
       supportedIntents: [
         'question_answering',
         'summarization',
-        'rewriting', 
+        'rewriting',
         'planning',
         'research',
         'comparison',
         'analysis',
         'creative_writing',
         'code_generation',
-        'data_extraction'
+        'data_extraction',
       ],
       features: {
         streaming: true,
@@ -40,23 +40,22 @@ export async function GET(request: Request) {
       },
       timestamp: new Date().toISOString(),
     });
-
   } catch (error) {
     console.error('Agent capabilities error:', error);
-    
+
     if (error instanceof ChatSDKError) {
       return error.toResponse();
     }
-    
+
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         code: 'internal_server_error:capabilities',
-        message: 'Failed to retrieve agent capabilities' 
+        message: 'Failed to retrieve agent capabilities',
       }),
-      { 
+      {
         status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      }
+        headers: { 'Content-Type': 'application/json' },
+      },
     );
   }
 }

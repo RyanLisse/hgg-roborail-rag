@@ -4,15 +4,23 @@ import { openai } from '@ai-sdk/openai';
 import { AISDKExporter } from 'langsmith/vercel';
 import { getModelInstance, getEmbeddingModelInstance } from '../ai/providers';
 import { isLangSmithEnabled } from '../env';
-import { getCohereEmbeddingService, embedDocuments, isImageContent, type DocumentItem } from '../embeddings/cohere';
-import { getUnifiedVectorStoreService, type VectorStoreType, } from '../vectorstore/unified';
-import { 
-  type DocumentChunkingService, 
-  createChunkingService, 
-  type ChunkingConfig, 
+import {
+  getCohereEmbeddingService,
+  embedDocuments,
+  isImageContent,
+  type DocumentItem,
+} from '../embeddings/cohere';
+import {
+  getUnifiedVectorStoreService,
+  type VectorStoreType,
+} from '../vectorstore/unified';
+import {
+  type DocumentChunkingService,
+  createChunkingService,
+  type ChunkingConfig,
   type ChunkingStrategy,
   type ChunkingResult,
-  type Document as ChunkingDocument
+  type Document as ChunkingDocument,
 } from './chunking';
 
 // Schemas
@@ -21,46 +29,60 @@ export const DocumentChunk = z.object({
   documentId: z.string(),
   content: z.string(),
   embedding: z.array(z.number()),
-  metadata: z.object({
-    title: z.string().optional(),
-    source: z.string().optional(),
-    chunkIndex: z.number().optional(),
-    timestamp: z.date().optional(),
-  }).passthrough(),
+  metadata: z
+    .object({
+      title: z.string().optional(),
+      source: z.string().optional(),
+      chunkIndex: z.number().optional(),
+      timestamp: z.date().optional(),
+    })
+    .passthrough(),
 });
 
 export const RAGQuery = z.object({
   question: z.string().min(1),
-  chatHistory: z.array(z.object({
-    role: z.enum(['user', 'assistant', 'system']),
-    content: z.string(),
-  })).default([]),
+  chatHistory: z
+    .array(
+      z.object({
+        role: z.enum(['user', 'assistant', 'system']),
+        content: z.string(),
+      }),
+    )
+    .default([]),
   modelId: z.string(),
-  options: z.object({
-    maxSources: z.number().default(5),
-    minRelevanceScore: z.number().default(0.3),
-    includeMetadata: z.boolean().default(true),
-    useWebSearch: z.boolean().default(false),
-    previousResponseId: z.string().optional(),
-    vectorStoreSources: z.array(z.enum(['openai', 'neon', 'memory'])).default(['openai']),
-    useFileSearch: z.boolean().default(true),
-  }).optional(),
+  options: z
+    .object({
+      maxSources: z.number().default(5),
+      minRelevanceScore: z.number().default(0.3),
+      includeMetadata: z.boolean().default(true),
+      useWebSearch: z.boolean().default(false),
+      previousResponseId: z.string().optional(),
+      vectorStoreSources: z
+        .array(z.enum(['openai', 'neon', 'memory']))
+        .default(['openai']),
+      useFileSearch: z.boolean().default(true),
+    })
+    .optional(),
 });
 
 export const RAGResponse = z.object({
   answer: z.string(),
-  sources: z.array(z.object({
-    documentId: z.string(),
-    content: z.string(),
-    score: z.number(),
-    metadata: z.record(z.any()).optional(),
-  })),
+  sources: z.array(
+    z.object({
+      documentId: z.string(),
+      content: z.string(),
+      score: z.number(),
+      metadata: z.record(z.any()).optional(),
+    }),
+  ),
   model: z.string(),
-  usage: z.object({
-    promptTokens: z.number().optional(),
-    completionTokens: z.number().optional(),
-    totalTokens: z.number().optional(),
-  }).optional(),
+  usage: z
+    .object({
+      promptTokens: z.number().optional(),
+      completionTokens: z.number().optional(),
+      totalTokens: z.number().optional(),
+    })
+    .optional(),
   runId: z.string().optional(), // LangSmith run ID for feedback correlation
   responseId: z.string().optional(), // OpenAI response ID for continuity
 });
@@ -69,19 +91,34 @@ export const RAGConfig = z.object({
   vectorStore: z.enum(['memory', 'postgres', 'pinecone']),
   embeddingModel: z.string(),
   chatModel: z.string(),
-  options: z.object({
-    chunkSize: z.number().default(1500),
-    chunkOverlap: z.number().default(200),
-    maxRetrievalLimit: z.number().default(20),
-    embeddingDimensions: z.number().default(1536),
-  }).optional(),
-  chunking: z.object({
-    strategy: z.enum(['character', 'semantic', 'recursive', 'hybrid', 'sentence', 'paragraph', 'markdown', 'code']).default('hybrid'),
-    preserveStructure: z.boolean().default(true),
-    enableQualityValidation: z.boolean().default(true),
-    minChunkSize: z.number().default(100),
-    maxChunkSize: z.number().default(3000),
-  }).optional(),
+  options: z
+    .object({
+      chunkSize: z.number().default(1500),
+      chunkOverlap: z.number().default(200),
+      maxRetrievalLimit: z.number().default(20),
+      embeddingDimensions: z.number().default(1536),
+    })
+    .optional(),
+  chunking: z
+    .object({
+      strategy: z
+        .enum([
+          'character',
+          'semantic',
+          'recursive',
+          'hybrid',
+          'sentence',
+          'paragraph',
+          'markdown',
+          'code',
+        ])
+        .default('hybrid'),
+      preserveStructure: z.boolean().default(true),
+      enableQualityValidation: z.boolean().default(true),
+      minChunkSize: z.number().default(100),
+      maxChunkSize: z.number().default(3000),
+    })
+    .optional(),
 });
 
 // Types
@@ -119,7 +156,7 @@ class MemoryVectorStore {
 
   async searchSimilar(
     queryEmbedding: number[],
-    options: SearchOptions = {}
+    options: SearchOptions = {},
   ): Promise<SearchResult[]> {
     const { limit = 10, minScore = 0.3, filter } = options;
     const results: SearchResult[] = [];
@@ -127,8 +164,8 @@ class MemoryVectorStore {
     for (const chunk of Array.from(this.chunks.values())) {
       // Apply metadata filter if provided
       if (filter) {
-        const matchesFilter = Object.entries(filter).every(([key, value]) =>
-          chunk.metadata[key] === value
+        const matchesFilter = Object.entries(filter).every(
+          ([key, value]) => chunk.metadata[key] === value,
         );
         if (!matchesFilter) continue;
       }
@@ -139,9 +176,7 @@ class MemoryVectorStore {
       }
     }
 
-    return results
-      .sort((a, b) => b.score - a.score)
-      .slice(0, limit);
+    return results.sort((a, b) => b.score - a.score).slice(0, limit);
   }
 
   async deleteByDocumentId(documentId: string): Promise<void> {
@@ -159,7 +194,7 @@ export class RAGService {
 
   constructor(
     public config: RAGConfig,
-    private vectorStore: MemoryVectorStore = new MemoryVectorStore()
+    private vectorStore: MemoryVectorStore = new MemoryVectorStore(),
   ) {
     // Initialize chunking service with configuration
     const chunkingConfig: ChunkingConfig = {
@@ -172,14 +207,15 @@ export class RAGService {
       minChunkSize: config.chunking?.minChunkSize || 100,
       maxChunkSize: config.chunking?.maxChunkSize || 3000,
     };
-    
+
     this.chunkingService = createChunkingService(chunkingConfig);
   }
 
   async embedDocument(document: Document): Promise<DocumentChunk[]> {
     // Detect document type if not specified
-    const documentType = document.type || (isImageContent(document.content) ? 'image' : 'text');
-    
+    const documentType =
+      document.type || (isImageContent(document.content) ? 'image' : 'text');
+
     // Try to use Cohere for mixed or image documents
     const cohereService = getCohereEmbeddingService();
     if (cohereService.isEnabled && documentType === 'image') {
@@ -190,9 +226,12 @@ export class RAGService {
     return await this.embedTextDocumentEnhanced(document);
   }
 
-  private async embedDocumentWithCohere(document: Document, documentType: 'text' | 'image'): Promise<DocumentChunk[]> {
+  private async embedDocumentWithCohere(
+    document: Document,
+    documentType: 'text' | 'image',
+  ): Promise<DocumentChunk[]> {
     const cohereService = getCohereEmbeddingService();
-    
+
     if (documentType === 'image') {
       // Embed image directly
       const documentItem: DocumentItem = {
@@ -201,7 +240,9 @@ export class RAGService {
         metadata: document.metadata,
       };
 
-      const embeddedDocuments = await embedDocuments(cohereService, [documentItem]);
+      const embeddedDocuments = await embedDocuments(cohereService, [
+        documentItem,
+      ]);
       const embeddedDoc = embeddedDocuments[0];
 
       const chunk: DocumentChunk = {
@@ -227,33 +268,43 @@ export class RAGService {
         metadata: document.metadata,
       };
 
-      const chunkingResult = await this.chunkingService.chunkDocument(chunkingDocument);
-      const documentItems: DocumentItem[] = chunkingResult.chunks.map(chunk => ({
-        type: 'text',
-        content: chunk.content,
-        metadata: chunk.metadata,
-      }));
+      const chunkingResult =
+        await this.chunkingService.chunkDocument(chunkingDocument);
+      const documentItems: DocumentItem[] = chunkingResult.chunks.map(
+        (chunk) => ({
+          type: 'text',
+          content: chunk.content,
+          metadata: chunk.metadata,
+        }),
+      );
 
-      const embeddedDocuments = await embedDocuments(cohereService, documentItems);
-      const embeddedChunks: DocumentChunk[] = embeddedDocuments.map((embeddedDoc, i) => ({
-        id: chunkingResult.chunks[i].id,
-        documentId: document.id,
-        content: embeddedDoc.content,
-        embedding: embeddedDoc.embedding,
-        metadata: {
-          ...chunkingResult.chunks[i].metadata,
-          timestamp: new Date(),
-          chunkingStrategy: chunkingResult.strategy,
-          qualityScore: chunkingResult.chunks[i].metadata.quality?.score,
-        },
-      }));
+      const embeddedDocuments = await embedDocuments(
+        cohereService,
+        documentItems,
+      );
+      const embeddedChunks: DocumentChunk[] = embeddedDocuments.map(
+        (embeddedDoc, i) => ({
+          id: chunkingResult.chunks[i].id,
+          documentId: document.id,
+          content: embeddedDoc.content,
+          embedding: embeddedDoc.embedding,
+          metadata: {
+            ...chunkingResult.chunks[i].metadata,
+            timestamp: new Date(),
+            chunkingStrategy: chunkingResult.strategy,
+            qualityScore: chunkingResult.chunks[i].metadata.quality?.score,
+          },
+        }),
+      );
 
       await this.vectorStore.addChunks(embeddedChunks);
       return embeddedChunks;
     }
   }
 
-  private async embedTextDocumentEnhanced(document: Document): Promise<DocumentChunk[]> {
+  private async embedTextDocumentEnhanced(
+    document: Document,
+  ): Promise<DocumentChunk[]> {
     // Use enhanced chunking service
     const chunkingDocument: ChunkingDocument = {
       id: document.id,
@@ -262,7 +313,8 @@ export class RAGService {
       metadata: document.metadata,
     };
 
-    const chunkingResult = await this.chunkingService.chunkDocument(chunkingDocument);
+    const chunkingResult =
+      await this.chunkingService.chunkDocument(chunkingDocument);
     const embeddedChunks: DocumentChunk[] = [];
 
     for (const enhancedChunk of chunkingResult.chunks) {
@@ -297,13 +349,15 @@ export class RAGService {
   }
 
   // Keep legacy method for backward compatibility
-  private async embedTextDocument(document: Document): Promise<DocumentChunk[]> {
+  private async embedTextDocument(
+    document: Document,
+  ): Promise<DocumentChunk[]> {
     const chunks = this.chunkDocument(document);
     const embeddedChunks: DocumentChunk[] = [];
 
     for (let i = 0; i < chunks.length; i++) {
       const chunkContent = chunks[i];
-      
+
       const { embedding } = await embed({
         model: getEmbeddingModelInstance(this.config.embeddingModel),
         value: chunkContent,
@@ -328,28 +382,43 @@ export class RAGService {
     return embeddedChunks;
   }
 
-  private detectDocumentType(document: Document): 'text' | 'markdown' | 'code' | 'html' {
+  private detectDocumentType(
+    document: Document,
+  ): 'text' | 'markdown' | 'code' | 'html' {
     // Check metadata first
     if (document.metadata.type) {
       return document.metadata.type as 'text' | 'markdown' | 'code' | 'html';
     }
 
     const content = document.content.toLowerCase();
-    
+
     // Check for markdown indicators
-    if (content.includes('```') || content.match(/^#{1,6}\s/) || content.includes('![')) {
+    if (
+      content.includes('```') ||
+      content.match(/^#{1,6}\s/) ||
+      content.includes('![')
+    ) {
       return 'markdown';
     }
 
     // Check for HTML indicators
-    if (content.includes('<html') || content.includes('<!doctype') || content.match(/<\w+/)) {
+    if (
+      content.includes('<html') ||
+      content.includes('<!doctype') ||
+      content.match(/<\w+/)
+    ) {
       return 'html';
     }
 
     // Check for code indicators
-    if (content.includes('function ') || content.includes('class ') || 
-        content.includes('import ') || content.includes('const ') ||
-        content.includes('def ') || content.includes('public class')) {
+    if (
+      content.includes('function ') ||
+      content.includes('class ') ||
+      content.includes('import ') ||
+      content.includes('const ') ||
+      content.includes('def ') ||
+      content.includes('public class')
+    ) {
       return 'code';
     }
 
@@ -360,34 +429,43 @@ export class RAGService {
     query: string,
     options: SearchOptions = {},
     queryType?: 'text' | 'image',
-    vectorStoreSources: VectorStoreType[] = ['memory']
+    vectorStoreSources: VectorStoreType[] = ['memory'],
   ): Promise<SearchResult[]> {
     // If using external vector stores, delegate to unified service
-    if (vectorStoreSources.some(source => source !== 'memory')) {
-      return await this.searchUnifiedVectorStores(query, options, vectorStoreSources);
+    if (vectorStoreSources.some((source) => source !== 'memory')) {
+      return await this.searchUnifiedVectorStores(
+        query,
+        options,
+        vectorStoreSources,
+      );
     }
 
     // Original in-memory search for backward compatibility
-    const detectedType = queryType || (isImageContent(query) ? 'image' : 'text');
-    
+    const detectedType =
+      queryType || (isImageContent(query) ? 'image' : 'text');
+
     let embedding: number[];
-    
+
     // Use Cohere for image queries or when preferred
     const cohereService = getCohereEmbeddingService();
     if (cohereService.isEnabled && detectedType === 'image') {
       if (detectedType === 'image') {
-        const embeddings = await embedDocuments(cohereService, [{
-          type: 'image',
-          content: query,
-          metadata: {},
-        }]);
+        const embeddings = await embedDocuments(cohereService, [
+          {
+            type: 'image',
+            content: query,
+            metadata: {},
+          },
+        ]);
         embedding = embeddings[0].embedding;
       } else {
-        const embeddings = await embedDocuments(cohereService, [{
-          type: 'text',
-          content: query,
-          metadata: {},
-        }]);
+        const embeddings = await embedDocuments(cohereService, [
+          {
+            type: 'text',
+            content: query,
+            metadata: {},
+          },
+        ]);
         embedding = embeddings[0].embedding;
       }
     } else {
@@ -405,11 +483,11 @@ export class RAGService {
   private async searchUnifiedVectorStores(
     query: string,
     options: SearchOptions,
-    vectorStoreSources: VectorStoreType[]
+    vectorStoreSources: VectorStoreType[],
   ): Promise<SearchResult[]> {
     try {
       const unifiedService = await getUnifiedVectorStoreService();
-      
+
       const results = await unifiedService.searchAcrossSources({
         query,
         sources: vectorStoreSources,
@@ -420,7 +498,7 @@ export class RAGService {
       });
 
       // Convert unified results to RAG search results
-      return results.map(result => ({
+      return results.map((result) => ({
         id: result.document.id,
         documentId: result.document.id,
         content: result.document.content,
@@ -439,14 +517,22 @@ export class RAGService {
     const { question, chatHistory, modelId, options } = validatedQuery;
 
     // Retrieve relevant context from selected vector stores
-    const searchResults = await this.searchSimilar(question, {
-      limit: options?.maxSources || 5,
-      minScore: options?.minRelevanceScore || 0.3,
-    }, undefined, options?.vectorStoreSources || ['openai']);
+    const searchResults = await this.searchSimilar(
+      question,
+      {
+        limit: options?.maxSources || 5,
+        minScore: options?.minRelevanceScore || 0.3,
+      },
+      undefined,
+      options?.vectorStoreSources || ['openai'],
+    );
 
     // Prepare context for generation
     const context = searchResults
-      .map(result => `Source: ${result.metadata.title || result.documentId}\n${result.content}`)
+      .map(
+        (result) =>
+          `Source: ${result.metadata.title || result.documentId}\n${result.content}`,
+      )
       .join('\n\n---\n\n');
 
     // Generate response
@@ -465,36 +551,44 @@ Instructions:
 
     const messages = [
       { role: 'system' as const, content: systemPrompt },
-      ...chatHistory.map(msg => ({ 
-        role: msg.role as 'user' | 'assistant' | 'system', 
-        content: msg.content 
+      ...chatHistory.map((msg) => ({
+        role: msg.role as 'user' | 'assistant' | 'system',
+        content: msg.content,
       })),
       { role: 'user' as const, content: question },
     ];
 
     // Get telemetry settings for LangSmith tracing
-    const telemetrySettings = isLangSmithEnabled 
-      ? AISDKExporter.getSettings() 
+    const telemetrySettings = isLangSmithEnabled
+      ? AISDKExporter.getSettings()
       : undefined;
 
     // Check if we should use OpenAI responses API
-    const shouldUseResponses = options?.useWebSearch || options?.previousResponseId || options?.useFileSearch;
-    const modelInstance = shouldUseResponses && modelId.startsWith('openai-')
-      ? openai.responses(modelId.replace('openai-', ''))
-      : getModelInstance(modelId);
+    const shouldUseResponses =
+      options?.useWebSearch ||
+      options?.previousResponseId ||
+      options?.useFileSearch;
+    const modelInstance =
+      shouldUseResponses && modelId.startsWith('openai-')
+        ? openai.responses(modelId.replace('openai-', ''))
+        : getModelInstance(modelId);
 
     // Configure tools for OpenAI responses
     const tools: any = {};
-    
+
     if (shouldUseResponses) {
       if (options?.useWebSearch) {
         tools.web_search_preview = openai.tools.webSearchPreview();
       }
-      
-      if (options?.useFileSearch && options?.vectorStoreSources?.includes('openai')) {
+
+      if (
+        options?.useFileSearch &&
+        options?.vectorStoreSources?.includes('openai')
+      ) {
         try {
           const unifiedService = await getUnifiedVectorStoreService();
-          const fileSearchTool = unifiedService.openaiService.getFileSearchTool();
+          const fileSearchTool =
+            unifiedService.openaiService.getFileSearchTool();
           tools.file_search = fileSearchTool;
         } catch (error) {
           console.warn('Failed to get file search tool:', error);
@@ -506,13 +600,19 @@ Instructions:
     const finalTools = Object.keys(tools).length > 0 ? tools : undefined;
 
     // Configure provider options for response continuity
-    const providerOptions = options?.previousResponseId ? {
-      openai: {
-        previousResponseId: options.previousResponseId,
-      },
-    } : undefined;
+    const providerOptions = options?.previousResponseId
+      ? {
+          openai: {
+            previousResponseId: options.previousResponseId,
+          },
+        }
+      : undefined;
 
-    const { text, usage, response: aiResponse } = await generateText({
+    const {
+      text,
+      usage,
+      response: aiResponse,
+    } = await generateText({
       model: modelInstance,
       messages,
       maxTokens: 1000,
@@ -524,7 +624,7 @@ Instructions:
 
     const response = RAGResponse.parse({
       answer: text,
-      sources: searchResults.map(result => ({
+      sources: searchResults.map((result) => ({
         documentId: result.documentId,
         content: `${result.content.substring(0, 200)}...`,
         score: result.score,
@@ -560,7 +660,7 @@ Instructions:
         const lastPeriod = chunk.lastIndexOf('.');
         const lastNewline = chunk.lastIndexOf('\n');
         const breakPoint = Math.max(lastPeriod, lastNewline);
-        
+
         if (breakPoint > start + chunkSize * 0.5) {
           chunk = content.slice(start, breakPoint + 1);
         }
@@ -570,7 +670,7 @@ Instructions:
       start = end - chunkOverlap;
     }
 
-    return chunks.filter(chunk => chunk.length > 0);
+    return chunks.filter((chunk) => chunk.length > 0);
   }
 
   // Enhanced chunking methods
@@ -581,7 +681,7 @@ Instructions:
       type: this.detectDocumentType(document),
       metadata: document.metadata,
     };
-    
+
     return await this.chunkingService.chunkDocument(chunkingDocument);
   }
 
@@ -608,19 +708,19 @@ Instructions:
 // Utility functions
 function cosineSimilarity(a: number[], b: number[]): number {
   if (a.length !== b.length) return 0;
-  
+
   let dotProduct = 0;
   let normA = 0;
   let normB = 0;
-  
+
   for (let i = 0; i < a.length; i++) {
     dotProduct += a[i] * b[i];
     normA += a[i] * a[i];
     normB += b[i] * b[i];
   }
-  
+
   if (normA === 0 || normB === 0) return 0;
-  
+
   return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
 }
 
@@ -632,7 +732,7 @@ export function createRAGService(config: RAGConfig): RAGService {
 
 export async function embedDocument(
   service: RAGService,
-  document: Document
+  document: Document,
 ): Promise<DocumentChunk[]> {
   return await service.embedDocument(document);
 }
@@ -640,39 +740,39 @@ export async function embedDocument(
 export async function searchSimilarChunks(
   service: RAGService,
   query: string,
-  options?: SearchOptions
+  options?: SearchOptions,
 ): Promise<SearchResult[]> {
   return await service.searchSimilar(query, options);
 }
 
 export async function generateRAGResponse(
   service: RAGService,
-  query: RAGQuery
+  query: RAGQuery,
 ): Promise<RAGResponse> {
   return await service.generateResponse(query);
 }
 
 // Enhanced chunking exports
-export { 
-  DocumentChunkingService, 
-  createChunkingService, 
+export {
+  DocumentChunkingService,
+  createChunkingService,
   chunkDocument as createEnhancedChunks,
-  type ChunkingConfig, 
+  type ChunkingConfig,
   type ChunkingStrategy,
   type ChunkingResult,
-  type DocumentChunk as EnhancedDocumentChunk 
+  type DocumentChunk as EnhancedDocumentChunk,
 } from './chunking';
 
 export async function analyzeDocumentChunking(
   service: RAGService,
-  document: Document
+  document: Document,
 ): Promise<ChunkingResult> {
   return await service.analyzeDocumentChunking(document);
 }
 
 export function updateChunkingStrategy(
   service: RAGService,
-  strategy: ChunkingStrategy
+  strategy: ChunkingStrategy,
 ): void {
   service.updateChunkingStrategy(strategy);
 }

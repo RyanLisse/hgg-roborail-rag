@@ -10,20 +10,25 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useRAG } from '@/hooks/use-rag';
 import { useModelSelection } from '@/hooks/use-model-selection';
 import { MessageFeedback } from '@/components/feedback-system';
-import { DatabaseSelector, useDatabaseSelection } from '@/components/database-selector';
+import {
+  DatabaseSelector,
+  useDatabaseSelection,
+} from '@/components/database-selector';
 import { Upload, Send, X, FileText, AlertCircle, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSession } from 'next-auth/react';
 
 export function RAGChat() {
   const [question, setQuestion] = useState('');
-  const [chatHistory, setChatHistory] = useState<Array<{ 
-    role: 'user' | 'assistant'; 
-    content: string; 
-    messageId?: string;
-    runId?: string;
-  }>>([]);
-  
+  const [chatHistory, setChatHistory] = useState<
+    Array<{
+      role: 'user' | 'assistant';
+      content: string;
+      messageId?: string;
+      runId?: string;
+    }>
+  >([]);
+
   const { data: session } = useSession();
   const { selectedModel } = useModelSelection();
   const {
@@ -67,15 +72,15 @@ export function RAGChat() {
       if (result) {
         // Generate unique messageId for this response
         const messageId = crypto.randomUUID();
-        
-        setChatHistory(prev => [
+
+        setChatHistory((prev) => [
           ...prev,
-          { 
-            role: 'assistant', 
+          {
+            role: 'assistant',
             content: result.answer,
             messageId,
-            runId: result.runId // From RAG service LangSmith tracking
-          }
+            runId: result.runId, // From RAG service LangSmith tracking
+          },
         ]);
       }
     } catch (err) {
@@ -87,7 +92,7 @@ export function RAGChat() {
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    
+
     for (const file of files) {
       await addDocument({
         file,
@@ -168,17 +173,25 @@ export function RAGChat() {
               <h4 className="text-sm font-medium">Uploaded Documents</h4>
               <div className="space-y-2">
                 {documents.map((doc) => (
-                  <div key={doc.id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div
+                    key={doc.id}
+                    className="flex items-center justify-between p-3 border rounded-lg"
+                  >
                     <div className="flex items-center gap-3">
                       <FileText size={16} className="text-muted-foreground" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{doc.name}</p>
+                        <p className="text-sm font-medium truncate">
+                          {doc.name}
+                        </p>
                         <p className="text-xs text-muted-foreground">
-                          {formatFileSize(doc.size)} • {doc.uploadedAt.toLocaleDateString()}
+                          {formatFileSize(doc.size)} •{' '}
+                          {doc.uploadedAt.toLocaleDateString()}
                         </p>
                       </div>
                       <Badge
-                        variant={doc.status === 'processed' ? 'default' : 'secondary'}
+                        variant={
+                          doc.status === 'processed' ? 'default' : 'secondary'
+                        }
                         className="text-xs"
                       >
                         {doc.status}
@@ -210,27 +223,33 @@ export function RAGChat() {
           {chatHistory.length > 0 && (
             <div className="space-y-4 max-h-96 overflow-y-auto">
               {chatHistory.map((message, index) => (
-                <div key={`message-${index}-${message.content.slice(0,10)}`} className={cn(
-                  'p-3 rounded-lg',
-                  message.role === 'user' 
-                    ? 'bg-primary/10 ml-8' 
-                    : 'bg-muted mr-8'
-                )}>
+                <div
+                  key={`message-${index}-${message.content.slice(0, 10)}`}
+                  className={cn(
+                    'p-3 rounded-lg',
+                    message.role === 'user'
+                      ? 'bg-primary/10 ml-8'
+                      : 'bg-muted mr-8',
+                  )}
+                >
                   <div className="text-xs font-medium mb-1 capitalize">
                     {message.role}
                   </div>
                   <div className="text-sm">{message.content}</div>
-                  
+
                   {/* Add feedback component for assistant messages */}
-                  {message.role === 'assistant' && message.messageId && message.runId && session?.user?.id && (
-                    <div className="mt-3 pt-2 border-t border-border/50">
-                      <MessageFeedback 
-                        messageId={message.messageId}
-                        runId={message.runId}
-                        userId={session.user.id}
-                      />
-                    </div>
-                  )}
+                  {message.role === 'assistant' &&
+                    message.messageId &&
+                    message.runId &&
+                    session?.user?.id && (
+                      <div className="mt-3 pt-2 border-t border-border/50">
+                        <MessageFeedback
+                          messageId={message.messageId}
+                          runId={message.runId}
+                          userId={session.user.id}
+                        />
+                      </div>
+                    )}
                 </div>
               ))}
             </div>
@@ -243,7 +262,9 @@ export function RAGChat() {
               <div className="space-y-2">
                 <Skeleton className="h-4 w-full" />
                 <Skeleton className="h-4 w-3/4" />
-                <p className="text-xs text-muted-foreground">Generating response...</p>
+                <p className="text-xs text-muted-foreground">
+                  Generating response...
+                </p>
               </div>
             </div>
           )}
@@ -252,12 +273,14 @@ export function RAGChat() {
             <div className="space-y-4">
               <div className="p-3 bg-muted rounded-lg mr-8">
                 <div className="text-xs font-medium mb-2">Assistant</div>
-                <div className="text-sm whitespace-pre-wrap">{response.answer}</div>
-                
+                <div className="text-sm whitespace-pre-wrap">
+                  {response.answer}
+                </div>
+
                 {/* Add feedback for current response if user is logged in */}
                 {response.runId && session?.user?.id && (
                   <div className="mt-3 pt-2 border-t border-border/50">
-                    <MessageFeedback 
+                    <MessageFeedback
                       messageId={crypto.randomUUID()} // Temporary ID for current response
                       runId={response.runId}
                       userId={session.user.id}
@@ -270,10 +293,15 @@ export function RAGChat() {
               {response.sources.length > 0 && (
                 <div className="space-y-2">
                   <Separator />
-                  <div className="text-xs font-medium text-muted-foreground">Sources</div>
+                  <div className="text-xs font-medium text-muted-foreground">
+                    Sources
+                  </div>
                   <div className="grid gap-2">
                     {response.sources.map((source, index) => (
-                      <div key={`source-${source.documentId}-${index}`} className="p-2 border rounded text-xs">
+                      <div
+                        key={`source-${source.documentId}-${index}`}
+                        className="p-2 border rounded text-xs"
+                      >
                         <div className="font-medium mb-1">
                           {source.metadata?.title || source.documentId}
                           <Badge variant="outline" className="ml-2 text-xs">
@@ -298,7 +326,8 @@ export function RAGChat() {
                 <span className="text-sm font-medium">Error</span>
               </div>
               <p className="text-sm text-muted-foreground mt-1">
-                {error.message || 'An error occurred while processing your request.'}
+                {error.message ||
+                  'An error occurred while processing your request.'}
               </p>
             </div>
           )}
@@ -317,8 +346,8 @@ export function RAGChat() {
                 }
               }}
             />
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={!question.trim() || isLoading || !selectedModel}
               className="self-end"
               aria-label="Send"
@@ -341,7 +370,8 @@ export function RAGChat() {
                 Connected to RoboRail Documentation
               </div>
               <div className="text-xs text-green-700 mt-1">
-                Using OpenAI vector store vs_6849955367a88191bf89d7660230325f with RoboRail technical documentation
+                Using OpenAI vector store vs_6849955367a88191bf89d7660230325f
+                with RoboRail technical documentation
               </div>
             </div>
           )}
@@ -349,15 +379,17 @@ export function RAGChat() {
           {/* RoboRail Example Questions */}
           {chatHistory.length === 0 && selectedModel && (
             <div className="space-y-3">
-              <div className="text-sm font-medium text-muted-foreground">Try asking about RoboRail:</div>
+              <div className="text-sm font-medium text-muted-foreground">
+                Try asking about RoboRail:
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {[
-                  "How do I calibrate the RoboRail system?",
-                  "What are the safety procedures for RoboRail?",
-                  "What is the measurement accuracy of RoboRail?",
-                  "How do I troubleshoot RoboRail issues?",
-                  "What are the operating procedures for RoboRail?",
-                  "How do I maintain the RoboRail system?"
+                  'How do I calibrate the RoboRail system?',
+                  'What are the safety procedures for RoboRail?',
+                  'What is the measurement accuracy of RoboRail?',
+                  'How do I troubleshoot RoboRail issues?',
+                  'What are the operating procedures for RoboRail?',
+                  'How do I maintain the RoboRail system?',
                 ].map((exampleQuestion) => (
                   <Button
                     key={exampleQuestion}

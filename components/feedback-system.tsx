@@ -28,14 +28,14 @@ interface MessageFeedbackProps {
   className?: string;
 }
 
-export function MessageFeedback({ 
-  messageId, 
-  runId, 
-  userId, 
-  className 
+export function MessageFeedback({
+  messageId,
+  runId,
+  userId,
+  className,
 }: MessageFeedbackProps) {
   const [showCommentDialog, setShowCommentDialog] = useState(false);
-  
+
   const {
     submitFeedback,
     updateFeedback,
@@ -67,7 +67,10 @@ export function MessageFeedback({
     }
   };
 
-  const handleCommentSubmit = async (data: { vote: 'up' | 'down'; comment: string }) => {
+  const handleCommentSubmit = async (data: {
+    vote: 'up' | 'down';
+    comment: string;
+  }) => {
     if (existingFeedback) {
       await updateFeedback(data);
     } else {
@@ -92,13 +95,14 @@ export function MessageFeedback({
           disabled={isSubmitting}
           className={cn(
             'h-8 w-8 p-0',
-            existingFeedback?.vote === 'up' && 'bg-green-100 text-green-700 hover:bg-green-200'
+            existingFeedback?.vote === 'up' &&
+              'bg-green-100 text-green-700 hover:bg-green-200',
           )}
           aria-label="Thumbs up"
         >
           <ThumbsUp size={16} />
         </Button>
-        
+
         <Button
           variant="ghost"
           size="sm"
@@ -106,7 +110,8 @@ export function MessageFeedback({
           disabled={isSubmitting}
           className={cn(
             'h-8 w-8 p-0',
-            existingFeedback?.vote === 'down' && 'bg-red-100 text-red-700 hover:bg-red-200'
+            existingFeedback?.vote === 'down' &&
+              'bg-red-100 text-red-700 hover:bg-red-200',
           )}
           aria-label="Thumbs down"
         >
@@ -201,7 +206,9 @@ export function FeedbackDialog({
         <div className="space-y-4">
           {/* Vote Selection */}
           <div className="space-y-2">
-            <label htmlFor="rating-buttons" className="text-sm font-medium">Rating</label>
+            <label htmlFor="rating-buttons" className="text-sm font-medium">
+              Rating
+            </label>
             <div id="rating-buttons" className="flex gap-2">
               <Button
                 type="button"
@@ -210,7 +217,8 @@ export function FeedbackDialog({
                 onClick={() => setVote('up')}
                 className={cn(
                   'flex items-center gap-2',
-                  vote === 'up' && 'bg-green-100 text-green-700 border-green-300'
+                  vote === 'up' &&
+                    'bg-green-100 text-green-700 border-green-300',
                 )}
                 aria-label="Thumbs up"
               >
@@ -224,7 +232,7 @@ export function FeedbackDialog({
                 onClick={() => setVote('down')}
                 className={cn(
                   'flex items-center gap-2',
-                  vote === 'down' && 'bg-red-100 text-red-700 border-red-300'
+                  vote === 'down' && 'bg-red-100 text-red-700 border-red-300',
                 )}
                 aria-label="Thumbs down"
               >
@@ -255,13 +263,8 @@ export function FeedbackDialog({
         </div>
 
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={handleClose}>
-            Cancel
-          </AlertDialogCancel>
-          <AlertDialogAction
-            onClick={handleSubmit}
-            disabled={!hasChanges}
-          >
+          <AlertDialogCancel onClick={handleClose}>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={handleSubmit} disabled={!hasChanges}>
             Submit
           </AlertDialogAction>
         </AlertDialogFooter>
@@ -279,7 +282,12 @@ export function FeedbackStats({ runId, className }: FeedbackStatsProps) {
   // This would fetch stats for the runId
   // For now, we'll show a placeholder
   return (
-    <div className={cn('flex items-center gap-2 text-xs text-muted-foreground', className)}>
+    <div
+      className={cn(
+        'flex items-center gap-2 text-xs text-muted-foreground',
+        className,
+      )}
+    >
       <div className="flex items-center gap-1">
         <ThumbsUp size={12} />
         <span>5</span>

@@ -21,7 +21,12 @@ export const MetricType = z.enum([
   'service_health',
 ]);
 
-export const VectorStoreProvider = z.enum(['openai', 'neon', 'unified', 'memory']);
+export const VectorStoreProvider = z.enum([
+  'openai',
+  'neon',
+  'unified',
+  'memory',
+]);
 
 export const ErrorCategory = z.enum([
   'network_error',
@@ -91,15 +96,17 @@ export const MonitoringConfig = z.object({
   alertingEnabled: z.boolean().default(true),
   enableDetailedLogging: z.boolean().default(false),
   maxMetricsPerProvider: z.number().default(10000),
-  performanceThresholds: z.object({
-    maxLatencyMs: z.number().default(5000),
-    minSuccessRate: z.number().default(0.95),
-    maxErrorRate: z.number().default(0.05),
-  }).default({
-    maxLatencyMs: 5000,
-    minSuccessRate: 0.95,
-    maxErrorRate: 0.05,
-  }),
+  performanceThresholds: z
+    .object({
+      maxLatencyMs: z.number().default(5000),
+      minSuccessRate: z.number().default(0.95),
+      maxErrorRate: z.number().default(0.05),
+    })
+    .default({
+      maxLatencyMs: 5000,
+      minSuccessRate: 0.95,
+      maxErrorRate: 0.05,
+    }),
 });
 
 // Types
@@ -155,7 +162,7 @@ class MetricsStore {
       },
     ];
 
-    defaultAlerts.forEach(alert => {
+    defaultAlerts.forEach((alert) => {
       this.alerts.set(alert.id, alert);
     });
   }
@@ -185,7 +192,7 @@ class MetricsStore {
   getMetrics(
     provider?: VectorStoreProvider,
     metricType?: MetricType,
-    timeWindow?: string
+    timeWindow?: string,
   ): MetricEvent[] {
     const now = new Date();
     const windowMs = this.parseTimeWindow(timeWindow || '24h');
@@ -195,15 +202,17 @@ class MetricsStore {
 
     for (const [key, metrics] of this.metrics.entries()) {
       const [keyProvider, keyMetricType] = key.split('_');
-      
+
       if (provider && keyProvider !== provider) continue;
       if (metricType && keyMetricType !== metricType) continue;
 
-      const filteredMetrics = metrics.filter(m => m.timestamp >= cutoff);
+      const filteredMetrics = metrics.filter((m) => m.timestamp >= cutoff);
       allMetrics.push(...filteredMetrics);
     }
 
-    return allMetrics.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+    return allMetrics.sort(
+      (a, b) => b.timestamp.getTime() - a.timestamp.getTime(),
+    );
   }
 
   updateHealthStatus(result: HealthCheckResult): void {
@@ -218,26 +227,36 @@ class MetricsStore {
     return Array.from(this.healthStatus.values());
   }
 
-  getPerformanceMetrics(provider: VectorStoreProvider, timeWindow = '24h'): PerformanceMetrics {
+  getPerformanceMetrics(
+    provider: VectorStoreProvider,
+    timeWindow = '24h',
+  ): PerformanceMetrics {
     const metrics = this.getMetrics(provider, undefined, timeWindow);
-    const searchMetrics = metrics.filter(m => m.metricType === 'search_latency');
-    const successMetrics = metrics.filter(m => m.metricType === 'search_success');
-    const errorMetrics = metrics.filter(m => m.metricType === 'search_error');
+    const searchMetrics = metrics.filter(
+      (m) => m.metricType === 'search_latency',
+    );
+    const successMetrics = metrics.filter(
+      (m) => m.metricType === 'search_success',
+    );
+    const errorMetrics = metrics.filter((m) => m.metricType === 'search_error');
 
     const totalRequests = searchMetrics.length;
-    const successCount = successMetrics.filter(m => m.success === true).length;
+    const successCount = successMetrics.filter(
+      (m) => m.success === true,
+    ).length;
     const errorCount = errorMetrics.length;
 
-    const latencies = searchMetrics.map(m => m.value).sort((a, b) => a - b);
-    const averageLatency = latencies.length > 0 
-      ? latencies.reduce((sum, val) => sum + val, 0) / latencies.length 
-      : 0;
+    const latencies = searchMetrics.map((m) => m.value).sort((a, b) => a - b);
+    const averageLatency =
+      latencies.length > 0
+        ? latencies.reduce((sum, val) => sum + val, 0) / latencies.length
+        : 0;
 
     const p95Index = Math.floor(latencies.length * 0.95);
     const p99Index = Math.floor(latencies.length * 0.99);
 
     const tokensUsed = metrics
-      .filter(m => m.metricType === 'token_usage')
+      .filter((m) => m.metricType === 'token_usage')
       .reduce((sum, m) => sum + m.value, 0);
 
     return PerformanceMetrics.parse({
@@ -274,12 +293,18 @@ class MetricsStore {
     const value = metric.value;
 
     switch (operator) {
-      case 'gt': return value > threshold;
-      case 'lt': return value < threshold;
-      case 'gte': return value >= threshold;
-      case 'lte': return value <= threshold;
-      case 'eq': return value === threshold;
-      default: return false;
+      case 'gt':
+        return value > threshold;
+      case 'lt':
+        return value < threshold;
+      case 'gte':
+        return value >= threshold;
+      case 'lte':
+        return value <= threshold;
+      case 'eq':
+        return value === threshold;
+      default:
+        return false;
     }
   }
 
@@ -307,19 +332,26 @@ class MetricsStore {
     const num = Number.parseInt(value, 10);
 
     switch (unit) {
-      case 's': return num * 1000;
-      case 'm': return num * 60 * 1000;
-      case 'h': return num * 60 * 60 * 1000;
-      case 'd': return num * 24 * 60 * 60 * 1000;
-      default: return 24 * 60 * 60 * 1000;
+      case 's':
+        return num * 1000;
+      case 'm':
+        return num * 60 * 1000;
+      case 'h':
+        return num * 60 * 60 * 1000;
+      case 'd':
+        return num * 24 * 60 * 60 * 1000;
+      default:
+        return 24 * 60 * 60 * 1000;
     }
   }
 
   cleanup(): void {
-    const cutoff = new Date(Date.now() - (this.config.metricsRetentionDays * 24 * 60 * 60 * 1000));
-    
+    const cutoff = new Date(
+      Date.now() - this.config.metricsRetentionDays * 24 * 60 * 60 * 1000,
+    );
+
     for (const [key, metrics] of this.metrics.entries()) {
-      const filtered = metrics.filter(m => m.timestamp >= cutoff);
+      const filtered = metrics.filter((m) => m.timestamp >= cutoff);
       this.metrics.set(key, filtered);
     }
   }
@@ -329,9 +361,9 @@ class MetricsStore {
 export function withPerformanceMonitoring<T extends any[], R>(
   provider: VectorStoreProvider,
   operation: string,
-  fn: (...args: T) => Promise<R>
+  fn: (...args: T) => Promise<R>,
 ) {
-  return async function(this: any, ...args: T): Promise<R> {
+  return async function (this: any, ...args: T): Promise<R> {
     const startTime = Date.now();
     let success = false;
     let errorCategory: ErrorCategory | undefined;
@@ -395,16 +427,28 @@ function categorizeError(error: any): ErrorCategory {
   if (message.includes('quota') || message.includes('exceeded')) {
     return 'quota_exceeded';
   }
-  if (message.includes('auth') || message.includes('unauthorized') || code === 'invalid_api_key') {
+  if (
+    message.includes('auth') ||
+    message.includes('unauthorized') ||
+    code === 'invalid_api_key'
+  ) {
     return 'authentication_error';
   }
-  if (message.includes('network') || message.includes('connection') || code.includes('econnrefused')) {
+  if (
+    message.includes('network') ||
+    message.includes('connection') ||
+    code.includes('econnrefused')
+  ) {
     return 'network_error';
   }
   if (message.includes('validation') || message.includes('invalid')) {
     return 'validation_error';
   }
-  if (message.includes('unavailable') || message.includes('503') || message.includes('502')) {
+  if (
+    message.includes('unavailable') ||
+    message.includes('503') ||
+    message.includes('502')
+  ) {
     return 'service_unavailable';
   }
 
@@ -414,22 +458,46 @@ function categorizeError(error: any): ErrorCategory {
 // Monitoring service interface
 export interface VectorStoreMonitoringService {
   config: MonitoringConfig;
-  
+
   // Metric recording
   recordMetric: (metric: Omit<MetricEvent, 'id' | 'timestamp'>) => MetricEvent;
-  recordSearchLatency: (provider: VectorStoreProvider, latency: number, metadata?: Record<string, any>) => void;
-  recordSearchSuccess: (provider: VectorStoreProvider, metadata?: Record<string, any>) => void;
-  recordSearchError: (provider: VectorStoreProvider, error: Error, metadata?: Record<string, any>) => void;
-  recordTokenUsage: (provider: VectorStoreProvider, tokens: number, metadata?: Record<string, any>) => void;
-  
+  recordSearchLatency: (
+    provider: VectorStoreProvider,
+    latency: number,
+    metadata?: Record<string, any>,
+  ) => void;
+  recordSearchSuccess: (
+    provider: VectorStoreProvider,
+    metadata?: Record<string, any>,
+  ) => void;
+  recordSearchError: (
+    provider: VectorStoreProvider,
+    error: Error,
+    metadata?: Record<string, any>,
+  ) => void;
+  recordTokenUsage: (
+    provider: VectorStoreProvider,
+    tokens: number,
+    metadata?: Record<string, any>,
+  ) => void;
+
   // Health monitoring
-  performHealthCheck: (provider: VectorStoreProvider) => Promise<HealthCheckResult>;
+  performHealthCheck: (
+    provider: VectorStoreProvider,
+  ) => Promise<HealthCheckResult>;
   getHealthStatus: (provider?: VectorStoreProvider) => HealthCheckResult[];
-  
+
   // Performance analytics
-  getPerformanceMetrics: (provider: VectorStoreProvider, timeWindow?: string) => PerformanceMetrics;
-  getMetrics: (provider?: VectorStoreProvider, metricType?: MetricType, timeWindow?: string) => MetricEvent[];
-  
+  getPerformanceMetrics: (
+    provider: VectorStoreProvider,
+    timeWindow?: string,
+  ) => PerformanceMetrics;
+  getMetrics: (
+    provider?: VectorStoreProvider,
+    metricType?: MetricType,
+    timeWindow?: string,
+  ) => MetricEvent[];
+
   // Dashboard data
   getDashboardData: () => Promise<{
     overview: Record<VectorStoreProvider, PerformanceMetrics>;
@@ -437,7 +505,7 @@ export interface VectorStoreMonitoringService {
     recentErrors: MetricEvent[];
     alerts: AlertRule[];
   }>;
-  
+
   // Utilities
   cleanup: () => void;
   exportMetrics: (timeWindow?: string) => Promise<MetricEvent[]>;
@@ -445,7 +513,7 @@ export interface VectorStoreMonitoringService {
 
 // Create monitoring service
 export function createVectorStoreMonitoringService(
-  config?: Partial<MonitoringConfig>
+  config?: Partial<MonitoringConfig>,
 ): VectorStoreMonitoringService {
   const store = new MetricsStore(config);
 
@@ -456,7 +524,11 @@ export function createVectorStoreMonitoringService(
       return store.addMetric(metric);
     },
 
-    recordSearchLatency(provider: VectorStoreProvider, latency: number, metadata?: Record<string, any>): void {
+    recordSearchLatency(
+      provider: VectorStoreProvider,
+      latency: number,
+      metadata?: Record<string, any>,
+    ): void {
       this.recordMetric({
         provider,
         metricType: 'search_latency',
@@ -466,7 +538,10 @@ export function createVectorStoreMonitoringService(
       });
     },
 
-    recordSearchSuccess(provider: VectorStoreProvider, metadata?: Record<string, any>): void {
+    recordSearchSuccess(
+      provider: VectorStoreProvider,
+      metadata?: Record<string, any>,
+    ): void {
       this.recordMetric({
         provider,
         metricType: 'search_success',
@@ -477,7 +552,11 @@ export function createVectorStoreMonitoringService(
       });
     },
 
-    recordSearchError(provider: VectorStoreProvider, error: Error, metadata?: Record<string, any>): void {
+    recordSearchError(
+      provider: VectorStoreProvider,
+      error: Error,
+      metadata?: Record<string, any>,
+    ): void {
       this.recordMetric({
         provider,
         metricType: 'search_error',
@@ -490,7 +569,11 @@ export function createVectorStoreMonitoringService(
       });
     },
 
-    recordTokenUsage(provider: VectorStoreProvider, tokens: number, metadata?: Record<string, any>): void {
+    recordTokenUsage(
+      provider: VectorStoreProvider,
+      tokens: number,
+      metadata?: Record<string, any>,
+    ): void {
       this.recordMetric({
         provider,
         metricType: 'token_usage',
@@ -500,7 +583,9 @@ export function createVectorStoreMonitoringService(
       });
     },
 
-    async performHealthCheck(provider: VectorStoreProvider): Promise<HealthCheckResult> {
+    async performHealthCheck(
+      provider: VectorStoreProvider,
+    ): Promise<HealthCheckResult> {
       const startTime = Date.now();
       let isHealthy = false;
       let errorMessage: string | undefined;
@@ -529,17 +614,30 @@ export function createVectorStoreMonitoringService(
       return store.getHealthStatus(provider);
     },
 
-    getPerformanceMetrics(provider: VectorStoreProvider, timeWindow = '24h'): PerformanceMetrics {
+    getPerformanceMetrics(
+      provider: VectorStoreProvider,
+      timeWindow = '24h',
+    ): PerformanceMetrics {
       return store.getPerformanceMetrics(provider, timeWindow);
     },
 
-    getMetrics(provider?: VectorStoreProvider, metricType?: MetricType, timeWindow?: string): MetricEvent[] {
+    getMetrics(
+      provider?: VectorStoreProvider,
+      metricType?: MetricType,
+      timeWindow?: string,
+    ): MetricEvent[] {
       return store.getMetrics(provider, metricType, timeWindow);
     },
 
     async getDashboardData() {
-      const providers: VectorStoreProvider[] = ['openai', 'neon', 'unified', 'memory'];
-      const overview: Record<VectorStoreProvider, PerformanceMetrics> = {} as any;
+      const providers: VectorStoreProvider[] = [
+        'openai',
+        'neon',
+        'unified',
+        'memory',
+      ];
+      const overview: Record<VectorStoreProvider, PerformanceMetrics> =
+        {} as any;
 
       for (const provider of providers) {
         overview[provider] = this.getPerformanceMetrics(provider);
@@ -580,7 +678,7 @@ export function getVectorStoreMonitoringService(): VectorStoreMonitoringService 
 // Health check scheduler
 export function startHealthCheckScheduler(
   service: VectorStoreMonitoringService,
-  providers: VectorStoreProvider[] = ['openai', 'neon', 'unified']
+  providers: VectorStoreProvider[] = ['openai', 'neon', 'unified'],
 ): () => void {
   const interval = setInterval(async () => {
     for (const provider of providers) {
@@ -597,11 +695,14 @@ export function startHealthCheckScheduler(
 
 // Cleanup scheduler
 export function startCleanupScheduler(
-  service: VectorStoreMonitoringService
+  service: VectorStoreMonitoringService,
 ): () => void {
-  const interval = setInterval(() => {
-    service.cleanup();
-  }, 24 * 60 * 60 * 1000); // Run daily
+  const interval = setInterval(
+    () => {
+      service.cleanup();
+    },
+    24 * 60 * 60 * 1000,
+  ); // Run daily
 
   return () => clearInterval(interval);
 }
