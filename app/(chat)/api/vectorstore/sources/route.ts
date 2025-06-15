@@ -5,14 +5,16 @@ export async function GET() {
   try {
     // Check for required environment variables
     if (!process.env.COHERE_API_KEY) {
-      console.warn('COHERE_API_KEY not configured, vector store may be limited');
+      console.warn(
+        'COHERE_API_KEY not configured, vector store may be limited',
+      );
     }
-    
+
     if (!process.env.POSTGRES_URL) {
       return NextResponse.json({
         availableSources: ['memory'],
         sourceStats: {
-          memory: { documents: 0, lastUpdated: new Date().toISOString() }
+          memory: { documents: 0, lastUpdated: new Date().toISOString() },
         },
       });
     }
@@ -30,16 +32,16 @@ export async function GET() {
     });
   } catch (error) {
     console.error('Failed to get vector store sources:', error);
-    
+
     // Return fallback response instead of 500 error
     return NextResponse.json({
       availableSources: ['memory'],
       sourceStats: {
-        memory: { 
-          documents: 0, 
+        memory: {
+          documents: 0,
           lastUpdated: new Date().toISOString(),
-          error: 'Service temporarily unavailable'
-        }
+          error: 'Service temporarily unavailable',
+        },
       },
     });
   }

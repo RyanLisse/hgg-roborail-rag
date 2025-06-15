@@ -49,7 +49,12 @@ export class ChatSDKError extends Error {
   public retryable?: boolean;
   public suggestedDelay?: number;
 
-  constructor(errorCode: ErrorCode, cause?: string, retryable?: boolean, suggestedDelay?: number) {
+  constructor(
+    errorCode: ErrorCode,
+    cause?: string,
+    retryable?: boolean,
+    suggestedDelay?: number,
+  ) {
     super();
 
     const [type, surface] = errorCode.split(':');
@@ -66,25 +71,28 @@ export class ChatSDKError extends Error {
   /**
    * Create ChatSDKError from vector store error
    */
-  static fromVectorStoreError(error: any, surface: Surface = 'vectorstore'): ChatSDKError {
+  static fromVectorStoreError(
+    error: any,
+    surface: Surface = 'vectorstore',
+  ): ChatSDKError {
     // Map vector store error types to ChatSDK error types
     const typeMapping: Record<string, ErrorType> = {
-      'network': 'network',
-      'authentication': 'authentication',
-      'validation': 'validation',
-      'rate_limit': 'rate_limit',
-      'service_unavailable': 'service_unavailable',
-      'unknown': 'unknown',
+      network: 'network',
+      authentication: 'authentication',
+      validation: 'validation',
+      rate_limit: 'rate_limit',
+      service_unavailable: 'service_unavailable',
+      unknown: 'unknown',
     };
 
     const errorType = typeMapping[error.type] || 'unknown';
     const errorCode: ErrorCode = `${errorType}:${surface}`;
-    
+
     return new ChatSDKError(
       errorCode,
       error.message,
       error.retryable,
-      error.suggestedDelay
+      error.suggestedDelay,
     );
   }
 

@@ -402,13 +402,13 @@ describe('Vector Store Error Handling', () => {
   describe('Retry Logic Error Scenarios', () => {
     it('should retry on temporary failures', async () => {
       let callCount = 0;
-      
+
       // Create a new service instance for this test
       const testService = createOpenAIVectorStoreService({
         apiKey: 'sk-test-key',
         defaultVectorStoreId: 'vs_test_store',
       });
-      
+
       testService.searchFiles = vi.fn().mockImplementation(() => {
         callCount++;
         if (callCount < 3) {
@@ -442,13 +442,13 @@ describe('Vector Store Error Handling', () => {
 
     it('should not retry on non-retryable errors', async () => {
       let callCount = 0;
-      
+
       // Create a new service instance
       const testService = createOpenAIVectorStoreService({
         apiKey: 'sk-test-key',
         defaultVectorStoreId: 'vs_test_store',
       });
-      
+
       testService.searchFiles = vi.fn().mockImplementation(() => {
         callCount++;
         return Promise.resolve({
@@ -471,13 +471,13 @@ describe('Vector Store Error Handling', () => {
 
     it('should exhaust retries on persistent errors', async () => {
       let callCount = 0;
-      
+
       // Create a new service instance
       const testService = createOpenAIVectorStoreService({
         apiKey: 'sk-test-key',
         defaultVectorStoreId: 'vs_test_store',
       });
-      
+
       testService.searchFiles = vi.fn().mockImplementation(() => {
         callCount++;
         throw new Error('Persistent error');
@@ -586,11 +586,11 @@ describe('Vector Store Error Handling', () => {
         query: 'query1',
         executionTime: 100,
       });
-      
-      service2.searchFiles = vi.fn().mockRejectedValue(
-        new Error('Second request failed')
-      );
-      
+
+      service2.searchFiles = vi
+        .fn()
+        .mockRejectedValue(new Error('Second request failed'));
+
       service3.searchFiles = vi.fn().mockResolvedValue({
         success: true,
         message: 'Success',

@@ -1,13 +1,13 @@
 declare module 'lucide-react' {
-  import { FC, SVGProps } from 'react';
-  
+  import type { FC, SVGProps } from 'react';
+
   export interface LucideProps extends Omit<SVGProps<SVGSVGElement>, 'ref'> {
     size?: string | number;
     absoluteStrokeWidth?: boolean;
   }
-  
+
   export type LucideIcon = FC<LucideProps>;
-  
+
   // Export all commonly used icons
   export const ChevronDown: LucideIcon;
   export const ChevronUp: LucideIcon;
@@ -191,7 +191,7 @@ declare module 'lucide-react' {
   export const LessThan: LucideIcon;
   export const GreaterThanEqual: LucideIcon;
   export const LessThanEqual: LucideIcon;
-  export const Infinity: LucideIcon;
+  export const InfinityIcon: LucideIcon;
   export const Pi: LucideIcon;
   export const Sigma: LucideIcon;
   export const Alpha: LucideIcon;
@@ -206,14 +206,14 @@ declare module 'lucide-react' {
   export const Theta: LucideIcon;
   export const Xi: LucideIcon;
   export const Zeta: LucideIcon;
-  
+
   // Fallback for any other icons
   const lucideReact: Record<string, LucideIcon>;
   export default lucideReact;
 }
 
 declare module 'lucide-react/dist/esm/icons/*' {
-  import { LucideIcon } from 'lucide-react';
+  import type { LucideIcon } from 'lucide-react';
   const icon: LucideIcon;
   export default icon;
 }

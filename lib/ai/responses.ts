@@ -48,9 +48,11 @@ export class OpenAIResponsesService {
   constructor() {
     const apiKey = OPENAI_API_KEY;
     this.isEnabled = !!apiKey;
-    
+
     if (!this.isEnabled) {
-      console.warn('OpenAI Responses API service is disabled - no API key provided');
+      console.warn(
+        'OpenAI Responses API service is disabled - no API key provided',
+      );
       this.client = null as any; // Initialize to avoid undefined
       return;
     }
@@ -61,9 +63,13 @@ export class OpenAIResponsesService {
   /**
    * Create a response with file search and extract sources
    */
-  async createResponseWithSources(config: ResponsesAPIConfig): Promise<ResponseWithSources> {
+  async createResponseWithSources(
+    config: ResponsesAPIConfig,
+  ): Promise<ResponseWithSources> {
     if (!this.isEnabled) {
-      throw new Error('OpenAI Responses API service is disabled - no API key provided');
+      throw new Error(
+        'OpenAI Responses API service is disabled - no API key provided',
+      );
     }
 
     const { model, input, vectorStoreIds, maxResults = 20 } = config;
@@ -76,22 +82,28 @@ export class OpenAIResponsesService {
         if (vectorService.isEnabled && vectorService.defaultVectorStoreId) {
           targetVectorStoreIds = [vectorService.defaultVectorStoreId];
         } else {
-          throw new Error('No vector store IDs provided and no default configured');
+          throw new Error(
+            'No vector store IDs provided and no default configured',
+          );
         }
       }
 
-      console.log(`🔍 Creating response with file search for vector stores: ${targetVectorStoreIds.join(', ')}`);
+      console.log(
+        `🔍 Creating response with file search for vector stores: ${targetVectorStoreIds.join(', ')}`,
+      );
 
       // Use OpenAI Responses API with file search
       const response = await this.client.responses.create({
         model,
         input,
-        tools: [{
-          type: "file_search",
-          vector_store_ids: targetVectorStoreIds,
-          max_num_results: maxResults,
-        }],
-        include: ["file_search_call.results"],
+        tools: [
+          {
+            type: 'file_search',
+            vector_store_ids: targetVectorStoreIds,
+            max_num_results: maxResults,
+          },
+        ],
+        include: ['file_search_call.results'],
       });
 
       const responseData = response as any;
@@ -124,7 +136,6 @@ export class OpenAIResponsesService {
         annotations,
         sources,
       };
-
     } catch (error) {
       console.error('Error in OpenAI Responses API:', error);
       throw error;
@@ -134,7 +145,10 @@ export class OpenAIResponsesService {
   /**
    * Process content to replace citation markers with numbered references
    */
-  private processContentWithCitations(content: string, annotations: SourceAnnotation[]): string {
+  private processContentWithCitations(
+    content: string,
+    annotations: SourceAnnotation[],
+  ): string {
     if (!annotations.length) return content;
 
     let processedContent = content;
@@ -142,12 +156,17 @@ export class OpenAIResponsesService {
     let citationCounter = 1;
 
     // Sort annotations by start_index in descending order to avoid index shifts
-    const sortedAnnotations = [...annotations].sort((a, b) => b.start_index - a.start_index);
+    const sortedAnnotations = [...annotations].sort(
+      (a, b) => b.start_index - a.start_index,
+    );
 
-    sortedAnnotations.forEach(annotation => {
-      if (annotation.type === 'file_citation' && annotation.file_citation?.file_id) {
+    sortedAnnotations.forEach((annotation) => {
+      if (
+        annotation.type === 'file_citation' &&
+        annotation.file_citation?.file_id
+      ) {
         const fileId = annotation.file_citation.file_id;
-        
+
         // Get or assign citation number
         if (!citationMap.has(fileId)) {
           citationMap.set(fileId, citationCounter++);
@@ -212,9 +231,15 @@ export class OpenAIResponsesService {
    */
   static extractQuotes(annotations: SourceAnnotation[]): string[] {
     return annotations
-      .filter(annotation => annotation.type === 'file_citation' && annotation.file_citation?.quote)
-      .map(annotation => annotation.file_citation?.quote)
-      .filter((quote): quote is string => quote !== undefined && quote !== null);
+      .filter(
+        (annotation) =>
+          annotation.type === 'file_citation' &&
+          annotation.file_citation?.quote,
+      )
+      .map((annotation) => annotation.file_citation?.quote)
+      .filter(
+        (quote): quote is string => quote !== undefined && quote !== null,
+      );
   }
 }
 

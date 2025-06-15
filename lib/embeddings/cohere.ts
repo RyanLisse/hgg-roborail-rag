@@ -12,7 +12,9 @@ export const CohereConfig = z.object({
 export const TextEmbeddingRequest = z.object({
   texts: z.array(z.string()).min(1).max(96), // Cohere's batch limit
   model: z.string().default('embed-v4.0'),
-  inputType: z.enum(['search_query', 'search_document', 'classification', 'clustering']).default('search_document'),
+  inputType: z
+    .enum(['search_query', 'search_document', 'classification', 'clustering'])
+    .default('search_document'),
   truncate: z.enum(['START', 'END']).optional(),
 });
 
@@ -48,9 +50,11 @@ export interface EmbeddedDocument {
 }
 
 // Create Cohere embedding service
-export function createCohereEmbeddingService(config: CohereConfig): CohereEmbeddingService {
+export function createCohereEmbeddingService(
+  config: CohereConfig,
+): CohereEmbeddingService {
   const validatedConfig = CohereConfig.parse(config);
-  
+
   if (!validatedConfig.apiKey) {
     console.warn('Cohere API key not provided. Cohere embeddings disabled.');
     return {
@@ -80,7 +84,7 @@ export function createCohereEmbeddingService(config: CohereConfig): CohereEmbedd
 // Embed text using Cohere
 export async function embedText(
   service: CohereEmbeddingService,
-  request: TextEmbeddingRequest
+  request: TextEmbeddingRequest,
 ): Promise<number[][]> {
   if (!service.isEnabled) {
     throw new Error('Cohere service is not enabled');
@@ -107,7 +111,7 @@ export async function embedText(
 // Embed images using Cohere
 export async function embedImage(
   service: CohereEmbeddingService,
-  request: ImageEmbeddingRequest
+  request: ImageEmbeddingRequest,
 ): Promise<number[][]> {
   if (!service.isEnabled) {
     throw new Error('Cohere service is not enabled');
@@ -128,9 +132,10 @@ export async function embedImage(
         const response = await fetch(image);
         const buffer = await response.arrayBuffer();
         const base64 = Buffer.from(buffer).toString('base64');
-        const contentType = response.headers.get('content-type') || 'image/jpeg';
+        const contentType =
+          response.headers.get('content-type') || 'image/jpeg';
         return `data:${contentType};base64,${base64}`;
-      })
+      }),
     );
 
     const response = await service.client.v2.embed({
@@ -151,23 +156,23 @@ export async function embedImage(
 // Embed mixed documents (text and images)
 export async function embedDocuments(
   service: CohereEmbeddingService,
-  documents: DocumentItem[]
+  documents: DocumentItem[],
 ): Promise<EmbeddedDocument[]> {
   if (!service.isEnabled) {
     throw new Error('Cohere service is not enabled');
   }
 
-  const validatedDocuments = documents.map(doc => DocumentItem.parse(doc));
+  const validatedDocuments = documents.map((doc) => DocumentItem.parse(doc));
 
   // Separate text and image documents
-  const textDocs = validatedDocuments.filter(doc => doc.type === 'text');
-  const imageDocs = validatedDocuments.filter(doc => doc.type === 'image');
+  const textDocs = validatedDocuments.filter((doc) => doc.type === 'text');
+  const imageDocs = validatedDocuments.filter((doc) => doc.type === 'image');
 
   const results: EmbeddedDocument[] = [];
 
   // Embed text documents in batches
   if (textDocs.length > 0) {
-    const texts = textDocs.map(doc => doc.content);
+    const texts = textDocs.map((doc) => doc.content);
     const textEmbeddings = await embedText(service, {
       texts,
       model: 'embed-v4.0',
@@ -186,7 +191,7 @@ export async function embedDocuments(
 
   // Embed image documents in batches
   if (imageDocs.length > 0) {
-    const images = imageDocs.map(doc => doc.content);
+    const images = imageDocs.map((doc) => doc.content);
     const imageEmbeddings = await embedImage(service, {
       images,
       model: 'embed-v4.0',
@@ -207,15 +212,19 @@ export async function embedDocuments(
   let textIndex = 0;
   let imageIndex = 0;
 
-  validatedDocuments.forEach(doc => {
+  validatedDocuments.forEach((doc) => {
     if (doc.type === 'text') {
-      const textResult = results.find(r => r.type === 'text' && r.content === doc.content);
+      const textResult = results.find(
+        (r) => r.type === 'text' && r.content === doc.content,
+      );
       if (textResult) {
         orderedResults.push(textResult);
         textIndex++;
       }
     } else {
-      const imageResult = results.find(r => r.type === 'image' && r.content === doc.content);
+      const imageResult = results.find(
+        (r) => r.type === 'image' && r.content === doc.content,
+      );
       if (imageResult) {
         orderedResults.push(imageResult);
         imageIndex++;
@@ -231,13 +240,23 @@ export function isImageContent(content: string): boolean {
   if (content.startsWith('data:image/')) {
     return true;
   }
-  
-  const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg'];
+
+  const imageExtensions = [
+    '.jpg',
+    '.jpeg',
+    '.png',
+    '.gif',
+    '.webp',
+    '.bmp',
+    '.svg',
+  ];
   const lowerContent = content.toLowerCase();
-  
-  return imageExtensions.some(ext => lowerContent.includes(ext)) ||
-         content.startsWith('http://') ||
-         content.startsWith('https://');
+
+  return (
+    imageExtensions.some((ext) => lowerContent.includes(ext)) ||
+    content.startsWith('http://') ||
+    content.startsWith('https://')
+  );
 }
 
 // Singleton service instance
@@ -250,25 +269,25 @@ export function getCohereEmbeddingService(): CohereEmbeddingService {
       timeout: 30000,
     });
   }
-  
+
   return cohereService;
 }
 
 // Calculate cosine similarity between embeddings
 export function cosineSimilarity(a: number[], b: number[]): number {
   if (a.length !== b.length) return 0;
-  
+
   let dotProduct = 0;
   let normA = 0;
   let normB = 0;
-  
+
   for (let i = 0; i < a.length; i++) {
     dotProduct += a[i] * b[i];
     normA += a[i] * a[i];
     normB += b[i] * b[i];
   }
-  
+
   if (normA === 0 || normB === 0) return 0;
-  
+
   return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
 }

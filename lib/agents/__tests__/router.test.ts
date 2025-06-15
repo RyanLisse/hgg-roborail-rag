@@ -14,16 +14,20 @@ vi.mock('../../ai/providers', () => ({
 
 // Mock unified vector store
 vi.mock('../../vectorstore/unified', () => ({
-  getUnifiedVectorStoreService: vi.fn(() => Promise.resolve({
-    searchAcrossSources: vi.fn(() => Promise.resolve([])),
-    getAvailableSources: vi.fn(() => Promise.resolve(['openai', 'memory', 'neon'])),
-    healthCheck: vi.fn(() => Promise.resolve({ isHealthy: true })),
-    config: {
-      sources: ['openai', 'memory', 'neon'],
-      searchThreshold: 0.3,
-      maxResults: 10,
-    },
-  })),
+  getUnifiedVectorStoreService: vi.fn(() =>
+    Promise.resolve({
+      searchAcrossSources: vi.fn(() => Promise.resolve([])),
+      getAvailableSources: vi.fn(() =>
+        Promise.resolve(['openai', 'memory', 'neon']),
+      ),
+      healthCheck: vi.fn(() => Promise.resolve({ isHealthy: true })),
+      config: {
+        sources: ['openai', 'memory', 'neon'],
+        searchThreshold: 0.3,
+        maxResults: 10,
+      },
+    }),
+  ),
 }));
 
 import { generateText } from 'ai';
@@ -437,9 +441,7 @@ describe('SmartAgentRouter', () => {
     });
 
     it('should handle routing errors gracefully', async () => {
-      const consoleSpy = vi
-        .spyOn(console, 'warn')
-        .mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
       mockGenerateText.mockRejectedValueOnce(new Error('API Error'));
 
@@ -447,9 +449,7 @@ describe('SmartAgentRouter', () => {
 
       expect(decision.selectedAgent).toBe('qa');
       expect(decision.confidence).toBeCloseTo(0.8, 5);
-      expect(decision.reasoning).toContain(
-        'question_answering',
-      );
+      expect(decision.reasoning).toContain('question_answering');
       expect(consoleSpy).toHaveBeenCalledWith(
         'Intent classification failed, defaulting to question_answering:',
         expect.any(Error),
@@ -684,9 +684,13 @@ describe('SmartAgentRouter', () => {
 
       // Mock the getUnifiedVectorStoreService to fail
       const mockUnifiedService = await import('../../vectorstore/unified');
-      vi.mocked(mockUnifiedService.getUnifiedVectorStoreService).mockResolvedValueOnce({
+      vi.mocked(
+        mockUnifiedService.getUnifiedVectorStoreService,
+      ).mockResolvedValueOnce({
         searchAcrossSources: vi.fn(() => Promise.resolve([])),
-        getAvailableSources: vi.fn().mockRejectedValueOnce(new Error('Service error')),
+        getAvailableSources: vi
+          .fn()
+          .mockRejectedValueOnce(new Error('Service error')),
         healthCheck: vi.fn(() => Promise.resolve({ isHealthy: true })),
         config: {
           sources: ['openai', 'memory'],

@@ -1,6 +1,6 @@
 /**
  * Document Relevance Scoring and Reranking System
- * 
+ *
  * Implements multi-factor relevance scoring for improved search result quality.
  * Features:
  * - Multi-factor scoring (similarity, recency, authority, context)
@@ -41,7 +41,9 @@ export const DocumentMetadata = z.object({
   createdAt: z.date().optional(),
   updatedAt: z.date().optional(),
   authority: z.number().min(0).max(1).default(0.5),
-  documentType: z.enum(['manual', 'faq', 'api', 'guide', 'reference']).default('guide'),
+  documentType: z
+    .enum(['manual', 'faq', 'api', 'guide', 'reference'])
+    .default('guide'),
   tags: z.array(z.string()).default([]),
 });
 
@@ -87,23 +89,27 @@ export const UserFeedback = z.object({
   userId: z.string().optional(),
   timestamp: z.date(),
   comments: z.string().optional(),
-  interactionData: z.object({
-    clicked: z.boolean().optional(),
-    timeSpent: z.number().optional(),
-    scrollDepth: z.number().optional(),
-  }).optional(),
+  interactionData: z
+    .object({
+      clicked: z.boolean().optional(),
+      timeSpent: z.number().optional(),
+      scrollDepth: z.number().optional(),
+    })
+    .optional(),
 });
 
 export const RerankingRequest = z.object({
-  documents: z.array(z.object({
-    id: z.string(),
-    content: z.string(),
-    similarity: z.number(),
-    metadata: z.record(z.any()).optional(),
-    source: z.string().optional(),
-    createdAt: z.date().optional(),
-    updatedAt: z.date().optional(),
-  })),
+  documents: z.array(
+    z.object({
+      id: z.string(),
+      content: z.string(),
+      similarity: z.number(),
+      metadata: z.record(z.any()).optional(),
+      source: z.string().optional(),
+      createdAt: z.date().optional(),
+      updatedAt: z.date().optional(),
+    }),
+  ),
   query: z.string(),
   queryContext: z.record(z.any()).optional(),
   weights: ScoringWeights.optional(),
@@ -114,22 +120,30 @@ export const RerankingRequest = z.object({
 
 export const HybridSearchRequest = z.object({
   query: z.string(),
-  vectorResults: z.array(z.object({
-    id: z.string(),
-    content: z.string(),
-    similarity: z.number(),
-    metadata: z.record(z.any()).optional(),
-  })),
-  keywordResults: z.array(z.object({
-    id: z.string(),
-    content: z.string(),
-    score: z.number(),
-    metadata: z.record(z.any()).optional(),
-  })).optional(),
-  fusionWeights: z.object({
-    vectorWeight: z.number().min(0).max(1).default(0.7),
-    keywordWeight: z.number().min(0).max(1).default(0.3),
-  }).optional(),
+  vectorResults: z.array(
+    z.object({
+      id: z.string(),
+      content: z.string(),
+      similarity: z.number(),
+      metadata: z.record(z.any()).optional(),
+    }),
+  ),
+  keywordResults: z
+    .array(
+      z.object({
+        id: z.string(),
+        content: z.string(),
+        score: z.number(),
+        metadata: z.record(z.any()).optional(),
+      }),
+    )
+    .optional(),
+  fusionWeights: z
+    .object({
+      vectorWeight: z.number().min(0).max(1).default(0.7),
+      keywordWeight: z.number().min(0).max(1).default(0.3),
+    })
+    .optional(),
 });
 
 // Types
@@ -180,19 +194,25 @@ export class RelevanceScoringEngine {
   async scoreAndRankDocuments(
     query: string,
     documents: DocumentSearchResult[],
-    queryContext?: Record<string, any>
+    queryContext?: Record<string, any>,
   ): Promise<RerankingResult> {
     const startTime = Date.now();
 
     try {
       // Extract query keywords for keyword matching
       const queryKeywords = this.extractKeywords(query);
-      
+
       // Score each document
       const scoredDocuments: ScoredDocument[] = [];
       for (let i = 0; i < documents.length; i++) {
         const doc = documents[i];
-        const scored = await this.scoreDocument(doc, query, queryKeywords, queryContext, i);
+        const scored = await this.scoreDocument(
+          doc,
+          query,
+          queryKeywords,
+          queryContext,
+          i,
+        );
         scoredDocuments.push(scored);
       }
 
@@ -203,10 +223,15 @@ export class RelevanceScoringEngine {
       }
 
       // Calculate improvements
-      const improvements = this.calculateImprovements(scoredDocuments, rankedDocuments);
-      
+      const improvements = this.calculateImprovements(
+        scoredDocuments,
+        rankedDocuments,
+      );
+
       const scoringTime = Date.now() - startTime;
-      const averageScore = rankedDocuments.reduce((sum, doc) => sum + doc.relevanceScore, 0) / rankedDocuments.length;
+      const averageScore =
+        rankedDocuments.reduce((sum, doc) => sum + doc.relevanceScore, 0) /
+        rankedDocuments.length;
 
       if (this.config.debugMode) {
         console.log('📊 Relevance Scoring Results:', {
@@ -227,7 +252,7 @@ export class RelevanceScoringEngine {
       };
     } catch (error) {
       console.error('❌ Relevance scoring failed:', error);
-      
+
       // Fallback to original documents with basic scoring
       const fallbackDocuments = documents.map((doc, index) => ({
         id: doc.id,
@@ -276,21 +301,27 @@ export class RelevanceScoringEngine {
     query: string,
     queryKeywords: string[],
     queryContext?: Record<string, any>,
-    originalRank?: number
+    originalRank?: number,
   ): Promise<ScoredDocument> {
     const metadata = DocumentMetadata.parse(document.metadata || {});
-    
+
     // Calculate individual scoring factors
     const factors: RelevanceFactors = {
       similarity: document.similarity || 0.5,
       recency: this.calculateRecencyScore(metadata),
       authority: metadata.authority,
       contextRelevance: this.calculateContextRelevance(document, queryContext),
-      keywordMatch: this.config.enableKeywordMatching ? 
-        this.calculateKeywordMatch(document.content, queryKeywords) : 0.5,
-      semanticMatch: this.calculateSemanticMatch(document.content, query, queryContext),
-      userFeedback: this.config.enableUserFeedback ? 
-        this.getUserFeedbackScore(document.id) : undefined,
+      keywordMatch: this.config.enableKeywordMatching
+        ? this.calculateKeywordMatch(document.content, queryKeywords)
+        : 0.5,
+      semanticMatch: this.calculateSemanticMatch(
+        document.content,
+        query,
+        queryContext,
+      ),
+      userFeedback: this.config.enableUserFeedback
+        ? this.getUserFeedbackScore(document.id)
+        : undefined,
     };
 
     // Calculate weighted relevance score
@@ -320,7 +351,7 @@ export class RelevanceScoringEngine {
    */
   private calculateWeightedScore(factors: RelevanceFactors): number {
     const weights = this.config.weights;
-    
+
     let totalWeight = 0;
     let weightedSum = 0;
 
@@ -350,7 +381,9 @@ export class RelevanceScoringEngine {
     }
 
     // Normalize by total weight
-    return totalWeight > 0 ? Math.min(1, Math.max(0, weightedSum / totalWeight)) : 0.5;
+    return totalWeight > 0
+      ? Math.min(1, Math.max(0, weightedSum / totalWeight))
+      : 0.5;
   }
 
   /**
@@ -363,23 +396,24 @@ export class RelevanceScoringEngine {
 
     const now = new Date();
     const relevantDate = metadata.updatedAt || metadata.createdAt;
-    
+
     if (!relevantDate) {
       return 0.4; // Slightly lower score for undated documents
     }
 
     // Calculate age in days
-    const ageInDays = (now.getTime() - relevantDate.getTime()) / (1000 * 60 * 60 * 24);
-    
+    const ageInDays =
+      (now.getTime() - relevantDate.getTime()) / (1000 * 60 * 60 * 24);
+
     // Score function: newer documents get higher scores
     // Full score for documents < 30 days old
     // Gradual decay over 2 years
     if (ageInDays <= 30) {
       return 1.0;
     } else if (ageInDays <= 365) {
-      return Math.max(0.3, 1.0 - (ageInDays - 30) / (365 - 30) * 0.5);
+      return Math.max(0.3, 1.0 - ((ageInDays - 30) / (365 - 30)) * 0.5);
     } else if (ageInDays <= 730) {
-      return Math.max(0.1, 0.5 - (ageInDays - 365) / (730 - 365) * 0.4);
+      return Math.max(0.1, 0.5 - ((ageInDays - 365) / (730 - 365)) * 0.4);
     } else {
       return 0.1; // Minimum score for very old documents
     }
@@ -390,7 +424,7 @@ export class RelevanceScoringEngine {
    */
   private calculateContextRelevance(
     document: DocumentSearchResult,
-    queryContext?: Record<string, any>
+    queryContext?: Record<string, any>,
   ): number {
     if (!queryContext) {
       return 0.5; // Neutral score when no context
@@ -404,7 +438,7 @@ export class RelevanceScoringEngine {
     if (queryContext.domain) {
       const domain = queryContext.domain.toLowerCase();
       const domainKeywords = this.getDomainKeywords(domain);
-      
+
       for (const keyword of domainKeywords) {
         if (content.includes(keyword)) {
           relevanceScore += 0.1;
@@ -422,8 +456,8 @@ export class RelevanceScoringEngine {
     // Check for conversation context
     if (queryContext.conversationHistory?.length > 0) {
       const contextBoost = this.calculateConversationContextBoost(
-        content, 
-        queryContext.conversationHistory
+        content,
+        queryContext.conversationHistory,
       );
       relevanceScore += contextBoost;
     }
@@ -434,7 +468,10 @@ export class RelevanceScoringEngine {
   /**
    * Calculate keyword matching score
    */
-  private calculateKeywordMatch(content: string, queryKeywords: string[]): number {
+  private calculateKeywordMatch(
+    content: string,
+    queryKeywords: string[],
+  ): number {
     if (queryKeywords.length === 0) {
       return 0.5;
     }
@@ -471,13 +508,13 @@ export class RelevanceScoringEngine {
    * Calculate semantic match score using semantic relationships
    */
   private calculateSemanticMatch(
-    content: string, 
-    query: string, 
-    queryContext?: Record<string, any>
+    content: string,
+    query: string,
+    queryContext?: Record<string, any>,
   ): number {
     const contentLower = content.toLowerCase();
     const queryLower = query.toLowerCase();
-    
+
     // Semantic word pairs for enhanced matching
     const semanticPairs = [
       ['configure', 'setup'],
@@ -491,29 +528,31 @@ export class RelevanceScoringEngine {
       ['workflow', 'automation'],
       ['integration', 'connection'],
     ];
-    
+
     let semanticScore = 0;
-    
+
     // Check for semantic relationships
     for (const [term1, term2] of semanticPairs) {
-      if ((queryLower.includes(term1) && contentLower.includes(term2)) ||
-          (queryLower.includes(term2) && contentLower.includes(term1))) {
+      if (
+        (queryLower.includes(term1) && contentLower.includes(term2)) ||
+        (queryLower.includes(term2) && contentLower.includes(term1))
+      ) {
         semanticScore += 0.2;
       }
     }
-    
+
     // Context-aware semantic matching
     if (queryContext?.domain) {
       const domain = queryContext.domain.toLowerCase();
       const domainKeywords = this.getDomainKeywords(domain);
-      
+
       for (const keyword of domainKeywords) {
         if (contentLower.includes(keyword)) {
           semanticScore += 0.1;
         }
       }
     }
-    
+
     return Math.min(1, semanticScore);
   }
 
@@ -531,8 +570,8 @@ export class RelevanceScoringEngine {
       .toLowerCase()
       .replace(/[^\w\s]/g, ' ')
       .split(/\s+/)
-      .filter(word => word.length > 2)
-      .filter(word => !this.isStopWord(word));
+      .filter((word) => word.length > 2)
+      .filter((word) => !this.isStopWord(word));
 
     this.keywordCache.set(query, keywords);
     return keywords;
@@ -543,13 +582,62 @@ export class RelevanceScoringEngine {
    */
   private isStopWord(word: string): boolean {
     const stopWords = new Set([
-      'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with',
-      'by', 'from', 'up', 'about', 'into', 'through', 'during', 'before',
-      'after', 'above', 'below', 'between', 'among', 'is', 'are', 'was',
-      'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does',
-      'did', 'will', 'would', 'could', 'should', 'may', 'might', 'must',
-      'can', 'this', 'that', 'these', 'those', 'what', 'how', 'where',
-      'when', 'why', 'who', 'which',
+      'the',
+      'and',
+      'or',
+      'but',
+      'in',
+      'on',
+      'at',
+      'to',
+      'for',
+      'of',
+      'with',
+      'by',
+      'from',
+      'up',
+      'about',
+      'into',
+      'through',
+      'during',
+      'before',
+      'after',
+      'above',
+      'below',
+      'between',
+      'among',
+      'is',
+      'are',
+      'was',
+      'were',
+      'be',
+      'been',
+      'being',
+      'have',
+      'has',
+      'had',
+      'do',
+      'does',
+      'did',
+      'will',
+      'would',
+      'could',
+      'should',
+      'may',
+      'might',
+      'must',
+      'can',
+      'this',
+      'that',
+      'these',
+      'those',
+      'what',
+      'how',
+      'where',
+      'when',
+      'why',
+      'who',
+      'which',
     ]);
     return stopWords.has(word.toLowerCase());
   }
@@ -559,12 +647,54 @@ export class RelevanceScoringEngine {
    */
   private getDomainKeywords(domain: string): string[] {
     const domainKeywords: Record<string, string[]> = {
-      automation: ['workflow', 'trigger', 'rule', 'automation', 'process', 'schedule'],
-      integration: ['api', 'webhook', 'connection', 'integration', 'sync', 'endpoint'],
-      configuration: ['config', 'setting', 'parameter', 'option', 'setup', 'preference'],
-      security: ['auth', 'permission', 'security', 'access', 'token', 'credential'],
-      api: ['endpoint', 'request', 'response', 'method', 'parameter', 'authentication'],
-      troubleshooting: ['error', 'issue', 'problem', 'fix', 'debug', 'troubleshoot'],
+      automation: [
+        'workflow',
+        'trigger',
+        'rule',
+        'automation',
+        'process',
+        'schedule',
+      ],
+      integration: [
+        'api',
+        'webhook',
+        'connection',
+        'integration',
+        'sync',
+        'endpoint',
+      ],
+      configuration: [
+        'config',
+        'setting',
+        'parameter',
+        'option',
+        'setup',
+        'preference',
+      ],
+      security: [
+        'auth',
+        'permission',
+        'security',
+        'access',
+        'token',
+        'credential',
+      ],
+      api: [
+        'endpoint',
+        'request',
+        'response',
+        'method',
+        'parameter',
+        'authentication',
+      ],
+      troubleshooting: [
+        'error',
+        'issue',
+        'problem',
+        'fix',
+        'debug',
+        'troubleshoot',
+      ],
     };
     return domainKeywords[domain] || [];
   }
@@ -573,35 +703,50 @@ export class RelevanceScoringEngine {
    * Get query type-specific relevance boosts
    */
   private getQueryTypeBoosts(
-    queryType: string, 
-    content: string, 
-    metadata: Record<string, any>
+    queryType: string,
+    content: string,
+    metadata: Record<string, any>,
   ): number {
     let boost = 0;
     const contentLower = content.toLowerCase();
 
     switch (queryType) {
       case 'troubleshooting':
-        if (contentLower.includes('error') || contentLower.includes('problem') || 
-            contentLower.includes('fix') || contentLower.includes('troubleshoot')) {
+        if (
+          contentLower.includes('error') ||
+          contentLower.includes('problem') ||
+          contentLower.includes('fix') ||
+          contentLower.includes('troubleshoot')
+        ) {
           boost += 0.2;
         }
         break;
       case 'api':
-        if (contentLower.includes('api') || contentLower.includes('endpoint') || 
-            contentLower.includes('request') || metadata.documentType === 'api') {
+        if (
+          contentLower.includes('api') ||
+          contentLower.includes('endpoint') ||
+          contentLower.includes('request') ||
+          metadata.documentType === 'api'
+        ) {
           boost += 0.2;
         }
         break;
       case 'configuration':
-        if (contentLower.includes('config') || contentLower.includes('setting') || 
-            contentLower.includes('setup')) {
+        if (
+          contentLower.includes('config') ||
+          contentLower.includes('setting') ||
+          contentLower.includes('setup')
+        ) {
           boost += 0.2;
         }
         break;
       case 'procedural':
-        if (contentLower.includes('step') || contentLower.includes('how to') || 
-            contentLower.includes('guide') || metadata.documentType === 'guide') {
+        if (
+          contentLower.includes('step') ||
+          contentLower.includes('how to') ||
+          contentLower.includes('guide') ||
+          metadata.documentType === 'guide'
+        ) {
           boost += 0.2;
         }
         break;
@@ -616,8 +761,8 @@ export class RelevanceScoringEngine {
    * Calculate conversation context boost
    */
   private calculateConversationContextBoost(
-    content: string, 
-    conversationHistory: Array<{role: string; content: string}>
+    content: string,
+    conversationHistory: Array<{ role: string; content: string }>,
   ): number {
     if (conversationHistory.length === 0) {
       return 0;
@@ -625,9 +770,9 @@ export class RelevanceScoringEngine {
 
     // Get recent user messages for context
     const recentMessages = conversationHistory
-      .filter(msg => msg.role === 'user')
+      .filter((msg) => msg.role === 'user')
       .slice(-3)
-      .map(msg => msg.content.toLowerCase());
+      .map((msg) => msg.content.toLowerCase());
 
     const contentLower = content.toLowerCase();
     let contextBoost = 0;
@@ -649,8 +794,10 @@ export class RelevanceScoringEngine {
    */
   private rerankeDocuments(documents: ScoredDocument[]): ScoredDocument[] {
     // Sort by relevance score (descending)
-    const reranked = [...documents].sort((a, b) => b.relevanceScore - a.relevanceScore);
-    
+    const reranked = [...documents].sort(
+      (a, b) => b.relevanceScore - a.relevanceScore,
+    );
+
     // Update reranked positions
     reranked.forEach((doc, index) => {
       doc.rerankedRank = index;
@@ -663,8 +810,8 @@ export class RelevanceScoringEngine {
    * Calculate improvement metrics from reranking
    */
   private calculateImprovements(
-    original: ScoredDocument[], 
-    reranked: ScoredDocument[]
+    original: ScoredDocument[],
+    reranked: ScoredDocument[],
   ): { averagePositionChange: number; significantImprovements: number } {
     let totalPositionChange = 0;
     let significantImprovements = 0;
@@ -675,14 +822,16 @@ export class RelevanceScoringEngine {
       const positionChange = originalPos - newPos; // Positive = moved up
 
       totalPositionChange += Math.abs(positionChange);
-      
-      if (positionChange >= 3) { // Moved up 3+ positions
+
+      if (positionChange >= 3) {
+        // Moved up 3+ positions
         significantImprovements++;
       }
     }
 
     return {
-      averagePositionChange: original.length > 0 ? totalPositionChange / original.length : 0,
+      averagePositionChange:
+        original.length > 0 ? totalPositionChange / original.length : 0,
       significantImprovements,
     };
   }
@@ -715,7 +864,10 @@ export class RelevanceScoringEngine {
    * Update configuration
    */
   updateConfig(newConfig: Partial<RelevanceScoringConfig>): void {
-    this.config = RelevanceScoringConfig.parse({ ...this.config, ...newConfig });
+    this.config = RelevanceScoringConfig.parse({
+      ...this.config,
+      ...newConfig,
+    });
   }
 
   /**
@@ -724,10 +876,18 @@ export class RelevanceScoringEngine {
   static recordUserFeedback(feedback: UserFeedback): void {
     // In production, this would save to a database
     // For now, we'll use the default engine's feedback cache
-    const normalizedRating = Math.min(1, Math.max(0, (feedback.rating - 1) / 4));
-    defaultRelevanceScoringEngine.updateUserFeedback(feedback.documentId, normalizedRating);
-    
-    console.log(`📝 User feedback recorded: ${feedback.documentId} rated ${feedback.rating}/5`);
+    const normalizedRating = Math.min(
+      1,
+      Math.max(0, (feedback.rating - 1) / 4),
+    );
+    defaultRelevanceScoringEngine.updateUserFeedback(
+      feedback.documentId,
+      normalizedRating,
+    );
+
+    console.log(
+      `📝 User feedback recorded: ${feedback.documentId} rated ${feedback.rating}/5`,
+    );
   }
 }
 
@@ -735,7 +895,7 @@ export class RelevanceScoringEngine {
  * Create a relevance scoring engine instance
  */
 export function createRelevanceScoringEngine(
-  config?: Partial<RelevanceScoringConfig>
+  config?: Partial<RelevanceScoringConfig>,
 ): RelevanceScoringEngine {
   return new RelevanceScoringEngine(config);
 }
@@ -745,13 +905,13 @@ export function createRelevanceScoringEngine(
  */
 export const defaultRelevanceScoringEngine = createRelevanceScoringEngine({
   weights: {
-    similarity: 0.35,      // Primary factor: semantic similarity
-    authority: 0.25,       // Secondary: document authority/quality
-    contextRelevance: 0.20, // Context from query and conversation
-    recency: 0.10,         // Document freshness
-    keywordMatch: 0.05,    // Keyword overlap
-    semanticMatch: 0.05,   // Semantic relationships
-    userFeedback: 0.0,     // Disabled by default
+    similarity: 0.35, // Primary factor: semantic similarity
+    authority: 0.25, // Secondary: document authority/quality
+    contextRelevance: 0.2, // Context from query and conversation
+    recency: 0.1, // Document freshness
+    keywordMatch: 0.05, // Keyword overlap
+    semanticMatch: 0.05, // Semantic relationships
+    userFeedback: 0.0, // Disabled by default
   },
   enableReranking: true,
   enableKeywordMatching: true,

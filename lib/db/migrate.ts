@@ -10,7 +10,7 @@ config({
 const runMigrate = async () => {
   // Use process.env directly for migration since we need to load after dotenv
   const postgresUrl = process.env.POSTGRES_URL;
-  
+
   if (!postgresUrl) {
     throw new Error('POSTGRES_URL is not defined');
   }

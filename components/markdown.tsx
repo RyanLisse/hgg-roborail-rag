@@ -5,8 +5,7 @@ import remarkGfm from 'remark-gfm';
 import { CodeBlock } from './code-block';
 
 const components: Partial<Components> = {
-  // @ts-expect-error
-  code: CodeBlock,
+  code: CodeBlock as Components['code'],
   pre: ({ children }) => <>{children}</>,
   ol: ({ node, children, ...props }) => {
     return (
@@ -37,13 +36,14 @@ const components: Partial<Components> = {
     );
   },
   a: ({ node, children, ...props }) => {
+    const { href, ...linkProps } = props;
     return (
-      // @ts-expect-error
       <Link
+        href={href || '#'}
         className="text-blue-500 hover:underline"
         target="_blank"
         rel="noreferrer"
-        {...props}
+        {...linkProps}
       >
         {children}
       </Link>

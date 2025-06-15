@@ -27,12 +27,8 @@ export function ModelSelector({
 }: {
   className?: string;
 } & React.ComponentProps<typeof Button>) {
-  const {
-    selectedModel,
-    selectModel,
-    modelsByProvider,
-    isLoading,
-  } = useModelSelection();
+  const { selectedModel, selectModel, modelsByProvider, isLoading } =
+    useModelSelection();
 
   if (isLoading) {
     return (

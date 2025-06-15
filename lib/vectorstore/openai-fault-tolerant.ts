@@ -1,19 +1,19 @@
 import 'server-only';
 
-import { 
-  type OpenAIVectorStoreService, 
-  type SearchRequest, 
+import {
+  type OpenAIVectorStoreService,
+  type SearchRequest,
   type SearchResponse,
   type FileUploadRequest,
   type VectorStoreFile,
   type VectorStore,
-  createOpenAIVectorStoreService 
+  createOpenAIVectorStoreService,
 } from './openai';
-import { 
-  type FaultTolerantService, 
+import {
+  type FaultTolerantService,
   FaultToleranceFactory,
   type ServiceProvider,
-  FallbackMode 
+  FallbackMode,
 } from './fault-tolerance';
 
 // ====================================
@@ -26,39 +26,42 @@ export class FaultTolerantOpenAIVectorStoreService {
 
   constructor(baseService?: OpenAIVectorStoreService) {
     this.baseService = baseService || createOpenAIVectorStoreService();
-    
+
     // Create fault-tolerant wrapper
-    this.faultTolerantService = FaultToleranceFactory.createService('openai_vector_store', {
-      enableRetry: true,
-      enableCircuitBreaker: true,
-      enableFallback: true,
-      enableGracefulDegradation: true,
-      retryConfig: {
-        maxRetries: 3,
-        baseDelayMs: 1000,
-        maxDelayMs: 30000,
-        backoffMultiplier: 2,
-        jitterFactor: 0.1,
-        timeoutMs: 60000,
+    this.faultTolerantService = FaultToleranceFactory.createService(
+      'openai_vector_store',
+      {
+        enableRetry: true,
+        enableCircuitBreaker: true,
+        enableFallback: true,
+        enableGracefulDegradation: true,
+        retryConfig: {
+          maxRetries: 3,
+          baseDelayMs: 1000,
+          maxDelayMs: 30000,
+          backoffMultiplier: 2,
+          jitterFactor: 0.1,
+          timeoutMs: 60000,
+        },
+        circuitBreakerConfig: {
+          failureThreshold: 5,
+          recoveryTimeoutMs: 60000,
+          monitorWindowMs: 300000,
+          minimumThroughput: 10,
+          successThreshold: 3,
+        },
+        fallbackConfig: {
+          mode: FallbackMode.GRACEFUL,
+          enableCaching: true,
+          cacheRetentionMs: 3600000, // 1 hour
+          maxCacheSize: 1000,
+          fallbackTimeoutMs: 10000,
+          enablePartialResults: true,
+          partialResultsThreshold: 0.5,
+        },
+        healthCheckIntervalMs: 60000,
       },
-      circuitBreakerConfig: {
-        failureThreshold: 5,
-        recoveryTimeoutMs: 60000,
-        monitorWindowMs: 300000,
-        minimumThroughput: 10,
-        successThreshold: 3,
-      },
-      fallbackConfig: {
-        mode: FallbackMode.GRACEFUL,
-        enableCaching: true,
-        cacheRetentionMs: 3600000, // 1 hour
-        maxCacheSize: 1000,
-        fallbackTimeoutMs: 10000,
-        enablePartialResults: true,
-        partialResultsThreshold: 0.5,
-      },
-      healthCheckIntervalMs: 60000,
-    });
+    );
 
     this.setupFallbackProviders();
   }
@@ -69,7 +72,7 @@ export class FaultTolerantOpenAIVectorStoreService {
 
   async searchFiles(request: SearchRequest): Promise<SearchResponse> {
     const cacheKey = `search:${request.query}:${request.maxResults}:${request.vectorStoreId}`;
-    
+
     return this.faultTolerantService.execute(
       async () => {
         if (!this.baseService.isEnabled) {
@@ -81,13 +84,16 @@ export class FaultTolerantOpenAIVectorStoreService {
         operationName: 'searchFiles',
         cacheKey,
         requiredServiceLevel: 2, // Can operate in reduced functionality mode
-      }
+      },
     );
   }
 
-  async searchWithRetry(request: SearchRequest, maxRetries = 3): Promise<SearchResponse> {
+  async searchWithRetry(
+    request: SearchRequest,
+    maxRetries = 3,
+  ): Promise<SearchResponse> {
     const cacheKey = `search_retry:${request.query}:${request.maxResults}:${request.vectorStoreId}:${maxRetries}`;
-    
+
     return this.faultTolerantService.execute(
       async () => {
         if (!this.baseService.isEnabled) {
@@ -99,11 +105,14 @@ export class FaultTolerantOpenAIVectorStoreService {
         operationName: 'searchWithRetry',
         cacheKey,
         requiredServiceLevel: 2, // Can operate in reduced functionality mode
-      }
+      },
     );
   }
 
-  async uploadFile(request: FileUploadRequest, vectorStoreId?: string): Promise<VectorStoreFile> {
+  async uploadFile(
+    request: FileUploadRequest,
+    vectorStoreId?: string,
+  ): Promise<VectorStoreFile> {
     return this.faultTolerantService.execute(
       async () => {
         if (!this.baseService.isEnabled) {
@@ -115,13 +124,13 @@ export class FaultTolerantOpenAIVectorStoreService {
         operationName: 'uploadFile',
         requiredServiceLevel: 1, // Requires higher service level
         bypassRetry: false, // Allow retries for uploads
-      }
+      },
     );
   }
 
   async listFiles(vectorStoreId?: string): Promise<VectorStoreFile[]> {
     const cacheKey = `listFiles:${vectorStoreId || 'default'}`;
-    
+
     return this.faultTolerantService.execute(
       async () => {
         if (!this.baseService.isEnabled) {
@@ -133,7 +142,7 @@ export class FaultTolerantOpenAIVectorStoreService {
         operationName: 'listFiles',
         cacheKey,
         requiredServiceLevel: 3, // Can work in basic service mode
-      }
+      },
     );
   }
 
@@ -148,11 +157,14 @@ export class FaultTolerantOpenAIVectorStoreService {
       {
         operationName: 'deleteFile',
         requiredServiceLevel: 1, // Requires higher service level
-      }
+      },
     );
   }
 
-  async createVectorStore(name: string, metadata?: Record<string, string>): Promise<VectorStore> {
+  async createVectorStore(
+    name: string,
+    metadata?: Record<string, string>,
+  ): Promise<VectorStore> {
     return this.faultTolerantService.execute(
       async () => {
         if (!this.baseService.isEnabled) {
@@ -163,13 +175,13 @@ export class FaultTolerantOpenAIVectorStoreService {
       {
         operationName: 'createVectorStore',
         requiredServiceLevel: 0, // Requires full service
-      }
+      },
     );
   }
 
   async getVectorStore(vectorStoreId: string): Promise<VectorStore> {
     const cacheKey = `vectorStore:${vectorStoreId}`;
-    
+
     return this.faultTolerantService.execute(
       async () => {
         if (!this.baseService.isEnabled) {
@@ -181,13 +193,13 @@ export class FaultTolerantOpenAIVectorStoreService {
         operationName: 'getVectorStore',
         cacheKey,
         requiredServiceLevel: 2,
-      }
+      },
     );
   }
 
   async listVectorStores(): Promise<VectorStore[]> {
     const cacheKey = 'vectorStores:list';
-    
+
     return this.faultTolerantService.execute(
       async () => {
         if (!this.baseService.isEnabled) {
@@ -199,7 +211,7 @@ export class FaultTolerantOpenAIVectorStoreService {
         operationName: 'listVectorStores',
         cacheKey,
         requiredServiceLevel: 3,
-      }
+      },
     );
   }
 
@@ -214,11 +226,15 @@ export class FaultTolerantOpenAIVectorStoreService {
       {
         operationName: 'deleteVectorStore',
         requiredServiceLevel: 0, // Requires full service
-      }
+      },
     );
   }
 
-  async healthCheck(): Promise<{ isHealthy: boolean; vectorStoreStatus?: string; error?: string }> {
+  async healthCheck(): Promise<{
+    isHealthy: boolean;
+    vectorStoreStatus?: string;
+    error?: string;
+  }> {
     return this.faultTolerantService.execute(
       async () => {
         if (!this.baseService.isEnabled) {
@@ -230,7 +246,7 @@ export class FaultTolerantOpenAIVectorStoreService {
         operationName: 'healthCheck',
         bypassCircuitBreaker: true, // Don't let circuit breaker block health checks
         bypassRetry: true, // Health checks should be fast
-      }
+      },
     );
   }
 
@@ -245,13 +261,15 @@ export class FaultTolerantOpenAIVectorStoreService {
       {
         operationName: 'validateVectorStore',
         requiredServiceLevel: 2,
-      }
+      },
     );
   }
 
-  async getSourceFiles(fileIds: string[]): Promise<Array<{id: string; name: string; url?: string}>> {
+  async getSourceFiles(
+    fileIds: string[],
+  ): Promise<Array<{ id: string; name: string; url?: string }>> {
     const cacheKey = `sourceFiles:${fileIds.join(',')}`;
-    
+
     return this.faultTolerantService.execute(
       async () => {
         if (!this.baseService.isEnabled) {
@@ -263,7 +281,7 @@ export class FaultTolerantOpenAIVectorStoreService {
         operationName: 'getSourceFiles',
         cacheKey,
         requiredServiceLevel: 3,
-      }
+      },
     );
   }
 
@@ -273,11 +291,11 @@ export class FaultTolerantOpenAIVectorStoreService {
 
   async searchWithFallback(request: SearchRequest): Promise<SearchResponse> {
     const cacheKey = `searchWithFallback:${request.query}:${request.maxResults}`;
-    
+
     return this.faultTolerantService.executeWithProviders(
       'search',
       [request],
-      cacheKey
+      cacheKey,
     );
   }
 
@@ -372,7 +390,8 @@ export class FaultTolerantOpenAIVectorStoreService {
       execute: async (request: SearchRequest) => {
         return {
           success: true,
-          message: 'Service temporarily degraded - returning cached/limited results',
+          message:
+            'Service temporarily degraded - returning cached/limited results',
           results: [],
           sources: [],
           totalResults: 0,
@@ -402,12 +421,15 @@ export class FaultTolerantOpenAIVectorStoreService {
 // FACTORY FUNCTION
 // ====================================
 
-let faultTolerantOpenAIService: FaultTolerantOpenAIVectorStoreService | null = null;
+let faultTolerantOpenAIService: FaultTolerantOpenAIVectorStoreService | null =
+  null;
 
 export function getFaultTolerantOpenAIVectorStoreService(): FaultTolerantOpenAIVectorStoreService {
   if (!faultTolerantOpenAIService) {
     const baseService = createOpenAIVectorStoreService();
-    faultTolerantOpenAIService = new FaultTolerantOpenAIVectorStoreService(baseService);
+    faultTolerantOpenAIService = new FaultTolerantOpenAIVectorStoreService(
+      baseService,
+    );
   }
   return faultTolerantOpenAIService;
 }

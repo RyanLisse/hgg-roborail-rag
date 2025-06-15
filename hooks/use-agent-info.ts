@@ -1,7 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import type { AgentRouting, AgentMetadata } from '@/components/data-stream-handler';
+import type {
+  AgentRouting,
+  AgentMetadata,
+} from '@/components/data-stream-handler';
 
 // Simple global state management for agent info
 const globalAgentInfo: {
@@ -15,7 +18,7 @@ const globalAgentInfo: {
 const listeners = new Set<() => void>();
 
 function notifyListeners() {
-  listeners.forEach(listener => listener());
+  listeners.forEach((listener) => listener());
 }
 
 export function useAgentInfo() {
@@ -23,7 +26,7 @@ export function useAgentInfo() {
 
   // Subscribe to changes only once per component
   React.useEffect(() => {
-    const listener = () => setUpdateCount(prev => prev + 1);
+    const listener = () => setUpdateCount((prev) => prev + 1);
     listeners.add(listener);
     return () => {
       listeners.delete(listener);

@@ -45,7 +45,10 @@ export interface FeedbackService {
   submitFeedback: (feedback: MessageFeedback) => Promise<StoredFeedback>;
   getFeedbackByRunId: (runId: string) => Promise<StoredFeedback[]>;
   getFeedbackByUserId: (userId: string) => Promise<StoredFeedback[]>;
-  updateFeedback: (id: string, updates: FeedbackUpdate) => Promise<StoredFeedback>;
+  updateFeedback: (
+    id: string,
+    updates: FeedbackUpdate,
+  ) => Promise<StoredFeedback>;
   deleteFeedback: (id: string) => Promise<boolean>;
   getStats: (runId: string) => Promise<FeedbackStats>;
   submitBatch: (feedbackList: MessageFeedback[]) => Promise<StoredFeedback[]>;
@@ -58,7 +61,7 @@ export function createFeedbackService(db: any): FeedbackService {
 
     async submitFeedback(feedback: MessageFeedback): Promise<StoredFeedback> {
       const validatedFeedback = MessageFeedback.parse(feedback);
-      
+
       const feedbackData = {
         id: nanoid(),
         ...validatedFeedback,
@@ -68,7 +71,7 @@ export function createFeedbackService(db: any): FeedbackService {
 
       try {
         const { feedback: feedbackTable } = await import('@/lib/db/schema');
-        
+
         const [result] = await db
           .insert(feedbackTable)
           .values(feedbackData)
@@ -84,7 +87,7 @@ export function createFeedbackService(db: any): FeedbackService {
     async getFeedbackByRunId(runId: string): Promise<StoredFeedback[]> {
       try {
         const { feedback: feedbackTable } = await import('@/lib/db/schema');
-        
+
         const results = await db
           .select()
           .from(feedbackTable)
@@ -100,7 +103,7 @@ export function createFeedbackService(db: any): FeedbackService {
     async getFeedbackByUserId(userId: string): Promise<StoredFeedback[]> {
       try {
         const { feedback: feedbackTable } = await import('@/lib/db/schema');
-        
+
         const results = await db
           .select()
           .from(feedbackTable)
@@ -113,12 +116,15 @@ export function createFeedbackService(db: any): FeedbackService {
       }
     },
 
-    async updateFeedback(id: string, updates: FeedbackUpdate): Promise<StoredFeedback> {
+    async updateFeedback(
+      id: string,
+      updates: FeedbackUpdate,
+    ): Promise<StoredFeedback> {
       const validatedUpdates = FeedbackUpdate.parse(updates);
-      
+
       try {
         const { feedback: feedbackTable } = await import('@/lib/db/schema');
-        
+
         const [result] = await db
           .update(feedbackTable)
           .set({
@@ -138,10 +144,8 @@ export function createFeedbackService(db: any): FeedbackService {
     async deleteFeedback(id: string): Promise<boolean> {
       try {
         const { feedback: feedbackTable } = await import('@/lib/db/schema');
-        
-        await db
-          .delete(feedbackTable)
-          .where(eq(feedbackTable.id, id));
+
+        await db.delete(feedbackTable).where(eq(feedbackTable.id, id));
 
         return true;
       } catch (error) {
@@ -153,15 +157,19 @@ export function createFeedbackService(db: any): FeedbackService {
     async getStats(runId: string): Promise<FeedbackStats> {
       try {
         const feedbackList = await this.getFeedbackByRunId(runId);
-        
+
         const stats = {
           total: feedbackList.length,
-          upvotes: feedbackList.filter(f => f.vote === 'up').length,
-          downvotes: feedbackList.filter(f => f.vote === 'down').length,
-          ratio: feedbackList.length > 0 
-            ? feedbackList.filter(f => f.vote === 'up').length / feedbackList.length 
-            : 0,
-          hasComments: feedbackList.filter(f => f.comment && f.comment.trim().length > 0).length,
+          upvotes: feedbackList.filter((f) => f.vote === 'up').length,
+          downvotes: feedbackList.filter((f) => f.vote === 'down').length,
+          ratio:
+            feedbackList.length > 0
+              ? feedbackList.filter((f) => f.vote === 'up').length /
+                feedbackList.length
+              : 0,
+          hasComments: feedbackList.filter(
+            (f) => f.comment && f.comment.trim().length > 0,
+          ).length,
         };
 
         return FeedbackStats.parse(stats);
@@ -177,13 +185,17 @@ export function createFeedbackService(db: any): FeedbackService {
       }
     },
 
-    async submitBatch(feedbackList: MessageFeedback[]): Promise<StoredFeedback[]> {
-      const validatedFeedbackList = feedbackList.map(f => MessageFeedback.parse(f));
-      
+    async submitBatch(
+      feedbackList: MessageFeedback[],
+    ): Promise<StoredFeedback[]> {
+      const validatedFeedbackList = feedbackList.map((f) =>
+        MessageFeedback.parse(f),
+      );
+
       try {
         const { feedback: feedbackTable } = await import('@/lib/db/schema');
-        
-        const feedbackData = validatedFeedbackList.map(feedback => ({
+
+        const feedbackData = validatedFeedbackList.map((feedback) => ({
           id: nanoid(),
           ...feedback,
           createdAt: new Date(),
@@ -207,14 +219,14 @@ export function createFeedbackService(db: any): FeedbackService {
 // Helper functions
 export async function submitFeedback(
   service: FeedbackService,
-  feedback: MessageFeedback
+  feedback: MessageFeedback,
 ): Promise<StoredFeedback> {
   return await service.submitFeedback(feedback);
 }
 
 export async function getFeedbackByRunId(
   service: FeedbackService,
-  runId: string
+  runId: string,
 ): Promise<StoredFeedback[]> {
   return await service.getFeedbackByRunId(runId);
 }
@@ -222,7 +234,7 @@ export async function getFeedbackByRunId(
 export async function updateFeedback(
   service: FeedbackService,
   id: string,
-  updates: FeedbackUpdate
+  updates: FeedbackUpdate,
 ): Promise<StoredFeedback> {
   return await service.updateFeedback(id, updates);
 }
@@ -231,19 +243,19 @@ export async function updateFeedback(
 export async function hasUserVoted(
   service: FeedbackService,
   messageId: string,
-  userId: string
+  userId: string,
 ): Promise<StoredFeedback | null> {
   try {
     const { feedback: feedbackTable } = await import('@/lib/db/schema');
-    
+
     const [result] = await service.db
       .select()
       .from(feedbackTable)
       .where(
         and(
           eq(feedbackTable.messageId, messageId),
-          eq(feedbackTable.userId, userId)
-        )
+          eq(feedbackTable.userId, userId),
+        ),
       )
       .limit(1);
 
@@ -257,16 +269,16 @@ export async function hasUserVoted(
 // Get feedback statistics for a list of run IDs
 export async function getBatchStats(
   service: FeedbackService,
-  runIds: string[]
+  runIds: string[],
 ): Promise<Record<string, FeedbackStats>> {
   const stats: Record<string, FeedbackStats> = {};
-  
+
   await Promise.all(
     runIds.map(async (runId) => {
       stats[runId] = await service.getStats(runId);
-    })
+    }),
   );
-  
+
   return stats;
 }
 
@@ -282,6 +294,6 @@ export async function getFeedbackService(): Promise<FeedbackService> {
     const db = drizzle(client);
     feedbackService = createFeedbackService(db);
   }
-  
+
   return feedbackService;
 }

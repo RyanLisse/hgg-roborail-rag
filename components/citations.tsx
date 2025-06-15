@@ -10,22 +10,28 @@ interface CitationsProps {
   className?: string;
 }
 
-export function Citations({ citations, sources, className = '' }: CitationsProps) {
+export function Citations({
+  citations,
+  sources,
+  className = '',
+}: CitationsProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   if (!citations.length && !sources?.length) {
     return null;
   }
 
-  const displayCitations = citations.length > 0 ? citations : 
-    sources?.map((source, index) => ({
-      id: `source-${index}`,
-      number: index + 1,
-      text: '',
-      fileName: source.name,
-      fileId: source.id,
-      quote: undefined,
-    })) || [];
+  const displayCitations =
+    citations.length > 0
+      ? citations
+      : sources?.map((source, index) => ({
+          id: `source-${index}`,
+          number: index + 1,
+          text: '',
+          fileName: source.name,
+          fileId: source.id,
+          quote: undefined,
+        })) || [];
 
   return (
     <div className={`border-t pt-4 mt-4 ${className}`}>
@@ -56,14 +62,14 @@ export function Citations({ citations, sources, className = '' }: CitationsProps
                   {citation.number}
                 </span>
               </div>
-              
+
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <p className="text-sm font-medium text-gray-900 truncate">
                       {citation.fileName || (citation as any).name}
                     </p>
-                    
+
                     {citation.quote && (
                       <div className="mt-2 flex gap-2">
                         <Quote className="size-3 text-gray-400 shrink-0 mt-0.5" />
@@ -72,7 +78,7 @@ export function Citations({ citations, sources, className = '' }: CitationsProps
                         </p>
                       </div>
                     )}
-                    
+
                     {citation.fileId && (
                       <p className="text-xs text-gray-500 mt-1 font-mono">
                         File ID: {citation.fileId}
@@ -95,7 +101,11 @@ interface InlineCitationProps {
   className?: string;
 }
 
-export function InlineCitation({ number, citationId, className = '' }: InlineCitationProps) {
+export function InlineCitation({
+  number,
+  citationId,
+  className = '',
+}: InlineCitationProps) {
   const handleClick = () => {
     const element = document.getElementById(`citation-${citationId}`);
     if (element) {
@@ -126,7 +136,11 @@ interface CitationBadgeProps {
   className?: string;
 }
 
-export function CitationBadge({ count, onClick, className = '' }: CitationBadgeProps) {
+export function CitationBadge({
+  count,
+  onClick,
+  className = '',
+}: CitationBadgeProps) {
   if (count === 0) return null;
 
   return (

@@ -9,11 +9,11 @@ import { z } from 'zod';
 export enum ErrorCategory {
   // Retryable errors
   NETWORK = 'NETWORK',
-  TIMEOUT = 'TIMEOUT', 
+  TIMEOUT = 'TIMEOUT',
   RATE_LIMIT = 'RATE_LIMIT',
   SERVICE_UNAVAILABLE = 'SERVICE_UNAVAILABLE',
   TEMPORARY_FAILURE = 'TEMPORARY_FAILURE',
-  
+
   // Non-retryable errors
   AUTHENTICATION = 'AUTHENTICATION',
   AUTHORIZATION = 'AUTHORIZATION',
@@ -21,7 +21,7 @@ export enum ErrorCategory {
   NOT_FOUND = 'NOT_FOUND',
   CONFIGURATION = 'CONFIGURATION',
   VALIDATION = 'VALIDATION',
-  
+
   // System errors
   UNKNOWN = 'UNKNOWN',
   CRITICAL = 'CRITICAL',
@@ -88,8 +88,8 @@ export type RetryConfig = z.infer<typeof RetryConfig>;
 // ====================================
 
 export enum CircuitBreakerState {
-  CLOSED = 'CLOSED',     // Normal operation
-  OPEN = 'OPEN',         // Blocking calls
+  CLOSED = 'CLOSED', // Normal operation
+  OPEN = 'OPEN', // Blocking calls
   HALF_OPEN = 'HALF_OPEN', // Testing if service recovered
 }
 
@@ -109,10 +109,13 @@ export type CircuitBreakerConfig = z.infer<typeof CircuitBreakerConfig>;
 
 // biome-ignore lint/complexity/noStaticOnlyClass: Utility class pattern for organized functionality
 export class ErrorClassifier {
-  static classify(error: Error, context?: Record<string, any>): ClassifiedError {
+  static classify(
+    error: Error,
+    context?: Record<string, any>,
+  ): ClassifiedError {
     const errorMessage = error.message.toLowerCase();
     const errorName = error.name.toLowerCase();
-    
+
     // Network and connectivity errors
     if (ErrorClassifier.isNetworkError(error, errorMessage)) {
       return {
@@ -126,8 +129,18 @@ export class ErrorClassifier {
         originalError: error,
         context,
         recoveryStrategies: [
-          { type: RecoveryStrategyType.RETRY, priority: 1, conditions: ['network_retry'], action: async () => null },
-          { type: RecoveryStrategyType.FALLBACK_SERVICE, priority: 2, conditions: ['service_available'], action: async () => null },
+          {
+            type: RecoveryStrategyType.RETRY,
+            priority: 1,
+            conditions: ['network_retry'],
+            action: async () => null,
+          },
+          {
+            type: RecoveryStrategyType.FALLBACK_SERVICE,
+            priority: 2,
+            conditions: ['service_available'],
+            action: async () => null,
+          },
         ],
       };
     }
@@ -145,8 +158,18 @@ export class ErrorClassifier {
         originalError: error,
         context,
         recoveryStrategies: [
-          { type: RecoveryStrategyType.RETRY, priority: 1, conditions: ['rate_limit_retry'], action: async () => null },
-          { type: RecoveryStrategyType.FALLBACK_SERVICE, priority: 2, conditions: ['alternative_service'], action: async () => null },
+          {
+            type: RecoveryStrategyType.RETRY,
+            priority: 1,
+            conditions: ['rate_limit_retry'],
+            action: async () => null,
+          },
+          {
+            type: RecoveryStrategyType.FALLBACK_SERVICE,
+            priority: 2,
+            conditions: ['alternative_service'],
+            action: async () => null,
+          },
         ],
       };
     }
@@ -164,7 +187,12 @@ export class ErrorClassifier {
         originalError: error,
         context,
         recoveryStrategies: [
-          { type: RecoveryStrategyType.GRACEFUL_DEGRADATION, priority: 1, conditions: ['auth_fallback'], action: async () => null },
+          {
+            type: RecoveryStrategyType.GRACEFUL_DEGRADATION,
+            priority: 1,
+            conditions: ['auth_fallback'],
+            action: async () => null,
+          },
         ],
       };
     }
@@ -182,8 +210,18 @@ export class ErrorClassifier {
         originalError: error,
         context,
         recoveryStrategies: [
-          { type: RecoveryStrategyType.RETRY, priority: 1, conditions: ['timeout_retry'], action: async () => null },
-          { type: RecoveryStrategyType.PARTIAL_RESULTS, priority: 2, conditions: ['partial_acceptable'], action: async () => null },
+          {
+            type: RecoveryStrategyType.RETRY,
+            priority: 1,
+            conditions: ['timeout_retry'],
+            action: async () => null,
+          },
+          {
+            type: RecoveryStrategyType.PARTIAL_RESULTS,
+            priority: 2,
+            conditions: ['partial_acceptable'],
+            action: async () => null,
+          },
         ],
       };
     }
@@ -201,8 +239,18 @@ export class ErrorClassifier {
         originalError: error,
         context,
         recoveryStrategies: [
-          { type: RecoveryStrategyType.CIRCUIT_BREAKER, priority: 1, conditions: ['circuit_breaker_applicable'], action: async () => null },
-          { type: RecoveryStrategyType.FALLBACK_SERVICE, priority: 2, conditions: ['fallback_available'], action: async () => null },
+          {
+            type: RecoveryStrategyType.CIRCUIT_BREAKER,
+            priority: 1,
+            conditions: ['circuit_breaker_applicable'],
+            action: async () => null,
+          },
+          {
+            type: RecoveryStrategyType.FALLBACK_SERVICE,
+            priority: 2,
+            conditions: ['fallback_available'],
+            action: async () => null,
+          },
         ],
       };
     }
@@ -220,7 +268,12 @@ export class ErrorClassifier {
         originalError: error,
         context,
         recoveryStrategies: [
-          { type: RecoveryStrategyType.GRACEFUL_DEGRADATION, priority: 1, conditions: ['validation_fallback'], action: async () => null },
+          {
+            type: RecoveryStrategyType.GRACEFUL_DEGRADATION,
+            priority: 1,
+            conditions: ['validation_fallback'],
+            action: async () => null,
+          },
         ],
       };
     }
@@ -237,8 +290,18 @@ export class ErrorClassifier {
       originalError: error,
       context,
       recoveryStrategies: [
-        { type: RecoveryStrategyType.RETRY, priority: 1, conditions: ['unknown_retry'], action: async () => null },
-        { type: RecoveryStrategyType.GRACEFUL_DEGRADATION, priority: 2, conditions: ['unknown_fallback'], action: async () => null },
+        {
+          type: RecoveryStrategyType.RETRY,
+          priority: 1,
+          conditions: ['unknown_retry'],
+          action: async () => null,
+        },
+        {
+          type: RecoveryStrategyType.GRACEFUL_DEGRADATION,
+          priority: 2,
+          conditions: ['unknown_fallback'],
+          action: async () => null,
+        },
       ],
     };
   }
@@ -257,10 +320,12 @@ export class ErrorClassifier {
       'request failed',
       'unable to connect',
     ];
-    
-    return networkPatterns.some(pattern => message.includes(pattern)) ||
-           error.name === 'NetworkError' ||
-           error.name === 'FetchError';
+
+    return (
+      networkPatterns.some((pattern) => message.includes(pattern)) ||
+      error.name === 'NetworkError' ||
+      error.name === 'FetchError'
+    );
   }
 
   private static isRateLimitError(error: Error, message: string): boolean {
@@ -273,8 +338,8 @@ export class ErrorClassifier {
       'limit exceeded',
       '429',
     ];
-    
-    return rateLimitPatterns.some(pattern => message.includes(pattern));
+
+    return rateLimitPatterns.some((pattern) => message.includes(pattern));
   }
 
   private static isAuthenticationError(error: Error, message: string): boolean {
@@ -288,8 +353,8 @@ export class ErrorClassifier {
       '401',
       '403',
     ];
-    
-    return authPatterns.some(pattern => message.includes(pattern));
+
+    return authPatterns.some((pattern) => message.includes(pattern));
   }
 
   private static isTimeoutError(error: Error, message: string): boolean {
@@ -300,12 +365,17 @@ export class ErrorClassifier {
       'response timeout',
       'operation timeout',
     ];
-    
-    return timeoutPatterns.some(pattern => message.includes(pattern)) ||
-           error.name === 'TimeoutError';
+
+    return (
+      timeoutPatterns.some((pattern) => message.includes(pattern)) ||
+      error.name === 'TimeoutError'
+    );
   }
 
-  private static isServiceUnavailableError(error: Error, message: string): boolean {
+  private static isServiceUnavailableError(
+    error: Error,
+    message: string,
+  ): boolean {
     const unavailablePatterns = [
       'service unavailable',
       'server error',
@@ -317,8 +387,8 @@ export class ErrorClassifier {
       '503',
       '504',
     ];
-    
-    return unavailablePatterns.some(pattern => message.includes(pattern));
+
+    return unavailablePatterns.some((pattern) => message.includes(pattern));
   }
 
   private static isValidationError(error: Error, message: string): boolean {
@@ -330,10 +400,12 @@ export class ErrorClassifier {
       'invalid parameter',
       '400',
     ];
-    
-    return validationPatterns.some(pattern => message.includes(pattern)) ||
-           error.name === 'ValidationError' ||
-           error.name === 'ZodError';
+
+    return (
+      validationPatterns.some((pattern) => message.includes(pattern)) ||
+      error.name === 'ValidationError' ||
+      error.name === 'ZodError'
+    );
   }
 }
 
@@ -350,7 +422,7 @@ export class RetryMechanism {
 
   async execute<T>(
     operation: () => Promise<T>,
-    context?: Record<string, any>
+    context?: Record<string, any>,
   ): Promise<T> {
     let lastError: Error | null = null;
     let attempt = 0;
@@ -360,18 +432,21 @@ export class RetryMechanism {
         // Add timeout wrapper with cleanup
         let timeoutId: NodeJS.Timeout | null = null;
         const timeoutPromise = new Promise<never>((_, reject) => {
-          timeoutId = setTimeout(() => reject(new Error('Operation timeout')), this.config.timeoutMs);
+          timeoutId = setTimeout(
+            () => reject(new Error('Operation timeout')),
+            this.config.timeoutMs,
+          );
         });
 
         try {
           const result = await Promise.race([operation(), timeoutPromise]);
           // Clear timeout on success
           if (timeoutId) clearTimeout(timeoutId);
-          
+
           if (attempt > 0) {
             console.log(`✅ Operation succeeded on attempt ${attempt + 1}`);
           }
-          
+
           return result;
         } catch (error) {
           // Clear timeout on error before rethrowing
@@ -384,7 +459,7 @@ export class RetryMechanism {
 
         // Classify the error
         const classifiedError = ErrorClassifier.classify(lastError, context);
-        
+
         // Don't retry if error is not retryable
         if (!classifiedError.isRetryable) {
           console.log(`❌ Non-retryable error: ${classifiedError.category}`);
@@ -399,10 +474,12 @@ export class RetryMechanism {
 
         // Calculate delay with exponential backoff and jitter
         const delay = this.calculateDelay(attempt, classifiedError);
-        
+
         console.log(`⚠️ Attempt ${attempt} failed: ${lastError.message}`);
-        console.log(`⏳ Retrying in ${delay}ms... (${this.config.maxRetries - attempt} attempts remaining)`);
-        
+        console.log(
+          `⏳ Retrying in ${delay}ms... (${this.config.maxRetries - attempt} attempts remaining)`,
+        );
+
         await this.sleep(delay);
       }
     }
@@ -410,27 +487,30 @@ export class RetryMechanism {
     throw lastError || new Error('Operation failed after retries');
   }
 
-  private calculateDelay(attempt: number, classifiedError: ClassifiedError): number {
+  private calculateDelay(
+    attempt: number,
+    classifiedError: ClassifiedError,
+  ): number {
     // Use error-specific delay configuration
     const baseDelay = classifiedError.baseDelayMs;
     const maxDelay = classifiedError.maxDelayMs;
     const jitter = classifiedError.jitterFactor;
-    
+
     // Exponential backoff
     const exponentialDelay = Math.min(
       baseDelay * Math.pow(this.config.backoffMultiplier, attempt - 1),
-      maxDelay
+      maxDelay,
     );
-    
+
     // Add jitter to prevent thundering herd
     const jitterAmount = exponentialDelay * jitter * Math.random();
     const finalDelay = exponentialDelay + jitterAmount;
-    
+
     return Math.floor(finalDelay);
   }
 
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }
 
@@ -447,7 +527,10 @@ export class CircuitBreaker {
   private requestCount = 0;
   private windowStartTime = Date.now();
 
-  constructor(private name: string, config?: Partial<CircuitBreakerConfig>) {
+  constructor(
+    private name: string,
+    config?: Partial<CircuitBreakerConfig>,
+  ) {
     this.config = CircuitBreakerConfig.parse(config || {});
   }
 
@@ -460,9 +543,13 @@ export class CircuitBreaker {
       if (this.shouldAttemptReset()) {
         this.state = CircuitBreakerState.HALF_OPEN;
         this.successCount = 0;
-        console.log(`🔄 Circuit breaker [${this.name}] moved to HALF_OPEN state`);
+        console.log(
+          `🔄 Circuit breaker [${this.name}] moved to HALF_OPEN state`,
+        );
       } else {
-        throw new Error(`Circuit breaker [${this.name}] is OPEN - service unavailable`);
+        throw new Error(
+          `Circuit breaker [${this.name}] is OPEN - service unavailable`,
+        );
       }
     }
 
@@ -480,10 +567,10 @@ export class CircuitBreaker {
 
   private onSuccess(): void {
     this.failureCount = 0;
-    
+
     if (this.state === CircuitBreakerState.HALF_OPEN) {
       this.successCount++;
-      
+
       if (this.successCount >= this.config.successThreshold) {
         this.state = CircuitBreakerState.CLOSED;
         this.successCount = 0;
@@ -502,14 +589,18 @@ export class CircuitBreaker {
     } else if (this.state === CircuitBreakerState.CLOSED) {
       if (this.shouldTrip()) {
         this.state = CircuitBreakerState.OPEN;
-        console.log(`🚨 Circuit breaker [${this.name}] TRIPPED - moved to OPEN state`);
+        console.log(
+          `🚨 Circuit breaker [${this.name}] TRIPPED - moved to OPEN state`,
+        );
       }
     }
   }
 
   private shouldTrip(): boolean {
-    return this.requestCount >= this.config.minimumThroughput &&
-           this.failureCount >= this.config.failureThreshold;
+    return (
+      this.requestCount >= this.config.minimumThroughput &&
+      this.failureCount >= this.config.failureThreshold
+    );
   }
 
   private shouldAttemptReset(): boolean {

@@ -24,16 +24,18 @@ vi.mock('../ai/providers', () => ({
 
 // Mock the vector store
 vi.mock('../vectorstore/unified', () => ({
-  getUnifiedVectorStoreService: vi.fn(() => Promise.resolve({
-    searchAcrossSources: vi.fn(() => Promise.resolve([])),
-    getAvailableSources: vi.fn(() => Promise.resolve(['openai', 'memory'])),
-    healthCheck: vi.fn(() => Promise.resolve({ isHealthy: true })),
-    config: {
-      sources: ['openai', 'memory'],
-      searchThreshold: 0.3,
-      maxResults: 10,
-    },
-  })),
+  getUnifiedVectorStoreService: vi.fn(() =>
+    Promise.resolve({
+      searchAcrossSources: vi.fn(() => Promise.resolve([])),
+      getAvailableSources: vi.fn(() => Promise.resolve(['openai', 'memory'])),
+      healthCheck: vi.fn(() => Promise.resolve({ isHealthy: true })),
+      config: {
+        sources: ['openai', 'memory'],
+        searchThreshold: 0.3,
+        maxResults: 10,
+      },
+    }),
+  ),
 }));
 
 // Mock the AI SDK
@@ -55,7 +57,11 @@ vi.mock('ai', () => ({
     };
     return Promise.resolve({
       textStream: stream,
-      usage: Promise.resolve({ promptTokens: 10, completionTokens: 20, totalTokens: 30 }),
+      usage: Promise.resolve({
+        promptTokens: 10,
+        completionTokens: 20,
+        totalTokens: 30,
+      }),
       response: { id: 'test-id' },
     });
   }),
@@ -80,10 +86,10 @@ describe('Agent System', () => {
   beforeEach(() => {
     // Reset all mocks
     vi.clearAllMocks();
-    
+
     // Reset global orchestrator
     resetGlobalOrchestrator();
-    
+
     // Initialize agents without vectorStoreConfig requirement
     qaAgent = new QAAgent();
     rewriteAgent = new RewriteAgent();
@@ -162,7 +168,7 @@ describe('Agent System', () => {
         usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 },
         response: { id: 'test-id' },
       } as any);
-      
+
       const intent = await classifyIntent('What is the capital of France?');
       expect(intent).toBe('question_answering');
     });
@@ -174,7 +180,7 @@ describe('Agent System', () => {
         usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 },
         response: { id: 'test-id' },
       } as any);
-      
+
       const intent = await classifyIntent(
         'Please rewrite this sentence to be more clear',
       );
@@ -188,7 +194,7 @@ describe('Agent System', () => {
         usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 },
         response: { id: 'test-id' },
       } as any);
-      
+
       const intent = await classifyIntent(
         'Create a step-by-step plan for learning Python',
       );
@@ -211,7 +217,7 @@ describe('Agent System', () => {
 
     it('should route queries to appropriate agents', async () => {
       const { generateText } = await import('ai');
-      
+
       vi.mocked(generateText).mockResolvedValueOnce({
         text: 'question_answering',
         usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 },
@@ -319,7 +325,7 @@ describe('Agent System', () => {
         usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 },
         response: { id: 'test-id' },
       });
-      
+
       const streamGenerator = orchestrator.processRequestStream({
         query: 'Explain machine learning',
         chatHistory: [],
@@ -391,7 +397,7 @@ describe('Agent System', () => {
         usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 },
         response: { id: 'test-id' },
       });
-      
+
       const streamGenerator = processQueryStream('Explain React hooks');
       const chunks: string[] = [];
 

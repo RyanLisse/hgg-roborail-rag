@@ -2,15 +2,15 @@
 
 import { useState, useCallback } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { 
+import type {
   MessageFeedback,
   FeedbackUpdate,
-  StoredFeedback
+  StoredFeedback,
 } from '@/lib/feedback/feedback';
-import { 
-  getLangSmithService, 
+import {
+  getLangSmithService,
   submitUserFeedback,
-  type UserFeedback
+  type UserFeedback,
 } from '@/lib/observability/langsmith';
 import { useDebounceCallback } from 'usehooks-ts';
 
@@ -19,114 +19,136 @@ export function useFeedback(messageId: string, userId: string) {
   const queryClient = useQueryClient();
 
   // Query for existing feedback
-  const { data: existingFeedback, isLoading } = useQuery<StoredFeedback | null>({
-    queryKey: ['feedback', messageId, userId],
-    queryFn: async () => {
-      const response = await fetch(`/api/feedback?messageId=${messageId}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch feedback');
-      }
-      return await response.json();
+  const { data: existingFeedback, isLoading } = useQuery<StoredFeedback | null>(
+    {
+      queryKey: ['feedback', messageId, userId],
+      queryFn: async () => {
+        const response = await fetch(`/api/feedback?messageId=${messageId}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch feedback');
+        }
+        return await response.json();
+      },
+      staleTime: 5 * 60 * 1000, // 5 minutes
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
+  );
 
   // Submit new feedback mutation
-  const { mutate: submitFeedbackMutation, isPending: isSubmitting } = useMutation({
-    mutationFn: async (feedback: MessageFeedback): Promise<StoredFeedback> => {
-      const response = await fetch('/api/feedback', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(feedback),
-      });
+  const { mutate: submitFeedbackMutation, isPending: isSubmitting } =
+    useMutation({
+      mutationFn: async (
+        feedback: MessageFeedback,
+      ): Promise<StoredFeedback> => {
+        const response = await fetch('/api/feedback', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(feedback),
+        });
 
-      if (!response.ok) {
-        throw new Error('Failed to submit feedback');
-      }
-
-      const result = await response.json();
-
-      // Also submit to LangSmith if available
-      try {
-        const langSmithService = getLangSmithService();
-        if (langSmithService.isEnabled && feedback.runId) {
-          const langSmithFeedback: UserFeedback = {
-            runId: feedback.runId,
-            score: feedback.vote === 'up' ? 1 : 0,
-            value: feedback.vote === 'up' ? 'thumbs_up' : 'thumbs_down',
-            comment: feedback.comment,
-            userId: feedback.userId,
-          };
-          
-          await submitUserFeedback(langSmithService, langSmithFeedback);
+        if (!response.ok) {
+          throw new Error('Failed to submit feedback');
         }
-      } catch (langSmithError) {
-        console.warn('Failed to submit feedback to LangSmith:', langSmithError);
-        // Don't fail the main operation if LangSmith fails
-      }
 
-      return result;
-    },
-    onSuccess: (data) => {
-      queryClient.setQueryData(['feedback', messageId, userId], data);
-      setError(null);
-    },
-    onError: (error: Error) => {
-      setError(error);
-    },
-  });
+        const result = await response.json();
+
+        // Also submit to LangSmith if available
+        try {
+          const langSmithService = getLangSmithService();
+          if (langSmithService.isEnabled && feedback.runId) {
+            const langSmithFeedback: UserFeedback = {
+              runId: feedback.runId,
+              score: feedback.vote === 'up' ? 1 : 0,
+              value: feedback.vote === 'up' ? 'thumbs_up' : 'thumbs_down',
+              comment: feedback.comment,
+              userId: feedback.userId,
+            };
+
+            await submitUserFeedback(langSmithService, langSmithFeedback);
+          }
+        } catch (langSmithError) {
+          console.warn(
+            'Failed to submit feedback to LangSmith:',
+            langSmithError,
+          );
+          // Don't fail the main operation if LangSmith fails
+        }
+
+        return result;
+      },
+      onSuccess: (data) => {
+        queryClient.setQueryData(['feedback', messageId, userId], data);
+        setError(null);
+      },
+      onError: (error: Error) => {
+        setError(error);
+      },
+    });
 
   // Update existing feedback mutation
-  const { mutate: updateFeedbackMutation, isPending: isUpdating } = useMutation({
-    mutationFn: async (updates: FeedbackUpdate): Promise<StoredFeedback> => {
-      if (!existingFeedback) {
-        throw new Error('No existing feedback to update');
-      }
-
-      const response = await fetch(`/api/feedback?id=${existingFeedback.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updates),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update feedback');
-      }
-
-      const result = await response.json();
-
-      // Also update LangSmith if available
-      try {
-        const langSmithService = getLangSmithService();
-        if (langSmithService.isEnabled && existingFeedback.runId) {
-          const langSmithFeedback: UserFeedback = {
-            runId: existingFeedback.runId,
-            score: (updates.vote || existingFeedback.vote) === 'up' ? 1 : 0,
-            value: (updates.vote || existingFeedback.vote) === 'up' ? 'thumbs_up' : 'thumbs_down',
-            comment: updates.comment !== undefined ? updates.comment : existingFeedback.comment,
-            userId: existingFeedback.userId,
-          };
-          
-          await submitUserFeedback(langSmithService, langSmithFeedback);
+  const { mutate: updateFeedbackMutation, isPending: isUpdating } = useMutation(
+    {
+      mutationFn: async (updates: FeedbackUpdate): Promise<StoredFeedback> => {
+        if (!existingFeedback) {
+          throw new Error('No existing feedback to update');
         }
-      } catch (langSmithError) {
-        console.warn('Failed to update feedback in LangSmith:', langSmithError);
-      }
 
-      return result;
+        const response = await fetch(
+          `/api/feedback?id=${existingFeedback.id}`,
+          {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(updates),
+          },
+        );
+
+        if (!response.ok) {
+          throw new Error('Failed to update feedback');
+        }
+
+        const result = await response.json();
+
+        // Also update LangSmith if available
+        try {
+          const langSmithService = getLangSmithService();
+          if (langSmithService.isEnabled && existingFeedback.runId) {
+            const langSmithFeedback: UserFeedback = {
+              runId: existingFeedback.runId,
+              score: (updates.vote || existingFeedback.vote) === 'up' ? 1 : 0,
+              value:
+                (updates.vote || existingFeedback.vote) === 'up'
+                  ? 'thumbs_up'
+                  : 'thumbs_down',
+              comment:
+                updates.comment !== undefined
+                  ? updates.comment
+                  : existingFeedback.comment,
+              userId: existingFeedback.userId,
+            };
+
+            await submitUserFeedback(langSmithService, langSmithFeedback);
+          }
+        } catch (langSmithError) {
+          console.warn(
+            'Failed to update feedback in LangSmith:',
+            langSmithError,
+          );
+        }
+
+        return result;
+      },
+      onSuccess: (data) => {
+        queryClient.setQueryData(['feedback', messageId, userId], data);
+        setError(null);
+      },
+      onError: (error: Error) => {
+        setError(error);
+      },
     },
-    onSuccess: (data) => {
-      queryClient.setQueryData(['feedback', messageId, userId], data);
-      setError(null);
-    },
-    onError: (error: Error) => {
-      setError(error);
-    },
-  });
+  );
 
   // Debounced submit function to prevent rapid submissions
   const debouncedSubmit = useDebounceCallback((feedback: MessageFeedback) => {
@@ -138,23 +160,29 @@ export function useFeedback(messageId: string, userId: string) {
     updateFeedbackMutation(updates);
   }, 500);
 
-  const submitFeedback = useCallback(async (feedback: MessageFeedback): Promise<void> => {
-    return new Promise((resolve, reject) => {
-      submitFeedbackMutation(feedback, {
-        onSuccess: () => resolve(),
-        onError: (error) => reject(error),
+  const submitFeedback = useCallback(
+    async (feedback: MessageFeedback): Promise<void> => {
+      return new Promise((resolve, reject) => {
+        submitFeedbackMutation(feedback, {
+          onSuccess: () => resolve(),
+          onError: (error) => reject(error),
+        });
       });
-    });
-  }, [submitFeedbackMutation]);
+    },
+    [submitFeedbackMutation],
+  );
 
-  const updateFeedback = useCallback(async (updates: FeedbackUpdate): Promise<void> => {
-    return new Promise((resolve, reject) => {
-      updateFeedbackMutation(updates, {
-        onSuccess: () => resolve(),
-        onError: (error) => reject(error),
+  const updateFeedback = useCallback(
+    async (updates: FeedbackUpdate): Promise<void> => {
+      return new Promise((resolve, reject) => {
+        updateFeedbackMutation(updates, {
+          onSuccess: () => resolve(),
+          onError: (error) => reject(error),
+        });
       });
-    });
-  }, [updateFeedbackMutation]);
+    },
+    [updateFeedbackMutation],
+  );
 
   return {
     existingFeedback,
@@ -188,32 +216,33 @@ export function useFeedbackStats(runId: string) {
 export function useBulkFeedback() {
   const queryClient = useQueryClient();
 
-  const { mutate: submitBulkFeedback, isPending: isSubmittingBulk } = useMutation({
-    mutationFn: async (feedbackList: MessageFeedback[]) => {
-      const response = await fetch('/api/feedback/batch', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ feedbackList }),
-      });
+  const { mutate: submitBulkFeedback, isPending: isSubmittingBulk } =
+    useMutation({
+      mutationFn: async (feedbackList: MessageFeedback[]) => {
+        const response = await fetch('/api/feedback/batch', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ feedbackList }),
+        });
 
-      if (!response.ok) {
-        throw new Error('Failed to submit bulk feedback');
-      }
+        if (!response.ok) {
+          throw new Error('Failed to submit bulk feedback');
+        }
 
-      return await response.json();
-    },
-    onSuccess: (results: StoredFeedback[]) => {
-      // Update cache for each feedback item
-      results.forEach((feedback: StoredFeedback) => {
-        queryClient.setQueryData(
-          ['feedback', feedback.messageId, feedback.userId], 
-          feedback
-        );
-      });
-    },
-  });
+        return await response.json();
+      },
+      onSuccess: (results: StoredFeedback[]) => {
+        // Update cache for each feedback item
+        results.forEach((feedback: StoredFeedback) => {
+          queryClient.setQueryData(
+            ['feedback', feedback.messageId, feedback.userId],
+            feedback,
+          );
+        });
+      },
+    });
 
   return {
     submitBulkFeedback,

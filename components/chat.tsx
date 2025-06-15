@@ -18,7 +18,10 @@ import type { Session } from 'next-auth';
 import { useSearchParams } from 'next/navigation';
 import { useAutoResume } from '@/hooks/use-auto-resume';
 import { ChatSDKError } from '@/lib/errors';
-import { DatabaseSelector, useDatabaseSelection } from '@/components/database-selector';
+import {
+  DatabaseSelector,
+  useDatabaseSelection,
+} from '@/components/database-selector';
 import { useChatVisibility } from '@/hooks/use-chat-visibility';
 import type { VisibilityType } from '@/components/visibility-selector';
 
@@ -41,6 +44,29 @@ export function Chat({
 }) {
   const { mutate } = useSWRConfig();
 
+  const searchParams = useSearchParams();
+  const query = searchParams.get('query');
+
+  const [hasAppendedQuery, setHasAppendedQuery] = useState(false);
+  const [attachments, setAttachments] = useState<Array<Attachment>>([]);
+  const isArtifactVisible = useArtifactSelector((state) => state.isVisible);
+
+  // Database selection for vector stores
+  const {
+    selectedSources,
+    setSelectedSources,
+    availableSources,
+    sourceStats,
+    isLoading: isLoadingSources,
+  } = useDatabaseSelection();
+
+  // Chat visibility management
+  const { visibilityType, setVisibilityType } = useChatVisibility({
+    chatId: id,
+    initialVisibilityType,
+  });
+
+  // Optimized useChat with memoized configuration
   const {
     messages,
     setMessages,
@@ -56,7 +82,7 @@ export function Chat({
   } = useChat({
     id,
     initialMessages,
-    experimental_throttle: 100,
+    experimental_throttle: 300, // Reduced frequency for better performance
     sendExtraMessageFields: true,
     generateId: generateUUID,
     fetch: fetchWithErrorHandlers,
@@ -80,10 +106,10 @@ export function Chat({
     },
   });
 
-  const searchParams = useSearchParams();
-  const query = searchParams.get('query');
-
-  const [hasAppendedQuery, setHasAppendedQuery] = useState(false);
+  const { data: votes } = useSWR<Array<Vote>>(
+    messages.length >= 2 ? `/api/vote?chatId=${id}` : null,
+    fetcher,
+  );
 
   useEffect(() => {
     if (query && !hasAppendedQuery) {
@@ -96,29 +122,6 @@ export function Chat({
       window.history.replaceState({}, '', `/chat/${id}`);
     }
   }, [query, append, hasAppendedQuery, id]);
-
-  const { data: votes } = useSWR<Array<Vote>>(
-    messages.length >= 2 ? `/api/vote?chatId=${id}` : null,
-    fetcher,
-  );
-
-  const [attachments, setAttachments] = useState<Array<Attachment>>([]);
-  const isArtifactVisible = useArtifactSelector((state) => state.isVisible);
-  
-  // Database selection for vector stores
-  const {
-    selectedSources,
-    setSelectedSources,
-    availableSources,
-    sourceStats,
-    isLoading: isLoadingSources,
-  } = useDatabaseSelection();
-
-  // Chat visibility management
-  const { visibilityType, setVisibilityType } = useChatVisibility({
-    chatId: id,
-    initialVisibilityType,
-  });
 
   useAutoResume({
     autoResume,
@@ -158,7 +161,9 @@ export function Chat({
             <div className="flex flex-col gap-2">
               {/* Database Selector for Vector Stores - Mobile only */}
               <div className="flex items-center gap-2 px-2 md:hidden">
-                <span className="text-sm text-muted-foreground min-w-fit">Data Sources:</span>
+                <span className="text-sm text-muted-foreground min-w-fit">
+                  Data Sources:
+                </span>
                 <DatabaseSelector
                   selectedSources={selectedSources}
                   onSourcesChange={setSelectedSources}
@@ -168,7 +173,7 @@ export function Chat({
                   className="flex-1"
                 />
               </div>
-              
+
               <MultimodalInput
                 chatId={id}
                 input={input}

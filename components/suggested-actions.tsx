@@ -10,10 +10,7 @@ interface SuggestedActionsProps {
   append: UseChatHelpers['append'];
 }
 
-function PureSuggestedActions({
-  chatId,
-  append,
-}: SuggestedActionsProps) {
+function PureSuggestedActions({ chatId, append }: SuggestedActionsProps) {
   const suggestedActions = [
     {
       title: 'How do I calibrate',

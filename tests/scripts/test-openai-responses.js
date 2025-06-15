@@ -30,26 +30,30 @@ async function testResponsesAPI() {
 
   try {
     console.log(`📚 Using vector store: ${vectorStoreId}`);
-    
+
     const response = await openai.responses.create({
-      model: "gpt-4o-mini",
-      input: "What is deep research by OpenAI?",
-      tools: [{
-        type: "file_search",
-        vector_store_ids: [vectorStoreId],
-        max_num_results: 10,
-      }],
-      include: ["file_search_call.results"],
+      model: 'gpt-4o-mini',
+      input: 'What is deep research by OpenAI?',
+      tools: [
+        {
+          type: 'file_search',
+          vector_store_ids: [vectorStoreId],
+          max_num_results: 10,
+        },
+      ],
+      include: ['file_search_call.results'],
     });
 
     console.log('✅ Response received successfully!\n');
-    
+
     // Display basic response info
     console.log('📄 Response Details:');
     console.log(`   ID: ${response.id}`);
     console.log(`   Model: ${response.model}`);
     if (response.created) {
-      console.log(`   Created: ${new Date(response.created * 1000).toISOString()}`);
+      console.log(
+        `   Created: ${new Date(response.created * 1000).toISOString()}`,
+      );
     }
     if (response.usage) {
       console.log(`   Usage: ${JSON.stringify(response.usage)}`);
@@ -72,7 +76,7 @@ async function testResponsesAPI() {
       // Find message content and file search results
       for (const item of response.output) {
         if (item.type === 'message' && item.content) {
-          const textContent = item.content.find(c => c.type === 'text');
+          const textContent = item.content.find((c) => c.type === 'text');
           if (textContent) {
             content = textContent.text || textContent.value || content;
             annotations = textContent.annotations || [];
@@ -89,22 +93,24 @@ async function testResponsesAPI() {
     console.log(content);
     console.log('\n');
     console.log(`🔗 Annotations (${annotations.length}):`);
-    
+
     if (annotations.length === 0) {
       console.log('   No annotations found');
     } else {
       annotations.forEach((annotation, index) => {
         console.log(`   [${index + 1}] Type: ${annotation.type}`);
         console.log(`       Text: "${annotation.text}"`);
-        console.log(`       Range: ${annotation.start_index}-${annotation.end_index}`);
-        
+        console.log(
+          `       Range: ${annotation.start_index}-${annotation.end_index}`,
+        );
+
         if (annotation.file_citation) {
           console.log(`       File ID: ${annotation.file_citation.file_id}`);
           if (annotation.file_citation.quote) {
             console.log(`       Quote: "${annotation.file_citation.quote}"`);
           }
         }
-        
+
         if (annotation.file_path) {
           console.log(`       File Path ID: ${annotation.file_path.file_id}`);
         }
@@ -114,7 +120,7 @@ async function testResponsesAPI() {
 
     // Get file information for citations
     const fileIds = new Set();
-    annotations.forEach(annotation => {
+    annotations.forEach((annotation) => {
       if (annotation.file_citation?.file_id) {
         fileIds.add(annotation.file_citation.file_id);
       }
@@ -131,7 +137,9 @@ async function testResponsesAPI() {
           console.log(`   • ${file.filename} (${fileId})`);
           console.log(`     Size: ${file.bytes} bytes`);
           if (file.created_at) {
-            console.log(`     Created: ${new Date(file.created_at * 1000).toISOString()}`);
+            console.log(
+              `     Created: ${new Date(file.created_at * 1000).toISOString()}`,
+            );
           }
         } catch (error) {
           console.log(`   • Error retrieving file ${fileId}: ${error.message}`);
@@ -145,9 +153,10 @@ async function testResponsesAPI() {
       fileSearchResults.forEach((result, index) => {
         console.log(`   [${index + 1}] Score: ${result.score || 'N/A'}`);
         if (result.content) {
-          const preview = typeof result.content === 'string' 
-            ? `${result.content.substring(0, 200)}...`
-            : `${JSON.stringify(result.content).substring(0, 200)}...`;
+          const preview =
+            typeof result.content === 'string'
+              ? `${result.content.substring(0, 200)}...`
+              : `${JSON.stringify(result.content).substring(0, 200)}...`;
           console.log(`       Content: ${preview}`);
         }
         if (result.metadata) {
@@ -163,21 +172,24 @@ async function testResponsesAPI() {
     // Demonstrate citation processing
     console.log('\n🏷️ Citation Processing Demo:');
     const processedContent = processContentWithCitations(
-      response.body?.content || '', 
-      annotations
+      response.body?.content || '',
+      annotations,
     );
     console.log('   Processed content with numbered citations:');
     console.log(`   ${processedContent}`);
 
     console.log('\n✅ Test completed successfully!');
-
   } catch (error) {
     console.error('❌ Error testing Responses API:', error);
-    
+
     if (error.status === 404) {
-      console.log('   This might indicate that the vector store ID is invalid or not accessible');
+      console.log(
+        '   This might indicate that the vector store ID is invalid or not accessible',
+      );
     } else if (error.status === 401) {
-      console.log('   This indicates an authentication error - check your API key');
+      console.log(
+        '   This indicates an authentication error - check your API key',
+      );
     }
   }
 }
@@ -193,12 +205,17 @@ function processContentWithCitations(content, annotations) {
   let citationCounter = 1;
 
   // Sort annotations by start_index in descending order to avoid index shifts
-  const sortedAnnotations = [...annotations].sort((a, b) => b.start_index - a.start_index);
+  const sortedAnnotations = [...annotations].sort(
+    (a, b) => b.start_index - a.start_index,
+  );
 
-  sortedAnnotations.forEach(annotation => {
-    if (annotation.type === 'file_citation' && annotation.file_citation?.file_id) {
+  sortedAnnotations.forEach((annotation) => {
+    if (
+      annotation.type === 'file_citation' &&
+      annotation.file_citation?.file_id
+    ) {
       const fileId = annotation.file_citation.file_id;
-      
+
       // Get or assign citation number
       if (!citationMap.has(fileId)) {
         citationMap.set(fileId, citationCounter++);

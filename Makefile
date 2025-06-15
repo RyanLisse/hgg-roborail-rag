@@ -31,7 +31,7 @@ DEV_PORTS := 3000 3001
 DB_PORTS := 5432 6379
 DRIZZLE_PORT := 4983
 
-.PHONY: help install dev build start test test-unit test-coverage lint format clean clean-all clean-deps clean-cache kill-ports kill-dev kill-postgres kill-redis kill-drizzle db-migrate db-studio db-generate db-push db-pull db-check db-up db-reset setup verify status fresh production-build
+.PHONY: help install dev build start test test-fast test-debug test-routes test-reliability test-unit test-stagehand test-traditional test-coverage lint format clean clean-all clean-deps clean-cache kill-ports kill-dev kill-postgres kill-redis kill-drizzle db-migrate db-studio db-generate db-push db-pull db-check db-up db-reset setup verify status fresh production-build
 
 # Help target (default) - shows all available commands with descriptions
 help:
@@ -57,7 +57,13 @@ help:
 	@echo "  $(GREEN)db-reset$(RESET)       - ⚠️  Reset database (with confirmation)"
 	@echo ""
 	@echo "$(YELLOW)🧪 Testing & Quality:$(RESET)"
-	@echo "  $(GREEN)test$(RESET)           - Run E2E tests with Playwright"
+	@echo "  $(GREEN)test$(RESET)           - Run all E2E tests with Playwright"
+	@echo "  $(GREEN)test-fast$(RESET)      - ⚡ Run optimized E2E tests (60s timeout)"
+	@echo "  $(GREEN)test-reliability$(RESET) - 🎯 Run reliability suite (75s timeout)"
+	@echo "  $(GREEN)test-debug$(RESET)     - 🐛 Run tests in debug mode (headed browser)"
+	@echo "  $(GREEN)test-routes$(RESET)    - 🛣️ Run API route tests only"
+	@echo "  $(GREEN)test-stagehand$(RESET) - Run AI-powered Stagehand tests"
+	@echo "  $(GREEN)test-traditional$(RESET) - Run traditional E2E tests"
 	@echo "  $(GREEN)test-unit$(RESET)      - Run unit tests with Vitest"
 	@echo "  $(GREEN)test-coverage$(RESET)  - Run tests with coverage report"
 	@echo "  $(GREEN)lint$(RESET)           - Run ESLint and Biome linting"
@@ -179,15 +185,61 @@ db-reset: check-deps
 # Testing commands
 test: check-deps
 	@echo "$(BLUE)🧪 Running E2E tests with Playwright...$(RESET)"
-	pnpm test
+	@echo "$(YELLOW)⚠️  Starting test with 5-minute timeout...$(RESET)"
+	@( \
+		pnpm test & \
+		TEST_PID=$$! ; \
+		( sleep 300 ; echo "$(RED)❌ Tests timed out after 5 minutes, killing...$(RESET)" ; kill -9 $$TEST_PID 2>/dev/null ; $(MAKE) kill-ports ) & \
+		TIMEOUT_PID=$$! ; \
+		wait $$TEST_PID ; \
+		TEST_EXIT=$$? ; \
+		kill $$TIMEOUT_PID 2>/dev/null ; \
+		if [ $$TEST_EXIT -ne 0 ]; then \
+			echo "$(RED)❌ Tests failed, cleaning up...$(RESET)" ; \
+			$(MAKE) kill-ports ; \
+		fi ; \
+		exit $$TEST_EXIT \
+	)
 
 test-unit: check-deps
 	@echo "$(BLUE)🧪 Running unit tests with Vitest...$(RESET)"
 	pnpm test:unit
 
+test-stagehand: check-deps
+	@echo "$(BLUE)🤖 Running Stagehand AI-powered tests...$(RESET)"
+	@echo "$(YELLOW)⚠️  These tests use AI and may take longer...$(RESET)"
+	pnpm test:stagehand
+
+test-traditional: check-deps
+	@echo "$(BLUE)🧪 Running traditional E2E tests...$(RESET)"
+	pnpm test:traditional
+
 test-coverage: check-deps
 	@echo "$(BLUE)📊 Running tests with coverage...$(RESET)"
 	pnpm test:coverage
+
+# Optimized test commands for better reliability
+test-fast: check-deps
+	@echo "$(BLUE)⚡ Running fast E2E tests (optimized)...$(RESET)"
+	@$(MAKE) kill-dev
+	@sleep 1
+	pnpm test --project=e2e --workers=1 --timeout=60000
+
+test-debug: check-deps
+	@echo "$(BLUE)🐛 Running tests in debug mode...$(RESET)"
+	@$(MAKE) kill-dev
+	@sleep 1
+	pnpm test --project=e2e --workers=1 --headed --timeout=120000
+
+test-routes: check-deps
+	@echo "$(BLUE)🛣️ Running API route tests...$(RESET)"
+	pnpm test --project=routes --workers=2 --timeout=30000
+
+test-reliability: check-deps
+	@echo "$(BLUE)🎯 Running reliability test suite (reduced timeouts)...$(RESET)"
+	@$(MAKE) kill-dev
+	@sleep 2
+	NEXT_TELEMETRY_DISABLED=1 TURBO_CI=1 pnpm test --project=e2e --workers=1 --retries=1 --timeout=75000
 
 # Code quality commands
 lint: check-deps

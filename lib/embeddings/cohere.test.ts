@@ -15,9 +15,7 @@ vi.mock('cohere-ai', () => ({
     v2: {
       embed: vi.fn().mockResolvedValue({
         embeddings: {
-          float: [
-            Array.from({ length: 1024 }, () => Math.random()),
-          ],
+          float: [Array.from({ length: 1024 }, () => Math.random())],
         },
       }),
     },
@@ -240,16 +238,12 @@ describe('Cohere Embedding Service', () => {
         .fn()
         .mockResolvedValueOnce({
           embeddings: {
-            float: [
-              Array.from({ length: 1024 }, () => Math.random()),
-            ],
+            float: [Array.from({ length: 1024 }, () => Math.random())],
           },
         })
         .mockResolvedValueOnce({
           embeddings: {
-            float: [
-              Array.from({ length: 1024 }, () => Math.random()),
-            ],
+            float: [Array.from({ length: 1024 }, () => Math.random())],
           },
         });
 

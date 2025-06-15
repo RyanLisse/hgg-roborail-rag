@@ -1,29 +1,50 @@
 import { tool } from 'ai';
 import { z } from 'zod';
-import { getUnifiedVectorStoreService, type VectorStoreType } from '@/lib/vectorstore/unified';
+import {
+  getUnifiedVectorStoreService,
+  type VectorStoreType,
+} from '@/lib/vectorstore/unified';
 import { getOpenAIResponsesService } from '@/lib/ai/responses';
-import { parseCitationsFromContent, formatCitationsMarkdown } from '@/lib/utils/citations';
+import {
+  parseCitationsFromContent,
+  formatCitationsMarkdown,
+} from '@/lib/utils/citations';
 
-export const enhancedSearch = (sources: VectorStoreType[] = ['memory']) => 
+export const enhancedSearch = (sources: VectorStoreType[] = ['memory']) =>
   tool({
-    description: 'Advanced document search with comprehensive source citations and annotations. Use this for queries that require factual information with proper attribution.',
+    description:
+      'Advanced document search with comprehensive source citations and annotations. Use this for queries that require factual information with proper attribution.',
     parameters: z.object({
       query: z.string().describe('The search query to find relevant documents'),
-      limit: z.number().optional().describe('Maximum number of results to return (default: 5)'),
-      includeQuotes: z.boolean().optional().describe('Include quoted text from sources (default: true)'),
-      responseModel: z.string().optional().describe('Model to use for OpenAI responses (default: gpt-4o-mini)'),
+      limit: z
+        .number()
+        .optional()
+        .describe('Maximum number of results to return (default: 5)'),
+      includeQuotes: z
+        .boolean()
+        .optional()
+        .describe('Include quoted text from sources (default: true)'),
+      responseModel: z
+        .string()
+        .optional()
+        .describe('Model to use for OpenAI responses (default: gpt-4o-mini)'),
     }),
-    execute: async ({ query, limit = 5, includeQuotes = true, responseModel = 'gpt-4o-mini' }) => {
+    execute: async ({
+      query,
+      limit = 5,
+      includeQuotes = true,
+      responseModel = 'gpt-4o-mini',
+    }) => {
       try {
         console.log(`🔍 Enhanced search started for: "${query}"`);
-        
+
         const vectorStore = await getUnifiedVectorStoreService();
         const results: any[] = [];
         let sourcesWithCitations: any[] = [];
 
         // 1. Search unified vector stores with enhanced search capabilities
         if (sources.includes('memory') || sources.includes('neon')) {
-          const unifiedSources = sources.filter(s => s !== 'openai');
+          const unifiedSources = sources.filter((s) => s !== 'openai');
           if (unifiedSources.length > 0) {
             const enhancedSearchResponse = await vectorStore.searchEnhanced({
               query,
@@ -41,16 +62,18 @@ export const enhancedSearch = (sources: VectorStoreType[] = ['memory']) =>
               },
             });
 
-            results.push(...enhancedSearchResponse.results.map(result => ({
-              content: result.document.content,
-              source: result.source,
-              similarity: result.similarity,
-              metadata: result.document.metadata,
-              type: 'enhanced_vector_search',
-              relevanceScore: result.relevanceScore,
-              relevanceFactors: result.relevanceFactors,
-              scoringMetadata: result.scoringMetadata,
-            })));
+            results.push(
+              ...enhancedSearchResponse.results.map((result) => ({
+                content: result.document.content,
+                source: result.source,
+                similarity: result.similarity,
+                metadata: result.document.metadata,
+                type: 'enhanced_vector_search',
+                relevanceScore: result.relevanceScore,
+                relevanceFactors: result.relevanceFactors,
+                scoringMetadata: result.scoringMetadata,
+              })),
+            );
           }
         }
 
@@ -58,20 +81,21 @@ export const enhancedSearch = (sources: VectorStoreType[] = ['memory']) =>
         if (sources.includes('openai')) {
           try {
             const responsesService = getOpenAIResponsesService();
-            
+
             const searchQuery = `Based on the uploaded documents, please provide information about: ${query}`;
-            
-            const searchResponse = await responsesService.createResponseWithSources({
-              model: responseModel,
-              input: searchQuery,
-              maxResults: limit,
-            });
+
+            const searchResponse =
+              await responsesService.createResponseWithSources({
+                model: responseModel,
+                input: searchQuery,
+                maxResults: limit,
+              });
 
             // Parse citations from the response
             const citationContext = parseCitationsFromContent(
               searchResponse.content,
               searchResponse.annotations,
-              searchResponse.sources
+              searchResponse.sources,
             );
 
             if (searchResponse.content?.trim()) {
@@ -94,7 +118,9 @@ export const enhancedSearch = (sources: VectorStoreType[] = ['memory']) =>
               sourcesWithCitations = searchResponse.sources;
             }
 
-            console.log(`✅ OpenAI search completed with ${searchResponse.sources.length} sources`);
+            console.log(
+              `✅ OpenAI search completed with ${searchResponse.sources.length} sources`,
+            );
           } catch (error) {
             console.warn('OpenAI Responses API search failed:', error);
             // Continue with other results
@@ -120,30 +146,36 @@ export const enhancedSearch = (sources: VectorStoreType[] = ['memory']) =>
 
         topResults.forEach((result, index) => {
           formattedResponse += `**Result ${index + 1}** (${result.source}, similarity: ${result.similarity.toFixed(2)}):\n`;
-          
-          if (result.type === 'openai_response' && (result as any).citations?.length > 0) {
+
+          if (
+            result.type === 'openai_response' &&
+            (result as any).citations?.length > 0
+          ) {
             // For OpenAI responses, include formatted citations
             formattedResponse += result.content;
-            formattedResponse += formatCitationsMarkdown((result as any).citations);
+            formattedResponse += formatCitationsMarkdown(
+              (result as any).citations,
+            );
           } else {
             // For vector search results, show content with metadata
-            const contentPreview = result.content.length > 500 
-              ? `${result.content.substring(0, 500)}...`
-              : result.content;
+            const contentPreview =
+              result.content.length > 500
+                ? `${result.content.substring(0, 500)}...`
+                : result.content;
             formattedResponse += contentPreview;
-            
+
             if (result.metadata && Object.keys(result.metadata).length > 0) {
               formattedResponse += `\n*Metadata: ${JSON.stringify(result.metadata)}*`;
             }
           }
-          
+
           formattedResponse += '\n\n---\n\n';
         });
 
         // 5. Add overall source summary
-        const uniqueSources = [...new Set(topResults.map(r => r.source))];
+        const uniqueSources = [...new Set(topResults.map((r) => r.source))];
         formattedResponse += `**Search completed across:** ${uniqueSources.join(', ')}\n`;
-        
+
         if (sourcesWithCitations.length > 0) {
           formattedResponse += `**Sources with citations:** ${sourcesWithCitations.length} file(s)\n`;
         }
@@ -157,10 +189,10 @@ export const enhancedSearch = (sources: VectorStoreType[] = ['memory']) =>
           citationSources: sourcesWithCitations,
           totalResults: results.length,
         };
-
       } catch (error) {
         console.error('Error in enhanced search:', error);
-        const errorMessage = error instanceof Error ? error.message : String(error);
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
         return {
           success: false,
           message: `Error occurred while searching: ${errorMessage}`,

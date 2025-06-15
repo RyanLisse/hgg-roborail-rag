@@ -12,7 +12,7 @@ export class RedisCacheBackend implements DistributedCacheBackend {
   private client: any = null; // Redis client instance
   private subscriber: any = null; // Redis subscriber instance
   private publisher: any = null; // Redis publisher instance
-  
+
   private stats = {
     hits: 0,
     misses: 0,
@@ -25,13 +25,15 @@ export class RedisCacheBackend implements DistributedCacheBackend {
   private readonly retryDelayMs: number;
   private subscriptions = new Map<string, Set<(message: any) => void>>();
 
-  constructor(private config: {
-    url: string;
-    keyPrefix?: string;
-    maxRetries?: number;
-    retryDelayMs?: number;
-    enablePubSub?: boolean;
-  }) {
+  constructor(
+    private config: {
+      url: string;
+      keyPrefix?: string;
+      maxRetries?: number;
+      retryDelayMs?: number;
+      enablePubSub?: boolean;
+    },
+  ) {
     this.keyPrefix = config.keyPrefix ?? 'roborail:cache:';
     this.maxRetries = config.maxRetries ?? 3;
     this.retryDelayMs = config.retryDelayMs ?? 1000;
@@ -41,7 +43,7 @@ export class RedisCacheBackend implements DistributedCacheBackend {
     try {
       // Dynamic import to avoid bundling Redis in client-side code
       const { createClient } = await import('redis');
-      
+
       // Create main client for cache operations
       this.client = createClient({
         url: this.config.url,
@@ -58,7 +60,7 @@ export class RedisCacheBackend implements DistributedCacheBackend {
       if (this.config.enablePubSub) {
         this.subscriber = this.client.duplicate();
         this.publisher = this.client.duplicate();
-        
+
         await Promise.all([
           this.client.connect(),
           this.subscriber.connect(),
@@ -79,12 +81,14 @@ export class RedisCacheBackend implements DistributedCacheBackend {
 
   async disconnect(): Promise<void> {
     try {
-      await Promise.all([
-        this.client?.quit(),
-        this.subscriber?.quit(),
-        this.publisher?.quit(),
-      ].filter(Boolean));
-      
+      await Promise.all(
+        [
+          this.client?.quit(),
+          this.subscriber?.quit(),
+          this.publisher?.quit(),
+        ].filter(Boolean),
+      );
+
       this.isConnected = false;
       this.subscriptions.clear();
       console.log('✅ Redis cache disconnected');
@@ -106,7 +110,7 @@ export class RedisCacheBackend implements DistributedCacheBackend {
     try {
       const redisKey = this.getKey(key);
       const value = await this.client.get(redisKey);
-      
+
       if (value === null) {
         this.stats.misses++;
         return null;
@@ -130,13 +134,17 @@ export class RedisCacheBackend implements DistributedCacheBackend {
     try {
       const redisKey = this.getKey(key);
       const serializedValue = JSON.stringify(value);
-      
+
       if (ttl) {
-        await this.client.setEx(redisKey, Math.ceil(ttl / 1000), serializedValue);
+        await this.client.setEx(
+          redisKey,
+          Math.ceil(ttl / 1000),
+          serializedValue,
+        );
       } else {
         await this.client.set(redisKey, serializedValue);
       }
-      
+
       return true;
     } catch (error) {
       console.error('Redis set error:', error);
@@ -168,7 +176,7 @@ export class RedisCacheBackend implements DistributedCacheBackend {
 
     try {
       let searchPattern: string;
-      
+
       if (pattern) {
         // Convert pattern to Redis pattern
         searchPattern = this.getKey(pattern.replace(/\*/g, '*'));
@@ -177,7 +185,7 @@ export class RedisCacheBackend implements DistributedCacheBackend {
       }
 
       const keys = await this.client.keys(searchPattern);
-      
+
       if (keys.length === 0) {
         return 0;
       }
@@ -198,15 +206,15 @@ export class RedisCacheBackend implements DistributedCacheBackend {
     }
 
     try {
-      const redisKeys = keys.map(key => this.getKey(key));
+      const redisKeys = keys.map((key) => this.getKey(key));
       const values = await this.client.mGet(redisKeys);
-      
+
       return values.map((value: string | null) => {
         if (value === null) {
           this.stats.misses++;
           return null;
         }
-        
+
         try {
           this.stats.hits++;
           return JSON.parse(value) as T;
@@ -223,7 +231,9 @@ export class RedisCacheBackend implements DistributedCacheBackend {
     }
   }
 
-  async mset<T>(entries: Array<{ key: string; value: T; ttl?: number }>): Promise<boolean> {
+  async mset<T>(
+    entries: Array<{ key: string; value: T; ttl?: number }>,
+  ): Promise<boolean> {
     if (!this.isConnected || !this.client || entries.length === 0) {
       return false;
     }
@@ -231,18 +241,22 @@ export class RedisCacheBackend implements DistributedCacheBackend {
     try {
       // Use pipeline for better performance
       const pipeline = this.client.multi();
-      
+
       for (const entry of entries) {
         const redisKey = this.getKey(entry.key);
         const serializedValue = JSON.stringify(entry.value);
-        
+
         if (entry.ttl) {
-          pipeline.setEx(redisKey, Math.ceil(entry.ttl / 1000), serializedValue);
+          pipeline.setEx(
+            redisKey,
+            Math.ceil(entry.ttl / 1000),
+            serializedValue,
+          );
         } else {
           pipeline.set(redisKey, serializedValue);
         }
       }
-      
+
       await pipeline.exec();
       return true;
     } catch (error) {
@@ -267,11 +281,11 @@ export class RedisCacheBackend implements DistributedCacheBackend {
     try {
       const info = await this.client.info('memory');
       const keyCount = await this.client.dbSize();
-      
+
       // Parse memory usage from Redis INFO output
       const memoryMatch = info.match(/used_memory:(\d+)/);
       const memoryUsage = memoryMatch ? Number.parseInt(memoryMatch[1], 10) : 0;
-      
+
       const totalRequests = this.stats.hits + this.stats.misses;
       const hitRate = totalRequests > 0 ? this.stats.hits / totalRequests : 0;
 
@@ -305,11 +319,11 @@ export class RedisCacheBackend implements DistributedCacheBackend {
     try {
       const testKey = this.getKey('__health_check__');
       const testValue = { timestamp: Date.now() };
-      
+
       await this.set(testKey, testValue, 1000); // 1 second TTL
       const retrieved = await this.get(testKey);
       await this.delete(testKey);
-      
+
       return retrieved !== null;
     } catch (error) {
       console.error('Redis health check failed:', error);
@@ -335,7 +349,10 @@ export class RedisCacheBackend implements DistributedCacheBackend {
     }
   }
 
-  async subscribe(channel: string, handler: (message: any) => void): Promise<void> {
+  async subscribe(
+    channel: string,
+    handler: (message: any) => void,
+  ): Promise<void> {
     if (!this.subscriber) {
       throw new Error('Redis subscriber not available');
     }
@@ -344,22 +361,22 @@ export class RedisCacheBackend implements DistributedCacheBackend {
       // Track handlers for this channel
       if (!this.subscriptions.has(channel)) {
         this.subscriptions.set(channel, new Set());
-        
+
         // Subscribe to Redis channel
         await this.subscriber.subscribe(channel, (message: string) => {
           try {
             const parsedMessage = JSON.parse(message);
             const handlers = this.subscriptions.get(channel);
-            
+
             if (handlers) {
-              handlers.forEach(h => h(parsedMessage));
+              handlers.forEach((h) => h(parsedMessage));
             }
           } catch (error) {
             console.error('Redis message parsing error:', error);
           }
         });
       }
-      
+
       this.subscriptions.get(channel)?.add(handler);
     } catch (error) {
       console.error('Redis subscribe error:', error);
@@ -382,10 +399,10 @@ export class RedisCacheBackend implements DistributedCacheBackend {
 
   async invalidatePattern(pattern: string): Promise<number> {
     const deleted = await this.clear(pattern);
-    
+
     // Notify other instances about the invalidation
     await this.notifyInvalidation(pattern);
-    
+
     return deleted;
   }
 

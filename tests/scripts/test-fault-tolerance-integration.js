@@ -19,23 +19,29 @@ async function testFaultToleranceIntegration() {
 
   try {
     // Import fault tolerance components
-    const { 
-      ErrorClassifier, 
-      RetryMechanism, 
-      CircuitBreaker, 
+    const {
+      ErrorClassifier,
+      RetryMechanism,
+      CircuitBreaker,
       FaultTolerantService,
-      FaultToleranceFactory 
+      FaultToleranceFactory,
     } = await import('./lib/vectorstore/fault-tolerance.js');
-    
-    const { FallbackManager, GracefulDegradation } = await import('./lib/vectorstore/fallback.js');
-    const { getFaultTolerantOpenAIVectorStoreService } = await import('./lib/vectorstore/openai-fault-tolerant.js');
-    const { getFaultTolerantUnifiedVectorStoreService } = await import('./lib/vectorstore/unified-fault-tolerant.js');
+
+    const { FallbackManager, GracefulDegradation } = await import(
+      './lib/vectorstore/fallback.js'
+    );
+    const { getFaultTolerantOpenAIVectorStoreService } = await import(
+      './lib/vectorstore/openai-fault-tolerant.js'
+    );
+    const { getFaultTolerantUnifiedVectorStoreService } = await import(
+      './lib/vectorstore/unified-fault-tolerant.js'
+    );
 
     console.log('✅ Successfully imported fault tolerance components\n');
 
     // Test 1: Error Classification
     console.log('1. Testing Error Classification...');
-    
+
     const networkError = new Error('fetch failed - connection timeout');
     const rateLimitError = new Error('Rate limit exceeded - 429');
     const authError = new Error('Unauthorized - 401');
@@ -49,15 +55,25 @@ async function testFaultToleranceIntegration() {
     const unknownClassified = ErrorClassifier.classify(unknownError);
 
     console.log(`📊 Error Classifications:`);
-    console.log(`   Network Error: ${networkClassified.category} (retryable: ${networkClassified.isRetryable})`);
-    console.log(`   Rate Limit Error: ${rateLimitClassified.category} (retryable: ${rateLimitClassified.isRetryable})`);
-    console.log(`   Auth Error: ${authClassified.category} (retryable: ${authClassified.isRetryable})`);
-    console.log(`   Validation Error: ${validationClassified.category} (retryable: ${validationClassified.isRetryable})`);
-    console.log(`   Unknown Error: ${unknownClassified.category} (retryable: ${unknownClassified.isRetryable})`);
+    console.log(
+      `   Network Error: ${networkClassified.category} (retryable: ${networkClassified.isRetryable})`,
+    );
+    console.log(
+      `   Rate Limit Error: ${rateLimitClassified.category} (retryable: ${rateLimitClassified.isRetryable})`,
+    );
+    console.log(
+      `   Auth Error: ${authClassified.category} (retryable: ${authClassified.isRetryable})`,
+    );
+    console.log(
+      `   Validation Error: ${validationClassified.category} (retryable: ${validationClassified.isRetryable})`,
+    );
+    console.log(
+      `   Unknown Error: ${unknownClassified.category} (retryable: ${unknownClassified.isRetryable})`,
+    );
 
     // Test 2: Retry Mechanism
     console.log('\n2. Testing Retry Mechanism...');
-    
+
     const retryMechanism = new RetryMechanism({
       maxRetries: 3,
       baseDelayMs: 100,
@@ -85,7 +101,7 @@ async function testFaultToleranceIntegration() {
 
     // Test 3: Circuit Breaker
     console.log('\n3. Testing Circuit Breaker...');
-    
+
     const circuitBreaker = new CircuitBreaker('test-service', {
       failureThreshold: 3,
       recoveryTimeoutMs: 1000,
@@ -110,25 +126,29 @@ async function testFaultToleranceIntegration() {
       }
     }
 
-    console.log(`   Circuit breaker state after failures: ${circuitBreaker.getState()}`);
+    console.log(
+      `   Circuit breaker state after failures: ${circuitBreaker.getState()}`,
+    );
 
     // Wait for recovery timeout
     console.log('   Waiting for recovery timeout...');
-    await new Promise(resolve => setTimeout(resolve, 1100));
+    await new Promise((resolve) => setTimeout(resolve, 1100));
 
     // Test recovery
     const successOperation = async () => 'Service recovered';
     try {
       const recoveryResult = await circuitBreaker.execute(successOperation);
       console.log(`   Recovery test: ${recoveryResult}`);
-      console.log(`   Circuit breaker state after recovery: ${circuitBreaker.getState()}`);
+      console.log(
+        `   Circuit breaker state after recovery: ${circuitBreaker.getState()}`,
+      );
     } catch (error) {
       console.log(`   Recovery failed: ${error.message}`);
     }
 
     // Test 4: Fallback Manager
     console.log('\n4. Testing Fallback Manager...');
-    
+
     const fallbackManager = new FallbackManager({
       mode: 'GRACEFUL',
       enableCaching: true,
@@ -168,7 +188,10 @@ async function testFaultToleranceIntegration() {
     fallbackManager.addProvider(emergencyProvider);
 
     try {
-      const fallbackResult = await fallbackManager.execute('test-operation', []);
+      const fallbackResult = await fallbackManager.execute(
+        'test-operation',
+        [],
+      );
       console.log(`✅ Fallback succeeded: ${fallbackResult}`);
     } catch (error) {
       console.log(`❌ Fallback failed: ${error.message}`);
@@ -176,54 +199,78 @@ async function testFaultToleranceIntegration() {
 
     // Test fallback health check
     const fallbackHealth = await fallbackManager.healthCheck();
-    console.log(`   Fallback health: ${fallbackHealth.healthy ? 'healthy' : 'unhealthy'}`);
-    console.log(`   Available providers: ${fallbackHealth.providers.filter(p => p.available).map(p => p.name).join(', ')}`);
+    console.log(
+      `   Fallback health: ${fallbackHealth.healthy ? 'healthy' : 'unhealthy'}`,
+    );
+    console.log(
+      `   Available providers: ${fallbackHealth.providers
+        .filter((p) => p.available)
+        .map((p) => p.name)
+        .join(', ')}`,
+    );
 
     // Test 5: Graceful Degradation
     console.log('\n5. Testing Graceful Degradation...');
-    
+
     const degradation = new GracefulDegradation();
-    
-    console.log(`   Initial service level: ${degradation.getCurrentLevel()} (${degradation.getCurrentLevelName()})`);
-    
+
+    console.log(
+      `   Initial service level: ${degradation.getCurrentLevel()} (${degradation.getCurrentLevelName()})`,
+    );
+
     // Trigger degradation
     degradation.degrade('Primary database connection lost');
-    console.log(`   After degradation: ${degradation.getCurrentLevel()} (${degradation.getCurrentLevelName()})`);
-    
+    console.log(
+      `   After degradation: ${degradation.getCurrentLevel()} (${degradation.getCurrentLevelName()})`,
+    );
+
     degradation.degrade('Cache service unavailable');
-    console.log(`   After second degradation: ${degradation.getCurrentLevel()} (${degradation.getCurrentLevelName()})`);
-    
+    console.log(
+      `   After second degradation: ${degradation.getCurrentLevel()} (${degradation.getCurrentLevelName()})`,
+    );
+
     // Test operation availability
-    console.log(`   Can perform level 0 operations: ${degradation.canPerformOperation(0)}`);
-    console.log(`   Can perform level 2 operations: ${degradation.canPerformOperation(2)}`);
-    console.log(`   Can perform level 4 operations: ${degradation.canPerformOperation(4)}`);
-    
+    console.log(
+      `   Can perform level 0 operations: ${degradation.canPerformOperation(0)}`,
+    );
+    console.log(
+      `   Can perform level 2 operations: ${degradation.canPerformOperation(2)}`,
+    );
+    console.log(
+      `   Can perform level 4 operations: ${degradation.canPerformOperation(4)}`,
+    );
+
     // Test recovery
     degradation.recover();
-    console.log(`   After recovery: ${degradation.getCurrentLevel()} (${degradation.getCurrentLevelName()})`);
+    console.log(
+      `   After recovery: ${degradation.getCurrentLevel()} (${degradation.getCurrentLevelName()})`,
+    );
 
     // Test 6: Fault Tolerant Service Integration
     console.log('\n6. Testing Fault Tolerant Service Integration...');
-    
-    const faultTolerantService = FaultToleranceFactory.createService('integration-test', {
-      enableRetry: true,
-      enableCircuitBreaker: true,
-      enableFallback: true,
-      enableGracefulDegradation: true,
-      retryConfig: {
-        maxRetries: 2,
-        baseDelayMs: 50,
-        timeoutMs: 2000,
+
+    const faultTolerantService = FaultToleranceFactory.createService(
+      'integration-test',
+      {
+        enableRetry: true,
+        enableCircuitBreaker: true,
+        enableFallback: true,
+        enableGracefulDegradation: true,
+        retryConfig: {
+          maxRetries: 2,
+          baseDelayMs: 50,
+          timeoutMs: 2000,
+        },
+        circuitBreakerConfig: {
+          failureThreshold: 2,
+          recoveryTimeoutMs: 500,
+        },
       },
-      circuitBreakerConfig: {
-        failureThreshold: 2,
-        recoveryTimeoutMs: 500,
-      },
-    });
+    );
 
     // Test successful operation
     const successfulOperation = async () => 'Operation completed successfully';
-    
+
     try {
       const result1 = await faultTolerantService.execute(successfulOperation, {
         operationName: 'test-success',
@@ -254,34 +301,44 @@ async function testFaultToleranceIntegration() {
 
     // Test service health
     const serviceHealth = await faultTolerantService.healthCheck();
-    console.log(`   Service health: ${serviceHealth.healthy ? 'healthy' : 'unhealthy'}`);
-    
+    console.log(
+      `   Service health: ${serviceHealth.healthy ? 'healthy' : 'unhealthy'}`,
+    );
+
     // Test metrics
     const metrics = faultTolerantService.getMetrics();
-    console.log(`   Metrics: ${metrics.totalRequests} total, ${metrics.successfulRequests} successful, ${metrics.failedRequests} failed`);
+    console.log(
+      `   Metrics: ${metrics.totalRequests} total, ${metrics.successfulRequests} successful, ${metrics.failedRequests} failed`,
+    );
 
     // Test 7: OpenAI Fault Tolerant Service (if available)
     console.log('\n7. Testing OpenAI Fault Tolerant Service...');
-    
+
     try {
       const openaiService = getFaultTolerantOpenAIVectorStoreService();
-      
+
       if (openaiService.isEnabled) {
         console.log('   OpenAI service enabled, testing health check...');
         const openaiHealth = await openaiService.healthCheck();
-        console.log(`   OpenAI health: ${openaiHealth.isHealthy ? 'healthy' : 'unhealthy'}`);
-        
+        console.log(
+          `   OpenAI health: ${openaiHealth.isHealthy ? 'healthy' : 'unhealthy'}`,
+        );
+
         if (openaiHealth.error) {
           console.log(`   OpenAI error: ${openaiHealth.error}`);
         }
-        
+
         // Test system health
         const systemHealth = await openaiService.getSystemHealth();
-        console.log(`   System health: ${systemHealth.healthy ? 'healthy' : 'unhealthy'}`);
-        
+        console.log(
+          `   System health: ${systemHealth.healthy ? 'healthy' : 'unhealthy'}`,
+        );
+
         // Test metrics
         const openaiMetrics = openaiService.getMetrics();
-        console.log(`   OpenAI metrics: ${openaiMetrics.totalRequests} requests`);
+        console.log(
+          `   OpenAI metrics: ${openaiMetrics.totalRequests} requests`,
+        );
       } else {
         console.log('   OpenAI service disabled (no API key configured)');
       }
@@ -291,43 +348,52 @@ async function testFaultToleranceIntegration() {
 
     // Test 8: Unified Fault Tolerant Service
     console.log('\n8. Testing Unified Fault Tolerant Service...');
-    
+
     try {
       const unifiedService = await getFaultTolerantUnifiedVectorStoreService();
-      
+
       // Test available sources
       const availableSources = await unifiedService.getAvailableSources();
       console.log(`   Available sources: ${availableSources.join(', ')}`);
-      
+
       // Test source stats
       const sourceStats = await unifiedService.getSourceStats();
       console.log(`   Source stats:`);
       for (const [source, stats] of Object.entries(sourceStats)) {
-        console.log(`     ${source}: enabled=${stats.enabled}, count=${stats.count || 'unknown'}`);
+        console.log(
+          `     ${source}: enabled=${stats.enabled}, count=${stats.count || 'unknown'}`,
+        );
       }
-      
+
       // Test system health
       const unifiedHealth = await unifiedService.getSystemHealth();
-      console.log(`   Unified health: ${unifiedHealth.unified.healthy ? 'healthy' : 'unhealthy'}`);
-      
+      console.log(
+        `   Unified health: ${unifiedHealth.unified.healthy ? 'healthy' : 'unhealthy'}`,
+      );
+
       // Test metrics
       const unifiedMetrics = unifiedService.getMetrics();
-      console.log(`   Unified metrics: ${unifiedMetrics.unified.totalRequests} requests`);
-      
+      console.log(
+        `   Unified metrics: ${unifiedMetrics.unified.totalRequests} requests`,
+      );
     } catch (error) {
       console.log(`   Unified service test failed: ${error.message}`);
     }
 
     // Test 9: System-wide Health Check
     console.log('\n9. Testing System-wide Health Check...');
-    
+
     try {
       const systemHealth = await FaultToleranceFactory.getSystemHealth();
-      console.log(`   Overall system health: ${systemHealth.healthy ? 'healthy' : 'unhealthy'}`);
+      console.log(
+        `   Overall system health: ${systemHealth.healthy ? 'healthy' : 'unhealthy'}`,
+      );
       console.log(`   Active services: ${systemHealth.services.length}`);
-      
+
       for (const service of systemHealth.services) {
-        console.log(`     ${service.name}: ${service.healthy ? 'healthy' : 'unhealthy'}`);
+        console.log(
+          `     ${service.name}: ${service.healthy ? 'healthy' : 'unhealthy'}`,
+        );
       }
     } catch (error) {
       console.log(`   System health check failed: ${error.message}`);
@@ -335,7 +401,7 @@ async function testFaultToleranceIntegration() {
 
     // Test 10: Performance Under Load
     console.log('\n10. Testing Performance Under Load...');
-    
+
     const loadTestService = FaultToleranceFactory.createService('load-test', {
       enableRetry: true,
       enableCircuitBreaker: true,
@@ -350,7 +416,7 @@ async function testFaultToleranceIntegration() {
     // Simulate load with concurrent operations
     const loadOperations = [];
     const startTime = Date.now();
-    
+
     for (let i = 0; i < 10; i++) {
       const operation = async () => {
         // Simulate some operations failing
@@ -359,31 +425,38 @@ async function testFaultToleranceIntegration() {
         }
         return `Load test result ${i}`;
       };
-      
+
       loadOperations.push(
-        loadTestService.execute(operation, {
-          operationName: `load-test-${i}`,
-        }).catch(error => ({ error: error.message }))
+        loadTestService
+          .execute(operation, {
+            operationName: `load-test-${i}`,
+          })
+          .catch((error) => ({ error: error.message })),
       );
     }
 
     const loadResults = await Promise.all(loadOperations);
     const loadTime = Date.now() - startTime;
-    
-    const successCount = loadResults.filter(r => !r.error).length;
-    const failureCount = loadResults.filter(r => r.error).length;
-    
-    console.log(`   Load test completed in ${loadTime}ms`);
-    console.log(`   Results: ${successCount} successful, ${failureCount} failed`);
-    
-    const loadMetrics = loadTestService.getMetrics();
-    console.log(`   Load metrics: ${loadMetrics.totalRequests} total, avg latency: ${Math.round(loadMetrics.averageLatency)}ms`);
 
-    console.log('\n✅ Fault Tolerance Integration Test Completed Successfully!');
-    
+    const successCount = loadResults.filter((r) => !r.error).length;
+    const failureCount = loadResults.filter((r) => r.error).length;
+
+    console.log(`   Load test completed in ${loadTime}ms`);
+    console.log(
+      `   Results: ${successCount} successful, ${failureCount} failed`,
+    );
+
+    const loadMetrics = loadTestService.getMetrics();
+    console.log(
+      `   Load metrics: ${loadMetrics.totalRequests} total, avg latency: ${Math.round(loadMetrics.averageLatency)}ms`,
+    );
+
+    console.log(
+      '\n✅ Fault Tolerance Integration Test Completed Successfully!',
+    );
+
     // Cleanup
     FaultToleranceFactory.destroyAll();
-
   } catch (error) {
     console.error('❌ Fault tolerance integration test failed:', error);
     console.error('Stack trace:', error.stack);

@@ -45,10 +45,14 @@ const RemoteFile = z.object({
 const FilesResponse = z.object({
   files: z.array(RemoteFile),
   availableSources: z.array(z.enum(['openai', 'neon', 'memory'])).optional(),
-  sourceStats: z.record(z.object({
-    enabled: z.boolean(),
-    count: z.number().optional(),
-  })).optional(),
+  sourceStats: z
+    .record(
+      z.object({
+        enabled: z.boolean(),
+        count: z.number().optional(),
+      }),
+    )
+    .optional(),
 });
 
 // Types
@@ -95,10 +99,10 @@ interface RAGResponse {
 async function extractTextFromFile(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    
+
     reader.onload = () => {
       const result = reader.result as string;
-      
+
       // For now, just handle text files directly
       // In a real app, you'd use libraries for PDF, DOCX, etc.
       if (file.type === 'text/plain' || file.type === 'text/markdown') {
@@ -107,7 +111,7 @@ async function extractTextFromFile(file: File): Promise<string> {
         resolve(result); // Fallback for other types
       }
     };
-    
+
     reader.onerror = () => reject(new Error('Failed to read file'));
     reader.readAsText(file);
   });
@@ -116,7 +120,7 @@ async function extractTextFromFile(file: File): Promise<string> {
 function validateFileType(file: File): void {
   if (!SUPPORTED_FILE_TYPES.includes(file.type as any)) {
     throw new Error(
-      `Unsupported file type: ${file.type}. Supported types: ${SUPPORTED_FILE_TYPES.join(', ')}`
+      `Unsupported file type: ${file.type}. Supported types: ${SUPPORTED_FILE_TYPES.join(', ')}`,
     );
   }
 }
@@ -133,11 +137,11 @@ const STORAGE_KEY = 'rag-documents';
 
 function getStoredDocuments(): StoredDocument[] {
   if (typeof window === 'undefined') return [];
-  
+
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (!stored) return [];
-    
+
     const parsed = JSON.parse(stored);
     return parsed.map((doc: any) => ({
       ...doc,
@@ -150,7 +154,7 @@ function getStoredDocuments(): StoredDocument[] {
 
 function saveDocuments(documents: StoredDocument[]): void {
   if (typeof window === 'undefined') return;
-  
+
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(documents));
   } catch (error) {
@@ -159,17 +163,19 @@ function saveDocuments(documents: StoredDocument[]): void {
 }
 
 // API service functions
-async function fetchRemoteFiles(source?: VectorStoreType): Promise<FilesResponse> {
+async function fetchRemoteFiles(
+  source?: VectorStoreType,
+): Promise<FilesResponse> {
   const params = new URLSearchParams();
   if (source) params.set('source', source);
-  
+
   const response = await fetch(`/api/vectorstore/files?${params.toString()}`);
   if (!response.ok) {
     throw new Error(`Failed to fetch files: ${response.statusText}`);
   }
-  
+
   const data = await response.json();
-  
+
   // Transform the response to match our schema
   return FilesResponse.parse({
     files: data.files.map((file: any) => ({
@@ -181,7 +187,10 @@ async function fetchRemoteFiles(source?: VectorStoreType): Promise<FilesResponse
   });
 }
 
-async function deleteRemoteDocument(documentId: string, source: VectorStoreType): Promise<boolean> {
+async function deleteRemoteDocument(
+  documentId: string,
+  source: VectorStoreType,
+): Promise<boolean> {
   const response = await fetch('/api/vectorstore/delete', {
     method: 'DELETE',
     headers: {
@@ -192,11 +201,11 @@ async function deleteRemoteDocument(documentId: string, source: VectorStoreType)
       source,
     }),
   });
-  
+
   if (!response.ok) {
     throw new Error(`Failed to delete document: ${response.statusText}`);
   }
-  
+
   const data = await response.json();
   return data.success;
 }
@@ -216,7 +225,11 @@ export function useRAG() {
   });
 
   // Query for remote files
-  const { data: remoteFiles, refetch: refetchRemoteFiles, isLoading: isLoadingRemoteFiles } = useQuery<FilesResponse>({
+  const {
+    data: remoteFiles,
+    refetch: refetchRemoteFiles,
+    isLoading: isLoadingRemoteFiles,
+  } = useQuery<FilesResponse>({
     queryKey: ['remote-files'],
     queryFn: () => fetchRemoteFiles('openai'), // Default to OpenAI vector store
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -230,30 +243,36 @@ export function useRAG() {
     const hydrateDocuments = async () => {
       try {
         setIsHydrating(true);
-        
+
         // Get current local documents
         const localDocs = getStoredDocuments();
-        
+
         // Fetch remote files to reconcile state
-        const remoteResponse = await fetchRemoteFiles('openai').catch((error) => {
-          console.warn('Failed to fetch remote files during hydration:', error);
-          return { files: [] as RemoteFile[] };
-        });
-        
+        const remoteResponse = await fetchRemoteFiles('openai').catch(
+          (error) => {
+            console.warn(
+              'Failed to fetch remote files during hydration:',
+              error,
+            );
+            return { files: [] as RemoteFile[] };
+          },
+        );
+
         const remoteFiles = remoteResponse.files || [];
         let needsUpdate = false;
         const updatedDocs = [...localDocs];
-        
+
         // Update any documents with "processing" or "error" status
         for (let i = 0; i < updatedDocs.length; i++) {
           const doc = updatedDocs[i];
-          
+
           // Check if we have a corresponding remote file
-          const remoteFile = remoteFiles.find(rf => 
-            rf.id === doc.id || 
-            (rf.name && doc.name && rf.name.includes(doc.name))
+          const remoteFile = remoteFiles.find(
+            (rf) =>
+              rf.id === doc.id ||
+              (rf.name && doc.name && rf.name.includes(doc.name)),
           );
-          
+
           if (remoteFile) {
             // Update document status based on remote file
             if (doc.status === 'processing' || doc.status === 'error') {
@@ -279,7 +298,7 @@ export function useRAG() {
             // If we have a processing document but no remote file, mark as error
             const processingTime = Date.now() - doc.uploadedAt.getTime();
             const maxProcessingTime = 5 * 60 * 1000; // 5 minutes
-            
+
             if (processingTime > maxProcessingTime) {
               updatedDocs[i] = {
                 ...doc,
@@ -290,13 +309,13 @@ export function useRAG() {
             }
           }
         }
-        
+
         // Save updated documents if needed
         if (needsUpdate) {
           queryClient.setQueryData(['rag-documents'], updatedDocs);
           saveDocuments(updatedDocs);
         }
-        
+
         setIsHydrated(true);
       } catch (error) {
         console.error('Hydration failed:', error);
@@ -305,7 +324,7 @@ export function useRAG() {
         setIsHydrating(false);
       }
     };
-    
+
     hydrateDocuments();
   }, [queryClient]); // Only run once on mount
 
@@ -313,7 +332,7 @@ export function useRAG() {
   const { mutate: addDocument, isPending: isUploadingDocument } = useMutation({
     mutationFn: async (uploadData: DocumentUpload): Promise<StoredDocument> => {
       const { file, metadata } = DocumentUpload.parse(uploadData);
-      
+
       // Validate file
       validateFileType(file);
       validateFileSize(file);
@@ -329,7 +348,8 @@ export function useRAG() {
       };
 
       // Update documents list immediately
-      const currentDocs = queryClient.getQueryData<StoredDocument[]>(['rag-documents']) || [];
+      const currentDocs =
+        queryClient.getQueryData<StoredDocument[]>(['rag-documents']) || [];
       const updatedDocs = [...currentDocs, newDocument];
       queryClient.setQueryData(['rag-documents'], updatedDocs);
       saveDocuments(updatedDocs);
@@ -337,8 +357,9 @@ export function useRAG() {
       try {
         // Extract text content
         newDocument.status = 'processing';
-        queryClient.setQueryData(['rag-documents'], 
-          updatedDocs.map(doc => doc.id === documentId ? newDocument : doc)
+        queryClient.setQueryData(
+          ['rag-documents'],
+          updatedDocs.map((doc) => (doc.id === documentId ? newDocument : doc)),
         );
 
         const content = await extractTextFromFile(file);
@@ -347,13 +368,16 @@ export function useRAG() {
         // Upload document to vector stores via API
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('metadata', JSON.stringify({
-          title: metadata.title || metadata.name,
-          source: metadata.source || 'upload',
-          name: metadata.name,
-          size: metadata.size,
-          type: metadata.type,
-        }));
+        formData.append(
+          'metadata',
+          JSON.stringify({
+            title: metadata.title || metadata.name,
+            source: metadata.source || 'upload',
+            name: metadata.name,
+            size: metadata.size,
+            type: metadata.type,
+          }),
+        );
 
         const response = await fetch('/api/vectorstore/upload', {
           method: 'POST',
@@ -365,94 +389,108 @@ export function useRAG() {
         }
 
         const uploadResult = await response.json();
-        
+
         newDocument.status = 'processed';
         newDocument.source = 'openai'; // Mark as successfully uploaded to OpenAI
-        
+
         // Store the first document ID from the upload result if available
         if (uploadResult.documents && uploadResult.documents.length > 0) {
-          const openaiDoc = uploadResult.documents.find((doc: any) => doc.source === 'openai');
+          const openaiDoc = uploadResult.documents.find(
+            (doc: any) => doc.source === 'openai',
+          );
           if (openaiDoc) {
             newDocument.id = openaiDoc.id; // Use the actual OpenAI file ID
           }
         }
-        
-        const finalDocs = updatedDocs.map(doc => 
-          doc.id === documentId ? newDocument : doc
+
+        const finalDocs = updatedDocs.map((doc) =>
+          doc.id === documentId ? newDocument : doc,
         );
-        
+
         queryClient.setQueryData(['rag-documents'], finalDocs);
         saveDocuments(finalDocs);
-        
+
         // Refetch remote files to update the list
         refetchRemoteFiles();
 
         return newDocument;
       } catch (error) {
         newDocument.status = 'error';
-        newDocument.error = error instanceof Error ? error.message : 'Unknown error';
-        
-        const errorDocs = updatedDocs.map(doc => 
-          doc.id === documentId ? newDocument : doc
+        newDocument.error =
+          error instanceof Error ? error.message : 'Unknown error';
+
+        const errorDocs = updatedDocs.map((doc) =>
+          doc.id === documentId ? newDocument : doc,
         );
-        
+
         queryClient.setQueryData(['rag-documents'], errorDocs);
         saveDocuments(errorDocs);
-        
+
         throw error;
       }
     },
   });
 
   // Document removal mutation with enhanced functionality
-  const { mutate: removeDocument, isPending: isDeletingDocument } = useMutation({
-    mutationFn: async (documentId: string): Promise<void> => {
-      const currentDocs = queryClient.getQueryData<StoredDocument[]>(['rag-documents']) || [];
-      const documentToDelete = currentDocs.find(doc => doc.id === documentId);
-      
-      if (!documentToDelete) {
-        throw new Error('Document not found');
-      }
+  const { mutate: removeDocument, isPending: isDeletingDocument } = useMutation(
+    {
+      mutationFn: async (documentId: string): Promise<void> => {
+        const currentDocs =
+          queryClient.getQueryData<StoredDocument[]>(['rag-documents']) || [];
+        const documentToDelete = currentDocs.find(
+          (doc) => doc.id === documentId,
+        );
 
-      // Optimistic update - remove from local state immediately
-      const filteredDocs = currentDocs.filter(doc => doc.id !== documentId);
-      queryClient.setQueryData(['rag-documents'], filteredDocs);
-      saveDocuments(filteredDocs);
-
-      // If the document has a remote source, attempt to delete it remotely
-      if (documentToDelete.source && documentToDelete.source !== 'local') {
-        try {
-          const success = await deleteRemoteDocument(documentId, documentToDelete.source);
-          
-          if (success) {
-            // Refetch remote files to update the list
-            refetchRemoteFiles();
-          } else {
-            console.warn(`Failed to delete document ${documentId} from ${documentToDelete.source}`);
-            // Note: We still keep the local deletion since the optimistic update already happened
-          }
-        } catch (error) {
-          console.error('Failed to delete remote document:', error);
-          // Note: We still keep the local deletion for a better UX
-          // The user can retry if needed
+        if (!documentToDelete) {
+          throw new Error('Document not found');
         }
-      }
+
+        // Optimistic update - remove from local state immediately
+        const filteredDocs = currentDocs.filter((doc) => doc.id !== documentId);
+        queryClient.setQueryData(['rag-documents'], filteredDocs);
+        saveDocuments(filteredDocs);
+
+        // If the document has a remote source, attempt to delete it remotely
+        if (documentToDelete.source && documentToDelete.source !== 'local') {
+          try {
+            const success = await deleteRemoteDocument(
+              documentId,
+              documentToDelete.source,
+            );
+
+            if (success) {
+              // Refetch remote files to update the list
+              refetchRemoteFiles();
+            } else {
+              console.warn(
+                `Failed to delete document ${documentId} from ${documentToDelete.source}`,
+              );
+              // Note: We still keep the local deletion since the optimistic update already happened
+            }
+          } catch (error) {
+            console.error('Failed to delete remote document:', error);
+            // Note: We still keep the local deletion for a better UX
+            // The user can retry if needed
+          }
+        }
+      },
+      onError: (error, documentId) => {
+        // Revert optimistic update on error
+        const currentDocs =
+          queryClient.getQueryData<StoredDocument[]>(['rag-documents']) || [];
+        const originalDocs = getStoredDocuments();
+        const originalDoc = originalDocs.find((doc) => doc.id === documentId);
+
+        if (originalDoc) {
+          const revertedDocs = [...currentDocs, originalDoc];
+          queryClient.setQueryData(['rag-documents'], revertedDocs);
+          saveDocuments(revertedDocs);
+        }
+
+        console.error('Failed to delete document:', error);
+      },
     },
-    onError: (error, documentId) => {
-      // Revert optimistic update on error
-      const currentDocs = queryClient.getQueryData<StoredDocument[]>(['rag-documents']) || [];
-      const originalDocs = getStoredDocuments();
-      const originalDoc = originalDocs.find(doc => doc.id === documentId);
-      
-      if (originalDoc) {
-        const revertedDocs = [...currentDocs, originalDoc];
-        queryClient.setQueryData(['rag-documents'], revertedDocs);
-        saveDocuments(revertedDocs);
-      }
-      
-      console.error('Failed to delete document:', error);
-    },
-  });
+  );
 
   // RAG query mutation
   const { mutate: executeQuery, isPending: isQuerying } = useMutation({
@@ -481,7 +519,7 @@ export function useRAG() {
       }
 
       const data = await response.json();
-      
+
       const ragResponse: RAGResponse = {
         answer: data.answer || data.content || 'No response generated',
         sources: data.sources || [],
@@ -500,14 +538,17 @@ export function useRAG() {
   });
 
   // Wrap query function to return a promise
-  const query = useCallback(async (queryData: RAGQueryRequest): Promise<RAGResponse> => {
-    return new Promise((resolve, reject) => {
-      executeQuery(queryData, {
-        onSuccess: resolve,
-        onError: reject,
+  const query = useCallback(
+    async (queryData: RAGQueryRequest): Promise<RAGResponse> => {
+      return new Promise((resolve, reject) => {
+        executeQuery(queryData, {
+          onSuccess: resolve,
+          onError: reject,
+        });
       });
-    });
-  }, [executeQuery]);
+    },
+    [executeQuery],
+  );
 
   // Helper function to refresh all data
   const refreshAll = useCallback(async () => {
@@ -525,7 +566,7 @@ export function useRAG() {
     sourceStats: remoteFiles?.sourceStats || {},
     response,
     error,
-    
+
     // Loading states
     isLoading: isQuerying || isUploadingDocument || isDeletingDocument,
     isHydrating,

@@ -5,9 +5,9 @@ import { z } from 'zod';
 /**
  * Generic configuration factory for vector store services
  */
-export class VectorStoreConfigFactory<TConfig extends BaseServiceConfig> 
-  implements ConfigFactory<TConfig> {
-  
+export class VectorStoreConfigFactory<TConfig extends BaseServiceConfig>
+  implements ConfigFactory<TConfig>
+{
   private readonly schema: z.ZodSchema<TConfig>;
   private readonly envKeyMappings: Record<string, string>;
   private readonly serviceName: string;
@@ -15,7 +15,7 @@ export class VectorStoreConfigFactory<TConfig extends BaseServiceConfig>
   constructor(
     serviceName: string,
     schema: z.ZodSchema<TConfig>,
-    envKeyMappings: Record<string, string>
+    envKeyMappings: Record<string, string>,
   ) {
     this.serviceName = serviceName;
     this.schema = schema;
@@ -58,12 +58,12 @@ export class VectorStoreConfigFactory<TConfig extends BaseServiceConfig>
       return this.schema.parse(config);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        const issues = error.issues.map(issue => 
-          `${issue.path.join('.')}: ${issue.message}`
-        ).join(', ');
-        
+        const issues = error.issues
+          .map((issue) => `${issue.path.join('.')}: ${issue.message}`)
+          .join(', ');
+
         throw new Error(
-          `${this.serviceName} configuration validation failed: ${issues}`
+          `${this.serviceName} configuration validation failed: ${issues}`,
         );
       }
       throw error;
@@ -75,7 +75,7 @@ export class VectorStoreConfigFactory<TConfig extends BaseServiceConfig>
    */
   createDisabled(reason: string): TConfig {
     console.warn(`⚠️  ${this.serviceName} service disabled: ${reason}`);
-    
+
     const baseConfig = {
       ...BaseConfigSchema.parse({}),
       isEnabled: false,
@@ -87,15 +87,18 @@ export class VectorStoreConfigFactory<TConfig extends BaseServiceConfig>
   /**
    * Helper method to check if required environment variables are present
    */
-  checkRequiredEnvVars(env: Record<string, string | undefined>, required: string[]): string[] {
+  checkRequiredEnvVars(
+    env: Record<string, string | undefined>,
+    required: string[],
+  ): string[] {
     const missing: string[] = [];
-    
+
     for (const envKey of required) {
       if (!env[envKey]) {
         missing.push(envKey);
       }
     }
-    
+
     return missing;
   }
 
@@ -113,7 +116,7 @@ export class VectorStoreConfigFactory<TConfig extends BaseServiceConfig>
 export function createConfigFactory<TConfig extends BaseServiceConfig>(
   serviceName: string,
   schema: z.ZodSchema<TConfig>,
-  envKeyMappings: Record<string, string>
+  envKeyMappings: Record<string, string>,
 ): VectorStoreConfigFactory<TConfig> {
   return new VectorStoreConfigFactory(serviceName, schema, envKeyMappings);
 }
@@ -131,7 +134,7 @@ export const CommonEnvMappings = {
  * Helper to merge common mappings with service-specific ones
  */
 export function mergeEnvMappings(
-  serviceMappings: Record<string, string>
+  serviceMappings: Record<string, string>,
 ): Record<string, string> {
   return {
     ...CommonEnvMappings,

@@ -2,7 +2,13 @@
 
 import type { Message } from 'ai';
 import { Button } from './ui/button';
-import { type Dispatch, type SetStateAction, useEffect, useRef, useState } from 'react';
+import {
+  type Dispatch,
+  type SetStateAction,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { Textarea } from './ui/textarea';
 import { deleteTrailingMessages } from '@/app/(chat)/actions';
 import type { UseChatHelpers } from '@ai-sdk/react';
@@ -75,7 +81,6 @@ export function MessageEditor({
               id: message.id,
             });
 
-            // @ts-expect-error todo: support UIMessage in setMessages
             setMessages((messages) => {
               const index = messages.findIndex((m) => m.id === message.id);
 
@@ -83,7 +88,7 @@ export function MessageEditor({
                 const updatedMessage = {
                   ...message,
                   content: draftContent,
-                  parts: [{ type: 'text', text: draftContent }],
+                  // Remove parts property as UIMessage doesn't include it
                 };
 
                 return [...messages.slice(0, index), updatedMessage];

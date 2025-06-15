@@ -33,37 +33,39 @@ import { myProvider } from '@/lib/ai/providers';
 import { entitlementsByUserType } from '@/lib/ai/entitlements';
 import { postRequestBodySchema, type PostRequestBody } from './schema';
 import { geolocation } from '@vercel/functions';
-import {
-  createResumableStreamContext,
-  type ResumableStreamContext,
-} from 'resumable-stream';
-import { after } from 'next/server';
 import type { Chat } from '@/lib/db/schema';
 import { differenceInSeconds } from 'date-fns';
 import { ChatSDKError } from '@/lib/errors';
+import { resolve, ServiceTokens } from '@/lib/di/container';
+import type { UIMessage } from 'ai';
+import type { DBMessage } from '@/lib/db/schema';
 
 export const maxDuration = 60;
 
-let globalStreamContext: ResumableStreamContext | null = null;
+// Type conversion utility for DBMessage[] to UIMessage[]
+const convertToUIMessages = (dbMessages: DBMessage[]): UIMessage[] => {
+  return dbMessages.map((msg) => ({
+    id: msg.id,
+    parts: msg.parts as UIMessage['parts'],
+    role: msg.role as UIMessage['role'],
+    content: '', // Note: content will soon be deprecated in @ai-sdk/react
+    createdAt:
+      msg.createdAt instanceof Date ? msg.createdAt : new Date(msg.createdAt),
+    experimental_attachments: (msg.attachments as any) || [],
+  }));
+};
 
 function getStreamContext() {
-  if (!globalStreamContext) {
-    try {
-      globalStreamContext = createResumableStreamContext({
-        waitUntil: after,
-      });
-    } catch (error: any) {
-      if (error.message.includes('REDIS_URL')) {
-        console.log(
-          ' > Resumable streams are disabled due to missing REDIS_URL',
-        );
-      } else {
-        console.error(error);
-      }
+  try {
+    // Ensure DI is initialized
+    if (!isDIInitialized()) {
+      initializeDI();
     }
+    return resolve(ServiceTokens.STREAM_CONTEXT);
+  } catch (error) {
+    console.error('Failed to resolve stream context service:', error);
+    return null;
   }
-
-  return globalStreamContext;
 }
 
 export async function POST(request: Request) {
@@ -72,11 +74,11 @@ export async function POST(request: Request) {
   if (!envStatus.isValid) {
     console.error('Environment validation failed:', envStatus.errors);
     return NextResponse.json(
-      { 
+      {
         error: 'Service unavailable - configuration issues',
-        details: envStatus.errors 
+        details: envStatus.errors,
       },
-      { status: 503 }
+      { status: 503 },
     );
   }
 
@@ -91,7 +93,10 @@ export async function POST(request: Request) {
       initializeDI();
     }
   } catch (error) {
-    console.warn('DI initialization failed, continuing with limited functionality:', error);
+    console.warn(
+      'DI initialization failed, continuing with limited functionality:',
+      error,
+    );
   }
 
   let requestBody: PostRequestBody;
@@ -111,6 +116,18 @@ export async function POST(request: Request) {
       selectedVisibilityType,
       selectedSources,
     } = requestBody;
+
+    // Validate and fallback model selection
+    let modelToUse = selectedChatModel;
+    try {
+      // Test if the selected model is available
+      const testModel = myProvider.languageModel(selectedChatModel);
+    } catch (error) {
+      console.warn(
+        `Selected model ${selectedChatModel} unavailable, using fallback`,
+      );
+      modelToUse = 'openai-gpt-4.1-mini'; // Fast fallback model
+    }
 
     const session = await auth();
 
@@ -169,8 +186,7 @@ export async function POST(request: Request) {
     };
 
     const messages = appendClientMessage({
-      // @ts-expect-error: todo add type conversion from DBMessage[] to UIMessage[]
-      messages: previousMessages,
+      messages: convertToUIMessages(previousMessages),
       message: normalizedMessage,
     });
 
@@ -201,100 +217,111 @@ export async function POST(request: Request) {
 
     const stream = createDataStream({
       execute: (dataStream) => {
-        const result = streamText({
-          model: myProvider.languageModel(selectedChatModel),
-          system: systemPrompt({ selectedChatModel, requestHints }),
-          messages,
-          maxSteps: 5,
-          experimental_activeTools:
-            selectedChatModel === 'chat-model-reasoning'
-              ? []
-              : [
-                  'getWeather',
-                  'createDocument',
-                  'updateDocument',
-                  'requestSuggestions',
-                  ...(selectedSources && selectedSources.length > 0
-                    ? ['enhancedSearch' as const, 'searchDocuments' as const]
-                    : []),
-                ],
-          experimental_transform: smoothStream({ chunking: 'word' }),
-          experimental_generateMessageId: generateUUID,
-          tools: {
-            getWeather,
-            createDocument: createDocument({ session, dataStream }),
-            updateDocument: updateDocument({ session, dataStream }),
-            requestSuggestions: requestSuggestions({
-              session,
-              dataStream,
+        try {
+          const result = streamText({
+            model: myProvider.languageModel(modelToUse),
+            system: systemPrompt({
+              selectedChatModel: modelToUse,
+              requestHints,
             }),
-            searchDocuments: searchDocuments(
-              selectedSources || ['memory'],
-              // Pass recent conversation history for context-aware optimization
-              messages
-                .filter(
-                  (msg) => msg.role === 'user' || msg.role === 'assistant',
-                )
-                .slice(-10) // Last 10 messages for context
-                .map((msg) => ({
-                  role: msg.role as 'user' | 'assistant',
-                  content: Array.isArray(msg.content)
-                    ? msg.content
-                        .map((c) => (c.type === 'text' ? c.text : ''))
-                        .join(' ')
-                    : msg.content || '',
-                  timestamp: Date.now(), // Use current time as approximation
-                })),
-            ),
-            enhancedSearch: enhancedSearch(selectedSources || ['memory']),
-          },
-          onFinish: async ({ response }) => {
-            if (session.user?.id) {
-              try {
-                const assistantId = getTrailingMessageId({
-                  messages: response.messages.filter(
-                    (message) => message.role === 'assistant',
-                  ),
-                });
-
-                if (!assistantId) {
-                  throw new Error('No assistant message found!');
-                }
-
-                const [, assistantMessage] = appendResponseMessages({
-                  messages: [normalizedMessage],
-                  responseMessages: response.messages,
-                });
-
-                await saveMessages({
-                  messages: [
-                    {
-                      id: assistantId,
-                      chatId: id,
-                      role: assistantMessage.role,
-                      parts: assistantMessage.parts,
-                      attachments:
-                        assistantMessage.experimental_attachments ?? [],
-                      createdAt: new Date(),
-                    },
+            messages,
+            maxSteps: 5,
+            experimental_activeTools:
+              modelToUse === 'chat-model-reasoning'
+                ? []
+                : [
+                    'getWeather',
+                    'createDocument',
+                    'updateDocument',
+                    'requestSuggestions',
+                    ...(selectedSources && selectedSources.length > 0
+                      ? ['enhancedSearch' as const, 'searchDocuments' as const]
+                      : []),
                   ],
-                });
-              } catch (_) {
-                console.error('Failed to save chat');
+            experimental_transform: smoothStream({ chunking: 'word' }),
+            experimental_generateMessageId: generateUUID,
+            tools: {
+              getWeather,
+              createDocument: createDocument({ session, dataStream }),
+              updateDocument: updateDocument({ session, dataStream }),
+              requestSuggestions: requestSuggestions({
+                session,
+                dataStream,
+              }),
+              searchDocuments: searchDocuments(
+                selectedSources || ['memory'],
+                // Pass recent conversation history for context-aware optimization
+                messages
+                  .filter(
+                    (msg) => msg.role === 'user' || msg.role === 'assistant',
+                  )
+                  .slice(-10) // Last 10 messages for context
+                  .map((msg) => ({
+                    role: msg.role as 'user' | 'assistant',
+                    content: Array.isArray(msg.content)
+                      ? msg.content
+                          .map((c) => (c.type === 'text' ? c.text : ''))
+                          .join(' ')
+                      : msg.content || '',
+                    timestamp: Date.now(), // Use current time as approximation
+                  })),
+              ),
+              enhancedSearch: enhancedSearch(selectedSources || ['memory']),
+            },
+            onFinish: async ({ response }) => {
+              if (session.user?.id) {
+                try {
+                  const assistantId = getTrailingMessageId({
+                    messages: response.messages.filter(
+                      (message) => message.role === 'assistant',
+                    ),
+                  });
+
+                  if (!assistantId) {
+                    throw new Error('No assistant message found!');
+                  }
+
+                  const [, assistantMessage] = appendResponseMessages({
+                    messages: [normalizedMessage],
+                    responseMessages: response.messages,
+                  });
+
+                  await saveMessages({
+                    messages: [
+                      {
+                        id: assistantId,
+                        chatId: id,
+                        role: assistantMessage.role,
+                        parts: assistantMessage.parts,
+                        attachments:
+                          assistantMessage.experimental_attachments ?? [],
+                        createdAt: new Date(),
+                      },
+                    ],
+                  });
+                } catch (_) {
+                  console.error('Failed to save chat');
+                }
               }
-            }
-          },
-          experimental_telemetry: {
-            isEnabled: isProductionEnvironment,
-            functionId: 'stream-text',
-          },
-        });
+            },
+            experimental_telemetry: {
+              isEnabled: isProductionEnvironment,
+              functionId: 'stream-text',
+            },
+          });
 
-        result.consumeStream();
+          result.consumeStream();
 
-        result.mergeIntoDataStream(dataStream, {
-          sendReasoning: true,
-        });
+          result.mergeIntoDataStream(dataStream, {
+            sendReasoning: true,
+          });
+        } catch (streamError) {
+          console.error('Stream creation failed:', streamError);
+          dataStream.writeData({
+            type: 'error',
+            content: 'Failed to initialize AI model. Please try again.',
+          });
+        }
       },
       onError: () => {
         return 'Oops, an error occurred!';

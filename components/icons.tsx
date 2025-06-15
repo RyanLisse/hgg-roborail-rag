@@ -48,11 +48,7 @@ export const UserIcon = ({ size = 16 }: { size?: number }) => {
 // Attachment icon using Share1Icon as alternative
 export const AttachmentIcon = ({ size = 16 }: { size?: number }) => {
   return (
-    <Share1Icon
-      width={size}
-      height={size}
-      style={{ color: 'currentcolor' }}
-    />
+    <Share1Icon width={size} height={size} style={{ color: 'currentcolor' }} />
   );
 };
 
