@@ -138,6 +138,10 @@ export class ChatPage {
       .all();
     const lastMessageElement = messageElements[messageElements.length - 1];
 
+    if (!lastMessageElement) {
+      throw new Error('No assistant message found');
+    }
+
     const content = await lastMessageElement
       .getByTestId('message-content')
       .innerText()
@@ -256,19 +260,23 @@ export class ChatPage {
 
   // Vector store selection methods
   async selectVectorStore(source: 'openai' | 'neon' | 'memory') {
-    const databaseSelector = this.page.locator('[data-testid="database-selector"]');
-    
-    if (await databaseSelector.count() > 0) {
+    const databaseSelector = this.page.locator(
+      '[data-testid="database-selector"]',
+    );
+
+    if ((await databaseSelector.count()) > 0) {
       await databaseSelector.click();
-      
+
       // Try different selector patterns
-      const sourceOption = this.page.locator(`text=${source}`, { hasText: new RegExp(source, 'i') });
-      if (await sourceOption.count() > 0) {
+      const sourceOption = this.page.locator(`text=${source}`, {
+        hasText: new RegExp(source, 'i'),
+      });
+      if ((await sourceOption.count()) > 0) {
         await sourceOption.first().click();
       } else {
         // Try alternative selector
         const altOption = this.page.locator(`[data-value="${source}"]`);
-        if (await altOption.count() > 0) {
+        if ((await altOption.count()) > 0) {
           await altOption.click();
         }
       }
@@ -276,8 +284,10 @@ export class ChatPage {
   }
 
   async getSelectedVectorStores() {
-    const databaseSelector = this.page.locator('[data-testid="database-selector"]');
-    if (await databaseSelector.count() > 0) {
+    const databaseSelector = this.page.locator(
+      '[data-testid="database-selector"]',
+    );
+    if ((await databaseSelector.count()) > 0) {
       return await databaseSelector.innerText();
     }
     return null;
