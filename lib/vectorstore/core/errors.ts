@@ -20,11 +20,10 @@ export class VectorStoreError extends Error {
   }
 }
 
-export class VectorStoreErrorHandler {
-  /**
-   * Classifies an error based on its properties and message
-   */
-  static classify(error: Error): ClassifiedError {
+/**
+ * Classifies an error based on its properties and message
+ */
+export function classifyError(error: Error): ClassifiedError {
     const message = error.message.toLowerCase();
 
     // Network errors
@@ -118,10 +117,10 @@ export class VectorStoreErrorHandler {
     };
   }
 
-  /**
-   * Creates a standardized error response
-   */
-  static createResponse(error: ClassifiedError, operation: string) {
+/**
+ * Creates a standardized error response
+ */
+export function createErrorResponse(error: ClassifiedError, operation: string) {
     return {
       success: false,
       message: `${operation} failed: ${error.message}`,
@@ -134,14 +133,14 @@ export class VectorStoreErrorHandler {
     };
   }
 
-  /**
-   * Determines if an error should trigger a retry
-   */
-  static shouldRetry(
-    error: ClassifiedError,
-    attempt: number,
-    maxRetries: number,
-  ): boolean {
+/**
+ * Determines if an error should trigger a retry
+ */
+export function shouldRetry(
+  error: ClassifiedError,
+  attempt: number,
+  maxRetries: number,
+): boolean {
     if (!error.retryable || attempt >= maxRetries) {
       return false;
     }
@@ -159,14 +158,14 @@ export class VectorStoreErrorHandler {
     return true;
   }
 
-  /**
-   * Calculates retry delay with exponential backoff
-   */
-  static calculateRetryDelay(
-    error: ClassifiedError,
-    attempt: number,
-    baseDelay: number,
-  ): number {
+/**
+ * Calculates retry delay with exponential backoff
+ */
+export function calculateRetryDelay(
+  error: ClassifiedError,
+  attempt: number,
+  baseDelay: number,
+): number {
     if (error.suggestedDelay) {
       return error.suggestedDelay;
     }
@@ -175,15 +174,15 @@ export class VectorStoreErrorHandler {
     return Math.min(baseDelay * Math.pow(2, attempt), 30000); // Max 30 seconds
   }
 
-  /**
-   * Logs error with appropriate level and context
-   */
-  static logError(
-    serviceName: string,
-    operation: string,
-    error: ClassifiedError,
-    context?: Record<string, any>,
-  ): void {
+/**
+ * Logs error with appropriate level and context
+ */
+export function logError(
+  serviceName: string,
+  operation: string,
+  error: ClassifiedError,
+  context?: Record<string, any>,
+): void {
     const logData = {
       service: serviceName,
       operation,
@@ -212,5 +211,57 @@ export class VectorStoreErrorHandler {
       default:
         console.error('❓ Unknown Error:', logData);
     }
+  }
+
+/**
+ * Error handler class for vector store operations
+ */
+export class VectorStoreErrorHandler {
+  /**
+   * Classify an error
+   */
+  classifyError(error: Error): ClassifiedError {
+    return classifyError(error);
+  }
+
+  /**
+   * Create a standardized error response
+   */
+  createErrorResponse(error: ClassifiedError, operation: string) {
+    return createErrorResponse(error, operation);
+  }
+
+  /**
+   * Determine if an error should trigger a retry
+   */
+  shouldRetry(
+    error: ClassifiedError,
+    attempt: number,
+    maxRetries: number,
+  ): boolean {
+    return shouldRetry(error, attempt, maxRetries);
+  }
+
+  /**
+   * Calculate retry delay with exponential backoff
+   */
+  calculateRetryDelay(
+    error: ClassifiedError,
+    attempt: number,
+    baseDelay: number,
+  ): number {
+    return calculateRetryDelay(error, attempt, baseDelay);
+  }
+
+  /**
+   * Log error with appropriate level and context
+   */
+  logError(
+    serviceName: string,
+    operation: string,
+    error: ClassifiedError,
+    context?: Record<string, any>,
+  ): void {
+    logError(serviceName, operation, error, context);
   }
 }

@@ -7,9 +7,7 @@
 import {
   type FaultTolerantService,
   FaultToleranceFactory,
-  type ServiceProvider,
   FallbackMode,
-  type FaultTolerantOptions,
 } from '../fault-tolerance';
 
 export interface FaultTolerantConfig {
