@@ -1,0 +1,4532 @@
+{
+  "version": "3.0.23",
+  "name": "hgg-roborail-assistant",
+  "problems": [
+    "extraneous: @adobe/css-tools@4.4.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@adobe/css-tools",
+    "extraneous: @ai-sdk/ui-utils@1.2.11 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@ai-sdk/ui-utils",
+    "extraneous: @alloc/quick-lru@5.2.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@alloc/quick-lru",
+    "extraneous: @ampproject/remapping@2.3.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@ampproject/remapping",
+    "extraneous: @asamuzakjp/css-color@3.2.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@asamuzakjp/css-color",
+    "extraneous: @auth/core@0.37.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@auth/core",
+    "extraneous: @aws-crypto/crc32@3.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@aws-crypto/crc32",
+    "extraneous: @aws-sdk/client-cognito-identity@3.844.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@aws-sdk/client-cognito-identity",
+    "extraneous: @aws-sdk/client-sagemaker@3.844.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@aws-sdk/client-sagemaker",
+    "extraneous: @aws-sdk/client-sso@3.844.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@aws-sdk/client-sso",
+    "extraneous: @aws-sdk/credential-provider-cognito-identity@3.844.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@aws-sdk/credential-provider-cognito-identity",
+    "extraneous: @aws-sdk/credential-provider-env@3.844.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@aws-sdk/credential-provider-env",
+    "extraneous: @aws-sdk/credential-provider-http@3.844.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@aws-sdk/credential-provider-http",
+    "extraneous: @aws-sdk/credential-provider-ini@3.844.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@aws-sdk/credential-provider-ini",
+    "extraneous: @aws-sdk/credential-provider-node@3.844.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@aws-sdk/credential-provider-node",
+    "extraneous: @aws-sdk/credential-provider-process@3.844.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@aws-sdk/credential-provider-process",
+    "extraneous: @aws-sdk/credential-provider-sso@3.844.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@aws-sdk/credential-provider-sso",
+    "extraneous: @aws-sdk/credential-providers@3.844.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@aws-sdk/credential-providers",
+    "extraneous: @aws-sdk/protocol-http@3.374.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@aws-sdk/protocol-http",
+    "extraneous: @aws-sdk/signature-v4@3.374.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@aws-sdk/signature-v4",
+    "extraneous: @aws-sdk/token-providers@3.844.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@aws-sdk/token-providers",
+    "extraneous: @aws-sdk/util-utf8-browser@3.259.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@aws-sdk/util-utf8-browser",
+    "extraneous: @babel/code-frame@7.27.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@babel/code-frame",
+    "extraneous: @babel/runtime@7.27.6 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@babel/runtime",
+    "extraneous: @bcoe/v8-coverage@1.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@bcoe/v8-coverage",
+    "extraneous: @biomejs/cli-darwin-arm64@1.9.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@biomejs/cli-darwin-arm64",
+    "extraneous: @csstools/color-helpers@5.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@csstools/color-helpers",
+    "extraneous: @csstools/css-calc@2.1.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@csstools/css-calc",
+    "extraneous: @csstools/css-color-parser@3.0.10 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@csstools/css-color-parser",
+    "extraneous: @csstools/css-parser-algorithms@3.0.5 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@csstools/css-parser-algorithms",
+    "extraneous: @csstools/css-tokenizer@3.0.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@csstools/css-tokenizer",
+    "extraneous: @drizzle-team/brocli@0.10.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@drizzle-team/brocli",
+    "extraneous: @emnapi/core@1.4.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@emnapi/core",
+    "extraneous: @emnapi/wasi-threads@1.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@emnapi/wasi-threads",
+    "extraneous: @esbuild-kit/core-utils@3.3.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@esbuild-kit/core-utils",
+    "extraneous: @esbuild-kit/esm-loader@2.6.5 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@esbuild-kit/esm-loader",
+    "extraneous: @esbuild/darwin-arm64@0.19.12 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@esbuild/darwin-arm64",
+    "extraneous: @fastify/busboy@2.1.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@fastify/busboy",
+    "extraneous: @floating-ui/core@1.7.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@floating-ui/core",
+    "extraneous: @floating-ui/dom@1.7.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@floating-ui/dom",
+    "extraneous: @floating-ui/react-dom@2.1.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@floating-ui/react-dom",
+    "extraneous: @floating-ui/utils@0.2.10 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@floating-ui/utils",
+    "extraneous: @humanwhocodes/config-array@0.13.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@humanwhocodes/config-array",
+    "extraneous: @humanwhocodes/module-importer@1.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@humanwhocodes/module-importer",
+    "extraneous: @humanwhocodes/object-schema@2.0.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@humanwhocodes/object-schema",
+    "extraneous: @img/sharp-darwin-arm64@0.33.5 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@img/sharp-darwin-arm64",
+    "extraneous: @img/sharp-libvips-darwin-arm64@1.0.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@img/sharp-libvips-darwin-arm64",
+    "extraneous: @isaacs/cliui@8.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@isaacs/cliui",
+    "extraneous: @istanbuljs/schema@0.1.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@istanbuljs/schema",
+    "extraneous: @jridgewell/gen-mapping@0.3.12 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@jridgewell/gen-mapping",
+    "extraneous: @jridgewell/resolve-uri@3.1.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@jridgewell/resolve-uri",
+    "extraneous: @jridgewell/set-array@1.2.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@jridgewell/set-array",
+    "extraneous: @jridgewell/trace-mapping@0.3.29 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@jridgewell/trace-mapping",
+    "extraneous: @lezer/javascript@1.5.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@lezer/javascript",
+    "extraneous: @lezer/python@1.1.18 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@lezer/python",
+    "extraneous: @marijn/find-cluster-break@1.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@marijn/find-cluster-break",
+    "extraneous: @napi-rs/wasm-runtime@0.2.11 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@napi-rs/wasm-runtime",
+    "extraneous: @neondatabase/serverless@0.9.5 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@neondatabase/serverless",
+    "extraneous: @next/env@15.3.0-canary.31 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@next/env",
+    "extraneous: @next/eslint-plugin-next@15.3.0-canary.31 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@next/eslint-plugin-next",
+    "extraneous: @next/swc-darwin-arm64@15.3.0-canary.31 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@next/swc-darwin-arm64",
+    "extraneous: @nolyfill/is-core-module@1.0.39 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@nolyfill/is-core-module",
+    "extraneous: @opentelemetry/core@1.30.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@opentelemetry/core",
+    "extraneous: @opentelemetry/instrumentation@0.57.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@opentelemetry/instrumentation",
+    "extraneous: @opentelemetry/resources@1.30.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@opentelemetry/resources",
+    "extraneous: @opentelemetry/sdk-logs@0.57.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@opentelemetry/sdk-logs",
+    "extraneous: @opentelemetry/sdk-metrics@1.30.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@opentelemetry/sdk-metrics",
+    "extraneous: @opentelemetry/semantic-conventions@1.28.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@opentelemetry/semantic-conventions",
+    "extraneous: @panva/hkdf@1.2.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@panva/hkdf",
+    "extraneous: @pkgjs/parseargs@0.11.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@pkgjs/parseargs",
+    "extraneous: @radix-ui/number@1.1.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/number",
+    "extraneous: @radix-ui/primitive@1.1.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/primitive",
+    "extraneous: @radix-ui/react-arrow@1.1.7 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/react-arrow",
+    "extraneous: @radix-ui/react-collection@1.1.7 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/react-collection",
+    "extraneous: @radix-ui/react-compose-refs@1.1.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/react-compose-refs",
+    "extraneous: @radix-ui/react-context@1.1.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/react-context",
+    "extraneous: @radix-ui/react-direction@1.1.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/react-direction",
+    "extraneous: @radix-ui/react-dismissable-layer@1.1.10 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/react-dismissable-layer",
+    "extraneous: @radix-ui/react-focus-guards@1.1.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/react-focus-guards",
+    "extraneous: @radix-ui/react-focus-scope@1.1.7 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/react-focus-scope",
+    "extraneous: @radix-ui/react-id@1.1.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/react-id",
+    "extraneous: @radix-ui/react-menu@2.1.15 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/react-menu",
+    "extraneous: @radix-ui/react-popper@1.2.7 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/react-popper",
+    "extraneous: @radix-ui/react-portal@1.1.9 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/react-portal",
+    "extraneous: @radix-ui/react-presence@1.1.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/react-presence",
+    "extraneous: @radix-ui/react-primitive@2.1.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/react-primitive",
+    "extraneous: @radix-ui/react-roving-focus@1.1.10 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/react-roving-focus",
+    "extraneous: @radix-ui/react-use-callback-ref@1.1.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/react-use-callback-ref",
+    "extraneous: @radix-ui/react-use-controllable-state@1.2.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/react-use-controllable-state",
+    "extraneous: @radix-ui/react-use-effect-event@0.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/react-use-effect-event",
+    "extraneous: @radix-ui/react-use-escape-keydown@1.1.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/react-use-escape-keydown",
+    "extraneous: @radix-ui/react-use-layout-effect@1.1.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/react-use-layout-effect",
+    "extraneous: @radix-ui/react-use-previous@1.1.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/react-use-previous",
+    "extraneous: @radix-ui/react-use-rect@1.1.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/react-use-rect",
+    "extraneous: @radix-ui/react-use-size@1.1.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/react-use-size",
+    "extraneous: @radix-ui/rect@1.1.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/rect",
+    "extraneous: @rushstack/eslint-patch@1.12.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@rushstack/eslint-patch",
+    "extraneous: @smithy/eventstream-codec@1.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@smithy/eventstream-codec",
+    "extraneous: @smithy/is-array-buffer@1.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@smithy/is-array-buffer",
+    "extraneous: @smithy/signature-v4@1.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@smithy/signature-v4",
+    "extraneous: @smithy/util-hex-encoding@1.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@smithy/util-hex-encoding",
+    "extraneous: @smithy/util-uri-escape@1.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@smithy/util-uri-escape",
+    "extraneous: @smithy/util-waiter@4.0.6 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@smithy/util-waiter",
+    "extraneous: @swc/counter@0.1.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@swc/counter",
+    "extraneous: @swc/helpers@0.5.15 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@swc/helpers",
+    "extraneous: @testing-library/dom@10.4.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@testing-library/dom",
+    "extraneous: @tybys/wasm-util@0.9.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@tybys/wasm-util",
+    "extraneous: @types/aria-query@5.0.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@types/aria-query",
+    "extraneous: @types/cookie@0.6.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@types/cookie",
+    "extraneous: @types/d3-time@3.0.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@types/d3-time",
+    "extraneous: @types/diff-match-patch@1.0.36 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@types/diff-match-patch",
+    "extraneous: @types/estree-jsx@1.0.5 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@types/estree-jsx",
+    "extraneous: @types/hast@3.0.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@types/hast",
+    "extraneous: @types/linkify-it@5.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@types/linkify-it",
+    "extraneous: @types/markdown-it@14.1.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@types/markdown-it",
+    "extraneous: @types/mdast@4.0.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@types/mdast",
+    "extraneous: @types/mdurl@2.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@types/mdurl",
+    "extraneous: @types/pg@8.11.6 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@types/pg",
+    "extraneous: @types/prop-types@15.7.15 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@types/prop-types",
+    "extraneous: @types/shimmer@1.2.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@types/shimmer",
+    "extraneous: @types/unist@3.0.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@types/unist",
+    "extraneous: @ungap/structured-clone@1.3.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@ungap/structured-clone",
+    "extraneous: acorn-import-attributes@1.9.5 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/acorn-import-attributes",
+    "extraneous: ansi-escapes@7.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/ansi-escapes",
+    "extraneous: ansi-regex@5.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/ansi-regex",
+    "extraneous: any-promise@1.3.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/any-promise",
+    "extraneous: anymatch@3.1.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/anymatch",
+    "extraneous: arg@5.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/arg",
+    "extraneous: aria-hidden@1.2.6 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/aria-hidden",
+    "extraneous: array-union@2.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/array-union",
+    "extraneous: ast-v8-to-istanbul@0.3.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/ast-v8-to-istanbul",
+    "extraneous: async-retry@1.3.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/async-retry",
+    "extraneous: bail@2.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/bail",
+    "extraneous: binary-extensions@2.3.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/binary-extensions",
+    "extraneous: buffer-from@1.1.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/buffer-from",
+    "extraneous: buffer@6.0.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/buffer",
+    "extraneous: busboy@1.6.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/busboy",
+    "extraneous: bytes@3.1.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/bytes",
+    "extraneous: camelcase-css@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/camelcase-css",
+    "extraneous: caniuse-lite@1.0.30001727 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/caniuse-lite",
+    "extraneous: ccount@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/ccount",
+    "extraneous: chalk@3.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/chalk",
+    "extraneous: character-entities-html4@2.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/character-entities-html4",
+    "extraneous: character-entities-legacy@3.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/character-entities-legacy",
+    "extraneous: character-entities@2.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/character-entities",
+    "extraneous: character-reference-invalid@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/character-reference-invalid",
+    "extraneous: chokidar@3.6.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/chokidar",
+    "extraneous: cjs-module-lexer@1.4.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/cjs-module-lexer",
+    "extraneous: cli-cursor@5.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/cli-cursor",
+    "extraneous: cli-truncate@4.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/cli-truncate",
+    "extraneous: client-only@0.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/client-only",
+    "extraneous: color-string@1.9.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/color-string",
+    "extraneous: color@4.2.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/color",
+    "extraneous: comma-separated-tokens@2.0.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/comma-separated-tokens",
+    "extraneous: commander@13.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/commander",
+    "extraneous: convict@6.2.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/convict",
+    "extraneous: cookie@0.7.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/cookie",
+    "extraneous: cross-spawn@7.0.6 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/cross-spawn",
+    "extraneous: css.escape@1.5.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/css.escape",
+    "extraneous: cssesc@3.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/cssesc",
+    "extraneous: cssstyle@4.6.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/cssstyle",
+    "extraneous: csstype@3.1.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/csstype",
+    "extraneous: data-urls@5.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/data-urls",
+    "extraneous: decimal.js@10.6.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/decimal.js",
+    "extraneous: decode-named-character-reference@1.2.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/decode-named-character-reference",
+    "extraneous: deep-is@0.1.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/deep-is",
+    "extraneous: detect-libc@2.0.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/detect-libc",
+    "extraneous: detect-node-es@1.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/detect-node-es",
+    "extraneous: devlop@1.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/devlop",
+    "extraneous: didyoumean@1.2.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/didyoumean",
+    "extraneous: diff-match-patch@1.0.5 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/diff-match-patch",
+    "extraneous: dir-glob@3.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/dir-glob",
+    "extraneous: dlv@1.1.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/dlv",
+    "extraneous: doctrine@3.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/doctrine",
+    "extraneous: dom-accessibility-api@0.6.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/dom-accessibility-api",
+    "extraneous: eastasianwidth@0.2.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/eastasianwidth",
+    "extraneous: entities@6.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/entities",
+    "extraneous: environment@1.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/environment",
+    "extraneous: esbuild-register@3.6.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/esbuild-register",
+    "extraneous: esbuild@0.19.12 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/esbuild",
+    "extraneous: escape-string-regexp@4.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/escape-string-regexp",
+    "extraneous: esquery@1.6.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/esquery",
+    "extraneous: estree-util-is-identifier-name@3.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/estree-util-is-identifier-name",
+    "extraneous: eventemitter3@5.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/eventemitter3",
+    "extraneous: events@3.3.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/events",
+    "extraneous: execa@8.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/execa",
+    "extraneous: fast-levenshtein@2.0.6 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/fast-levenshtein",
+    "extraneous: file-entry-cache@6.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/file-entry-cache",
+    "extraneous: find-up@5.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/find-up",
+    "extraneous: flat-cache@3.2.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/flat-cache",
+    "extraneous: foreground-child@3.3.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/foreground-child",
+    "extraneous: form-data-encoder@4.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/form-data-encoder",
+    "extraneous: formdata-node@6.0.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/formdata-node",
+    "extraneous: fs.realpath@1.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/fs.realpath",
+    "extraneous: get-east-asian-width@1.3.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/get-east-asian-width",
+    "extraneous: get-nonce@1.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/get-nonce",
+    "extraneous: get-stream@8.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/get-stream",
+    "extraneous: glob-parent@6.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/glob-parent",
+    "extraneous: glob@10.4.5 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/glob",
+    "extraneous: globby@11.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/globby",
+    "extraneous: hast-util-to-jsx-runtime@2.3.6 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/hast-util-to-jsx-runtime",
+    "extraneous: hast-util-whitespace@3.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/hast-util-whitespace",
+    "extraneous: html-encoding-sniffer@4.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/html-encoding-sniffer",
+    "extraneous: html-escaper@2.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/html-escaper",
+    "extraneous: html-url-attributes@3.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/html-url-attributes",
+    "extraneous: http-proxy-agent@7.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/http-proxy-agent",
+    "extraneous: human-signals@5.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/human-signals",
+    "extraneous: iconv-lite@0.6.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/iconv-lite",
+    "extraneous: ieee754@1.2.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/ieee754",
+    "extraneous: import-in-the-middle@1.14.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/import-in-the-middle",
+    "extraneous: imurmurhash@0.1.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/imurmurhash",
+    "extraneous: indent-string@4.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/indent-string",
+    "extraneous: inflight@1.0.6 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/inflight",
+    "extraneous: inherits@2.0.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/inherits",
+    "extraneous: inline-style-parser@0.2.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/inline-style-parser",
+    "extraneous: is-alphabetical@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/is-alphabetical",
+    "extraneous: is-alphanumerical@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/is-alphanumerical",
+    "extraneous: is-arrayish@0.3.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/is-arrayish",
+    "extraneous: is-binary-path@2.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/is-binary-path",
+    "extraneous: is-buffer@2.0.5 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/is-buffer",
+    "extraneous: is-decimal@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/is-decimal",
+    "extraneous: is-fullwidth-code-point@4.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/is-fullwidth-code-point",
+    "extraneous: is-hexadecimal@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/is-hexadecimal",
+    "extraneous: is-path-inside@3.0.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/is-path-inside",
+    "extraneous: is-plain-obj@4.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/is-plain-obj",
+    "extraneous: is-potential-custom-element-name@1.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/is-potential-custom-element-name",
+    "extraneous: is-stream@3.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/is-stream",
+    "extraneous: isexe@2.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/isexe",
+    "extraneous: istanbul-lib-coverage@3.2.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/istanbul-lib-coverage",
+    "extraneous: istanbul-lib-report@3.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/istanbul-lib-report",
+    "extraneous: istanbul-lib-source-maps@5.0.6 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/istanbul-lib-source-maps",
+    "extraneous: istanbul-reports@3.1.7 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/istanbul-reports",
+    "extraneous: jackspeak@3.4.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/jackspeak",
+    "extraneous: jose@5.10.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/jose",
+    "extraneous: js-base64@3.7.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/js-base64",
+    "extraneous: js-tokens@9.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/js-tokens",
+    "extraneous: json-buffer@3.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/json-buffer",
+    "extraneous: json-stable-stringify-without-jsonify@1.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/json-stable-stringify-without-jsonify",
+    "extraneous: jsondiffpatch@0.6.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/jsondiffpatch",
+    "extraneous: keyv@4.5.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/keyv",
+    "extraneous: levn@0.4.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/levn",
+    "extraneous: lilconfig@3.1.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/lilconfig",
+    "extraneous: lines-and-columns@1.2.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/lines-and-columns",
+    "extraneous: linkify-it@5.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/linkify-it",
+    "extraneous: listr2@8.3.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/listr2",
+    "extraneous: locate-path@6.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/locate-path",
+    "extraneous: lodash.castarray@4.4.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/lodash.castarray",
+    "extraneous: lodash.clonedeep@4.5.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/lodash.clonedeep",
+    "extraneous: lodash.debounce@4.0.8 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/lodash.debounce",
+    "extraneous: lodash.isplainobject@4.0.6 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/lodash.isplainobject",
+    "extraneous: lodash.merge@4.6.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/lodash.merge",
+    "extraneous: lodash@4.17.21 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/lodash",
+    "extraneous: log-update@6.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/log-update",
+    "extraneous: longest-streak@3.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/longest-streak",
+    "extraneous: lru-cache@10.4.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/lru-cache",
+    "extraneous: lz-string@1.5.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/lz-string",
+    "extraneous: make-dir@4.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/make-dir",
+    "extraneous: markdown-it@14.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/markdown-it",
+    "extraneous: markdown-table@3.0.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/markdown-table",
+    "extraneous: mdast-util-find-and-replace@3.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/mdast-util-find-and-replace",
+    "extraneous: mdast-util-from-markdown@2.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/mdast-util-from-markdown",
+    "extraneous: mdast-util-gfm-autolink-literal@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/mdast-util-gfm-autolink-literal",
+    "extraneous: mdast-util-gfm-footnote@2.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/mdast-util-gfm-footnote",
+    "extraneous: mdast-util-gfm-strikethrough@2.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/mdast-util-gfm-strikethrough",
+    "extraneous: mdast-util-gfm-table@2.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/mdast-util-gfm-table",
+    "extraneous: mdast-util-gfm-task-list-item@2.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/mdast-util-gfm-task-list-item",
+    "extraneous: mdast-util-gfm@3.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/mdast-util-gfm",
+    "extraneous: mdast-util-mdx-expression@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/mdast-util-mdx-expression",
+    "extraneous: mdast-util-mdx-jsx@3.2.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/mdast-util-mdx-jsx",
+    "extraneous: mdast-util-mdxjs-esm@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/mdast-util-mdxjs-esm",
+    "extraneous: mdast-util-phrasing@4.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/mdast-util-phrasing",
+    "extraneous: mdast-util-to-hast@13.2.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/mdast-util-to-hast",
+    "extraneous: mdast-util-to-markdown@2.1.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/mdast-util-to-markdown",
+    "extraneous: mdast-util-to-string@4.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/mdast-util-to-string",
+    "extraneous: mdurl@2.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/mdurl",
+    "extraneous: merge-stream@2.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/merge-stream",
+    "extraneous: micromark-core-commonmark@2.0.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-core-commonmark",
+    "extraneous: micromark-extension-gfm-autolink-literal@2.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-extension-gfm-autolink-literal",
+    "extraneous: micromark-extension-gfm-footnote@2.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-extension-gfm-footnote",
+    "extraneous: micromark-extension-gfm-strikethrough@2.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-extension-gfm-strikethrough",
+    "extraneous: micromark-extension-gfm-table@2.1.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-extension-gfm-table",
+    "extraneous: micromark-extension-gfm-tagfilter@2.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-extension-gfm-tagfilter",
+    "extraneous: micromark-extension-gfm-task-list-item@2.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-extension-gfm-task-list-item",
+    "extraneous: micromark-extension-gfm@3.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-extension-gfm",
+    "extraneous: micromark-factory-destination@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-factory-destination",
+    "extraneous: micromark-factory-label@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-factory-label",
+    "extraneous: micromark-factory-space@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-factory-space",
+    "extraneous: micromark-factory-title@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-factory-title",
+    "extraneous: micromark-factory-whitespace@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-factory-whitespace",
+    "extraneous: micromark-util-character@2.1.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-util-character",
+    "extraneous: micromark-util-chunked@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-util-chunked",
+    "extraneous: micromark-util-classify-character@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-util-classify-character",
+    "extraneous: micromark-util-combine-extensions@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-util-combine-extensions",
+    "extraneous: micromark-util-decode-numeric-character-reference@2.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-util-decode-numeric-character-reference",
+    "extraneous: micromark-util-decode-string@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-util-decode-string",
+    "extraneous: micromark-util-encode@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-util-encode",
+    "extraneous: micromark-util-html-tag-name@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-util-html-tag-name",
+    "extraneous: micromark-util-normalize-identifier@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-util-normalize-identifier",
+    "extraneous: micromark-util-resolve-all@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-util-resolve-all",
+    "extraneous: micromark-util-sanitize-uri@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-util-sanitize-uri",
+    "extraneous: micromark-util-subtokenize@2.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-util-subtokenize",
+    "extraneous: micromark-util-symbol@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-util-symbol",
+    "extraneous: micromark-util-types@2.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-util-types",
+    "extraneous: micromark@4.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark",
+    "extraneous: mimic-fn@4.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/mimic-fn",
+    "extraneous: mimic-function@5.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/mimic-function",
+    "extraneous: min-indent@1.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/min-indent",
+    "extraneous: minipass@7.1.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/minipass",
+    "extraneous: module-details-from-path@1.0.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/module-details-from-path",
+    "extraneous: motion-dom@11.18.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/motion-dom",
+    "extraneous: motion-utils@11.18.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/motion-utils",
+    "extraneous: mz@2.7.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/mz",
+    "extraneous: normalize-path@3.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/normalize-path",
+    "extraneous: npm-run-path@5.3.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/npm-run-path",
+    "extraneous: nwsapi@2.2.20 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/nwsapi",
+    "extraneous: oauth4webapi@3.5.5 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/oauth4webapi",
+    "extraneous: object-hash@3.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/object-hash",
+    "extraneous: obuf@1.1.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/obuf",
+    "extraneous: onetime@6.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/onetime",
+    "extraneous: optionator@0.9.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/optionator",
+    "extraneous: p-limit@3.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/p-limit",
+    "extraneous: p-locate@5.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/p-locate",
+    "extraneous: package-json-from-dist@1.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/package-json-from-dist",
+    "extraneous: parse-entities@4.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/parse-entities",
+    "extraneous: parse5@7.3.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/parse5",
+    "extraneous: path-exists@4.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/path-exists",
+    "extraneous: path-is-absolute@1.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/path-is-absolute",
+    "extraneous: path-key@3.1.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/path-key",
+    "extraneous: path-scurry@1.11.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/path-scurry",
+    "extraneous: path-type@4.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/path-type",
+    "extraneous: pg-int8@1.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/pg-int8",
+    "extraneous: pg-numeric@1.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/pg-numeric",
+    "extraneous: pg-protocol@1.10.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/pg-protocol",
+    "extraneous: pg-types@4.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/pg-types",
+    "extraneous: pidtree@0.6.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/pidtree",
+    "extraneous: pify@2.3.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/pify",
+    "extraneous: pirates@4.0.7 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/pirates",
+    "extraneous: postcss-import@15.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/postcss-import",
+    "extraneous: postcss-js@4.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/postcss-js",
+    "extraneous: postcss-load-config@4.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/postcss-load-config",
+    "extraneous: postcss-nested@6.2.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/postcss-nested",
+    "extraneous: postcss-selector-parser@6.0.10 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/postcss-selector-parser",
+    "extraneous: postcss-value-parser@4.2.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/postcss-value-parser",
+    "extraneous: postgres-array@3.0.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/postgres-array",
+    "extraneous: postgres-bytea@3.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/postgres-bytea",
+    "extraneous: postgres-date@2.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/postgres-date",
+    "extraneous: postgres-interval@3.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/postgres-interval",
+    "extraneous: postgres-range@1.1.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/postgres-range",
+    "extraneous: preact-render-to-string@5.2.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/preact-render-to-string",
+    "extraneous: preact@10.11.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/preact",
+    "extraneous: prelude-ls@1.2.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/prelude-ls",
+    "extraneous: pretty-format@27.5.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/pretty-format",
+    "extraneous: process@0.11.10 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/process",
+    "extraneous: property-information@7.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/property-information",
+    "extraneous: prosemirror-commands@1.7.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/prosemirror-commands",
+    "extraneous: prosemirror-dropcursor@1.8.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/prosemirror-dropcursor",
+    "extraneous: prosemirror-gapcursor@1.3.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/prosemirror-gapcursor",
+    "extraneous: prosemirror-history@1.4.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/prosemirror-history",
+    "extraneous: prosemirror-keymap@1.2.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/prosemirror-keymap",
+    "extraneous: prosemirror-menu@1.2.5 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/prosemirror-menu",
+    "extraneous: prosemirror-transform@1.10.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/prosemirror-transform",
+    "extraneous: punycode.js@2.3.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/punycode.js",
+    "extraneous: qs@6.11.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/qs",
+    "extraneous: react-is@17.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/react-is",
+    "extraneous: react-remove-scroll-bar@2.3.8 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/react-remove-scroll-bar",
+    "extraneous: react-remove-scroll@2.7.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/react-remove-scroll",
+    "extraneous: react-style-singleton@2.2.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/react-style-singleton",
+    "extraneous: read-cache@1.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/read-cache",
+    "extraneous: readable-stream@4.7.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/readable-stream",
+    "extraneous: readdirp@3.6.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/readdirp",
+    "extraneous: redent@3.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/redent",
+    "extraneous: remark-parse@11.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/remark-parse",
+    "extraneous: remark-rehype@11.1.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/remark-rehype",
+    "extraneous: remark-stringify@11.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/remark-stringify",
+    "extraneous: require-in-the-middle@7.5.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/require-in-the-middle",
+    "extraneous: restore-cursor@5.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/restore-cursor",
+    "extraneous: rfdc@1.4.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/rfdc",
+    "extraneous: rimraf@3.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/rimraf",
+    "extraneous: rope-sequence@1.3.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/rope-sequence",
+    "extraneous: rrweb-cssom@0.8.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/rrweb-cssom",
+    "extraneous: safer-buffer@2.1.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/safer-buffer",
+    "extraneous: saxes@6.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/saxes",
+    "extraneous: scheduler@0.26.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/scheduler",
+    "extraneous: sharp@0.33.5 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/sharp",
+    "extraneous: shebang-command@2.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/shebang-command",
+    "extraneous: shebang-regex@3.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/shebang-regex",
+    "extraneous: shimmer@1.2.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/shimmer",
+    "extraneous: signal-exit@4.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/signal-exit",
+    "extraneous: simple-swizzle@0.2.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/simple-swizzle",
+    "extraneous: slash@3.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/slash",
+    "extraneous: slice-ansi@5.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/slice-ansi",
+    "extraneous: source-map-support@0.5.21 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/source-map-support",
+    "extraneous: source-map@0.6.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/source-map",
+    "extraneous: space-separated-tokens@2.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/space-separated-tokens",
+    "extraneous: stable-hash@0.0.5 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/stable-hash",
+    "extraneous: streamsearch@1.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/streamsearch",
+    "extraneous: string_decoder@1.3.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/string_decoder",
+    "extraneous: string-argv@0.3.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/string-argv",
+    "extraneous: string-width-cjs@npm:string-width@4.2.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/string-width-cjs",
+    "extraneous: string-width@7.2.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/string-width",
+    "extraneous: stringify-entities@4.0.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/stringify-entities",
+    "extraneous: strip-ansi-cjs@npm:strip-ansi@6.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/strip-ansi-cjs",
+    "extraneous: strip-ansi@6.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/strip-ansi",
+    "extraneous: strip-final-newline@3.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/strip-final-newline",
+    "extraneous: strip-indent@3.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/strip-indent",
+    "extraneous: style-to-js@1.1.17 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/style-to-js",
+    "extraneous: style-to-object@1.0.9 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/style-to-object",
+    "extraneous: styled-jsx@5.1.6 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/styled-jsx",
+    "extraneous: sucrase@3.35.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/sucrase",
+    "extraneous: symbol-tree@3.2.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/symbol-tree",
+    "extraneous: test-exclude@7.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/test-exclude",
+    "extraneous: text-table@0.2.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/text-table",
+    "extraneous: thenify-all@1.6.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/thenify-all",
+    "extraneous: thenify@3.3.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/thenify",
+    "extraneous: throttleit@2.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/throttleit",
+    "extraneous: tr46@5.1.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/tr46",
+    "extraneous: trim-lines@3.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/trim-lines",
+    "extraneous: trough@2.2.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/trough",
+    "extraneous: ts-interface-checker@0.1.13 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/ts-interface-checker",
+    "extraneous: type-check@0.4.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/type-check",
+    "extraneous: uc.micro@2.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/uc.micro",
+    "extraneous: undici@5.29.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/undici",
+    "extraneous: unified@11.0.5 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/unified",
+    "extraneous: unist-util-is@6.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/unist-util-is",
+    "extraneous: unist-util-position@5.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/unist-util-position",
+    "extraneous: unist-util-stringify-position@4.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/unist-util-stringify-position",
+    "extraneous: unist-util-visit-parents@6.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/unist-util-visit-parents",
+    "extraneous: unist-util-visit@5.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/unist-util-visit",
+    "extraneous: url-join@4.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/url-join",
+    "extraneous: use-callback-ref@1.3.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/use-callback-ref",
+    "extraneous: use-sidecar@1.1.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/use-sidecar",
+    "extraneous: util-deprecate@1.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/util-deprecate",
+    "extraneous: vfile-message@4.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/vfile-message",
+    "extraneous: vfile@6.0.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/vfile",
+    "extraneous: w3c-xmlserializer@5.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/w3c-xmlserializer",
+    "extraneous: webidl-conversions@7.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/webidl-conversions",
+    "extraneous: whatwg-encoding@3.1.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/whatwg-encoding",
+    "extraneous: whatwg-mimetype@4.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/whatwg-mimetype",
+    "extraneous: whatwg-url@14.2.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/whatwg-url",
+    "extraneous: which@2.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/which",
+    "extraneous: word-wrap@1.2.5 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/word-wrap",
+    "extraneous: wrap-ansi-cjs@npm:wrap-ansi@7.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/wrap-ansi-cjs",
+    "extraneous: wrap-ansi@9.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/wrap-ansi",
+    "extraneous: xml-name-validator@5.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/xml-name-validator",
+    "extraneous: xmlchars@2.2.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/xmlchars",
+    "extraneous: yargs-parser@20.2.9 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/yargs-parser",
+    "extraneous: yocto-queue@0.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/yocto-queue",
+    "extraneous: zwitch@2.0.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/zwitch"
+  ],
+  "dependencies": {
+    "@adobe/css-tools": {
+      "version": "4.4.3",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @adobe/css-tools@4.4.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@adobe/css-tools"
+      ]
+    },
+    "@ai-sdk/anthropic": {
+      "version": "1.2.12",
+      "resolved": "file:../.pnpm/@ai-sdk+anthropic@1.2.12_zod@3.25.64/node_modules/@ai-sdk/anthropic",
+      "overridden": false
+    },
+    "@ai-sdk/cohere": {
+      "version": "1.2.10",
+      "resolved": "file:../.pnpm/@ai-sdk+cohere@1.2.10_zod@3.25.64/node_modules/@ai-sdk/cohere",
+      "overridden": false
+    },
+    "@ai-sdk/google": {
+      "version": "1.2.22",
+      "overridden": false
+    },
+    "@ai-sdk/groq": {
+      "version": "1.2.9",
+      "resolved": "file:../.pnpm/@ai-sdk+groq@1.2.9_zod@3.25.64/node_modules/@ai-sdk/groq",
+      "overridden": false
+    },
+    "@ai-sdk/openai": {
+      "version": "1.3.23",
+      "overridden": false
+    },
+    "@ai-sdk/react": {
+      "version": "1.2.12",
+      "resolved": "file:../.pnpm/@ai-sdk+react@1.2.12_react@19.1.0_zod@3.25.64/node_modules/@ai-sdk/react",
+      "overridden": false
+    },
+    "@ai-sdk/ui-utils": {
+      "version": "1.2.11",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @ai-sdk/ui-utils@1.2.11 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@ai-sdk/ui-utils"
+      ]
+    },
+    "@ai-sdk/xai": {
+      "version": "1.2.17",
+      "overridden": false
+    },
+    "@alloc/quick-lru": {
+      "version": "5.2.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @alloc/quick-lru@5.2.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@alloc/quick-lru"
+      ]
+    },
+    "@ampproject/remapping": {
+      "version": "2.3.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @ampproject/remapping@2.3.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@ampproject/remapping"
+      ]
+    },
+    "@asamuzakjp/css-color": {
+      "version": "3.2.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @asamuzakjp/css-color@3.2.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@asamuzakjp/css-color"
+      ]
+    },
+    "@auth/core": {
+      "version": "0.37.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @auth/core@0.37.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@auth/core"
+      ]
+    },
+    "@aws-crypto/crc32": {
+      "version": "3.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @aws-crypto/crc32@3.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@aws-crypto/crc32"
+      ]
+    },
+    "@aws-sdk/client-cognito-identity": {
+      "version": "3.844.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @aws-sdk/client-cognito-identity@3.844.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@aws-sdk/client-cognito-identity"
+      ]
+    },
+    "@aws-sdk/client-sagemaker": {
+      "version": "3.844.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @aws-sdk/client-sagemaker@3.844.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@aws-sdk/client-sagemaker"
+      ]
+    },
+    "@aws-sdk/client-sso": {
+      "version": "3.844.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @aws-sdk/client-sso@3.844.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@aws-sdk/client-sso"
+      ]
+    },
+    "@aws-sdk/credential-provider-cognito-identity": {
+      "version": "3.844.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @aws-sdk/credential-provider-cognito-identity@3.844.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@aws-sdk/credential-provider-cognito-identity"
+      ]
+    },
+    "@aws-sdk/credential-provider-env": {
+      "version": "3.844.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @aws-sdk/credential-provider-env@3.844.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@aws-sdk/credential-provider-env"
+      ]
+    },
+    "@aws-sdk/credential-provider-http": {
+      "version": "3.844.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @aws-sdk/credential-provider-http@3.844.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@aws-sdk/credential-provider-http"
+      ]
+    },
+    "@aws-sdk/credential-provider-ini": {
+      "version": "3.844.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @aws-sdk/credential-provider-ini@3.844.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@aws-sdk/credential-provider-ini"
+      ]
+    },
+    "@aws-sdk/credential-provider-node": {
+      "version": "3.844.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @aws-sdk/credential-provider-node@3.844.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@aws-sdk/credential-provider-node"
+      ]
+    },
+    "@aws-sdk/credential-provider-process": {
+      "version": "3.844.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @aws-sdk/credential-provider-process@3.844.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@aws-sdk/credential-provider-process"
+      ]
+    },
+    "@aws-sdk/credential-provider-sso": {
+      "version": "3.844.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @aws-sdk/credential-provider-sso@3.844.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@aws-sdk/credential-provider-sso"
+      ]
+    },
+    "@aws-sdk/credential-providers": {
+      "version": "3.844.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @aws-sdk/credential-providers@3.844.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@aws-sdk/credential-providers"
+      ]
+    },
+    "@aws-sdk/protocol-http": {
+      "version": "3.374.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @aws-sdk/protocol-http@3.374.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@aws-sdk/protocol-http"
+      ]
+    },
+    "@aws-sdk/signature-v4": {
+      "version": "3.374.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @aws-sdk/signature-v4@3.374.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@aws-sdk/signature-v4"
+      ]
+    },
+    "@aws-sdk/token-providers": {
+      "version": "3.844.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @aws-sdk/token-providers@3.844.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@aws-sdk/token-providers"
+      ]
+    },
+    "@aws-sdk/util-utf8-browser": {
+      "version": "3.259.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @aws-sdk/util-utf8-browser@3.259.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@aws-sdk/util-utf8-browser"
+      ]
+    },
+    "@babel/code-frame": {
+      "version": "7.27.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @babel/code-frame@7.27.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@babel/code-frame"
+      ]
+    },
+    "@babel/runtime": {
+      "version": "7.27.6",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @babel/runtime@7.27.6 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@babel/runtime"
+      ]
+    },
+    "@bcoe/v8-coverage": {
+      "version": "1.0.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @bcoe/v8-coverage@1.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@bcoe/v8-coverage"
+      ]
+    },
+    "@biomejs/biome": {
+      "version": "1.9.4",
+      "resolved": "file:../.pnpm/@biomejs+biome@1.9.4/node_modules/@biomejs/biome",
+      "overridden": false
+    },
+    "@biomejs/cli-darwin-arm64": {
+      "version": "1.9.4",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @biomejs/cli-darwin-arm64@1.9.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@biomejs/cli-darwin-arm64"
+      ]
+    },
+    "@browserbasehq/stagehand": {
+      "version": "2.4.1",
+      "overridden": false
+    },
+    "@codemirror/lang-javascript": {
+      "version": "6.2.4",
+      "resolved": "file:../.pnpm/@codemirror+lang-javascript@6.2.4/node_modules/@codemirror/lang-javascript",
+      "overridden": false
+    },
+    "@codemirror/lang-python": {
+      "version": "6.2.1",
+      "resolved": "file:../.pnpm/@codemirror+lang-python@6.2.1/node_modules/@codemirror/lang-python",
+      "overridden": false
+    },
+    "@codemirror/state": {
+      "version": "6.5.2",
+      "resolved": "file:../.pnpm/@codemirror+state@6.5.2/node_modules/@codemirror/state",
+      "overridden": false
+    },
+    "@codemirror/theme-one-dark": {
+      "version": "6.1.3",
+      "overridden": false
+    },
+    "@codemirror/view": {
+      "version": "6.38.0",
+      "overridden": false
+    },
+    "@csstools/color-helpers": {
+      "version": "5.0.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @csstools/color-helpers@5.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@csstools/color-helpers"
+      ]
+    },
+    "@csstools/css-calc": {
+      "version": "2.1.4",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @csstools/css-calc@2.1.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@csstools/css-calc"
+      ]
+    },
+    "@csstools/css-color-parser": {
+      "version": "3.0.10",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @csstools/css-color-parser@3.0.10 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@csstools/css-color-parser"
+      ]
+    },
+    "@csstools/css-parser-algorithms": {
+      "version": "3.0.5",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @csstools/css-parser-algorithms@3.0.5 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@csstools/css-parser-algorithms"
+      ]
+    },
+    "@csstools/css-tokenizer": {
+      "version": "3.0.4",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @csstools/css-tokenizer@3.0.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@csstools/css-tokenizer"
+      ]
+    },
+    "@drizzle-team/brocli": {
+      "version": "0.10.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @drizzle-team/brocli@0.10.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@drizzle-team/brocli"
+      ]
+    },
+    "@emnapi/core": {
+      "version": "1.4.3",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @emnapi/core@1.4.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@emnapi/core"
+      ]
+    },
+    "@emnapi/wasi-threads": {
+      "version": "1.0.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @emnapi/wasi-threads@1.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@emnapi/wasi-threads"
+      ]
+    },
+    "@esbuild-kit/core-utils": {
+      "version": "3.3.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @esbuild-kit/core-utils@3.3.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@esbuild-kit/core-utils"
+      ]
+    },
+    "@esbuild-kit/esm-loader": {
+      "version": "2.6.5",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @esbuild-kit/esm-loader@2.6.5 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@esbuild-kit/esm-loader"
+      ]
+    },
+    "@esbuild/darwin-arm64": {
+      "version": "0.19.12",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @esbuild/darwin-arm64@0.19.12 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@esbuild/darwin-arm64"
+      ]
+    },
+    "@fastify/busboy": {
+      "version": "2.1.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @fastify/busboy@2.1.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@fastify/busboy"
+      ]
+    },
+    "@floating-ui/core": {
+      "version": "1.7.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @floating-ui/core@1.7.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@floating-ui/core"
+      ]
+    },
+    "@floating-ui/dom": {
+      "version": "1.7.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @floating-ui/dom@1.7.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@floating-ui/dom"
+      ]
+    },
+    "@floating-ui/react-dom": {
+      "version": "2.1.4",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @floating-ui/react-dom@2.1.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@floating-ui/react-dom"
+      ]
+    },
+    "@floating-ui/utils": {
+      "version": "0.2.10",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @floating-ui/utils@0.2.10 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@floating-ui/utils"
+      ]
+    },
+    "@humanwhocodes/config-array": {
+      "version": "0.13.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @humanwhocodes/config-array@0.13.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@humanwhocodes/config-array"
+      ]
+    },
+    "@humanwhocodes/module-importer": {
+      "version": "1.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @humanwhocodes/module-importer@1.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@humanwhocodes/module-importer"
+      ]
+    },
+    "@humanwhocodes/object-schema": {
+      "version": "2.0.3",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @humanwhocodes/object-schema@2.0.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@humanwhocodes/object-schema"
+      ]
+    },
+    "@img/sharp-darwin-arm64": {
+      "version": "0.33.5",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @img/sharp-darwin-arm64@0.33.5 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@img/sharp-darwin-arm64"
+      ]
+    },
+    "@img/sharp-libvips-darwin-arm64": {
+      "version": "1.0.4",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @img/sharp-libvips-darwin-arm64@1.0.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@img/sharp-libvips-darwin-arm64"
+      ]
+    },
+    "@isaacs/cliui": {
+      "version": "8.0.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @isaacs/cliui@8.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@isaacs/cliui"
+      ]
+    },
+    "@istanbuljs/schema": {
+      "version": "0.1.3",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @istanbuljs/schema@0.1.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@istanbuljs/schema"
+      ]
+    },
+    "@jridgewell/gen-mapping": {
+      "version": "0.3.12",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @jridgewell/gen-mapping@0.3.12 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@jridgewell/gen-mapping"
+      ]
+    },
+    "@jridgewell/resolve-uri": {
+      "version": "3.1.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @jridgewell/resolve-uri@3.1.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@jridgewell/resolve-uri"
+      ]
+    },
+    "@jridgewell/set-array": {
+      "version": "1.2.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @jridgewell/set-array@1.2.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@jridgewell/set-array"
+      ]
+    },
+    "@jridgewell/trace-mapping": {
+      "version": "0.3.29",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @jridgewell/trace-mapping@0.3.29 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@jridgewell/trace-mapping"
+      ]
+    },
+    "@lezer/javascript": {
+      "version": "1.5.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @lezer/javascript@1.5.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@lezer/javascript"
+      ]
+    },
+    "@lezer/python": {
+      "version": "1.1.18",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @lezer/python@1.1.18 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@lezer/python"
+      ]
+    },
+    "@marijn/find-cluster-break": {
+      "version": "1.0.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @marijn/find-cluster-break@1.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@marijn/find-cluster-break"
+      ]
+    },
+    "@napi-rs/wasm-runtime": {
+      "version": "0.2.11",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @napi-rs/wasm-runtime@0.2.11 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@napi-rs/wasm-runtime"
+      ]
+    },
+    "@neondatabase/serverless": {
+      "version": "0.9.5",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @neondatabase/serverless@0.9.5 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@neondatabase/serverless"
+      ]
+    },
+    "@next/env": {
+      "version": "15.3.0-canary.31",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @next/env@15.3.0-canary.31 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@next/env"
+      ]
+    },
+    "@next/eslint-plugin-next": {
+      "version": "15.3.0-canary.31",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @next/eslint-plugin-next@15.3.0-canary.31 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@next/eslint-plugin-next"
+      ]
+    },
+    "@next/swc-darwin-arm64": {
+      "version": "15.3.0-canary.31",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @next/swc-darwin-arm64@15.3.0-canary.31 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@next/swc-darwin-arm64"
+      ]
+    },
+    "@nolyfill/is-core-module": {
+      "version": "1.0.39",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @nolyfill/is-core-module@1.0.39 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@nolyfill/is-core-module"
+      ]
+    },
+    "@opentelemetry/api-logs": {
+      "version": "0.202.0",
+      "resolved": "file:../.pnpm/@opentelemetry+api-logs@0.202.0/node_modules/@opentelemetry/api-logs",
+      "overridden": false
+    },
+    "@opentelemetry/api": {
+      "version": "1.9.0",
+      "resolved": "file:../.pnpm/@opentelemetry+api@1.9.0/node_modules/@opentelemetry/api",
+      "overridden": false
+    },
+    "@opentelemetry/core": {
+      "version": "1.30.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @opentelemetry/core@1.30.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@opentelemetry/core"
+      ]
+    },
+    "@opentelemetry/instrumentation": {
+      "version": "0.57.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @opentelemetry/instrumentation@0.57.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@opentelemetry/instrumentation"
+      ]
+    },
+    "@opentelemetry/resources": {
+      "version": "1.30.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @opentelemetry/resources@1.30.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@opentelemetry/resources"
+      ]
+    },
+    "@opentelemetry/sdk-logs": {
+      "version": "0.57.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @opentelemetry/sdk-logs@0.57.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@opentelemetry/sdk-logs"
+      ]
+    },
+    "@opentelemetry/sdk-metrics": {
+      "version": "1.30.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @opentelemetry/sdk-metrics@1.30.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@opentelemetry/sdk-metrics"
+      ]
+    },
+    "@opentelemetry/semantic-conventions": {
+      "version": "1.28.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @opentelemetry/semantic-conventions@1.28.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@opentelemetry/semantic-conventions"
+      ]
+    },
+    "@panva/hkdf": {
+      "version": "1.2.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @panva/hkdf@1.2.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@panva/hkdf"
+      ]
+    },
+    "@pkgjs/parseargs": {
+      "version": "0.11.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @pkgjs/parseargs@0.11.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@pkgjs/parseargs"
+      ]
+    },
+    "@playwright/test": {
+      "version": "1.54.0",
+      "overridden": false
+    },
+    "@radix-ui/number": {
+      "version": "1.1.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @radix-ui/number@1.1.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/number"
+      ]
+    },
+    "@radix-ui/primitive": {
+      "version": "1.1.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @radix-ui/primitive@1.1.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/primitive"
+      ]
+    },
+    "@radix-ui/react-alert-dialog": {
+      "version": "1.1.14",
+      "resolved": "file:../.pnpm/@radix-ui+react-alert-dialog@1.1.14_@types+react-dom@19.1.6_@types+react@19.1.8__@types+react_hi2dqy3qw2c3wdqjpmxgmcftza/node_modules/@radix-ui/react-alert-dialog",
+      "overridden": false
+    },
+    "@radix-ui/react-arrow": {
+      "version": "1.1.7",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @radix-ui/react-arrow@1.1.7 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/react-arrow"
+      ]
+    },
+    "@radix-ui/react-collection": {
+      "version": "1.1.7",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @radix-ui/react-collection@1.1.7 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/react-collection"
+      ]
+    },
+    "@radix-ui/react-compose-refs": {
+      "version": "1.1.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @radix-ui/react-compose-refs@1.1.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/react-compose-refs"
+      ]
+    },
+    "@radix-ui/react-context": {
+      "version": "1.1.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @radix-ui/react-context@1.1.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/react-context"
+      ]
+    },
+    "@radix-ui/react-dialog": {
+      "version": "1.1.14",
+      "resolved": "file:../.pnpm/@radix-ui+react-dialog@1.1.14_@types+react-dom@19.1.6_@types+react@19.1.8__@types+react@19.1._xkx6efnpqhhb4lkirxfs4qofci/node_modules/@radix-ui/react-dialog",
+      "overridden": false
+    },
+    "@radix-ui/react-direction": {
+      "version": "1.1.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @radix-ui/react-direction@1.1.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/react-direction"
+      ]
+    },
+    "@radix-ui/react-dismissable-layer": {
+      "version": "1.1.10",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @radix-ui/react-dismissable-layer@1.1.10 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/react-dismissable-layer"
+      ]
+    },
+    "@radix-ui/react-dropdown-menu": {
+      "version": "2.1.15",
+      "resolved": "file:../.pnpm/@radix-ui+react-dropdown-menu@2.1.15_@types+react-dom@19.1.6_@types+react@19.1.8__@types+reac_ezm2pj3ogfhslhoicxmyhw5anq/node_modules/@radix-ui/react-dropdown-menu",
+      "overridden": false
+    },
+    "@radix-ui/react-focus-guards": {
+      "version": "1.1.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @radix-ui/react-focus-guards@1.1.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/react-focus-guards"
+      ]
+    },
+    "@radix-ui/react-focus-scope": {
+      "version": "1.1.7",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @radix-ui/react-focus-scope@1.1.7 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/react-focus-scope"
+      ]
+    },
+    "@radix-ui/react-icons": {
+      "version": "1.3.2",
+      "resolved": "file:../.pnpm/@radix-ui+react-icons@1.3.2_react@19.1.0/node_modules/@radix-ui/react-icons",
+      "overridden": false
+    },
+    "@radix-ui/react-id": {
+      "version": "1.1.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @radix-ui/react-id@1.1.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/react-id"
+      ]
+    },
+    "@radix-ui/react-label": {
+      "version": "2.1.7",
+      "resolved": "file:../.pnpm/@radix-ui+react-label@2.1.7_@types+react-dom@19.1.6_@types+react@19.1.8__@types+react@19.1.8__j2la6ja3cljjx4wkqu22cb224u/node_modules/@radix-ui/react-label",
+      "overridden": false
+    },
+    "@radix-ui/react-menu": {
+      "version": "2.1.15",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @radix-ui/react-menu@2.1.15 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/react-menu"
+      ]
+    },
+    "@radix-ui/react-popper": {
+      "version": "1.2.7",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @radix-ui/react-popper@1.2.7 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/react-popper"
+      ]
+    },
+    "@radix-ui/react-portal": {
+      "version": "1.1.9",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @radix-ui/react-portal@1.1.9 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/react-portal"
+      ]
+    },
+    "@radix-ui/react-presence": {
+      "version": "1.1.4",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @radix-ui/react-presence@1.1.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/react-presence"
+      ]
+    },
+    "@radix-ui/react-primitive": {
+      "version": "2.1.3",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @radix-ui/react-primitive@2.1.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/react-primitive"
+      ]
+    },
+    "@radix-ui/react-roving-focus": {
+      "version": "1.1.10",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @radix-ui/react-roving-focus@1.1.10 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/react-roving-focus"
+      ]
+    },
+    "@radix-ui/react-select": {
+      "version": "2.2.5",
+      "resolved": "file:../.pnpm/@radix-ui+react-select@2.2.5_@types+react-dom@19.1.6_@types+react@19.1.8__@types+react@19.1.8_h3u75pabkk75sw2qjhdanlolna/node_modules/@radix-ui/react-select",
+      "overridden": false
+    },
+    "@radix-ui/react-separator": {
+      "version": "1.1.7",
+      "resolved": "file:../.pnpm/@radix-ui+react-separator@1.1.7_@types+react-dom@19.1.6_@types+react@19.1.8__@types+react@19._mcxt4lvza4uwle3t7tm7kuunku/node_modules/@radix-ui/react-separator",
+      "overridden": false
+    },
+    "@radix-ui/react-slot": {
+      "version": "1.2.3",
+      "resolved": "file:../.pnpm/@radix-ui+react-slot@1.2.3_@types+react@19.1.8_react@19.1.0/node_modules/@radix-ui/react-slot",
+      "overridden": false
+    },
+    "@radix-ui/react-tooltip": {
+      "version": "1.2.7",
+      "resolved": "file:../.pnpm/@radix-ui+react-tooltip@1.2.7_@types+react-dom@19.1.6_@types+react@19.1.8__@types+react@19.1._56rr6jo5nkj3xvxhfwt3xxuoz4/node_modules/@radix-ui/react-tooltip",
+      "overridden": false
+    },
+    "@radix-ui/react-use-callback-ref": {
+      "version": "1.1.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @radix-ui/react-use-callback-ref@1.1.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/react-use-callback-ref"
+      ]
+    },
+    "@radix-ui/react-use-controllable-state": {
+      "version": "1.2.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @radix-ui/react-use-controllable-state@1.2.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/react-use-controllable-state"
+      ]
+    },
+    "@radix-ui/react-use-effect-event": {
+      "version": "0.0.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @radix-ui/react-use-effect-event@0.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/react-use-effect-event"
+      ]
+    },
+    "@radix-ui/react-use-escape-keydown": {
+      "version": "1.1.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @radix-ui/react-use-escape-keydown@1.1.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/react-use-escape-keydown"
+      ]
+    },
+    "@radix-ui/react-use-layout-effect": {
+      "version": "1.1.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @radix-ui/react-use-layout-effect@1.1.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/react-use-layout-effect"
+      ]
+    },
+    "@radix-ui/react-use-previous": {
+      "version": "1.1.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @radix-ui/react-use-previous@1.1.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/react-use-previous"
+      ]
+    },
+    "@radix-ui/react-use-rect": {
+      "version": "1.1.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @radix-ui/react-use-rect@1.1.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/react-use-rect"
+      ]
+    },
+    "@radix-ui/react-use-size": {
+      "version": "1.1.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @radix-ui/react-use-size@1.1.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/react-use-size"
+      ]
+    },
+    "@radix-ui/react-visually-hidden": {
+      "version": "1.2.3",
+      "resolved": "file:../.pnpm/@radix-ui+react-visually-hidden@1.2.3_@types+react-dom@19.1.6_@types+react@19.1.8__@types+rea_ly3w4pl74yg4rz5l5dfnr2bqca/node_modules/@radix-ui/react-visually-hidden",
+      "overridden": false
+    },
+    "@radix-ui/rect": {
+      "version": "1.1.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @radix-ui/rect@1.1.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@radix-ui/rect"
+      ]
+    },
+    "@rushstack/eslint-patch": {
+      "version": "1.12.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @rushstack/eslint-patch@1.12.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@rushstack/eslint-patch"
+      ]
+    },
+    "@smithy/eventstream-codec": {
+      "version": "1.1.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @smithy/eventstream-codec@1.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@smithy/eventstream-codec"
+      ]
+    },
+    "@smithy/is-array-buffer": {
+      "version": "1.1.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @smithy/is-array-buffer@1.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@smithy/is-array-buffer"
+      ]
+    },
+    "@smithy/signature-v4": {
+      "version": "1.1.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @smithy/signature-v4@1.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@smithy/signature-v4"
+      ]
+    },
+    "@smithy/util-hex-encoding": {
+      "version": "1.1.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @smithy/util-hex-encoding@1.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@smithy/util-hex-encoding"
+      ]
+    },
+    "@smithy/util-uri-escape": {
+      "version": "1.1.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @smithy/util-uri-escape@1.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@smithy/util-uri-escape"
+      ]
+    },
+    "@smithy/util-waiter": {
+      "version": "4.0.6",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @smithy/util-waiter@4.0.6 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@smithy/util-waiter"
+      ]
+    },
+    "@swc/counter": {
+      "version": "0.1.3",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @swc/counter@0.1.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@swc/counter"
+      ]
+    },
+    "@swc/helpers": {
+      "version": "0.5.15",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @swc/helpers@0.5.15 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@swc/helpers"
+      ]
+    },
+    "@tailwindcss/typography": {
+      "version": "0.5.16",
+      "resolved": "file:../.pnpm/@tailwindcss+typography@0.5.16_tailwindcss@3.4.17/node_modules/@tailwindcss/typography",
+      "overridden": false
+    },
+    "@tanstack/react-query-devtools": {
+      "version": "5.82.0",
+      "overridden": false
+    },
+    "@tanstack/react-query": {
+      "version": "5.82.0",
+      "overridden": false
+    },
+    "@testing-library/dom": {
+      "version": "10.4.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @testing-library/dom@10.4.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@testing-library/dom"
+      ]
+    },
+    "@testing-library/jest-dom": {
+      "version": "6.6.3",
+      "resolved": "file:../.pnpm/@testing-library+jest-dom@6.6.3/node_modules/@testing-library/jest-dom",
+      "overridden": false
+    },
+    "@testing-library/react": {
+      "version": "16.3.0",
+      "resolved": "file:../.pnpm/@testing-library+react@16.3.0_@testing-library+dom@10.4.0_@types+react-dom@19.1.6_@types+reac_xbibouo3qhqieqksamtrr6yyp4/node_modules/@testing-library/react",
+      "overridden": false
+    },
+    "@tybys/wasm-util": {
+      "version": "0.9.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @tybys/wasm-util@0.9.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@tybys/wasm-util"
+      ]
+    },
+    "@types/aria-query": {
+      "version": "5.0.4",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @types/aria-query@5.0.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@types/aria-query"
+      ]
+    },
+    "@types/cookie": {
+      "version": "0.6.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @types/cookie@0.6.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@types/cookie"
+      ]
+    },
+    "@types/d3-time": {
+      "version": "3.0.4",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @types/d3-time@3.0.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@types/d3-time"
+      ]
+    },
+    "@types/diff-match-patch": {
+      "version": "1.0.36",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @types/diff-match-patch@1.0.36 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@types/diff-match-patch"
+      ]
+    },
+    "@types/estree-jsx": {
+      "version": "1.0.5",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @types/estree-jsx@1.0.5 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@types/estree-jsx"
+      ]
+    },
+    "@types/hast": {
+      "version": "3.0.4",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @types/hast@3.0.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@types/hast"
+      ]
+    },
+    "@types/linkify-it": {
+      "version": "5.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @types/linkify-it@5.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@types/linkify-it"
+      ]
+    },
+    "@types/markdown-it": {
+      "version": "14.1.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @types/markdown-it@14.1.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@types/markdown-it"
+      ]
+    },
+    "@types/mdast": {
+      "version": "4.0.4",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @types/mdast@4.0.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@types/mdast"
+      ]
+    },
+    "@types/mdurl": {
+      "version": "2.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @types/mdurl@2.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@types/mdurl"
+      ]
+    },
+    "@types/node": {
+      "version": "22.16.2",
+      "overridden": false
+    },
+    "@types/papaparse": {
+      "version": "5.3.16",
+      "resolved": "file:../.pnpm/@types+papaparse@5.3.16/node_modules/@types/papaparse",
+      "overridden": false
+    },
+    "@types/pg": {
+      "version": "8.11.6",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @types/pg@8.11.6 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@types/pg"
+      ]
+    },
+    "@types/prop-types": {
+      "version": "15.7.15",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @types/prop-types@15.7.15 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@types/prop-types"
+      ]
+    },
+    "@types/react-dom": {
+      "version": "19.1.6",
+      "resolved": "file:../.pnpm/@types+react-dom@19.1.6_@types+react@19.1.8/node_modules/@types/react-dom",
+      "overridden": false
+    },
+    "@types/react": {
+      "version": "19.1.8",
+      "resolved": "file:../.pnpm/@types+react@19.1.8/node_modules/@types/react",
+      "overridden": false
+    },
+    "@types/shimmer": {
+      "version": "1.2.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @types/shimmer@1.2.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@types/shimmer"
+      ]
+    },
+    "@types/unist": {
+      "version": "3.0.3",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @types/unist@3.0.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@types/unist"
+      ]
+    },
+    "@ungap/structured-clone": {
+      "version": "1.3.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: @ungap/structured-clone@1.3.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/@ungap/structured-clone"
+      ]
+    },
+    "@vercel/analytics": {
+      "version": "1.5.0",
+      "resolved": "file:../.pnpm/@vercel+analytics@1.5.0_next@15.3.0-canary.31_@opentelemetry+api@1.9.0_@playwright+test@1.53._xgvpbosg6qcvketcbkt7wfvcy4/node_modules/@vercel/analytics",
+      "overridden": false
+    },
+    "@vercel/blob": {
+      "version": "0.24.1",
+      "resolved": "file:../.pnpm/@vercel+blob@0.24.1/node_modules/@vercel/blob",
+      "overridden": false
+    },
+    "@vercel/functions": {
+      "version": "2.2.3",
+      "overridden": false
+    },
+    "@vercel/otel": {
+      "version": "1.13.0",
+      "resolved": "file:../.pnpm/@vercel+otel@1.13.0_@opentelemetry+api-logs@0.202.0_@opentelemetry+api@1.9.0_@opentelemetry+i_cfo5pmkprtrenicgwopteqqiei/node_modules/@vercel/otel",
+      "overridden": false
+    },
+    "@vercel/postgres": {
+      "version": "0.10.0",
+      "resolved": "file:../.pnpm/@vercel+postgres@0.10.0/node_modules/@vercel/postgres",
+      "overridden": false
+    },
+    "@vitest/coverage-v8": {
+      "version": "3.2.3",
+      "resolved": "file:../.pnpm/@vitest+coverage-v8@3.2.3_vitest@3.2.3/node_modules/@vitest/coverage-v8",
+      "overridden": false
+    },
+    "@vitest/ui": {
+      "version": "3.2.4",
+      "overridden": false
+    },
+    "acorn-import-attributes": {
+      "version": "1.9.5",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: acorn-import-attributes@1.9.5 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/acorn-import-attributes"
+      ]
+    },
+    "ai": {
+      "version": "4.3.13",
+      "resolved": "file:.pnpm/ai@4.3.13_react@19.1.0_zod@3.25.64/node_modules/ai",
+      "overridden": false
+    },
+    "ansi-escapes": {
+      "version": "7.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: ansi-escapes@7.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/ansi-escapes"
+      ]
+    },
+    "ansi-regex": {
+      "version": "5.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: ansi-regex@5.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/ansi-regex"
+      ]
+    },
+    "any-promise": {
+      "version": "1.3.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: any-promise@1.3.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/any-promise"
+      ]
+    },
+    "anymatch": {
+      "version": "3.1.3",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: anymatch@3.1.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/anymatch"
+      ]
+    },
+    "arg": {
+      "version": "5.0.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: arg@5.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/arg"
+      ]
+    },
+    "aria-hidden": {
+      "version": "1.2.6",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: aria-hidden@1.2.6 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/aria-hidden"
+      ]
+    },
+    "array-union": {
+      "version": "2.1.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: array-union@2.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/array-union"
+      ]
+    },
+    "ast-v8-to-istanbul": {
+      "version": "0.3.3",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: ast-v8-to-istanbul@0.3.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/ast-v8-to-istanbul"
+      ]
+    },
+    "async-retry": {
+      "version": "1.3.3",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: async-retry@1.3.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/async-retry"
+      ]
+    },
+    "bail": {
+      "version": "2.0.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: bail@2.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/bail"
+      ]
+    },
+    "bcrypt-ts": {
+      "version": "5.0.3",
+      "resolved": "file:.pnpm/bcrypt-ts@5.0.3/node_modules/bcrypt-ts",
+      "overridden": false
+    },
+    "binary-extensions": {
+      "version": "2.3.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: binary-extensions@2.3.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/binary-extensions"
+      ]
+    },
+    "buffer-from": {
+      "version": "1.1.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: buffer-from@1.1.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/buffer-from"
+      ]
+    },
+    "buffer": {
+      "version": "6.0.3",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: buffer@6.0.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/buffer"
+      ]
+    },
+    "busboy": {
+      "version": "1.6.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: busboy@1.6.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/busboy"
+      ]
+    },
+    "bytes": {
+      "version": "3.1.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: bytes@3.1.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/bytes"
+      ]
+    },
+    "camelcase-css": {
+      "version": "2.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: camelcase-css@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/camelcase-css"
+      ]
+    },
+    "caniuse-lite": {
+      "version": "1.0.30001727",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: caniuse-lite@1.0.30001727 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/caniuse-lite"
+      ]
+    },
+    "ccount": {
+      "version": "2.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: ccount@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/ccount"
+      ]
+    },
+    "chalk": {
+      "version": "3.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: chalk@3.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/chalk"
+      ]
+    },
+    "character-entities-html4": {
+      "version": "2.1.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: character-entities-html4@2.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/character-entities-html4"
+      ]
+    },
+    "character-entities-legacy": {
+      "version": "3.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: character-entities-legacy@3.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/character-entities-legacy"
+      ]
+    },
+    "character-entities": {
+      "version": "2.0.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: character-entities@2.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/character-entities"
+      ]
+    },
+    "character-reference-invalid": {
+      "version": "2.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: character-reference-invalid@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/character-reference-invalid"
+      ]
+    },
+    "chokidar": {
+      "version": "3.6.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: chokidar@3.6.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/chokidar"
+      ]
+    },
+    "cjs-module-lexer": {
+      "version": "1.4.3",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: cjs-module-lexer@1.4.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/cjs-module-lexer"
+      ]
+    },
+    "class-variance-authority": {
+      "version": "0.7.1",
+      "resolved": "file:.pnpm/class-variance-authority@0.7.1/node_modules/class-variance-authority",
+      "overridden": false
+    },
+    "classnames": {
+      "version": "2.5.1",
+      "resolved": "file:.pnpm/classnames@2.5.1/node_modules/classnames",
+      "overridden": false
+    },
+    "cli-cursor": {
+      "version": "5.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: cli-cursor@5.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/cli-cursor"
+      ]
+    },
+    "cli-truncate": {
+      "version": "4.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: cli-truncate@4.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/cli-truncate"
+      ]
+    },
+    "client-only": {
+      "version": "0.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: client-only@0.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/client-only"
+      ]
+    },
+    "clsx": {
+      "version": "2.1.1",
+      "resolved": "file:.pnpm/clsx@2.1.1/node_modules/clsx",
+      "overridden": false
+    },
+    "codemirror": {
+      "version": "6.0.2",
+      "overridden": false
+    },
+    "cohere-ai": {
+      "version": "7.17.1",
+      "resolved": "file:.pnpm/cohere-ai@7.17.1/node_modules/cohere-ai",
+      "overridden": false
+    },
+    "color-string": {
+      "version": "1.9.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: color-string@1.9.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/color-string"
+      ]
+    },
+    "color": {
+      "version": "4.2.3",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: color@4.2.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/color"
+      ]
+    },
+    "comma-separated-tokens": {
+      "version": "2.0.3",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: comma-separated-tokens@2.0.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/comma-separated-tokens"
+      ]
+    },
+    "commander": {
+      "version": "13.1.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: commander@13.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/commander"
+      ]
+    },
+    "convict": {
+      "version": "6.2.4",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: convict@6.2.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/convict"
+      ]
+    },
+    "cookie": {
+      "version": "0.7.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: cookie@0.7.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/cookie"
+      ]
+    },
+    "cross-spawn": {
+      "version": "7.0.6",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: cross-spawn@7.0.6 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/cross-spawn"
+      ]
+    },
+    "css.escape": {
+      "version": "1.5.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: css.escape@1.5.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/css.escape"
+      ]
+    },
+    "cssesc": {
+      "version": "3.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: cssesc@3.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/cssesc"
+      ]
+    },
+    "cssstyle": {
+      "version": "4.6.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: cssstyle@4.6.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/cssstyle"
+      ]
+    },
+    "csstype": {
+      "version": "3.1.3",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: csstype@3.1.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/csstype"
+      ]
+    },
+    "data-urls": {
+      "version": "5.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: data-urls@5.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/data-urls"
+      ]
+    },
+    "date-fns": {
+      "version": "4.1.0",
+      "resolved": "file:.pnpm/date-fns@4.1.0/node_modules/date-fns",
+      "overridden": false
+    },
+    "decimal.js": {
+      "version": "10.6.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: decimal.js@10.6.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/decimal.js"
+      ]
+    },
+    "decode-named-character-reference": {
+      "version": "1.2.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: decode-named-character-reference@1.2.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/decode-named-character-reference"
+      ]
+    },
+    "deep-is": {
+      "version": "0.1.4",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: deep-is@0.1.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/deep-is"
+      ]
+    },
+    "detect-libc": {
+      "version": "2.0.4",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: detect-libc@2.0.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/detect-libc"
+      ]
+    },
+    "detect-node-es": {
+      "version": "1.1.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: detect-node-es@1.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/detect-node-es"
+      ]
+    },
+    "devlop": {
+      "version": "1.1.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: devlop@1.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/devlop"
+      ]
+    },
+    "didyoumean": {
+      "version": "1.2.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: didyoumean@1.2.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/didyoumean"
+      ]
+    },
+    "diff-match-patch": {
+      "version": "1.0.5",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: diff-match-patch@1.0.5 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/diff-match-patch"
+      ]
+    },
+    "dir-glob": {
+      "version": "3.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: dir-glob@3.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/dir-glob"
+      ]
+    },
+    "dlv": {
+      "version": "1.1.3",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: dlv@1.1.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/dlv"
+      ]
+    },
+    "doctrine": {
+      "version": "3.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: doctrine@3.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/doctrine"
+      ]
+    },
+    "dom-accessibility-api": {
+      "version": "0.6.3",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: dom-accessibility-api@0.6.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/dom-accessibility-api"
+      ]
+    },
+    "dotenv": {
+      "version": "16.6.1",
+      "overridden": false
+    },
+    "drizzle-kit": {
+      "version": "0.25.0",
+      "resolved": "file:.pnpm/drizzle-kit@0.25.0/node_modules/drizzle-kit",
+      "overridden": false
+    },
+    "drizzle-orm": {
+      "version": "0.34.1",
+      "resolved": "file:.pnpm/drizzle-orm@0.34.1_@neondatabase+serverless@0.9.5_@opentelemetry+api@1.9.0_@types+pg@8.11.6_@_tg43buy35i35pr5tryygv76c5q/node_modules/drizzle-orm",
+      "overridden": false
+    },
+    "eastasianwidth": {
+      "version": "0.2.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: eastasianwidth@0.2.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/eastasianwidth"
+      ]
+    },
+    "entities": {
+      "version": "6.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: entities@6.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/entities"
+      ]
+    },
+    "environment": {
+      "version": "1.1.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: environment@1.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/environment"
+      ]
+    },
+    "esbuild-register": {
+      "version": "3.6.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: esbuild-register@3.6.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/esbuild-register"
+      ]
+    },
+    "esbuild": {
+      "version": "0.19.12",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: esbuild@0.19.12 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/esbuild"
+      ]
+    },
+    "escape-string-regexp": {
+      "version": "4.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: escape-string-regexp@4.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/escape-string-regexp"
+      ]
+    },
+    "eslint-config-next": {
+      "version": "15.3.0-canary.31",
+      "resolved": "file:.pnpm/eslint-config-next@15.3.0-canary.31_eslint@8.57.1_typescript@5.8.3/node_modules/eslint-config-next",
+      "overridden": false
+    },
+    "eslint-config-prettier": {
+      "version": "9.1.0",
+      "resolved": "file:.pnpm/eslint-config-prettier@9.1.0_eslint@8.57.1/node_modules/eslint-config-prettier",
+      "overridden": false
+    },
+    "eslint-import-resolver-typescript": {
+      "version": "4.4.4",
+      "overridden": false
+    },
+    "eslint-plugin-tailwindcss": {
+      "version": "3.18.0",
+      "resolved": "file:.pnpm/eslint-plugin-tailwindcss@3.18.0_tailwindcss@3.4.17/node_modules/eslint-plugin-tailwindcss",
+      "overridden": false
+    },
+    "eslint": {
+      "version": "8.57.1",
+      "resolved": "file:.pnpm/eslint@8.57.1/node_modules/eslint",
+      "overridden": false
+    },
+    "esquery": {
+      "version": "1.6.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: esquery@1.6.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/esquery"
+      ]
+    },
+    "estree-util-is-identifier-name": {
+      "version": "3.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: estree-util-is-identifier-name@3.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/estree-util-is-identifier-name"
+      ]
+    },
+    "eventemitter3": {
+      "version": "5.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: eventemitter3@5.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/eventemitter3"
+      ]
+    },
+    "events": {
+      "version": "3.3.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: events@3.3.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/events"
+      ]
+    },
+    "execa": {
+      "version": "8.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: execa@8.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/execa"
+      ]
+    },
+    "fast-deep-equal": {
+      "version": "3.1.3",
+      "resolved": "file:.pnpm/fast-deep-equal@3.1.3/node_modules/fast-deep-equal",
+      "overridden": false
+    },
+    "fast-levenshtein": {
+      "version": "2.0.6",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: fast-levenshtein@2.0.6 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/fast-levenshtein"
+      ]
+    },
+    "file-entry-cache": {
+      "version": "6.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: file-entry-cache@6.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/file-entry-cache"
+      ]
+    },
+    "find-up": {
+      "version": "5.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: find-up@5.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/find-up"
+      ]
+    },
+    "flat-cache": {
+      "version": "3.2.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: flat-cache@3.2.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/flat-cache"
+      ]
+    },
+    "foreground-child": {
+      "version": "3.3.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: foreground-child@3.3.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/foreground-child"
+      ]
+    },
+    "form-data-encoder": {
+      "version": "4.1.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: form-data-encoder@4.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/form-data-encoder"
+      ]
+    },
+    "formdata-node": {
+      "version": "6.0.3",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: formdata-node@6.0.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/formdata-node"
+      ]
+    },
+    "framer-motion": {
+      "version": "11.18.2",
+      "resolved": "file:.pnpm/framer-motion@11.18.2_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/framer-motion",
+      "overridden": false
+    },
+    "fs.realpath": {
+      "version": "1.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: fs.realpath@1.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/fs.realpath"
+      ]
+    },
+    "geist": {
+      "version": "1.4.2",
+      "resolved": "file:.pnpm/geist@1.4.2_next@15.3.0-canary.31_@opentelemetry+api@1.9.0_@playwright+test@1.53.0_react-dom@_elfg5kpfwf3y3uvbvfme4lrelm/node_modules/geist",
+      "overridden": false
+    },
+    "get-east-asian-width": {
+      "version": "1.3.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: get-east-asian-width@1.3.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/get-east-asian-width"
+      ]
+    },
+    "get-nonce": {
+      "version": "1.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: get-nonce@1.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/get-nonce"
+      ]
+    },
+    "get-stream": {
+      "version": "8.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: get-stream@8.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/get-stream"
+      ]
+    },
+    "glob-parent": {
+      "version": "6.0.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: glob-parent@6.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/glob-parent"
+      ]
+    },
+    "glob": {
+      "version": "10.4.5",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: glob@10.4.5 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/glob"
+      ]
+    },
+    "globby": {
+      "version": "11.1.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: globby@11.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/globby"
+      ]
+    },
+    "hast-util-to-jsx-runtime": {
+      "version": "2.3.6",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: hast-util-to-jsx-runtime@2.3.6 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/hast-util-to-jsx-runtime"
+      ]
+    },
+    "hast-util-whitespace": {
+      "version": "3.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: hast-util-whitespace@3.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/hast-util-whitespace"
+      ]
+    },
+    "html-encoding-sniffer": {
+      "version": "4.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: html-encoding-sniffer@4.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/html-encoding-sniffer"
+      ]
+    },
+    "html-escaper": {
+      "version": "2.0.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: html-escaper@2.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/html-escaper"
+      ]
+    },
+    "html-url-attributes": {
+      "version": "3.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: html-url-attributes@3.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/html-url-attributes"
+      ]
+    },
+    "http-proxy-agent": {
+      "version": "7.0.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: http-proxy-agent@7.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/http-proxy-agent"
+      ]
+    },
+    "human-signals": {
+      "version": "5.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: human-signals@5.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/human-signals"
+      ]
+    },
+    "husky": {
+      "version": "9.1.7",
+      "resolved": "file:.pnpm/husky@9.1.7/node_modules/husky",
+      "overridden": false
+    },
+    "iconv-lite": {
+      "version": "0.6.3",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: iconv-lite@0.6.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/iconv-lite"
+      ]
+    },
+    "ieee754": {
+      "version": "1.2.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: ieee754@1.2.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/ieee754"
+      ]
+    },
+    "import-in-the-middle": {
+      "version": "1.14.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: import-in-the-middle@1.14.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/import-in-the-middle"
+      ]
+    },
+    "imurmurhash": {
+      "version": "0.1.4",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: imurmurhash@0.1.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/imurmurhash"
+      ]
+    },
+    "indent-string": {
+      "version": "4.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: indent-string@4.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/indent-string"
+      ]
+    },
+    "inflight": {
+      "version": "1.0.6",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: inflight@1.0.6 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/inflight"
+      ]
+    },
+    "inherits": {
+      "version": "2.0.4",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: inherits@2.0.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/inherits"
+      ]
+    },
+    "inline-style-parser": {
+      "version": "0.2.4",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: inline-style-parser@0.2.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/inline-style-parser"
+      ]
+    },
+    "is-alphabetical": {
+      "version": "2.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: is-alphabetical@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/is-alphabetical"
+      ]
+    },
+    "is-alphanumerical": {
+      "version": "2.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: is-alphanumerical@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/is-alphanumerical"
+      ]
+    },
+    "is-arrayish": {
+      "version": "0.3.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: is-arrayish@0.3.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/is-arrayish"
+      ]
+    },
+    "is-binary-path": {
+      "version": "2.1.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: is-binary-path@2.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/is-binary-path"
+      ]
+    },
+    "is-buffer": {
+      "version": "2.0.5",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: is-buffer@2.0.5 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/is-buffer"
+      ]
+    },
+    "is-decimal": {
+      "version": "2.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: is-decimal@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/is-decimal"
+      ]
+    },
+    "is-fullwidth-code-point": {
+      "version": "4.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: is-fullwidth-code-point@4.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/is-fullwidth-code-point"
+      ]
+    },
+    "is-hexadecimal": {
+      "version": "2.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: is-hexadecimal@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/is-hexadecimal"
+      ]
+    },
+    "is-path-inside": {
+      "version": "3.0.3",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: is-path-inside@3.0.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/is-path-inside"
+      ]
+    },
+    "is-plain-obj": {
+      "version": "4.1.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: is-plain-obj@4.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/is-plain-obj"
+      ]
+    },
+    "is-potential-custom-element-name": {
+      "version": "1.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: is-potential-custom-element-name@1.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/is-potential-custom-element-name"
+      ]
+    },
+    "is-stream": {
+      "version": "3.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: is-stream@3.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/is-stream"
+      ]
+    },
+    "isexe": {
+      "version": "2.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: isexe@2.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/isexe"
+      ]
+    },
+    "istanbul-lib-coverage": {
+      "version": "3.2.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: istanbul-lib-coverage@3.2.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/istanbul-lib-coverage"
+      ]
+    },
+    "istanbul-lib-report": {
+      "version": "3.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: istanbul-lib-report@3.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/istanbul-lib-report"
+      ]
+    },
+    "istanbul-lib-source-maps": {
+      "version": "5.0.6",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: istanbul-lib-source-maps@5.0.6 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/istanbul-lib-source-maps"
+      ]
+    },
+    "istanbul-reports": {
+      "version": "3.1.7",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: istanbul-reports@3.1.7 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/istanbul-reports"
+      ]
+    },
+    "jackspeak": {
+      "version": "3.4.3",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: jackspeak@3.4.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/jackspeak"
+      ]
+    },
+    "jose": {
+      "version": "5.10.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: jose@5.10.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/jose"
+      ]
+    },
+    "js-base64": {
+      "version": "3.7.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: js-base64@3.7.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/js-base64"
+      ]
+    },
+    "js-tokens": {
+      "version": "9.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: js-tokens@9.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/js-tokens"
+      ]
+    },
+    "jsdom": {
+      "version": "26.1.0",
+      "resolved": "file:.pnpm/jsdom@26.1.0_bufferutil@4.0.9/node_modules/jsdom",
+      "overridden": false
+    },
+    "json-buffer": {
+      "version": "3.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: json-buffer@3.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/json-buffer"
+      ]
+    },
+    "json-stable-stringify-without-jsonify": {
+      "version": "1.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: json-stable-stringify-without-jsonify@1.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/json-stable-stringify-without-jsonify"
+      ]
+    },
+    "jsondiffpatch": {
+      "version": "0.6.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: jsondiffpatch@0.6.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/jsondiffpatch"
+      ]
+    },
+    "keyv": {
+      "version": "4.5.4",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: keyv@4.5.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/keyv"
+      ]
+    },
+    "langsmith": {
+      "version": "0.3.41",
+      "overridden": false
+    },
+    "levn": {
+      "version": "0.4.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: levn@0.4.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/levn"
+      ]
+    },
+    "lilconfig": {
+      "version": "3.1.3",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: lilconfig@3.1.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/lilconfig"
+      ]
+    },
+    "lines-and-columns": {
+      "version": "1.2.4",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: lines-and-columns@1.2.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/lines-and-columns"
+      ]
+    },
+    "linkify-it": {
+      "version": "5.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: linkify-it@5.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/linkify-it"
+      ]
+    },
+    "lint-staged": {
+      "version": "15.5.2",
+      "resolved": "file:.pnpm/lint-staged@15.5.2/node_modules/lint-staged",
+      "overridden": false
+    },
+    "listr2": {
+      "version": "8.3.3",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: listr2@8.3.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/listr2"
+      ]
+    },
+    "locate-path": {
+      "version": "6.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: locate-path@6.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/locate-path"
+      ]
+    },
+    "lodash.castarray": {
+      "version": "4.4.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: lodash.castarray@4.4.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/lodash.castarray"
+      ]
+    },
+    "lodash.clonedeep": {
+      "version": "4.5.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: lodash.clonedeep@4.5.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/lodash.clonedeep"
+      ]
+    },
+    "lodash.debounce": {
+      "version": "4.0.8",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: lodash.debounce@4.0.8 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/lodash.debounce"
+      ]
+    },
+    "lodash.isplainobject": {
+      "version": "4.0.6",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: lodash.isplainobject@4.0.6 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/lodash.isplainobject"
+      ]
+    },
+    "lodash.merge": {
+      "version": "4.6.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: lodash.merge@4.6.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/lodash.merge"
+      ]
+    },
+    "lodash": {
+      "version": "4.17.21",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: lodash@4.17.21 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/lodash"
+      ]
+    },
+    "log-update": {
+      "version": "6.1.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: log-update@6.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/log-update"
+      ]
+    },
+    "longest-streak": {
+      "version": "3.1.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: longest-streak@3.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/longest-streak"
+      ]
+    },
+    "lru-cache": {
+      "version": "10.4.3",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: lru-cache@10.4.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/lru-cache"
+      ]
+    },
+    "lucide-react": {
+      "version": "0.446.0",
+      "resolved": "file:.pnpm/lucide-react@0.446.0_react@19.1.0/node_modules/lucide-react",
+      "overridden": false
+    },
+    "lz-string": {
+      "version": "1.5.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: lz-string@1.5.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/lz-string"
+      ]
+    },
+    "make-dir": {
+      "version": "4.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: make-dir@4.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/make-dir"
+      ]
+    },
+    "markdown-it": {
+      "version": "14.1.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: markdown-it@14.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/markdown-it"
+      ]
+    },
+    "markdown-table": {
+      "version": "3.0.4",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: markdown-table@3.0.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/markdown-table"
+      ]
+    },
+    "mdast-util-find-and-replace": {
+      "version": "3.0.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: mdast-util-find-and-replace@3.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/mdast-util-find-and-replace"
+      ]
+    },
+    "mdast-util-from-markdown": {
+      "version": "2.0.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: mdast-util-from-markdown@2.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/mdast-util-from-markdown"
+      ]
+    },
+    "mdast-util-gfm-autolink-literal": {
+      "version": "2.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: mdast-util-gfm-autolink-literal@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/mdast-util-gfm-autolink-literal"
+      ]
+    },
+    "mdast-util-gfm-footnote": {
+      "version": "2.1.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: mdast-util-gfm-footnote@2.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/mdast-util-gfm-footnote"
+      ]
+    },
+    "mdast-util-gfm-strikethrough": {
+      "version": "2.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: mdast-util-gfm-strikethrough@2.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/mdast-util-gfm-strikethrough"
+      ]
+    },
+    "mdast-util-gfm-table": {
+      "version": "2.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: mdast-util-gfm-table@2.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/mdast-util-gfm-table"
+      ]
+    },
+    "mdast-util-gfm-task-list-item": {
+      "version": "2.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: mdast-util-gfm-task-list-item@2.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/mdast-util-gfm-task-list-item"
+      ]
+    },
+    "mdast-util-gfm": {
+      "version": "3.1.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: mdast-util-gfm@3.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/mdast-util-gfm"
+      ]
+    },
+    "mdast-util-mdx-expression": {
+      "version": "2.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: mdast-util-mdx-expression@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/mdast-util-mdx-expression"
+      ]
+    },
+    "mdast-util-mdx-jsx": {
+      "version": "3.2.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: mdast-util-mdx-jsx@3.2.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/mdast-util-mdx-jsx"
+      ]
+    },
+    "mdast-util-mdxjs-esm": {
+      "version": "2.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: mdast-util-mdxjs-esm@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/mdast-util-mdxjs-esm"
+      ]
+    },
+    "mdast-util-phrasing": {
+      "version": "4.1.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: mdast-util-phrasing@4.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/mdast-util-phrasing"
+      ]
+    },
+    "mdast-util-to-hast": {
+      "version": "13.2.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: mdast-util-to-hast@13.2.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/mdast-util-to-hast"
+      ]
+    },
+    "mdast-util-to-markdown": {
+      "version": "2.1.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: mdast-util-to-markdown@2.1.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/mdast-util-to-markdown"
+      ]
+    },
+    "mdast-util-to-string": {
+      "version": "4.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: mdast-util-to-string@4.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/mdast-util-to-string"
+      ]
+    },
+    "mdurl": {
+      "version": "2.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: mdurl@2.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/mdurl"
+      ]
+    },
+    "merge-stream": {
+      "version": "2.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: merge-stream@2.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/merge-stream"
+      ]
+    },
+    "micromark-core-commonmark": {
+      "version": "2.0.3",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: micromark-core-commonmark@2.0.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-core-commonmark"
+      ]
+    },
+    "micromark-extension-gfm-autolink-literal": {
+      "version": "2.1.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: micromark-extension-gfm-autolink-literal@2.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-extension-gfm-autolink-literal"
+      ]
+    },
+    "micromark-extension-gfm-footnote": {
+      "version": "2.1.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: micromark-extension-gfm-footnote@2.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-extension-gfm-footnote"
+      ]
+    },
+    "micromark-extension-gfm-strikethrough": {
+      "version": "2.1.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: micromark-extension-gfm-strikethrough@2.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-extension-gfm-strikethrough"
+      ]
+    },
+    "micromark-extension-gfm-table": {
+      "version": "2.1.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: micromark-extension-gfm-table@2.1.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-extension-gfm-table"
+      ]
+    },
+    "micromark-extension-gfm-tagfilter": {
+      "version": "2.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: micromark-extension-gfm-tagfilter@2.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-extension-gfm-tagfilter"
+      ]
+    },
+    "micromark-extension-gfm-task-list-item": {
+      "version": "2.1.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: micromark-extension-gfm-task-list-item@2.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-extension-gfm-task-list-item"
+      ]
+    },
+    "micromark-extension-gfm": {
+      "version": "3.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: micromark-extension-gfm@3.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-extension-gfm"
+      ]
+    },
+    "micromark-factory-destination": {
+      "version": "2.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: micromark-factory-destination@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-factory-destination"
+      ]
+    },
+    "micromark-factory-label": {
+      "version": "2.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: micromark-factory-label@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-factory-label"
+      ]
+    },
+    "micromark-factory-space": {
+      "version": "2.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: micromark-factory-space@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-factory-space"
+      ]
+    },
+    "micromark-factory-title": {
+      "version": "2.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: micromark-factory-title@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-factory-title"
+      ]
+    },
+    "micromark-factory-whitespace": {
+      "version": "2.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: micromark-factory-whitespace@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-factory-whitespace"
+      ]
+    },
+    "micromark-util-character": {
+      "version": "2.1.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: micromark-util-character@2.1.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-util-character"
+      ]
+    },
+    "micromark-util-chunked": {
+      "version": "2.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: micromark-util-chunked@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-util-chunked"
+      ]
+    },
+    "micromark-util-classify-character": {
+      "version": "2.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: micromark-util-classify-character@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-util-classify-character"
+      ]
+    },
+    "micromark-util-combine-extensions": {
+      "version": "2.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: micromark-util-combine-extensions@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-util-combine-extensions"
+      ]
+    },
+    "micromark-util-decode-numeric-character-reference": {
+      "version": "2.0.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: micromark-util-decode-numeric-character-reference@2.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-util-decode-numeric-character-reference"
+      ]
+    },
+    "micromark-util-decode-string": {
+      "version": "2.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: micromark-util-decode-string@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-util-decode-string"
+      ]
+    },
+    "micromark-util-encode": {
+      "version": "2.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: micromark-util-encode@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-util-encode"
+      ]
+    },
+    "micromark-util-html-tag-name": {
+      "version": "2.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: micromark-util-html-tag-name@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-util-html-tag-name"
+      ]
+    },
+    "micromark-util-normalize-identifier": {
+      "version": "2.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: micromark-util-normalize-identifier@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-util-normalize-identifier"
+      ]
+    },
+    "micromark-util-resolve-all": {
+      "version": "2.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: micromark-util-resolve-all@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-util-resolve-all"
+      ]
+    },
+    "micromark-util-sanitize-uri": {
+      "version": "2.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: micromark-util-sanitize-uri@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-util-sanitize-uri"
+      ]
+    },
+    "micromark-util-subtokenize": {
+      "version": "2.1.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: micromark-util-subtokenize@2.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-util-subtokenize"
+      ]
+    },
+    "micromark-util-symbol": {
+      "version": "2.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: micromark-util-symbol@2.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-util-symbol"
+      ]
+    },
+    "micromark-util-types": {
+      "version": "2.0.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: micromark-util-types@2.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark-util-types"
+      ]
+    },
+    "micromark": {
+      "version": "4.0.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: micromark@4.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/micromark"
+      ]
+    },
+    "mimic-fn": {
+      "version": "4.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: mimic-fn@4.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/mimic-fn"
+      ]
+    },
+    "mimic-function": {
+      "version": "5.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: mimic-function@5.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/mimic-function"
+      ]
+    },
+    "min-indent": {
+      "version": "1.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: min-indent@1.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/min-indent"
+      ]
+    },
+    "minipass": {
+      "version": "7.1.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: minipass@7.1.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/minipass"
+      ]
+    },
+    "module-details-from-path": {
+      "version": "1.0.4",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: module-details-from-path@1.0.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/module-details-from-path"
+      ]
+    },
+    "motion-dom": {
+      "version": "11.18.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: motion-dom@11.18.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/motion-dom"
+      ]
+    },
+    "motion-utils": {
+      "version": "11.18.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: motion-utils@11.18.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/motion-utils"
+      ]
+    },
+    "mz": {
+      "version": "2.7.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: mz@2.7.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/mz"
+      ]
+    },
+    "nanoid": {
+      "version": "5.1.5",
+      "resolved": "file:.pnpm/nanoid@5.1.5/node_modules/nanoid",
+      "overridden": false
+    },
+    "next-auth": {
+      "version": "5.0.0-beta.25",
+      "resolved": "file:.pnpm/next-auth@5.0.0-beta.25_next@15.3.0-canary.31_@opentelemetry+api@1.9.0_@playwright+test@1.53._wmtq2cl2rmzvp7ein6rgn63faq/node_modules/next-auth",
+      "overridden": false
+    },
+    "next-themes": {
+      "version": "0.3.0",
+      "resolved": "file:.pnpm/next-themes@0.3.0_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next-themes",
+      "overridden": false
+    },
+    "next": {
+      "version": "15.3.0-canary.31",
+      "resolved": "file:.pnpm/next@15.3.0-canary.31_@opentelemetry+api@1.9.0_@playwright+test@1.53.0_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/next",
+      "overridden": false
+    },
+    "normalize-path": {
+      "version": "3.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: normalize-path@3.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/normalize-path"
+      ]
+    },
+    "npm-run-path": {
+      "version": "5.3.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: npm-run-path@5.3.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/npm-run-path"
+      ]
+    },
+    "nwsapi": {
+      "version": "2.2.20",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: nwsapi@2.2.20 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/nwsapi"
+      ]
+    },
+    "oauth4webapi": {
+      "version": "3.5.5",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: oauth4webapi@3.5.5 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/oauth4webapi"
+      ]
+    },
+    "object-hash": {
+      "version": "3.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: object-hash@3.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/object-hash"
+      ]
+    },
+    "obuf": {
+      "version": "1.1.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: obuf@1.1.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/obuf"
+      ]
+    },
+    "onetime": {
+      "version": "6.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: onetime@6.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/onetime"
+      ]
+    },
+    "openai": {
+      "version": "5.8.3",
+      "overridden": false
+    },
+    "optionator": {
+      "version": "0.9.4",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: optionator@0.9.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/optionator"
+      ]
+    },
+    "orderedmap": {
+      "version": "2.1.1",
+      "resolved": "file:.pnpm/orderedmap@2.1.1/node_modules/orderedmap",
+      "overridden": false
+    },
+    "p-limit": {
+      "version": "3.1.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: p-limit@3.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/p-limit"
+      ]
+    },
+    "p-locate": {
+      "version": "5.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: p-locate@5.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/p-locate"
+      ]
+    },
+    "package-json-from-dist": {
+      "version": "1.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: package-json-from-dist@1.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/package-json-from-dist"
+      ]
+    },
+    "papaparse": {
+      "version": "5.5.3",
+      "resolved": "file:.pnpm/papaparse@5.5.3/node_modules/papaparse",
+      "overridden": false
+    },
+    "parse-entities": {
+      "version": "4.0.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: parse-entities@4.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/parse-entities"
+      ]
+    },
+    "parse5": {
+      "version": "7.3.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: parse5@7.3.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/parse5"
+      ]
+    },
+    "path-exists": {
+      "version": "4.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: path-exists@4.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/path-exists"
+      ]
+    },
+    "path-is-absolute": {
+      "version": "1.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: path-is-absolute@1.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/path-is-absolute"
+      ]
+    },
+    "path-key": {
+      "version": "3.1.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: path-key@3.1.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/path-key"
+      ]
+    },
+    "path-scurry": {
+      "version": "1.11.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: path-scurry@1.11.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/path-scurry"
+      ]
+    },
+    "path-type": {
+      "version": "4.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: path-type@4.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/path-type"
+      ]
+    },
+    "pg-int8": {
+      "version": "1.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: pg-int8@1.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/pg-int8"
+      ]
+    },
+    "pg-numeric": {
+      "version": "1.0.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: pg-numeric@1.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/pg-numeric"
+      ]
+    },
+    "pg-protocol": {
+      "version": "1.10.3",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: pg-protocol@1.10.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/pg-protocol"
+      ]
+    },
+    "pg-types": {
+      "version": "4.0.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: pg-types@4.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/pg-types"
+      ]
+    },
+    "pidtree": {
+      "version": "0.6.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: pidtree@0.6.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/pidtree"
+      ]
+    },
+    "pify": {
+      "version": "2.3.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: pify@2.3.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/pify"
+      ]
+    },
+    "pirates": {
+      "version": "4.0.7",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: pirates@4.0.7 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/pirates"
+      ]
+    },
+    "postcss-import": {
+      "version": "15.1.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: postcss-import@15.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/postcss-import"
+      ]
+    },
+    "postcss-js": {
+      "version": "4.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: postcss-js@4.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/postcss-js"
+      ]
+    },
+    "postcss-load-config": {
+      "version": "4.0.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: postcss-load-config@4.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/postcss-load-config"
+      ]
+    },
+    "postcss-nested": {
+      "version": "6.2.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: postcss-nested@6.2.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/postcss-nested"
+      ]
+    },
+    "postcss-selector-parser": {
+      "version": "6.0.10",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: postcss-selector-parser@6.0.10 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/postcss-selector-parser"
+      ]
+    },
+    "postcss-value-parser": {
+      "version": "4.2.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: postcss-value-parser@4.2.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/postcss-value-parser"
+      ]
+    },
+    "postcss": {
+      "version": "8.5.6",
+      "overridden": false
+    },
+    "postgres-array": {
+      "version": "3.0.4",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: postgres-array@3.0.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/postgres-array"
+      ]
+    },
+    "postgres-bytea": {
+      "version": "3.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: postgres-bytea@3.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/postgres-bytea"
+      ]
+    },
+    "postgres-date": {
+      "version": "2.1.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: postgres-date@2.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/postgres-date"
+      ]
+    },
+    "postgres-interval": {
+      "version": "3.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: postgres-interval@3.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/postgres-interval"
+      ]
+    },
+    "postgres-range": {
+      "version": "1.1.4",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: postgres-range@1.1.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/postgres-range"
+      ]
+    },
+    "postgres": {
+      "version": "3.4.7",
+      "resolved": "file:.pnpm/postgres@3.4.7/node_modules/postgres",
+      "overridden": false
+    },
+    "preact-render-to-string": {
+      "version": "5.2.3",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: preact-render-to-string@5.2.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/preact-render-to-string"
+      ]
+    },
+    "preact": {
+      "version": "10.11.3",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: preact@10.11.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/preact"
+      ]
+    },
+    "prelude-ls": {
+      "version": "1.2.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: prelude-ls@1.2.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/prelude-ls"
+      ]
+    },
+    "pretty-format": {
+      "version": "27.5.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: pretty-format@27.5.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/pretty-format"
+      ]
+    },
+    "process": {
+      "version": "0.11.10",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: process@0.11.10 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/process"
+      ]
+    },
+    "property-information": {
+      "version": "7.1.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: property-information@7.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/property-information"
+      ]
+    },
+    "prosemirror-commands": {
+      "version": "1.7.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: prosemirror-commands@1.7.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/prosemirror-commands"
+      ]
+    },
+    "prosemirror-dropcursor": {
+      "version": "1.8.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: prosemirror-dropcursor@1.8.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/prosemirror-dropcursor"
+      ]
+    },
+    "prosemirror-example-setup": {
+      "version": "1.2.3",
+      "resolved": "file:.pnpm/prosemirror-example-setup@1.2.3/node_modules/prosemirror-example-setup",
+      "overridden": false
+    },
+    "prosemirror-gapcursor": {
+      "version": "1.3.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: prosemirror-gapcursor@1.3.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/prosemirror-gapcursor"
+      ]
+    },
+    "prosemirror-history": {
+      "version": "1.4.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: prosemirror-history@1.4.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/prosemirror-history"
+      ]
+    },
+    "prosemirror-inputrules": {
+      "version": "1.5.0",
+      "resolved": "file:.pnpm/prosemirror-inputrules@1.5.0/node_modules/prosemirror-inputrules",
+      "overridden": false
+    },
+    "prosemirror-keymap": {
+      "version": "1.2.3",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: prosemirror-keymap@1.2.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/prosemirror-keymap"
+      ]
+    },
+    "prosemirror-markdown": {
+      "version": "1.13.2",
+      "resolved": "file:.pnpm/prosemirror-markdown@1.13.2/node_modules/prosemirror-markdown",
+      "overridden": false
+    },
+    "prosemirror-menu": {
+      "version": "1.2.5",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: prosemirror-menu@1.2.5 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/prosemirror-menu"
+      ]
+    },
+    "prosemirror-model": {
+      "version": "1.25.1",
+      "resolved": "file:.pnpm/prosemirror-model@1.25.1/node_modules/prosemirror-model",
+      "overridden": false
+    },
+    "prosemirror-schema-basic": {
+      "version": "1.2.4",
+      "resolved": "file:.pnpm/prosemirror-schema-basic@1.2.4/node_modules/prosemirror-schema-basic",
+      "overridden": false
+    },
+    "prosemirror-schema-list": {
+      "version": "1.5.1",
+      "resolved": "file:.pnpm/prosemirror-schema-list@1.5.1/node_modules/prosemirror-schema-list",
+      "overridden": false
+    },
+    "prosemirror-state": {
+      "version": "1.4.3",
+      "resolved": "file:.pnpm/prosemirror-state@1.4.3/node_modules/prosemirror-state",
+      "overridden": false
+    },
+    "prosemirror-transform": {
+      "version": "1.10.4",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: prosemirror-transform@1.10.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/prosemirror-transform"
+      ]
+    },
+    "prosemirror-view": {
+      "version": "1.40.0",
+      "resolved": "file:.pnpm/prosemirror-view@1.40.0/node_modules/prosemirror-view",
+      "overridden": false
+    },
+    "punycode.js": {
+      "version": "2.3.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: punycode.js@2.3.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/punycode.js"
+      ]
+    },
+    "qs": {
+      "version": "6.11.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: qs@6.11.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/qs"
+      ]
+    },
+    "react-data-grid": {
+      "version": "7.0.0-beta.47",
+      "resolved": "file:.pnpm/react-data-grid@7.0.0-beta.47_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/react-data-grid",
+      "overridden": false
+    },
+    "react-dom": {
+      "version": "19.1.0",
+      "resolved": "file:.pnpm/react-dom@19.1.0_react@19.1.0/node_modules/react-dom",
+      "overridden": false
+    },
+    "react-is": {
+      "version": "17.0.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: react-is@17.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/react-is"
+      ]
+    },
+    "react-markdown": {
+      "version": "9.1.0",
+      "resolved": "file:.pnpm/react-markdown@9.1.0_@types+react@19.1.8_react@19.1.0/node_modules/react-markdown",
+      "overridden": false
+    },
+    "react-remove-scroll-bar": {
+      "version": "2.3.8",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: react-remove-scroll-bar@2.3.8 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/react-remove-scroll-bar"
+      ]
+    },
+    "react-remove-scroll": {
+      "version": "2.7.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: react-remove-scroll@2.7.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/react-remove-scroll"
+      ]
+    },
+    "react-resizable-panels": {
+      "version": "3.0.3",
+      "resolved": "file:.pnpm/react-resizable-panels@3.0.3_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/react-resizable-panels",
+      "overridden": false
+    },
+    "react-style-singleton": {
+      "version": "2.2.3",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: react-style-singleton@2.2.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/react-style-singleton"
+      ]
+    },
+    "react": {
+      "version": "19.1.0",
+      "resolved": "file:.pnpm/react@19.1.0/node_modules/react",
+      "overridden": false
+    },
+    "read-cache": {
+      "version": "1.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: read-cache@1.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/read-cache"
+      ]
+    },
+    "readable-stream": {
+      "version": "4.7.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: readable-stream@4.7.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/readable-stream"
+      ]
+    },
+    "readdirp": {
+      "version": "3.6.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: readdirp@3.6.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/readdirp"
+      ]
+    },
+    "redent": {
+      "version": "3.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: redent@3.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/redent"
+      ]
+    },
+    "redis": {
+      "version": "5.6.0",
+      "overridden": false
+    },
+    "remark-gfm": {
+      "version": "4.0.1",
+      "resolved": "file:.pnpm/remark-gfm@4.0.1/node_modules/remark-gfm",
+      "overridden": false
+    },
+    "remark-parse": {
+      "version": "11.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: remark-parse@11.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/remark-parse"
+      ]
+    },
+    "remark-rehype": {
+      "version": "11.1.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: remark-rehype@11.1.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/remark-rehype"
+      ]
+    },
+    "remark-stringify": {
+      "version": "11.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: remark-stringify@11.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/remark-stringify"
+      ]
+    },
+    "require-in-the-middle": {
+      "version": "7.5.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: require-in-the-middle@7.5.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/require-in-the-middle"
+      ]
+    },
+    "restore-cursor": {
+      "version": "5.1.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: restore-cursor@5.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/restore-cursor"
+      ]
+    },
+    "resumable-stream": {
+      "version": "2.2.1",
+      "overridden": false
+    },
+    "rfdc": {
+      "version": "1.4.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: rfdc@1.4.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/rfdc"
+      ]
+    },
+    "rimraf": {
+      "version": "3.0.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: rimraf@3.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/rimraf"
+      ]
+    },
+    "rope-sequence": {
+      "version": "1.3.4",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: rope-sequence@1.3.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/rope-sequence"
+      ]
+    },
+    "rrweb-cssom": {
+      "version": "0.8.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: rrweb-cssom@0.8.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/rrweb-cssom"
+      ]
+    },
+    "safer-buffer": {
+      "version": "2.1.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: safer-buffer@2.1.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/safer-buffer"
+      ]
+    },
+    "saxes": {
+      "version": "6.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: saxes@6.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/saxes"
+      ]
+    },
+    "scheduler": {
+      "version": "0.26.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: scheduler@0.26.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/scheduler"
+      ]
+    },
+    "server-only": {
+      "version": "0.0.1",
+      "resolved": "file:.pnpm/server-only@0.0.1/node_modules/server-only",
+      "overridden": false
+    },
+    "sharp": {
+      "version": "0.33.5",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: sharp@0.33.5 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/sharp"
+      ]
+    },
+    "shebang-command": {
+      "version": "2.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: shebang-command@2.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/shebang-command"
+      ]
+    },
+    "shebang-regex": {
+      "version": "3.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: shebang-regex@3.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/shebang-regex"
+      ]
+    },
+    "shimmer": {
+      "version": "1.2.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: shimmer@1.2.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/shimmer"
+      ]
+    },
+    "signal-exit": {
+      "version": "4.1.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: signal-exit@4.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/signal-exit"
+      ]
+    },
+    "simple-swizzle": {
+      "version": "0.2.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: simple-swizzle@0.2.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/simple-swizzle"
+      ]
+    },
+    "slash": {
+      "version": "3.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: slash@3.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/slash"
+      ]
+    },
+    "slice-ansi": {
+      "version": "5.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: slice-ansi@5.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/slice-ansi"
+      ]
+    },
+    "sonner": {
+      "version": "1.7.4",
+      "resolved": "file:.pnpm/sonner@1.7.4_react-dom@19.1.0_react@19.1.0__react@19.1.0/node_modules/sonner",
+      "overridden": false
+    },
+    "source-map-support": {
+      "version": "0.5.21",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: source-map-support@0.5.21 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/source-map-support"
+      ]
+    },
+    "source-map": {
+      "version": "0.6.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: source-map@0.6.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/source-map"
+      ]
+    },
+    "space-separated-tokens": {
+      "version": "2.0.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: space-separated-tokens@2.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/space-separated-tokens"
+      ]
+    },
+    "stable-hash": {
+      "version": "0.0.5",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: stable-hash@0.0.5 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/stable-hash"
+      ]
+    },
+    "streamsearch": {
+      "version": "1.1.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: streamsearch@1.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/streamsearch"
+      ]
+    },
+    "string_decoder": {
+      "version": "1.3.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: string_decoder@1.3.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/string_decoder"
+      ]
+    },
+    "string-argv": {
+      "version": "0.3.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: string-argv@0.3.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/string-argv"
+      ]
+    },
+    "string-width-cjs": {
+      "version": "4.2.3",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: string-width-cjs@npm:string-width@4.2.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/string-width-cjs"
+      ]
+    },
+    "string-width": {
+      "version": "7.2.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: string-width@7.2.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/string-width"
+      ]
+    },
+    "stringify-entities": {
+      "version": "4.0.4",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: stringify-entities@4.0.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/stringify-entities"
+      ]
+    },
+    "strip-ansi-cjs": {
+      "version": "6.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: strip-ansi-cjs@npm:strip-ansi@6.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/strip-ansi-cjs"
+      ]
+    },
+    "strip-ansi": {
+      "version": "6.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: strip-ansi@6.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/strip-ansi"
+      ]
+    },
+    "strip-final-newline": {
+      "version": "3.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: strip-final-newline@3.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/strip-final-newline"
+      ]
+    },
+    "strip-indent": {
+      "version": "3.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: strip-indent@3.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/strip-indent"
+      ]
+    },
+    "style-to-js": {
+      "version": "1.1.17",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: style-to-js@1.1.17 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/style-to-js"
+      ]
+    },
+    "style-to-object": {
+      "version": "1.0.9",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: style-to-object@1.0.9 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/style-to-object"
+      ]
+    },
+    "styled-jsx": {
+      "version": "5.1.6",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: styled-jsx@5.1.6 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/styled-jsx"
+      ]
+    },
+    "sucrase": {
+      "version": "3.35.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: sucrase@3.35.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/sucrase"
+      ]
+    },
+    "swr": {
+      "version": "2.3.4",
+      "overridden": false
+    },
+    "symbol-tree": {
+      "version": "3.2.4",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: symbol-tree@3.2.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/symbol-tree"
+      ]
+    },
+    "tailwind-merge": {
+      "version": "2.6.0",
+      "resolved": "file:.pnpm/tailwind-merge@2.6.0/node_modules/tailwind-merge",
+      "overridden": false
+    },
+    "tailwindcss-animate": {
+      "version": "1.0.7",
+      "resolved": "file:.pnpm/tailwindcss-animate@1.0.7_tailwindcss@3.4.17/node_modules/tailwindcss-animate",
+      "overridden": false
+    },
+    "tailwindcss": {
+      "version": "3.4.17",
+      "resolved": "file:.pnpm/tailwindcss@3.4.17/node_modules/tailwindcss",
+      "overridden": false
+    },
+    "test-exclude": {
+      "version": "7.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: test-exclude@7.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/test-exclude"
+      ]
+    },
+    "text-table": {
+      "version": "0.2.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: text-table@0.2.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/text-table"
+      ]
+    },
+    "thenify-all": {
+      "version": "1.6.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: thenify-all@1.6.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/thenify-all"
+      ]
+    },
+    "thenify": {
+      "version": "3.3.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: thenify@3.3.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/thenify"
+      ]
+    },
+    "throttleit": {
+      "version": "2.1.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: throttleit@2.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/throttleit"
+      ]
+    },
+    "tr46": {
+      "version": "5.1.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: tr46@5.1.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/tr46"
+      ]
+    },
+    "trim-lines": {
+      "version": "3.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: trim-lines@3.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/trim-lines"
+      ]
+    },
+    "trough": {
+      "version": "2.2.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: trough@2.2.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/trough"
+      ]
+    },
+    "ts-interface-checker": {
+      "version": "0.1.13",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: ts-interface-checker@0.1.13 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/ts-interface-checker"
+      ]
+    },
+    "tsx": {
+      "version": "4.20.3",
+      "resolved": "file:.pnpm/tsx@4.20.3/node_modules/tsx",
+      "overridden": false
+    },
+    "type-check": {
+      "version": "0.4.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: type-check@0.4.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/type-check"
+      ]
+    },
+    "typescript": {
+      "version": "5.8.3",
+      "resolved": "file:.pnpm/typescript@5.8.3/node_modules/typescript",
+      "overridden": false
+    },
+    "uc.micro": {
+      "version": "2.1.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: uc.micro@2.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/uc.micro"
+      ]
+    },
+    "undici": {
+      "version": "5.29.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: undici@5.29.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/undici"
+      ]
+    },
+    "unified": {
+      "version": "11.0.5",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: unified@11.0.5 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/unified"
+      ]
+    },
+    "unist-util-is": {
+      "version": "6.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: unist-util-is@6.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/unist-util-is"
+      ]
+    },
+    "unist-util-position": {
+      "version": "5.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: unist-util-position@5.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/unist-util-position"
+      ]
+    },
+    "unist-util-stringify-position": {
+      "version": "4.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: unist-util-stringify-position@4.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/unist-util-stringify-position"
+      ]
+    },
+    "unist-util-visit-parents": {
+      "version": "6.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: unist-util-visit-parents@6.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/unist-util-visit-parents"
+      ]
+    },
+    "unist-util-visit": {
+      "version": "5.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: unist-util-visit@5.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/unist-util-visit"
+      ]
+    },
+    "url-join": {
+      "version": "4.0.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: url-join@4.0.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/url-join"
+      ]
+    },
+    "use-callback-ref": {
+      "version": "1.3.3",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: use-callback-ref@1.3.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/use-callback-ref"
+      ]
+    },
+    "use-sidecar": {
+      "version": "1.1.3",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: use-sidecar@1.1.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/use-sidecar"
+      ]
+    },
+    "usehooks-ts": {
+      "version": "3.1.1",
+      "resolved": "file:.pnpm/usehooks-ts@3.1.1_react@19.1.0/node_modules/usehooks-ts",
+      "overridden": false
+    },
+    "util-deprecate": {
+      "version": "1.0.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: util-deprecate@1.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/util-deprecate"
+      ]
+    },
+    "vfile-message": {
+      "version": "4.0.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: vfile-message@4.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/vfile-message"
+      ]
+    },
+    "vfile": {
+      "version": "6.0.3",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: vfile@6.0.3 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/vfile"
+      ]
+    },
+    "vitest": {
+      "version": "3.2.4",
+      "overridden": false
+    },
+    "w3c-xmlserializer": {
+      "version": "5.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: w3c-xmlserializer@5.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/w3c-xmlserializer"
+      ]
+    },
+    "webidl-conversions": {
+      "version": "7.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: webidl-conversions@7.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/webidl-conversions"
+      ]
+    },
+    "whatwg-encoding": {
+      "version": "3.1.1",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: whatwg-encoding@3.1.1 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/whatwg-encoding"
+      ]
+    },
+    "whatwg-mimetype": {
+      "version": "4.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: whatwg-mimetype@4.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/whatwg-mimetype"
+      ]
+    },
+    "whatwg-url": {
+      "version": "14.2.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: whatwg-url@14.2.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/whatwg-url"
+      ]
+    },
+    "which": {
+      "version": "2.0.2",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: which@2.0.2 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/which"
+      ]
+    },
+    "word-wrap": {
+      "version": "1.2.5",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: word-wrap@1.2.5 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/word-wrap"
+      ]
+    },
+    "wrap-ansi-cjs": {
+      "version": "7.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: wrap-ansi-cjs@npm:wrap-ansi@7.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/wrap-ansi-cjs"
+      ]
+    },
+    "wrap-ansi": {
+      "version": "9.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: wrap-ansi@9.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/wrap-ansi"
+      ]
+    },
+    "xml-name-validator": {
+      "version": "5.0.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: xml-name-validator@5.0.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/xml-name-validator"
+      ]
+    },
+    "xmlchars": {
+      "version": "2.2.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: xmlchars@2.2.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/xmlchars"
+      ]
+    },
+    "yargs-parser": {
+      "version": "20.2.9",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: yargs-parser@20.2.9 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/yargs-parser"
+      ]
+    },
+    "yocto-queue": {
+      "version": "0.1.0",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: yocto-queue@0.1.0 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/yocto-queue"
+      ]
+    },
+    "zod": {
+      "version": "3.25.76",
+      "overridden": false
+    },
+    "zwitch": {
+      "version": "2.0.4",
+      "overridden": false,
+      "extraneous": true,
+      "problems": [
+        "extraneous: zwitch@2.0.4 /Volumes/Main SSD/CascadeProjects/RRA/node_modules/zwitch"
+      ]
+    }
+  }
+}

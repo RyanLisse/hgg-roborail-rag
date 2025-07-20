@@ -8,7 +8,7 @@ import type {
 } from './types';
 import { BaseServiceConfig as BaseConfigSchema } from './types';
 import { ServiceStatus as ServiceStatusEnum } from './types';
-import { VectorStoreErrorHandler } from './errors';
+import { classifyError, logError, shouldRetry, calculateRetryDelay } from './errors';
 
 /**
  * Abstract base class for all vector store services
@@ -85,8 +85,8 @@ export abstract class BaseVectorStoreService<
       success = true;
       return results;
     } catch (err) {
-      error = VectorStoreErrorHandler.classify(err as Error);
-      VectorStoreErrorHandler.logError(this._serviceName, 'search', error, {
+      error = classifyError(err as Error);
+      logError(this._serviceName, 'search', error, {
         request,
       });
       throw err;
@@ -127,8 +127,8 @@ export abstract class BaseVectorStoreService<
       this._status = ServiceStatusEnum.ENABLED;
       return result;
     } catch (err) {
-      const error = VectorStoreErrorHandler.classify(err as Error);
-      VectorStoreErrorHandler.logError(this._serviceName, 'healthCheck', error);
+      const error = classifyError(err as Error);
+      logError(this._serviceName, 'healthCheck', error);
 
       const result: HealthCheckResult = {
         isHealthy: false,
@@ -179,10 +179,10 @@ export abstract class BaseVectorStoreService<
         return await operation();
       } catch (err) {
         lastError = err as Error;
-        const classifiedError = VectorStoreErrorHandler.classify(lastError);
+        const classifiedError = classifyError(lastError);
 
         if (
-          !VectorStoreErrorHandler.shouldRetry(
+          !shouldRetry(
             classifiedError,
             attempt,
             this.config.maxRetries,
@@ -191,7 +191,7 @@ export abstract class BaseVectorStoreService<
           throw lastError;
         }
 
-        const delay = VectorStoreErrorHandler.calculateRetryDelay(
+        const delay = calculateRetryDelay(
           classifiedError,
           attempt,
           this.config.retryDelay,

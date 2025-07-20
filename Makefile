@@ -218,6 +218,24 @@ test-coverage: check-deps
 	@echo "$(BLUE)📊 Running tests with coverage...$(RESET)"
 	pnpm test:coverage
 
+test-all: check-deps
+	@echo "$(BLUE)🧪 Running comprehensive test suite...$(RESET)"
+	@echo "$(CYAN)━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$(RESET)"
+	@echo "$(PURPLE)1/6: Unit Tests$(RESET)"
+	@$(MAKE) test-unit || echo "$(YELLOW)⚠️  Unit tests had failures$(RESET)"
+	@echo "$(PURPLE)2/6: Coverage Tests$(RESET)"
+	@$(MAKE) test-coverage || echo "$(YELLOW)⚠️  Coverage tests had failures$(RESET)"
+	@echo "$(PURPLE)3/6: Route Tests$(RESET)"
+	@$(MAKE) test-routes || echo "$(YELLOW)⚠️  Route tests had failures$(RESET)"
+	@echo "$(PURPLE)4/6: Traditional E2E Tests$(RESET)"
+	@$(MAKE) test-traditional || echo "$(YELLOW)⚠️  Traditional E2E tests had failures$(RESET)"
+	@echo "$(PURPLE)5/6: Stagehand AI Tests$(RESET)"
+	@$(MAKE) test-stagehand || echo "$(YELLOW)⚠️  Stagehand tests had failures$(RESET)"
+	@echo "$(PURPLE)6/6: Linting$(RESET)"
+	@$(MAKE) lint || echo "$(YELLOW)⚠️  Linting had failures$(RESET)"
+	@echo "$(CYAN)━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$(RESET)"
+	@echo "$(GREEN)✅ Comprehensive test suite completed!$(RESET)"
+
 # Optimized test commands for better reliability
 test-fast: check-deps
 	@echo "$(BLUE)⚡ Running fast E2E tests (optimized)...$(RESET)"

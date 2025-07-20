@@ -187,13 +187,15 @@ describe('Feedback Service', () => {
 
       mockDb.update.mockReturnValue({
         set: vi.fn().mockReturnValue({
-          where: vi.fn().mockResolvedValue([
-            {
-              id: 'feedback-123',
-              comment: 'Updated comment',
-              metadata: { updated: true },
-            },
-          ]),
+          where: vi.fn().mockReturnValue({
+            returning: vi.fn().mockResolvedValue([
+              {
+                id: 'feedback-123',
+                comment: 'Updated comment',
+                metadata: { updated: true },
+              },
+            ]),
+          }),
         }),
       });
 
