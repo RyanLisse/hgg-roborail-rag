@@ -32,8 +32,8 @@ describe('Cache System', () => {
   describe('getCacheConfig', () => {
     it('should return memory cache config for development', () => {
       process.env.NODE_ENV = 'development';
-      delete process.env.REDIS_URL;
-      delete process.env.VALKEY_URL;
+      process.env.REDIS_URL = undefined;
+      process.env.VALKEY_URL = undefined;
 
       const config = getCacheConfig();
 
@@ -63,7 +63,7 @@ describe('Cache System', () => {
     });
 
     it('should use VALKEY_URL when REDIS_URL is not available', () => {
-      delete process.env.REDIS_URL;
+      process.env.REDIS_URL = undefined;
       process.env.VALKEY_URL = 'redis://valkey:6379';
 
       const config = getCacheConfig();
@@ -85,7 +85,7 @@ describe('Cache System', () => {
   describe('createCacheBackend', () => {
     it('should create memory cache backend by default', async () => {
       process.env.NODE_ENV = 'development';
-      delete process.env.REDIS_URL;
+      process.env.REDIS_URL = undefined;
 
       const backend = await createCacheBackend();
 

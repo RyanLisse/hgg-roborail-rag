@@ -167,7 +167,7 @@ describe('Utils', () => {
     it('should handle non-browser environment', () => {
       // Temporarily disable window
       const originalWindow = global.window;
-      delete (global as any).window;
+      (global as any).window = undefined;
 
       const result = getLocalStorage('test-key');
       
