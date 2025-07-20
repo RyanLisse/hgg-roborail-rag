@@ -1,16 +1,8 @@
 import { generateId } from 'ai';
-import { genSaltSync, hashSync } from 'bcrypt-ts';
 
-export function generateHashedPassword(password: string) {
-  const salt = genSaltSync(10);
-  const hash = hashSync(password, salt);
-
-  return hash;
+// Client-safe utility functions
+export function generateTempId() {
+  return generateId(12);
 }
 
-export function generateDummyPassword() {
-  const password = generateId(12);
-  const hashedPassword = generateHashedPassword(password);
-
-  return hashedPassword;
-}
+// Note: For password hashing, use server-utils.ts functions
