@@ -271,7 +271,7 @@ function initializeLazyServices(): void {
     const { PerformanceMonitor } = await import(
       '../vectorstore/core/monitoring'
     );
-    return new PerformanceMonitor();
+    return PerformanceMonitor;
   });
 
   // Agent Services with lazy loading

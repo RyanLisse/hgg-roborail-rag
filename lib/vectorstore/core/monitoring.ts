@@ -1,16 +1,14 @@
 import type { ServiceMetrics, VectorStoreService } from './types';
 
 /**
- * Performance monitoring for vector store operations
+ * Performance monitoring state
  */
-
-// Private metrics storage
 const metrics: Map<string, ServiceMetrics[]> = new Map();
 
 /**
  * Wrap a method with performance monitoring
  */
-export function wrapMethod<T extends any[], R>(
+export function wrapMethodWithMonitoring<T extends any[], R>(
   serviceName: string,
   methodName: string,
   fn: (...args: T) => Promise<R>,
@@ -54,7 +52,7 @@ export function wrapMethod<T extends any[], R>(
 /**
  * Create a monitored version of a service
  */
-export function wrapService<T extends VectorStoreService>(
+export function wrapServiceWithMonitoring<T extends VectorStoreService>(
   service: T,
   monitoredMethods: (keyof T)[] = ['search', 'healthCheck'],
 ): T {
@@ -63,7 +61,7 @@ export function wrapService<T extends VectorStoreService>(
   for (const methodName of monitoredMethods) {
     const originalMethod = service[methodName];
     if (typeof originalMethod === 'function') {
-      (wrappedService as any)[methodName] = wrapMethod(
+      (wrappedService as any)[methodName] = wrapMethodWithMonitoring(
         service.serviceName,
         String(methodName),
         originalMethod.bind(service),
@@ -77,7 +75,10 @@ export function wrapService<T extends VectorStoreService>(
 /**
  * Record a metric
  */
-function recordMetric(serviceName: string, metric: ServiceMetrics): void {
+function recordMetric(
+  serviceName: string,
+  metric: ServiceMetrics,
+): void {
   if (!metrics.has(serviceName)) {
     metrics.set(serviceName, []);
   }
@@ -184,7 +185,10 @@ export function getPerformanceSummary(
  * Log performance summary
  */
 export function logPerformanceSummary(serviceName: string, timeWindow?: number): void {
-  const summary = getPerformanceSummary(serviceName, timeWindow);
+  const summary = getPerformanceSummary(
+    serviceName,
+    timeWindow,
+  );
 
   console.log(`📊 Performance Summary for ${serviceName}:`);
   console.log(`   Total Requests: ${summary.totalRequests}`);
@@ -207,66 +211,13 @@ export function logPerformanceSummary(serviceName: string, timeWindow?: number):
   }
 }
 
-/**
- * Performance Monitor class for vector store operations
- */
-export class PerformanceMonitor {
-  /**
-   * Wrap a method with performance monitoring
-   */
-  wrapMethod<T extends any[], R>(
-    serviceName: string,
-    methodName: string,
-    fn: (...args: T) => Promise<R>,
-  ): (...args: T) => Promise<R> {
-    return wrapMethod(serviceName, methodName, fn);
-  }
-
-  /**
-   * Create a monitored version of a service
-   */
-  wrapService<T extends VectorStoreService>(
-    service: T,
-    monitoredMethods: (keyof T)[] = ['search', 'healthCheck'],
-  ): T {
-    return wrapService(service, monitoredMethods);
-  }
-
-  /**
-   * Get metrics for a specific service
-   */
-  getServiceMetrics(serviceName: string): ServiceMetrics[] {
-    return getServiceMetrics(serviceName);
-  }
-
-  /**
-   * Get metrics for all services
-   */
-  getAllMetrics(): Record<string, ServiceMetrics[]> {
-    return getAllMetrics();
-  }
-
-  /**
-   * Clear metrics for a service or all services
-   */
-  clearMetrics(serviceName?: string): void {
-    clearMetrics(serviceName);
-  }
-
-  /**
-   * Get performance summary for a service
-   */
-  getPerformanceSummary(
-    serviceName: string,
-    timeWindow?: number,
-  ): ReturnType<typeof getPerformanceSummary> {
-    return getPerformanceSummary(serviceName, timeWindow);
-  }
-
-  /**
-   * Log performance summary
-   */
-  logPerformanceSummary(serviceName: string, timeWindow?: number): void {
-    logPerformanceSummary(serviceName, timeWindow);
-  }
-}
+// Re-export functions for backward compatibility
+export const PerformanceMonitor = {
+  wrapMethod: wrapMethodWithMonitoring,
+  wrapService: wrapServiceWithMonitoring,
+  getServiceMetrics: getServiceMetrics,
+  getAllMetrics: getAllMetrics,
+  clearMetrics: clearMetrics,
+  getPerformanceSummary: getPerformanceSummary,
+  logPerformanceSummary: logPerformanceSummary,
+};
