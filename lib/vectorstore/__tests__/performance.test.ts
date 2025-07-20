@@ -311,7 +311,11 @@ describe('Vector Store Performance Tests', () => {
         json: () =>
           Promise.resolve({
             id: 'file_small',
+            object: 'vector_store.file',
+            created_at: Date.now(),
+            vector_store_id: 'vs_test_store',
             status: 'completed',
+            last_error: null,
           }),
       });
 
@@ -339,7 +343,11 @@ describe('Vector Store Performance Tests', () => {
         json: () =>
           Promise.resolve({
             id: 'file_medium',
+            object: 'vector_store.file',
+            created_at: Date.now(),
+            vector_store_id: 'vs_test_store',
             status: 'completed',
+            last_error: null,
           }),
       });
 
@@ -369,7 +377,11 @@ describe('Vector Store Performance Tests', () => {
           json: () =>
             Promise.resolve({
               id: `file_${i}`,
+              object: 'vector_store.file',
+              created_at: Date.now(),
+              vector_store_id: 'vs_test_store',
               status: 'completed',
+              last_error: null,
             }),
         });
       });
@@ -497,15 +509,8 @@ describe('Vector Store Performance Tests', () => {
       testService.searchFiles = vi.fn().mockImplementation(() => {
         attemptCount++;
         if (attemptCount < 3) {
-          return Promise.resolve({
-            success: false,
-            message: 'Temporary failure',
-            results: [],
-            sources: [],
-            totalResults: 0,
-            query: 'test',
-            executionTime: 100,
-          });
+          // Throw exceptions to trigger retry delays
+          throw new Error('Temporary failure');
         }
         return Promise.resolve({
           success: true,

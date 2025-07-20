@@ -213,7 +213,9 @@ describe('Feedback Service', () => {
     it('should handle update errors', async () => {
       mockDb.update.mockReturnValue({
         set: vi.fn().mockReturnValue({
-          where: vi.fn().mockRejectedValue(new Error('Update failed')),
+          where: vi.fn().mockReturnValue({
+            returning: vi.fn().mockRejectedValue(new Error('Update failed')),
+          }),
         }),
       });
 

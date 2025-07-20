@@ -323,13 +323,27 @@ export class QueryExpansionEngine {
 
   private static extractKeyTerms(text: string): string[] {
     // Simple keyword extraction - in production, use more sophisticated NLP
-    return text
+    const terms = text
       .toLowerCase()
       .split(/\s+/)
       .filter(
         (term) => term.length > 3 && !QueryExpansionEngine.isStopWord(term),
-      )
-      .slice(0, 10);
+      );
+    
+    // Prioritize important domain terms
+    const importantTerms = ['automation', 'webhook', 'authentication', 'roborail', 'configuration', 'integration'];
+    const prioritized: string[] = [];
+    const regular: string[] = [];
+    
+    for (const term of terms) {
+      if (importantTerms.some(important => term.includes(important) || important.includes(term))) {
+        prioritized.push(term);
+      } else {
+        regular.push(term);
+      }
+    }
+    
+    return [...prioritized, ...regular].slice(0, 10);
   }
 
   private static isStopWord(word: string): boolean {
@@ -549,6 +563,24 @@ export class PromptOptimizationEngine {
   private static classifyQuery(query: string): QueryType {
     const lowerQuery = query.toLowerCase();
 
+    // Troubleshooting indicators (check first for priority)
+    if (
+      PromptOptimizationEngine.hasPatterns(lowerQuery, [
+        'troubleshoot',
+        'debug',
+        'fix',
+        'solve',
+        'error',
+        'issue',
+        'problem',
+        'fail',
+        'broken',
+        'not working',
+      ])
+    ) {
+      return 'troubleshooting';
+    }
+
     // API indicators (check before technical)
     if (
       PromptOptimizationEngine.hasPatterns(lowerQuery, [
@@ -558,12 +590,48 @@ export class PromptOptimizationEngine {
         'graphql',
         'request',
         'response',
+      ]) ||
+      (PromptOptimizationEngine.hasPatterns(lowerQuery, [
         'authentication',
         'authorization',
         'token',
-      ])
+      ]) &&
+      !PromptOptimizationEngine.hasPatterns(lowerQuery, [
+        'troubleshoot',
+        'debug',
+        'fix',
+        'solve',
+        'error',
+        'issue',
+        'problem',
+      ]))
     ) {
       return 'api';
+    }
+
+    // Procedural indicators (check before configuration and technical)
+    if (
+      PromptOptimizationEngine.hasPatterns(lowerQuery, [
+        'step by step',
+        'procedure',
+        'guide',
+        'tutorial',
+        'walkthrough',
+        'instruction',
+      ])
+    ) {
+      return 'procedural';
+    }
+    
+    // Check for "how to" without other configuration keywords
+    if (
+      PromptOptimizationEngine.hasPatterns(lowerQuery, ['how to']) &&
+      !PromptOptimizationEngine.hasPatterns(lowerQuery, [
+        'configure',
+        'config',
+      ])
+    ) {
+      return 'procedural';
     }
 
     // Technical indicators
@@ -598,45 +666,6 @@ export class PromptOptimizationEngine {
       ])
     ) {
       return 'configuration';
-    }
-
-    // Troubleshooting indicators
-    if (
-      PromptOptimizationEngine.hasPatterns(lowerQuery, [
-        'error',
-        'issue',
-        'problem',
-        'fix',
-        'solve',
-        'troubleshoot',
-        'debug',
-        'fail',
-        'broken',
-        'not working',
-      ])
-    ) {
-      return 'troubleshooting';
-    }
-
-    // Procedural indicators (check before configuration)
-    if (
-      PromptOptimizationEngine.hasPatterns(lowerQuery, [
-        'how to',
-        'step by step',
-        'procedure',
-        'process',
-        'guide',
-        'tutorial',
-        'walkthrough',
-        'instruction',
-      ]) &&
-      !PromptOptimizationEngine.hasPatterns(lowerQuery, [
-        'configure',
-        'config',
-        'setup',
-      ])
-    ) {
-      return 'procedural';
     }
 
     // Integration indicators
@@ -1008,7 +1037,7 @@ export class ContextWindowManager {
     query: string,
     maxTokens: number = ContextWindowManager.MAX_CONTEXT_TOKENS,
   ): Array<{ content: string; metadata?: any }> {
-    const availableTokens = maxTokens - ContextWindowManager.BUFFER_TOKENS;
+    const availableTokens = Math.max(maxTokens - ContextWindowManager.BUFFER_TOKENS, Math.floor(maxTokens * 0.8));
     let currentTokens = 0;
     const optimizedDocs: Array<{ content: string; metadata?: any }> = [];
 
