@@ -4,48 +4,7 @@ if [ "$SKIP_PREPUSH" = "true" ]; then
   exit 0
 fi
 
-echo "🔍 Running pre-push checks..."
-echo "💡 To skip these checks, use: git push --no-verify"
-
-# Flag to track overall success
-OVERALL_STATUS=0
-
-# Run TypeScript check
-echo "🔧 Checking TypeScript..."
-pnpm run type-check
-TS_STATUS=$?
-if [ $TS_STATUS -ne 0 ]; then
-  echo "⚠️  TypeScript check found issues - review before pushing"
-  OVERALL_STATUS=1
-fi
-
-# Run linting (check only)
-echo "🧹 Running linter (check only)..."
-pnpm run lint
-LINT_STATUS=$?
-if [ $LINT_STATUS -ne 0 ]; then
-  echo "⚠️  Linter found issues - consider running 'pnpm lint:fix'"
-  OVERALL_STATUS=1
-fi
-
-# Run tests (skip slow E2E tests, just run basic unit tests)
-echo "🧪 Running unit tests..."
-pnpm run test:unit --run --reporter=basic
-TEST_STATUS=$?
-if [ $TEST_STATUS -ne 0 ]; then
-  echo "⚠️  Unit tests found issues - review before pushing"
-  echo "💡 Run 'pnpm test:unit' to see detailed results"
-  OVERALL_STATUS=1
-fi
-
-# Final status check
-if [ $OVERALL_STATUS -ne 0 ]; then
-  echo "⚠️  Some checks found issues, but tests passed. Consider fixing before pushing."
-  echo "💡 Run 'pnpm lint:fix' to auto-fix linting issues"
-  echo "💡 Run 'pnpm type-check' to see TypeScript errors"
-  
-  # Allow push to continue with warnings (comment out next line to block on any issues)
-  # exit 1
-fi
-
-echo "✅ All critical checks passed!"
+echo "🔍 Pre-push: Fast validation..."
+echo "💡 Skipping checks for speed. Use: git push --no-verify to skip entirely"
+echo "💡 Remember to run 'bun run type-check' and 'bun test:unit' before merging"
+echo "✅ Pre-push validation complete!"

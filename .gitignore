@@ -55,3 +55,10 @@ SETUP.sh.backup
 agent-debug.json
 agent-execution.json
 .codex-workspace/
+
+*storybook.log
+storybook-static
+
+# Core dumps and system files
+core
+core.*
