@@ -8,7 +8,7 @@ import type {
 } from './types';
 import { BaseServiceConfig as BaseConfigSchema } from './types';
 import { ServiceStatus as ServiceStatusEnum } from './types';
-import { classifyError, logError, shouldRetry, calculateRetryDelay } from './errors';
+import { classifyError, logError, shouldRetryError, calculateRetryDelay } from './errors';
 
 /**
  * Abstract base class for all vector store services
@@ -182,7 +182,7 @@ export abstract class BaseVectorStoreService<
         const classifiedError = classifyError(lastError);
 
         if (
-          !shouldRetry(
+          !shouldRetryError(
             classifiedError,
             attempt,
             this.config.maxRetries,
