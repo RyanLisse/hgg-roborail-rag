@@ -6,6 +6,7 @@ import {
   type LanguageModel,
   type LanguageModelV1StreamPart,
   type LanguageModelV1CallOptions,
+  type LanguageModelV1FinishReason,
 } from "ai";
 import { getResponseChunksByPrompt } from "@/tests/prompts/utils";
 
@@ -18,14 +19,14 @@ function createTestLanguageModel(modelId: string): LanguageModel {
     defaultObjectGenerationMode: "json",
     supportsImageUrls: true,
 
-    doGenerate: async ({ messages }: LanguageModelV1CallOptions) => {
+    doGenerate: async (options: LanguageModelV1CallOptions) => {
       throw new Error("doGenerate not implemented for test model");
     },
 
-    doStream: async ({ messages }: LanguageModelV1CallOptions) => {
+    doStream: async (options: LanguageModelV1CallOptions) => {
       // Get the appropriate response chunks based on the prompt
       const chunks = getResponseChunksByPrompt(
-        messages as CoreMessage[],
+        options.prompt as CoreMessage[],
         modelId.includes("reasoning"),
       );
 
@@ -37,7 +38,7 @@ function createTestLanguageModel(modelId: string): LanguageModel {
           }
         }),
         rawCall: {
-          rawPrompt: messages,
+          rawPrompt: options.prompt,
           rawSettings: {},
         },
       };
