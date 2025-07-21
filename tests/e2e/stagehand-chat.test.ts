@@ -1,7 +1,7 @@
-import { StagehandChatPage } from '../pages/stagehand-chat';
-import { test, expect } from '../fixtures';
+import { expect, test } from "../fixtures";
+import { StagehandChatPage } from "../pages/stagehand-chat";
 
-test.describe('Stagehand Chat Activity', () => {
+test.describe("Stagehand Chat Activity", () => {
   let chatPage: StagehandChatPage;
 
   test.beforeEach(async ({ page }) => {
@@ -9,12 +9,12 @@ test.describe('Stagehand Chat Activity', () => {
 
     if (!chatPage.isAvailable()) {
       console.log(
-        '🤖 Stagehand tests skipped - Browserbase credentials not configured',
+        "🤖 Stagehand tests skipped - Browserbase credentials not configured",
       );
       console.log(
-        '   To run these tests, set BROWSERBASE_API_KEY and BROWSERBASE_PROJECT_ID',
+        "   To run these tests, set BROWSERBASE_API_KEY and BROWSERBASE_PROJECT_ID",
       );
-      console.log('   Visit https://www.browserbase.com/ to get credentials');
+      console.log("   Visit https://www.browserbase.com/ to get credentials");
       test.skip();
     }
 
@@ -22,8 +22,8 @@ test.describe('Stagehand Chat Activity', () => {
     await chatPage.createNewChat();
   });
 
-  test('Send a user message and receive response', async () => {
-    await chatPage.sendUserMessage('Why is grass green?');
+  test("Send a user message and receive response", async () => {
+    await chatPage.sendUserMessage("Why is grass green?");
     await chatPage.isGenerationComplete();
 
     const assistantMessage = await chatPage.getRecentAssistantMessage();
@@ -32,15 +32,15 @@ test.describe('Stagehand Chat Activity', () => {
     expect(assistantMessage.content.length).toBeGreaterThan(10);
   });
 
-  test('Redirect to /chat/:id after submitting message', async () => {
-    await chatPage.sendUserMessage('Tell me about NextJS');
+  test("Redirect to /chat/:id after submitting message", async () => {
+    await chatPage.sendUserMessage("Tell me about NextJS");
     await chatPage.isGenerationComplete();
 
     // Check that URL contains a chat ID
     await chatPage.hasChatIdInUrl();
   });
 
-  test('Send a user message from suggestion', async () => {
+  test("Send a user message from suggestion", async () => {
     await chatPage.sendUserMessageFromSuggestion();
     await chatPage.isGenerationComplete();
 
@@ -49,7 +49,7 @@ test.describe('Stagehand Chat Activity', () => {
     expect(assistantMessage.content.length).toBeGreaterThan(10);
   });
 
-  test('Toggle between send/stop button based on activity', async () => {
+  test("Toggle between send/stop button based on activity", async () => {
     // Check initial state
     const isSendButtonVisible = await chatPage.isSendButtonVisible();
     const isSendButtonDisabled = await chatPage.isSendButtonDisabled();
@@ -58,7 +58,7 @@ test.describe('Stagehand Chat Activity', () => {
     expect(isSendButtonDisabled).toBeTruthy();
 
     // Start sending a message
-    await chatPage.sendUserMessage('What is artificial intelligence?');
+    await chatPage.sendUserMessage("What is artificial intelligence?");
 
     // During generation, stop button should be visible
     const isStopButtonVisible = await chatPage.isStopButtonVisible();
@@ -72,8 +72,8 @@ test.describe('Stagehand Chat Activity', () => {
     expect(isStopButtonVisibleAfter).toBeFalsy();
   });
 
-  test('Vote on assistant message', async () => {
-    await chatPage.sendUserMessage('Explain machine learning in simple terms');
+  test("Vote on assistant message", async () => {
+    await chatPage.sendUserMessage("Explain machine learning in simple terms");
     await chatPage.isGenerationComplete();
 
     const assistantMessage = await chatPage.getRecentAssistantMessage();
@@ -84,39 +84,39 @@ test.describe('Stagehand Chat Activity', () => {
     // Could add assertions here to check vote feedback if UI provides it
   });
 
-  test('Edit user message', async () => {
-    await chatPage.sendUserMessage('Tell me about cats');
+  test("Edit user message", async () => {
+    await chatPage.sendUserMessage("Tell me about cats");
     await chatPage.isGenerationComplete();
 
     const originalUserMessage = await chatPage.getRecentUserMessage();
-    expect(originalUserMessage.content).toContain('cats');
+    expect(originalUserMessage.content).toContain("cats");
 
     // Edit the message
-    await originalUserMessage.edit('Tell me about dogs instead');
+    await originalUserMessage.edit("Tell me about dogs instead");
     await chatPage.isGenerationComplete();
 
     // Check that the message was edited
     const editedUserMessage = await chatPage.getRecentUserMessage();
-    expect(editedUserMessage.content).toContain('dogs');
+    expect(editedUserMessage.content).toContain("dogs");
   });
 
-  test('Model selection', async () => {
+  test("Model selection", async () => {
     // Test model selection using natural language
-    await chatPage.chooseModelFromSelector('Reasoning model');
+    await chatPage.chooseModelFromSelector("Reasoning model");
 
     const selectedModel = await chatPage.getSelectedModel();
-    expect(selectedModel).toContain('Reasoning');
+    expect(selectedModel).toContain("Reasoning");
   });
 
-  test('Visibility selection', async () => {
+  test("Visibility selection", async () => {
     // Test visibility selection
-    await chatPage.chooseVisibilityFromSelector('public');
+    await chatPage.chooseVisibilityFromSelector("public");
 
     const selectedVisibility = await chatPage.getSelectedVisibility();
-    expect(selectedVisibility.toLowerCase()).toContain('public');
+    expect(selectedVisibility.toLowerCase()).toContain("public");
   });
 
-  test('Multiple messages conversation', async () => {
+  test("Multiple messages conversation", async () => {
     // Send multiple messages to test conversation flow
     await chatPage.sendMultipleMessages(
       3,
@@ -127,7 +127,7 @@ test.describe('Stagehand Chat Activity', () => {
     expect(assistantMessage.content).toBeTruthy();
   });
 
-  test('Scroll functionality', async () => {
+  test("Scroll functionality", async () => {
     // Send enough messages to trigger scrolling
     await chatPage.sendMultipleMessages(
       5,

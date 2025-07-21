@@ -1,45 +1,45 @@
 export type ErrorType =
-  | 'bad_request'
-  | 'unauthorized'
-  | 'forbidden'
-  | 'not_found'
-  | 'rate_limit'
-  | 'offline'
-  | 'network'
-  | 'authentication'
-  | 'validation'
-  | 'service_unavailable'
-  | 'unknown';
+  | "bad_request"
+  | "unauthorized"
+  | "forbidden"
+  | "not_found"
+  | "rate_limit"
+  | "offline"
+  | "network"
+  | "authentication"
+  | "validation"
+  | "service_unavailable"
+  | "unknown";
 
 export type Surface =
-  | 'chat'
-  | 'auth'
-  | 'api'
-  | 'stream'
-  | 'database'
-  | 'history'
-  | 'vote'
-  | 'document'
-  | 'suggestions'
-  | 'vectorstore'
-  | 'agent';
+  | "chat"
+  | "auth"
+  | "api"
+  | "stream"
+  | "database"
+  | "history"
+  | "vote"
+  | "document"
+  | "suggestions"
+  | "vectorstore"
+  | "agent";
 
 export type ErrorCode = `${ErrorType}:${Surface}`;
 
-export type ErrorVisibility = 'response' | 'log' | 'none';
+export type ErrorVisibility = "response" | "log" | "none";
 
 export const visibilityBySurface: Record<Surface, ErrorVisibility> = {
-  database: 'log',
-  chat: 'response',
-  auth: 'response',
-  stream: 'response',
-  api: 'response',
-  history: 'response',
-  vote: 'response',
-  document: 'response',
-  suggestions: 'response',
-  vectorstore: 'log',
-  agent: 'response',
+  database: "log",
+  chat: "response",
+  auth: "response",
+  stream: "response",
+  api: "response",
+  history: "response",
+  vote: "response",
+  document: "response",
+  suggestions: "response",
+  vectorstore: "log",
+  agent: "response",
 };
 
 export class ChatSDKError extends Error {
@@ -57,7 +57,7 @@ export class ChatSDKError extends Error {
   ) {
     super();
 
-    const [type, surface] = errorCode.split(':');
+    const [type, surface] = errorCode.split(":");
 
     this.type = type as ErrorType;
     this.cause = cause;
@@ -73,19 +73,19 @@ export class ChatSDKError extends Error {
    */
   static fromVectorStoreError(
     error: any,
-    surface: Surface = 'vectorstore',
+    surface: Surface = "vectorstore",
   ): ChatSDKError {
     // Map vector store error types to ChatSDK error types
     const typeMapping: Record<string, ErrorType> = {
-      network: 'network',
-      authentication: 'authentication',
-      validation: 'validation',
-      rate_limit: 'rate_limit',
-      service_unavailable: 'service_unavailable',
-      unknown: 'unknown',
+      network: "network",
+      authentication: "authentication",
+      validation: "validation",
+      rate_limit: "rate_limit",
+      service_unavailable: "service_unavailable",
+      unknown: "unknown",
     };
 
-    const errorType = typeMapping[error.type] || 'unknown';
+    const errorType = typeMapping[error.type] || "unknown";
     const errorCode: ErrorCode = `${errorType}:${surface}`;
 
     return new ChatSDKError(
@@ -102,7 +102,7 @@ export class ChatSDKError extends Error {
 
     const { message, cause, statusCode } = this;
 
-    if (visibility === 'log') {
+    if (visibility === "log") {
       console.error({
         code,
         message,
@@ -110,7 +110,7 @@ export class ChatSDKError extends Error {
       });
 
       return Response.json(
-        { code: '', message: 'Something went wrong. Please try again later.' },
+        { code: "", message: "Something went wrong. Please try again later." },
         { status: statusCode },
       );
     }
@@ -120,84 +120,84 @@ export class ChatSDKError extends Error {
 }
 
 export function getMessageByErrorCode(errorCode: ErrorCode): string {
-  if (errorCode.includes('database')) {
-    return 'An error occurred while executing a database query.';
+  if (errorCode.includes("database")) {
+    return "An error occurred while executing a database query.";
   }
 
   switch (errorCode) {
-    case 'bad_request:api':
+    case "bad_request:api":
       return "The request couldn't be processed. Please check your input and try again.";
 
-    case 'unauthorized:auth':
-      return 'You need to sign in before continuing.';
-    case 'forbidden:auth':
-      return 'Your account does not have access to this feature.';
+    case "unauthorized:auth":
+      return "You need to sign in before continuing.";
+    case "forbidden:auth":
+      return "Your account does not have access to this feature.";
 
-    case 'rate_limit:chat':
-      return 'You have exceeded your maximum number of messages for the day. Please try again later.';
-    case 'not_found:chat':
-      return 'The requested chat was not found. Please check the chat ID and try again.';
-    case 'forbidden:chat':
-      return 'This chat belongs to another user. Please check the chat ID and try again.';
-    case 'unauthorized:chat':
-      return 'You need to sign in to view this chat. Please sign in and try again.';
-    case 'offline:chat':
+    case "rate_limit:chat":
+      return "You have exceeded your maximum number of messages for the day. Please try again later.";
+    case "not_found:chat":
+      return "The requested chat was not found. Please check the chat ID and try again.";
+    case "forbidden:chat":
+      return "This chat belongs to another user. Please check the chat ID and try again.";
+    case "unauthorized:chat":
+      return "You need to sign in to view this chat. Please sign in and try again.";
+    case "offline:chat":
       return "We're having trouble sending your message. Please check your internet connection and try again.";
 
-    case 'not_found:document':
-      return 'The requested document was not found. Please check the document ID and try again.';
-    case 'forbidden:document':
-      return 'This document belongs to another user. Please check the document ID and try again.';
-    case 'unauthorized:document':
-      return 'You need to sign in to view this document. Please sign in and try again.';
-    case 'bad_request:document':
-      return 'The request to create or update the document was invalid. Please check your input and try again.';
+    case "not_found:document":
+      return "The requested document was not found. Please check the document ID and try again.";
+    case "forbidden:document":
+      return "This document belongs to another user. Please check the document ID and try again.";
+    case "unauthorized:document":
+      return "You need to sign in to view this document. Please sign in and try again.";
+    case "bad_request:document":
+      return "The request to create or update the document was invalid. Please check your input and try again.";
 
-    case 'network:vectorstore':
-      return 'Network connection to vector store failed. Please check your internet connection and try again.';
-    case 'authentication:vectorstore':
-      return 'Vector store authentication failed. Please check your API configuration.';
-    case 'validation:vectorstore':
-      return 'Invalid vector store request parameters. Please check your input and try again.';
-    case 'service_unavailable:vectorstore':
-      return 'Vector store service is temporarily unavailable. Please try again later.';
-    case 'rate_limit:vectorstore':
-      return 'Vector store rate limit exceeded. Please wait and try again.';
+    case "network:vectorstore":
+      return "Network connection to vector store failed. Please check your internet connection and try again.";
+    case "authentication:vectorstore":
+      return "Vector store authentication failed. Please check your API configuration.";
+    case "validation:vectorstore":
+      return "Invalid vector store request parameters. Please check your input and try again.";
+    case "service_unavailable:vectorstore":
+      return "Vector store service is temporarily unavailable. Please try again later.";
+    case "rate_limit:vectorstore":
+      return "Vector store rate limit exceeded. Please wait and try again.";
 
-    case 'network:agent':
-      return 'Agent service network error. Please check your connection and try again.';
-    case 'authentication:agent':
-      return 'Agent service authentication failed. Please check your configuration.';
-    case 'validation:agent':
-      return 'Invalid agent request parameters. Please check your input and try again.';
-    case 'service_unavailable:agent':
-      return 'Agent service is temporarily unavailable. Please try again later.';
+    case "network:agent":
+      return "Agent service network error. Please check your connection and try again.";
+    case "authentication:agent":
+      return "Agent service authentication failed. Please check your configuration.";
+    case "validation:agent":
+      return "Invalid agent request parameters. Please check your input and try again.";
+    case "service_unavailable:agent":
+      return "Agent service is temporarily unavailable. Please try again later.";
 
     default:
-      return 'Something went wrong. Please try again later.';
+      return "Something went wrong. Please try again later.";
   }
 }
 
 function getStatusCodeByType(type: ErrorType) {
   switch (type) {
-    case 'bad_request':
-    case 'validation':
+    case "bad_request":
+    case "validation":
       return 400;
-    case 'unauthorized':
-    case 'authentication':
+    case "unauthorized":
+    case "authentication":
       return 401;
-    case 'forbidden':
+    case "forbidden":
       return 403;
-    case 'not_found':
+    case "not_found":
       return 404;
-    case 'rate_limit':
+    case "rate_limit":
       return 429;
-    case 'offline':
-    case 'service_unavailable':
+    case "offline":
+    case "service_unavailable":
       return 503;
-    case 'network':
+    case "network":
       return 502;
-    case 'unknown':
+    case "unknown":
     default:
       return 500;
   }

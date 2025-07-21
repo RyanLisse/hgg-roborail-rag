@@ -1,20 +1,18 @@
-'use client';
+"use client";
 
-import { isAfter } from 'date-fns';
-import { motion } from 'framer-motion';
-import { useState } from 'react';
-import { useSWRConfig } from 'swr';
-import { useWindowSize } from 'usehooks-ts';
-
-import type { Document } from '@/lib/db/schema';
-import { getDocumentTimestampByIndex } from '@/lib/utils';
-
-import { LoaderIcon } from './icons';
-import { Button } from './ui/button';
-import { useArtifact } from '@/hooks/use-artifact';
+import { isAfter } from "date-fns";
+import { motion } from "framer-motion";
+import { useState } from "react";
+import { useSWRConfig } from "swr";
+import { useWindowSize } from "usehooks-ts";
+import { useArtifact } from "@/hooks/use-artifact";
+import type { Document } from "@/lib/db/schema";
+import { getDocumentTimestampByIndex } from "@/lib/utils";
+import { LoaderIcon } from "./icons";
+import { Button } from "./ui/button";
 
 interface VersionFooterProps {
-  handleVersionChange: (type: 'next' | 'prev' | 'toggle' | 'latest') => void;
+  handleVersionChange: (type: "next" | "prev" | "toggle" | "latest") => void;
   documents: Array<Document> | undefined;
   currentVersionIndex: number;
 }
@@ -36,11 +34,11 @@ export const VersionFooter = ({
 
   return (
     <motion.div
-      className="absolute flex flex-col gap-4 lg:flex-row bottom-0 bg-background p-4 w-full border-t z-50 justify-between"
-      initial={{ y: isMobile ? 200 : 77 }}
       animate={{ y: 0 }}
+      className="absolute bottom-0 z-50 flex w-full flex-col justify-between gap-4 border-t bg-background p-4 lg:flex-row"
       exit={{ y: isMobile ? 200 : 77 }}
-      transition={{ type: 'spring', stiffness: 140, damping: 20 }}
+      initial={{ y: isMobile ? 200 : 77 }}
+      transition={{ type: "spring", stiffness: 140, damping: 20 }}
     >
       <div>
         <div>You are viewing a previous version</div>
@@ -63,7 +61,7 @@ export const VersionFooter = ({
                   currentVersionIndex,
                 )}`,
                 {
-                  method: 'DELETE',
+                  method: "DELETE",
                 },
               ),
               {
@@ -94,10 +92,10 @@ export const VersionFooter = ({
           )}
         </Button>
         <Button
-          variant="outline"
           onClick={() => {
-            handleVersionChange('latest');
+            handleVersionChange("latest");
           }}
+          variant="outline"
         >
           Back to latest version
         </Button>

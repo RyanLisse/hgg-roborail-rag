@@ -1,15 +1,14 @@
-import type { Node } from 'prosemirror-model';
-import { Plugin, PluginKey } from 'prosemirror-state';
+import type { Node } from "prosemirror-model";
+import { Plugin, PluginKey } from "prosemirror-state";
 import {
   type Decoration,
   DecorationSet,
   type EditorView,
-} from 'prosemirror-view';
-import { createRoot } from 'react-dom/client';
-
-import { Suggestion as PreviewSuggestion } from '@/components/suggestion';
-import type { Suggestion } from '@/lib/db/schema';
-import type { ArtifactKind } from '@/components/artifact';
+} from "prosemirror-view";
+import { createRoot } from "react-dom/client";
+import type { ArtifactKind } from "@/components/artifact";
+import { Suggestion as PreviewSuggestion } from "@/components/suggestion";
+import type { Suggestion } from "@/lib/db/schema";
 
 export interface UISuggestion extends Suggestion {
   selectionStart: number;
@@ -70,12 +69,12 @@ export function projectWithPositions(
 export function createSuggestionWidget(
   suggestion: UISuggestion,
   view: EditorView,
-  artifactKind: ArtifactKind = 'text',
+  artifactKind: ArtifactKind = "text",
 ): { dom: HTMLElement; destroy: () => void } {
-  const dom = document.createElement('span');
+  const dom = document.createElement("span");
   const root = createRoot(dom);
 
-  dom.addEventListener('mousedown', (event) => {
+  dom.addEventListener("mousedown", (event) => {
     event.preventDefault();
     view.dom.blur();
   });
@@ -108,16 +107,16 @@ export function createSuggestionWidget(
       state.schema.text(suggestion.suggestedText),
     );
 
-    textTransaction.setMeta('no-debounce', true);
+    textTransaction.setMeta("no-debounce", true);
 
     dispatch(textTransaction);
   };
 
   root.render(
     <PreviewSuggestion
-      suggestion={suggestion}
-      onApply={onApply}
       artifactKind={artifactKind}
+      onApply={onApply}
+      suggestion={suggestion}
     />,
   );
 
@@ -132,7 +131,7 @@ export function createSuggestionWidget(
   };
 }
 
-export const suggestionsPluginKey = new PluginKey('suggestions');
+export const suggestionsPluginKey = new PluginKey("suggestions");
 export const suggestionsPlugin = new Plugin({
   key: suggestionsPluginKey,
   state: {

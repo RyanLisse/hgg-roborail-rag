@@ -14,26 +14,25 @@ import {
 } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
-import { POSTGRES_URL } from '../env';
-
-import {
-  user,
-  chat,
-  type User,
-  document,
-  type Suggestion,
-  suggestion,
-  message,
-  vote,
-  type DBMessage,
-  type Chat,
-  stream,
-} from './schema';
 import type { ArtifactKind } from '@/components/artifact';
-import { generateUUID } from '../utils';
-import { generateHashedPassword } from './server-utils';
 import type { VisibilityType } from '@/components/visibility-selector';
+import { POSTGRES_URL } from '../env';
 import { ChatSDKError } from '../errors';
+import { generateUUID } from '../utils';
+import {
+  type Chat,
+  chat,
+  type DBMessage,
+  document,
+  message,
+  type Suggestion,
+  stream,
+  suggestion,
+  type User,
+  user,
+  vote,
+} from './schema';
+import { generateHashedPassword } from './server-utils';
 
 // Optionally, if not using email/pass login, you can
 // use the Drizzle adapter for Auth.js / NextAuth
@@ -733,7 +732,10 @@ export async function updateChatVisiblityById({
 export async function getMessageCountByUserId({
   id,
   differenceInHours,
-}: { id: string; differenceInHours: number }) {
+}: {
+  id: string;
+  differenceInHours: number;
+}) {
   const database = initializeDatabase();
 
   // If database is not available (test mode), return 0 (no rate limit)

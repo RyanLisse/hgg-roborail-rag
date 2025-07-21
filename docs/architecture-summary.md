@@ -68,6 +68,7 @@ The RRA is a sophisticated AI-powered chatbot application designed for rail indu
 ### 1. Frontend Architecture
 
 #### Next.js App Router Structure
+
 ```
 app/
 ├── (auth)/          # Authentication group routes
@@ -86,6 +87,7 @@ app/
 ```
 
 #### Component Architecture
+
 - **Atomic Design Pattern**: ui/ components follow atomic design principles
 - **Feature-Based Organization**: Components grouped by functionality
 - **Server Components**: Leveraging React Server Components for performance
@@ -94,6 +96,7 @@ app/
 ### 2. AI Agent System
 
 #### Agent Architecture
+
 ```
 lib/agents/
 ├── base-agent.ts      # Abstract base class
@@ -106,6 +109,7 @@ lib/agents/
 ```
 
 #### Agent Capabilities
+
 - **Dynamic Routing**: Intelligent agent selection based on task type
 - **Context Sharing**: Shared memory and state management
 - **Specialized Processing**: Domain-specific intelligence
@@ -114,6 +118,7 @@ lib/agents/
 ### 3. Vector Store Architecture
 
 #### Multi-Store Strategy
+
 ```
 lib/vectorstore/
 ├── core/
@@ -131,6 +136,7 @@ lib/vectorstore/
 ```
 
 #### Vector Store Features
+
 - **Multi-Provider Support**: OpenAI, Neon, and custom implementations
 - **Automatic Failover**: Seamless switching between providers
 - **Performance Monitoring**: Real-time metrics and health checks
@@ -139,6 +145,7 @@ lib/vectorstore/
 ### 4. RAG (Retrieval-Augmented Generation) Engine
 
 #### RAG Pipeline
+
 ```
 Document Input → Chunking → Embedding → Storage → Retrieval → Generation
      ↓              ↓          ↓          ↓          ↓          ↓
@@ -146,6 +153,7 @@ Document Input → Chunking → Embedding → Storage → Retrieval → Generati
 ```
 
 #### RAG Components
+
 - **Document Processing**: Support for multiple file formats
 - **Intelligent Chunking**: Context-aware text segmentation
 - **Semantic Embedding**: High-quality vector representations
@@ -155,6 +163,7 @@ Document Input → Chunking → Embedding → Storage → Retrieval → Generati
 ### 5. Database Architecture
 
 #### Schema Design
+
 ```sql
 -- Core tables
 users (id, email, password_hash, created_at, updated_at)
@@ -169,6 +178,7 @@ search_logs (id, query, results, performance_metrics)
 ```
 
 #### Migration Strategy
+
 - **Drizzle ORM**: Type-safe database operations
 - **Version Control**: Systematic migration management
 - **Rollback Support**: Safe deployment and recovery
@@ -177,6 +187,7 @@ search_logs (id, query, results, performance_metrics)
 ## Data Flow Architecture
 
 ### 1. Chat Interaction Flow
+
 ```
 User Input → Frontend → API Route → Agent Router → Specialized Agent → AI Provider → Response → Frontend
      ↓                                    ↓                                    ↓
@@ -186,6 +197,7 @@ Authentication                    Vector Search                      Database St
 ```
 
 ### 2. Document Processing Flow
+
 ```
 File Upload → Validation → Storage → Chunking → Embedding → Vector Store → Index Update
      ↓             ↓          ↓          ↓          ↓            ↓            ↓
@@ -193,6 +205,7 @@ File Upload → Validation → Storage → Chunking → Embedding → Vector Sto
 ```
 
 ### 3. RAG Query Flow
+
 ```
 User Query → Embedding → Vector Search → Context Assembly → AI Generation → Response
      ↓           ↓            ↓              ↓               ↓              ↓
@@ -202,18 +215,21 @@ User Query → Embedding → Vector Search → Context Assembly → AI Generatio
 ## Security Architecture
 
 ### 1. Authentication & Authorization
+
 - **NextAuth.js**: Industry-standard authentication
 - **Session Management**: Secure, encrypted session cookies
 - **Role-Based Access**: Granular permission system
 - **API Protection**: Route-level authentication guards
 
 ### 2. Data Security
+
 - **Input Validation**: Comprehensive request validation with Zod
 - **SQL Injection Prevention**: Parameterized queries via Drizzle ORM
 - **XSS Protection**: React's built-in XSS prevention + CSP headers
 - **Environment Security**: Proper secret management and rotation
 
 ### 3. API Security
+
 - **Rate Limiting**: Per-user and per-endpoint limits
 - **CORS Configuration**: Strict origin control
 - **Request Sanitization**: Input cleaning and validation
@@ -222,18 +238,21 @@ User Query → Embedding → Vector Search → Context Assembly → AI Generatio
 ## Performance Architecture
 
 ### 1. Caching Strategy
+
 - **Multi-Level Caching**: Browser, CDN, Application, Database
 - **Vector Cache**: Embedding result caching
 - **Query Cache**: Database query result caching
 - **Static Generation**: Pre-rendered pages where possible
 
 ### 2. Optimization Techniques
+
 - **Code Splitting**: Dynamic imports and lazy loading
 - **Image Optimization**: Next.js automatic image optimization
 - **Bundle Analysis**: Regular bundle size monitoring
 - **Database Optimization**: Query optimization and indexing
 
 ### 3. Monitoring & Observability
+
 - **LangSmith Integration**: AI model performance tracking
 - **Custom Metrics**: Application-specific performance indicators
 - **Error Tracking**: Comprehensive error monitoring and alerting
@@ -242,18 +261,21 @@ User Query → Embedding → Vector Search → Context Assembly → AI Generatio
 ## Scalability Considerations
 
 ### 1. Horizontal Scaling
+
 - **Stateless Design**: Session data in database, not memory
 - **Load Balancing**: Multiple instance support
 - **Database Sharding**: Preparation for data partitioning
 - **Microservice Ready**: Modular architecture for service extraction
 
 ### 2. Vertical Scaling
+
 - **Resource Optimization**: Efficient memory and CPU usage
 - **Connection Pooling**: Database connection optimization
 - **Caching Optimization**: Memory-efficient caching strategies
 - **Background Processing**: Async task handling
 
 ### 3. Cloud Architecture
+
 - **Vercel Deployment**: Optimized for serverless deployment
 - **Edge Functions**: Geographically distributed compute
 - **CDN Integration**: Global content delivery
@@ -262,6 +284,7 @@ User Query → Embedding → Vector Search → Context Assembly → AI Generatio
 ## Technology Stack Deep Dive
 
 ### Frontend Stack
+
 - **Next.js 15**: Latest App Router with PPR (Partial Pre-rendering)
 - **React 19**: Concurrent features and Suspense
 - **TypeScript**: Full type safety with strict configuration
@@ -269,6 +292,7 @@ User Query → Embedding → Vector Search → Context Assembly → AI Generatio
 - **shadcn/ui**: High-quality, accessible component library
 
 ### Backend Stack
+
 - **Next.js API Routes**: Serverless function deployment
 - **Server Actions**: React Server Components with mutations
 - **Drizzle ORM**: Type-safe database operations
@@ -276,6 +300,7 @@ User Query → Embedding → Vector Search → Context Assembly → AI Generatio
 - **Redis**: Optional caching and session storage
 
 ### AI & ML Stack
+
 - **AI SDK**: Unified interface for multiple AI providers
 - **Multiple LLM Providers**: xAI, OpenAI, Anthropic, Cohere, Google
 - **Vector Databases**: OpenAI, Neon Postgres, custom implementations
@@ -283,6 +308,7 @@ User Query → Embedding → Vector Search → Context Assembly → AI Generatio
 - **LangSmith**: Observability and performance monitoring
 
 ### Development Stack
+
 - **TypeScript**: Static type checking and enhanced IDE support
 - **ESLint**: Code linting with Next.js and accessibility rules
 - **Biome**: Fast formatting and additional linting
@@ -293,6 +319,7 @@ User Query → Embedding → Vector Search → Context Assembly → AI Generatio
 ## Deployment Architecture
 
 ### Production Environment
+
 ```
 Internet → CDN (Vercel Edge) → Load Balancer → App Instances → Database
     ↓               ↓                ↓              ↓            ↓
@@ -300,6 +327,7 @@ DNS/SSL → Static Assets → Serverless Fns → Business Logic → Postgres
 ```
 
 ### Development Environment
+
 ```
 Developer → Local Dev Server → Local Database → Mock AI Services
     ↓              ↓                ↓                 ↓
@@ -307,6 +335,7 @@ Git Hooks → Hot Reload → SQLite/Docker → Test Providers
 ```
 
 ### CI/CD Pipeline
+
 1. **Code Push** → GitHub repository
 2. **Automated Testing** → Playwright + Vitest
 3. **Quality Checks** → ESLint + TypeScript + Biome
@@ -317,6 +346,7 @@ Git Hooks → Hot Reload → SQLite/Docker → Test Providers
 ## Future Architecture Considerations
 
 ### Planned Enhancements
+
 1. **Microservices Migration**: Gradual extraction of services
 2. **Event-Driven Architecture**: Async communication patterns
 3. **Advanced Caching**: Redis integration and cache strategies
@@ -324,6 +354,7 @@ Git Hooks → Hot Reload → SQLite/Docker → Test Providers
 5. **Multi-tenant Support**: Enterprise-grade isolation
 
 ### Scalability Roadmap
+
 1. **Phase 1**: Optimize current monolithic architecture
 2. **Phase 2**: Extract AI services to dedicated infrastructure
 3. **Phase 3**: Implement event-driven communication

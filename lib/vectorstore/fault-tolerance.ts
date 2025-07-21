@@ -1,21 +1,21 @@
-import 'server-only';
+import "server-only";
 
-import { z } from 'zod';
+import { z } from "zod";
 import {
-  ErrorClassifier,
-  RetryMechanism,
   CircuitBreaker,
+  CircuitBreakerConfig,
   type ClassifiedError,
   ErrorCategory,
+  ErrorClassifier,
   RetryConfig,
-  CircuitBreakerConfig,
-} from './error-handling';
+  RetryMechanism,
+} from "./error-handling";
 import {
-  FallbackManager,
-  type ServiceProvider,
   FallbackConfig,
+  FallbackManager,
   GracefulDegradation,
-} from './fallback';
+  type ServiceProvider,
+} from "./fallback";
 
 // ====================================
 // FAULT TOLERANCE CONFIGURATION
@@ -29,8 +29,12 @@ export const FaultToleranceConfig = z.object({
   retryConfig: RetryConfig.optional(),
   circuitBreakerConfig: CircuitBreakerConfig.optional(),
   fallbackConfig: FallbackConfig.optional(),
-  healthCheckIntervalMs: z.number().min(10000).max(300000).default(60000),
-  metricsRetentionMs: z.number().min(300000).max(86400000).default(3600000),
+  healthCheckIntervalMs: z.number().min(10_000).max(300_000).default(60_000),
+  metricsRetentionMs: z
+    .number()
+    .min(300_000)
+    .max(86_400_000)
+    .default(3_600_000),
 });
 
 export type FaultToleranceConfig = z.infer<typeof FaultToleranceConfig>;
@@ -121,22 +125,21 @@ export class FaultTolerantService<T> {
     },
   ): Promise<R> {
     const startTime = Date.now();
-    const operationName = context?.operationName || 'unknown_operation';
+    const operationName = context?.operationName || "unknown_operation";
 
     this.metrics.totalRequests++;
 
     try {
       // Check service degradation level
-      if (context?.requiredServiceLevel !== undefined) {
-        if (
-          !this.gracefulDegradation.canPerformOperation(
-            context.requiredServiceLevel,
-          )
-        ) {
-          throw new Error(
-            `Service degraded: operation requires level ${context.requiredServiceLevel}, current level is ${this.gracefulDegradation.getCurrentLevel()}`,
-          );
-        }
+      if (
+        context?.requiredServiceLevel !== undefined &&
+        !this.gracefulDegradation.canPerformOperation(
+          context.requiredServiceLevel,
+        )
+      ) {
+        throw new Error(
+          `Service degraded: operation requires level ${context.requiredServiceLevel}, current level is ${this.gracefulDegradation.getCurrentLevel()}`,
+        );
       }
 
       let result: R;
@@ -267,7 +270,7 @@ export class FaultTolerantService<T> {
 
     const overallHealthy =
       fallbackHealth.healthy &&
-      circuitBreakerMetrics.state !== 'OPEN' &&
+      circuitBreakerMetrics.state !== "OPEN" &&
       !this.gracefulDegradation.isDegraded();
 
     return {
@@ -516,22 +519,15 @@ export function withFaultTolerance<T extends any[], R>(
 
 // Export everything needed
 export {
-  ErrorClassifier,
-  RetryMechanism,
   CircuitBreaker,
+  type CircuitBreakerConfig,
   type ClassifiedError,
   ErrorCategory,
+  ErrorClassifier,
   type RetryConfig,
-  type CircuitBreakerConfig,
-} from './error-handling';
+  RetryMechanism,
+} from "./error-handling";
 
-export type {
-  FallbackConfig,
-  ServiceProvider,
-} from './fallback';
+export type { FallbackConfig, ServiceProvider } from "./fallback";
 
-export {
-  FallbackManager,
-  GracefulDegradation,
-  FallbackMode,
-} from './fallback';
+export { FallbackManager, FallbackMode, GracefulDegradation } from "./fallback";

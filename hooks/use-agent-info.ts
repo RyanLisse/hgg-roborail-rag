@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import type {
-  AgentRouting,
   AgentMetadata,
-} from '@/components/data-stream-handler';
+  AgentRouting,
+} from "@/components/data-stream-handler";
 
 // Simple global state management for agent info
 const globalAgentInfo: {

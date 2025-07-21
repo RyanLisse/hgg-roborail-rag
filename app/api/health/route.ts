@@ -1,5 +1,5 @@
-import { checkEnvironment, logEnvironmentStatus } from '@/lib/utils/env-check';
-import { withApiErrorHandling, ApiResponses } from '@/lib/api/error-handling';
+import { ApiResponses, withApiErrorHandling } from "@/lib/api/error-handling";
+import { checkEnvironment, logEnvironmentStatus } from "@/lib/utils/env-check";
 
 export const GET = withApiErrorHandling(
   async () => {
@@ -9,21 +9,21 @@ export const GET = withApiErrorHandling(
     const envStatus = checkEnvironment();
 
     // Test database connection if available
-    let dbStatus = 'not_configured';
+    let dbStatus = "not_configured";
     if (process.env.POSTGRES_URL) {
       try {
         // Try a simple database query
-        const { getDb } = await import('@/lib/db/queries');
+        const { getDb } = await import("@/lib/db/queries");
         await getDb();
-        dbStatus = 'connected';
+        dbStatus = "connected";
       } catch (error) {
-        console.error('Database connection failed:', error);
-        dbStatus = 'error';
+        console.error("Database connection failed:", error);
+        dbStatus = "error";
       }
     }
 
     return ApiResponses.success({
-      status: 'ok',
+      status: "ok",
       timestamp: new Date().toISOString(),
       environment: {
         node_env: process.env.NODE_ENV,
@@ -34,10 +34,10 @@ export const GET = withApiErrorHandling(
       },
       services: {
         database: dbStatus,
-        redis: process.env.REDIS_URL ? 'configured' : 'not_configured',
+        redis: process.env.REDIS_URL ? "configured" : "not_configured",
         blob_storage: process.env.BLOB_READ_WRITE_TOKEN
-          ? 'configured'
-          : 'not_configured',
+          ? "configured"
+          : "not_configured",
       },
     });
   },

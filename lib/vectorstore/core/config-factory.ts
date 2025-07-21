@@ -1,6 +1,6 @@
-import type { BaseServiceConfig, ConfigFactory } from './types';
-import { BaseServiceConfig as BaseConfigSchema } from './types';
-import { z } from 'zod';
+import { z } from "zod";
+import type { BaseServiceConfig, ConfigFactory } from "./types";
+import { BaseServiceConfig as BaseConfigSchema } from "./types";
 
 /**
  * Generic configuration factory for vector store services
@@ -33,16 +33,14 @@ export class VectorStoreConfigFactory<TConfig extends BaseServiceConfig>
       const envValue = env[envKey];
       if (envValue !== undefined) {
         // Handle boolean conversion
-        if (envValue === 'true' || envValue === 'false') {
-          (configData as any)[configKey] = envValue === 'true';
+        if (envValue === "true" || envValue === "false") {
+          (configData as any)[configKey] = envValue === "true";
         }
         // Handle number conversion
-        else if (!Number.isNaN(Number(envValue))) {
-          (configData as any)[configKey] = Number(envValue);
-        }
-        // String value
-        else {
+        else if (Number.isNaN(Number(envValue))) {
           (configData as any)[configKey] = envValue;
+        } else {
+          (configData as any)[configKey] = Number(envValue);
         }
       }
     }
@@ -59,8 +57,8 @@ export class VectorStoreConfigFactory<TConfig extends BaseServiceConfig>
     } catch (error) {
       if (error instanceof z.ZodError) {
         const issues = error.issues
-          .map((issue) => `${issue.path.join('.')}: ${issue.message}`)
-          .join(', ');
+          .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
+          .join(", ");
 
         throw new Error(
           `${this.serviceName} configuration validation failed: ${issues}`,
@@ -125,9 +123,9 @@ export function createConfigFactory<TConfig extends BaseServiceConfig>(
  * Standard environment key mappings for common configuration
  */
 export const CommonEnvMappings = {
-  timeout: 'VECTOR_STORE_TIMEOUT',
-  maxRetries: 'VECTOR_STORE_MAX_RETRIES',
-  retryDelay: 'VECTOR_STORE_RETRY_DELAY',
+  timeout: "VECTOR_STORE_TIMEOUT",
+  maxRetries: "VECTOR_STORE_MAX_RETRIES",
+  retryDelay: "VECTOR_STORE_RETRY_DELAY",
 };
 
 /**

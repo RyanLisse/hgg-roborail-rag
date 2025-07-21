@@ -1,5 +1,5 @@
-import { BaseAgent } from './base-agent';
-import type { AgentRequest } from './types';
+import { BaseAgent } from "./base-agent";
+import type { AgentRequest } from "./types";
 
 /**
  * Rewrite Agent - Specialized in rephrasing, summarizing, and reformulating content
@@ -12,10 +12,10 @@ import type { AgentRequest } from './types';
  */
 export class RewriteAgent extends BaseAgent {
   constructor() {
-    super('rewrite', {
-      name: 'Rewrite Agent',
+    super("rewrite", {
+      name: "Rewrite Agent",
       description:
-        'Specializes in rephrasing, summarizing, and reformulating text content',
+        "Specializes in rephrasing, summarizing, and reformulating text content",
       supportsStreaming: true,
       requiresTools: false,
       maxTokens: 1500,
@@ -36,36 +36,36 @@ Your core capabilities include:
 - Improving structure and flow of text
 
 ${
-  taskIndicators.includes('summarize')
+  taskIndicators.includes("summarize")
     ? `
 SUMMARIZATION TASK DETECTED:
 - Extract key points and main ideas
 - Maintain essential information while reducing length
 - Use clear, concise language
 - Structure information hierarchically when appropriate`
-    : ''
+    : ""
 }
 
 ${
-  taskIndicators.includes('rephrase')
+  taskIndicators.includes("rephrase")
     ? `
 REPHRASING TASK DETECTED:
 - Maintain original meaning while improving clarity
 - Use more accessible or appropriate language
 - Improve sentence structure and flow
 - Consider the intended audience`
-    : ''
+    : ""
 }
 
 ${
-  taskIndicators.includes('optimize')
+  taskIndicators.includes("optimize")
     ? `
 QUERY OPTIMIZATION TASK DETECTED:
 - Enhance specificity and clarity
 - Add relevant context and keywords
 - Structure for better information retrieval
 - Maintain user intent while improving precision`
-    : ''
+    : ""
 }
 
 Guidelines:
@@ -83,30 +83,30 @@ Focus on making the content more effective for its intended purpose.`;
     const lowerQuery = query.toLowerCase();
 
     if (
-      lowerQuery.includes('summarize') ||
-      lowerQuery.includes('summary') ||
-      lowerQuery.includes('brief') ||
-      lowerQuery.includes('condense')
+      lowerQuery.includes("summarize") ||
+      lowerQuery.includes("summary") ||
+      lowerQuery.includes("brief") ||
+      lowerQuery.includes("condense")
     ) {
-      indicators.push('summarize');
+      indicators.push("summarize");
     }
 
     if (
-      lowerQuery.includes('rephrase') ||
-      lowerQuery.includes('rewrite') ||
-      lowerQuery.includes('reword') ||
-      lowerQuery.includes('reformulate')
+      lowerQuery.includes("rephrase") ||
+      lowerQuery.includes("rewrite") ||
+      lowerQuery.includes("reword") ||
+      lowerQuery.includes("reformulate")
     ) {
-      indicators.push('rephrase');
+      indicators.push("rephrase");
     }
 
     if (
-      lowerQuery.includes('optimize') ||
-      lowerQuery.includes('improve') ||
-      lowerQuery.includes('enhance') ||
-      lowerQuery.includes('better')
+      lowerQuery.includes("optimize") ||
+      lowerQuery.includes("improve") ||
+      lowerQuery.includes("enhance") ||
+      lowerQuery.includes("better")
     ) {
-      indicators.push('optimize');
+      indicators.push("optimize");
     }
 
     return indicators;
@@ -114,6 +114,6 @@ Focus on making the content more effective for its intended purpose.`;
 
   protected getTools(request: AgentRequest): Record<string, any> | undefined {
     // Rewrite agent doesn't require special tools
-    return undefined;
+    return;
   }
 }

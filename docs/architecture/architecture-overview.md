@@ -54,24 +54,28 @@
 ## Core Architectural Patterns
 
 ### 1. **Multi-Model AI Architecture**
+
 - **Provider Abstraction**: Supports OpenAI, Anthropic, Google, Cohere, Groq, xAI
 - **Model Selection Strategy**: Intelligent routing based on task complexity
 - **Reasoning Models**: Special handling for o1, o3, o4 series models
 - **Streaming Support**: Real-time response delivery
 
 ### 2. **Agent-Based Processing System**
+
 - **Smart Routing**: Query classification and complexity analysis
 - **Specialized Agents**: QA, Research, Rewrite, Planner agents
 - **Lazy Loading**: Dynamic agent instantiation with code splitting
 - **Orchestrator Pattern**: Centralized agent coordination
 
 ### 3. **Unified Vector Store Architecture**
+
 - **Multi-Source**: OpenAI Assistant Files, Neon PostgreSQL, Memory
 - **Fault Tolerance**: Automatic fallback between sources
 - **Enhanced Search**: Relevance scoring, reranking, hybrid search
 - **Performance Monitoring**: Real-time metrics and optimization
 
 ### 4. **Layered Caching Strategy**
+
 - **Semantic Caching**: Smart cache keys for vector searches
 - **Backend Flexibility**: Redis (production) / Memory (development)
 - **Cache Patterns**: Vector search, agent responses, embeddings
@@ -112,24 +116,28 @@ lib/                  # Core business logic
 ## Key Architectural Decisions
 
 ### 1. **Next.js App Router Pattern**
+
 - **Route Groups**: `(auth)` and `(chat)` for logical separation
 - **Parallel Routing**: Optimized loading and layout management
 - **Partial Pre-rendering (PPR)**: Enhanced performance
 - **Server Components**: Reduced client-side JavaScript
 
 ### 2. **Type-Safe Database Layer**
+
 - **Drizzle ORM**: Type-safe database operations
 - **Schema Versioning**: Migration-based schema evolution
 - **PostgreSQL Extensions**: pgvector for vector storage
 - **Connection Pooling**: Vercel PostgreSQL integration
 
 ### 3. **Modular Service Architecture**
+
 - **Dependency Injection**: Service container pattern
 - **Interface Segregation**: Clear service boundaries
 - **Lazy Loading**: Performance optimization
 - **Environment Adaptation**: Development vs production configs
 
 ### 4. **Security & Observability**
+
 - **NextAuth.js**: Secure authentication with multiple providers
 - **CORS Middleware**: Cross-origin request handling
 - **LangSmith Integration**: AI interaction monitoring
@@ -138,12 +146,14 @@ lib/                  # Core business logic
 ## Performance Characteristics
 
 ### Optimization Strategies
+
 - **Code Splitting**: Dynamic imports for agents and heavy components
 - **Caching Layers**: Multi-level caching (browser, server, database)
 - **Streaming Responses**: Real-time AI response delivery
 - **Vector Search Optimization**: Relevance scoring and reranking
 
 ### Scalability Considerations
+
 - **Stateless Architecture**: Horizontal scaling capability
 - **Database Pooling**: Connection optimization
 - **CDN Integration**: Static asset delivery
@@ -152,6 +162,7 @@ lib/                  # Core business logic
 ## Deployment Architecture
 
 ### Production Environment
+
 - **Platform**: Vercel (serverless)
 - **Database**: Vercel PostgreSQL with pgvector
 - **Storage**: Vercel Blob for file uploads
@@ -159,6 +170,7 @@ lib/                  # Core business logic
 - **Monitoring**: LangSmith + built-in observability
 
 ### Development Environment
+
 - **Local Development**: Next.js dev server
 - **Database**: Local PostgreSQL or Vercel preview
 - **Cache**: In-memory caching
@@ -167,6 +179,7 @@ lib/                  # Core business logic
 ## Integration Points
 
 ### External Services
+
 - **AI Providers**: OpenAI, Anthropic, Google, Cohere, Groq, xAI
 - **Vector Storage**: OpenAI Assistant API, Neon PostgreSQL
 - **Authentication**: NextAuth.js with multiple providers
@@ -174,6 +187,7 @@ lib/                  # Core business logic
 - **File Storage**: Vercel Blob for uploads
 
 ### API Design
+
 - **RESTful Endpoints**: Standard HTTP methods
 - **Streaming Support**: Server-sent events for real-time responses
 - **Error Handling**: Standardized error responses
@@ -182,12 +196,14 @@ lib/                  # Core business logic
 ## Quality Assurance
 
 ### Testing Strategy
+
 - **Unit Tests**: Vitest for component and utility testing
 - **Integration Tests**: API endpoint testing
 - **E2E Tests**: Playwright for full user flows
 - **Performance Testing**: Built-in monitoring and metrics
 
 ### Code Quality
+
 - **TypeScript**: Full type safety
 - **ESLint + Biome**: Code linting and formatting
 - **Husky**: Pre-commit hooks

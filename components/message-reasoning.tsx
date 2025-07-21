@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { ChevronDownIcon, LoaderIcon } from './icons';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Markdown } from './markdown';
+import { AnimatePresence, motion } from "framer-motion";
+import { useState } from "react";
+import { ChevronDownIcon, LoaderIcon } from "./icons";
+import { Markdown } from "./markdown";
 
 interface MessageReasoningProps {
   isLoading: boolean;
@@ -24,32 +24,32 @@ export function MessageReasoning({
       marginBottom: 0,
     },
     expanded: {
-      height: 'auto',
+      height: "auto",
       opacity: 1,
-      marginTop: '1rem',
-      marginBottom: '0.5rem',
+      marginTop: "1rem",
+      marginBottom: "0.5rem",
     },
   };
 
   return (
     <div className="flex flex-col">
       {isLoading ? (
-        <div className="flex flex-row gap-2 items-center">
+        <div className="flex flex-row items-center gap-2">
           <div className="font-medium">Reasoning</div>
           <div className="animate-spin">
             <LoaderIcon />
           </div>
         </div>
       ) : (
-        <div className="flex flex-row gap-2 items-center">
+        <div className="flex flex-row items-center gap-2">
           <div className="font-medium">Reasoned for a few seconds</div>
           <button
-            data-testid="message-reasoning-toggle"
-            type="button"
             className="cursor-pointer"
+            data-testid="message-reasoning-toggle"
             onClick={() => {
               setIsExpanded(!isExpanded);
             }}
+            type="button"
           >
             <ChevronDownIcon />
           </button>
@@ -59,15 +59,15 @@ export function MessageReasoning({
       <AnimatePresence initial={false}>
         {isExpanded && (
           <motion.div
-            data-testid="message-reasoning"
-            key="content"
-            initial="collapsed"
             animate="expanded"
+            className="flex flex-col gap-4 border-l pl-4 text-zinc-600 dark:text-zinc-400"
+            data-testid="message-reasoning"
             exit="collapsed"
+            initial="collapsed"
+            key="content"
+            style={{ overflow: "hidden" }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
             variants={variants}
-            transition={{ duration: 0.2, ease: 'easeInOut' }}
-            style={{ overflow: 'hidden' }}
-            className="pl-4 text-zinc-600 dark:text-zinc-400 border-l flex flex-col gap-4"
           >
             <Markdown>{reasoning}</Markdown>
           </motion.div>

@@ -46,6 +46,7 @@ app/
 ### **Authentication API** (`/api/auth/*`)
 
 #### NextAuth.js Routes
+
 ```http
 GET/POST /api/auth/[...nextauth]
 Description: Dynamic authentication routes (login, logout, providers)
@@ -54,6 +55,7 @@ Response: NextAuth.js standard responses
 ```
 
 #### Guest Authentication
+
 ```http
 POST /api/auth/guest
 Description: Create guest session for anonymous users
@@ -65,6 +67,7 @@ Response: { session: Session, redirect?: string }
 ### **Chat API** (`/api/chat`)
 
 #### Create/Stream Chat Messages
+
 ```http
 POST /api/chat
 Description: Send message and receive AI response stream
@@ -89,6 +92,7 @@ Response: Server-Sent Events Stream
 ```
 
 #### Resume Chat Stream
+
 ```http
 GET /api/chat?chatId={id}
 Description: Resume interrupted chat stream
@@ -100,6 +104,7 @@ Response: Resumed stream or empty response
 ```
 
 #### Delete Chat
+
 ```http
 DELETE /api/chat?id={id}
 Description: Delete chat and all associated data
@@ -113,6 +118,7 @@ Response: { success: boolean, deletedChat: Chat }
 ### **Vector Store API** (`/api/vectorstore/*`)
 
 #### Basic Search
+
 ```http
 POST /api/vectorstore/search
 Description: Search across multiple vector stores
@@ -137,6 +143,7 @@ Response:
 ```
 
 #### Enhanced Search
+
 ```http
 POST /api/vectorstore/search-enhanced
 Description: Advanced search with relevance scoring and reranking
@@ -175,6 +182,7 @@ Response:
 ```
 
 #### Document Upload
+
 ```http
 POST /api/vectorstore/upload
 Description: Upload and index documents
@@ -198,6 +206,7 @@ Response:
 ```
 
 #### Vector Store Sources
+
 ```http
 GET /api/vectorstore/sources
 Description: Get available vector store sources and statistics
@@ -215,6 +224,7 @@ Response:
 ```
 
 #### Vector Store Monitoring
+
 ```http
 GET /api/vectorstore/monitoring
 Description: Get vector store performance metrics
@@ -236,6 +246,7 @@ Response:
 ### **Document API** (`/api/document`)
 
 #### Create Document
+
 ```http
 POST /api/document
 Description: Create new document (code, text, image, sheet)
@@ -261,6 +272,7 @@ Response:
 ```
 
 #### Update Document
+
 ```http
 PATCH /api/document
 Description: Update existing document
@@ -281,6 +293,7 @@ Response: Updated document object
 ### **Agent API** (`/api/agents/*`)
 
 #### Process Request
+
 ```http
 POST /api/agents/process
 Description: Process request through agent system
@@ -318,6 +331,7 @@ Response:
 ```
 
 #### Analyze Query
+
 ```http
 POST /api/agents/analyze
 Description: Analyze query complexity and routing requirements
@@ -342,6 +356,7 @@ Response:
 ```
 
 #### Agent Capabilities
+
 ```http
 GET /api/agents/capabilities
 Description: Get available agent capabilities and models
@@ -365,6 +380,7 @@ Response:
 ### **File Management API** (`/api/files/*`)
 
 #### File Upload
+
 ```http
 POST /api/files/upload
 Description: Upload files for processing
@@ -391,6 +407,7 @@ Response:
 ### **System Health API** (`/api/health/*`)
 
 #### System Health Check
+
 ```http
 GET /api/health
 Description: Overall system health status
@@ -415,6 +432,7 @@ Response:
 ```
 
 #### Agent Health
+
 ```http
 GET /api/health/agents
 Description: Agent system specific health
@@ -446,6 +464,7 @@ Response:
 ### **Request/Response Standards**
 
 #### Request Headers
+
 ```http
 Content-Type: application/json
 Authorization: Bearer {token}  # If authenticated
@@ -454,6 +473,7 @@ X-Client-Version: {version}   # Optional client version
 ```
 
 #### Response Headers
+
 ```http
 Content-Type: application/json
 Cache-Control: no-cache       # For real-time data
@@ -463,6 +483,7 @@ X-Response-Time: {ms}         # Processing time
 ```
 
 #### Standard Response Format
+
 ```typescript
 // Success Response
 {
@@ -490,13 +511,14 @@ X-Response-Time: {ms}         # Processing time
 ### **Authentication & Authorization**
 
 #### Session-Based Authentication
+
 ```typescript
 // NextAuth.js Session
 interface Session {
   user: {
     id: string;
     email: string;
-    type: 'user' | 'admin' | 'guest';
+    type: "user" | "admin" | "guest";
   };
   expires: string;
 }
@@ -505,13 +527,14 @@ interface Session {
 export async function GET(request: Request) {
   const session = await auth();
   if (!session?.user) {
-    return new ChatSDKError('unauthorized:api').toResponse();
+    return new ChatSDKError("unauthorized:api").toResponse();
   }
   // Protected route logic
 }
 ```
 
 #### Rate Limiting
+
 ```typescript
 // User Type Entitlements
 const entitlementsByUserType = {
@@ -527,13 +550,14 @@ const messageCount = await getMessageCountByUserId({
 });
 
 if (messageCount > entitlements.maxMessagesPerDay) {
-  return new ChatSDKError('rate_limit:chat').toResponse();
+  return new ChatSDKError("rate_limit:chat").toResponse();
 }
 ```
 
 ### **Error Handling Strategy**
 
 #### Error Classification
+
 ```typescript
 class ChatSDKError extends Error {
   constructor(
@@ -565,6 +589,7 @@ class ChatSDKError extends Error {
 ```
 
 #### Global Error Handling
+
 ```typescript
 export async function POST(request: Request) {
   try {
@@ -575,14 +600,14 @@ export async function POST(request: Request) {
     }
 
     // Log unexpected errors
-    console.error('Unexpected API error:', error);
-    
+    console.error("Unexpected API error:", error);
+
     return new Response(
       JSON.stringify({
-        code: 'internal_server_error',
-        message: 'An unexpected error occurred',
+        code: "internal_server_error",
+        message: "An unexpected error occurred",
       }),
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -591,20 +616,21 @@ export async function POST(request: Request) {
 ### **Validation & Schemas**
 
 #### Request Validation
+
 ```typescript
-import { z } from 'zod';
+import { z } from "zod";
 
 const postRequestBodySchema = z.object({
   id: z.string(),
   message: z.object({
     id: z.string(),
-    role: z.literal('user'),
+    role: z.literal("user"),
     content: z.string().min(1),
     createdAt: z.date(),
   }),
   selectedChatModel: z.string(),
-  selectedVisibilityType: z.enum(['public', 'private']),
-  selectedSources: z.array(z.enum(['openai', 'neon', 'memory'])),
+  selectedVisibilityType: z.enum(["public", "private"]),
+  selectedSources: z.array(z.enum(["openai", "neon", "memory"])),
 });
 
 // Usage in route
@@ -618,15 +644,16 @@ export async function POST(request: Request) {
 ### **Caching Strategy**
 
 #### API Response Caching
+
 ```typescript
 // Cache Headers for Static Data
 export async function GET() {
   const data = await getStaticData();
-  
+
   return Response.json(data, {
     headers: {
-      'Cache-Control': 'public, max-age=3600', // 1 hour
-      'ETag': generateETag(data),
+      "Cache-Control": "public, max-age=3600", // 1 hour
+      ETag: generateETag(data),
     },
   });
 }
@@ -634,10 +661,10 @@ export async function GET() {
 // Cache Headers for Dynamic Data
 export async function GET() {
   const data = await getDynamicData();
-  
+
   return Response.json(data, {
     headers: {
-      'Cache-Control': 'private, max-age=60', // 1 minute
+      "Cache-Control": "private, max-age=60", // 1 minute
     },
   });
 }

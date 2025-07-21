@@ -9,48 +9,45 @@
  * After: 1 generic wrapper + 3 lightweight service wrappers
  */
 
-// Generic wrapper and utilities
-export {
-  GenericFaultTolerantService,
-  createFaultTolerantService,
-  createServiceSpecificWrapper,
-  SERVICE_CONFIGS,
-  DEFAULT_FAULT_TOLERANT_CONFIG,
-  type FaultTolerantConfig,
-} from './generic-wrapper';
-
-// Service-specific implementations (placeholder implementations)
-export {
-  FaultTolerantOpenAIVectorStoreService,
-  createFaultTolerantOpenAIService,
-} from './openai';
-
-export {
-  FaultTolerantNeonVectorStoreService,
-  createFaultTolerantNeonService,
-} from './neon';
-
-export {
-  FaultTolerantUnifiedVectorStoreService,
-  createFaultTolerantUnifiedService,
-} from './unified';
-
 // Re-export base fault tolerance utilities
 export {
-  type FaultTolerantService,
-  FaultToleranceFactory,
-  type ServiceProvider,
   FallbackMode,
+  FaultToleranceFactory,
   type FaultTolerantOptions,
-} from '../fault-tolerance';
+  type FaultTolerantService,
+  type ServiceProvider,
+} from "../fault-tolerance";
+// Generic wrapper and utilities
+export {
+  createFaultTolerantService,
+  createServiceSpecificWrapper,
+  DEFAULT_FAULT_TOLERANT_CONFIG,
+  type FaultTolerantConfig,
+  GenericFaultTolerantService,
+  SERVICE_CONFIGS,
+} from "./generic-wrapper";
 
+export {
+  createFaultTolerantNeonService,
+  FaultTolerantNeonVectorStoreService,
+} from "./neon";
+// Service-specific implementations (placeholder implementations)
+export {
+  createFaultTolerantOpenAIService,
+  FaultTolerantOpenAIVectorStoreService,
+} from "./openai";
+export {
+  createFaultTolerantUnifiedService,
+  FaultTolerantUnifiedVectorStoreService,
+} from "./unified";
+
+import { createFaultTolerantNeonService } from "./neon";
 /**
  * Migration helper: Create fault-tolerant services with the same interface
  * as the original implementations for backward compatibility
  */
-import { createFaultTolerantOpenAIService } from './openai';
-import { createFaultTolerantNeonService } from './neon';
-import { createFaultTolerantUnifiedService } from './unified';
+import { createFaultTolerantOpenAIService } from "./openai";
+import { createFaultTolerantUnifiedService } from "./unified";
 
 export const FaultTolerantServices = {
   createOpenAI: createFaultTolerantOpenAIService,
@@ -64,6 +61,6 @@ export const FaultTolerantServices = {
 export const CONSOLIDATION_STATS = {
   linesRemoved: 1671,
   filesReplaced: 3,
-  codeReduction: '95%',
-  maintainabilityImprovement: 'Single source of truth for fault tolerance',
+  codeReduction: "95%",
+  maintainabilityImprovement: "Single source of truth for fault tolerance",
 } as const;

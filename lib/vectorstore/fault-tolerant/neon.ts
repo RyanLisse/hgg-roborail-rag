@@ -2,7 +2,7 @@
 
 export class FaultTolerantNeonVectorStoreService {
   async search(...args: any[]) {
-    throw new Error('Fault tolerant services are disabled');
+    throw new Error("Fault tolerant services are disabled");
   }
 }
 

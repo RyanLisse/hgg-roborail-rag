@@ -6,32 +6,32 @@
 // Re-export core DI functionality
 export {
   type DIContainer,
-  type ServiceDescriptor,
-  type ServiceLifetime,
-  SimpleDIContainer,
-  ScopedContainer,
-  ServiceTokens,
   getContainer,
-  setContainer,
-  resetContainer,
+  isRegistered,
+  registerScoped,
   registerSingleton,
   registerTransient,
-  registerScoped,
+  resetContainer,
   resolve,
-  isRegistered,
-} from './container';
+  ScopedContainer,
+  type ServiceDescriptor,
+  type ServiceLifetime,
+  ServiceTokens,
+  SimpleDIContainer,
+  setContainer,
+} from "./container";
 
 // Re-export service management
 export {
-  initializeServices,
+  createRequestScope,
   getService,
   hasService,
-  createRequestScope,
-} from './services';
+  initializeServices,
+} from "./services";
 
+import { getContainer, ServiceTokens } from "./container";
 // Import for direct use
-import { initializeServices } from './services';
-import { getContainer, ServiceTokens } from './container';
+import { initializeServices } from "./services";
 
 /**
  * Initialize the DI system
@@ -41,7 +41,7 @@ export function initializeDI(): void {
   // Initialize all services
   initializeServices();
 
-  console.log('✅ Dependency injection system initialized');
+  console.log("✅ Dependency injection system initialized");
 }
 
 /**

@@ -122,28 +122,33 @@ pnpm dev
 ### Available Scripts
 
 #### Development
+
 - `pnpm dev` - Start development server with Turbo
 - `pnpm build` - Build production application
 - `pnpm start` - Start production server
 
 #### Code Quality
+
 - `pnpm lint` - Run ESLint and Biome linting
 - `pnpm lint:fix` - Auto-fix linting issues
 - `pnpm format` - Format code with Biome
 - `pnpm type-check` - TypeScript type checking
 
 #### Database
+
 - `pnpm db:generate` - Generate Drizzle schema
 - `pnpm db:migrate` - Run database migrations
 - `pnpm db:studio` - Open Drizzle Studio
 
 #### Testing
+
 - `pnpm test` - Run Playwright E2E tests
 - `pnpm test:unit` - Run Vitest unit tests
 - `pnpm test:coverage` - Generate test coverage report
 - `pnpm test:comprehensive` - Run all test suites
 
 #### Vector Store Testing
+
 - `pnpm test:vectorstore` - Test vector store implementations
 - `pnpm vectorstore:summary` - Generate vector store performance summary
 
@@ -160,6 +165,7 @@ The project maintains high code quality through:
 ### Testing Strategy
 
 #### End-to-End Testing (Playwright)
+
 - **Chat Interface**: Complete conversation flows
 - **RAG Workflows**: Document upload and retrieval testing
 - **Authentication**: Login/logout and session management
@@ -167,12 +173,14 @@ The project maintains high code quality through:
 - **Stagehand Integration**: Advanced browser automation
 
 #### Unit Testing (Vitest)
+
 - **Agent System**: Individual agent functionality
 - **Vector Store**: Database operations and fault tolerance
 - **RAG Components**: Chunking, embedding, and retrieval
 - **Utility Functions**: Helper functions and data processing
 
 #### Integration Testing
+
 - **API Endpoints**: Full request/response cycles
 - **Database Operations**: Data persistence and retrieval
 - **Model Integration**: AI provider communication

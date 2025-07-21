@@ -1,14 +1,21 @@
+import {
+  calculateRetryDelay,
+  classifyError,
+  logError,
+  shouldRetryError,
+} from "./errors";
 import type {
   BaseServiceConfig,
-  VectorStoreService,
-  ServiceStatus,
+  ClassifiedError,
   HealthCheckResult,
   ServiceMetrics,
-  ClassifiedError,
-} from './types';
-import { BaseServiceConfig as BaseConfigSchema } from './types';
-import { ServiceStatus as ServiceStatusEnum } from './types';
-import { classifyError, logError, shouldRetryError, calculateRetryDelay } from './errors';
+  ServiceStatus,
+  VectorStoreService,
+} from "./types";
+import {
+  BaseServiceConfig as BaseConfigSchema,
+  ServiceStatus as ServiceStatusEnum,
+} from "./types";
 
 /**
  * Abstract base class for all vector store services
@@ -30,15 +37,15 @@ export abstract class BaseVectorStoreService<
     this._serviceName = serviceName;
 
     // Provide default config if none is provided
-    if (!config) {
+    if (config) {
+      this.config = config;
+    } else {
       // In test environments, services are typically disabled by default for safety
-      const isTestEnv = process.env.NODE_ENV === 'test';
+      const isTestEnv = process.env.NODE_ENV === "test";
       const defaultConfig = BaseConfigSchema.parse({
         isEnabled: !isTestEnv, // Disabled in test by default, enabled otherwise
       });
       this.config = defaultConfig as TConfig;
-    } else {
-      this.config = config;
     }
 
     this._status = this.config.isEnabled
@@ -80,18 +87,18 @@ export abstract class BaseVectorStoreService<
     try {
       const results = await this.withRetry(
         () => this.searchImplementation(request),
-        'search',
+        "search",
       );
       success = true;
       return results;
     } catch (err) {
       error = classifyError(err as Error);
-      logError(this._serviceName, 'search', error, {
+      logError(this._serviceName, "search", error, {
         request,
       });
       throw err;
     } finally {
-      this.recordMetric('search', success, Date.now() - startTime, error);
+      this.recordMetric("search", success, Date.now() - startTime, error);
     }
   }
 
@@ -128,7 +135,7 @@ export abstract class BaseVectorStoreService<
       return result;
     } catch (err) {
       const error = classifyError(err as Error);
-      logError(this._serviceName, 'healthCheck', error);
+      logError(this._serviceName, "healthCheck", error);
 
       const result: HealthCheckResult = {
         isHealthy: false,
@@ -182,11 +189,7 @@ export abstract class BaseVectorStoreService<
         const classifiedError = classifyError(lastError);
 
         if (
-          !shouldRetryError(
-            classifiedError,
-            attempt,
-            this.config.maxRetries,
-          )
+          !shouldRetryError(classifiedError, attempt, this.config.maxRetries)
         ) {
           throw lastError;
         }
@@ -205,7 +208,7 @@ export abstract class BaseVectorStoreService<
       }
     }
 
-    throw lastError || new Error('Operation failed after retries');
+    throw lastError || new Error("Operation failed after retries");
   }
 
   /**

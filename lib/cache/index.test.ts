@@ -1,13 +1,13 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { 
-  getCacheConfig, 
-  createCacheBackend, 
-  getCache, 
-  resetCache, 
-  CacheKeyGenerator, 
-  SmartCache,
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  CacheKeyGenerator,
+  createCacheBackend,
+  getCache,
+  getCacheConfig,
   getSmartCache,
-  MemoryCacheBackend 
+  MemoryCacheBackend,
+  resetCache,
+  SmartCache,
 } from './index';
 
 // Mock console methods
@@ -78,7 +78,7 @@ describe('Cache System', () => {
       expect(config.enableInvalidation).toBe(true);
       expect(config.redis?.maxRetries).toBe(3);
       expect(config.redis?.keyPrefix).toBe('roborail:cache:');
-      expect(config.memory?.maxSize).toBe(10000);
+      expect(config.memory?.maxSize).toBe(10_000);
     });
   });
 
@@ -95,11 +95,11 @@ describe('Cache System', () => {
     it('should override config when provided', async () => {
       const customConfig = {
         backend: 'memory' as const,
-        memory: { maxSize: 5000 }
+        memory: { maxSize: 5000 },
       };
 
       const backend = await createCacheBackend(customConfig);
-      
+
       expect(backend).toBeInstanceOf(MemoryCacheBackend);
     });
 
@@ -133,9 +133,9 @@ describe('Cache System', () => {
     it('should handle disconnect during reset', async () => {
       const cache = await getCache();
       const disconnectSpy = vi.spyOn(cache, 'disconnect').mockResolvedValue();
-      
+
       await resetCache();
-      
+
       expect(disconnectSpy).toHaveBeenCalled();
     });
   });
@@ -143,8 +143,16 @@ describe('Cache System', () => {
   describe('CacheKeyGenerator', () => {
     describe('vectorSearch', () => {
       it('should generate consistent keys for same inputs', () => {
-        const key1 = CacheKeyGenerator.vectorSearch('test query', ['doc1', 'doc2'], { limit: 10 });
-        const key2 = CacheKeyGenerator.vectorSearch('test query', ['doc1', 'doc2'], { limit: 10 });
+        const key1 = CacheKeyGenerator.vectorSearch(
+          'test query',
+          ['doc1', 'doc2'],
+          { limit: 10 },
+        );
+        const key2 = CacheKeyGenerator.vectorSearch(
+          'test query',
+          ['doc1', 'doc2'],
+          { limit: 10 },
+        );
 
         expect(key1).toBe(key2);
         expect(key1).toMatch(/^vs:/);
@@ -159,14 +167,20 @@ describe('Cache System', () => {
 
       it('should handle empty sources and options', () => {
         const key = CacheKeyGenerator.vectorSearch('test', [], {});
-        
+
         expect(key).toMatch(/^vs:/);
         expect(key.length).toBeGreaterThan(3);
       });
 
       it('should be order-independent for sources and options', () => {
-        const key1 = CacheKeyGenerator.vectorSearch('test', ['a', 'b'], { x: 1, y: 2 });
-        const key2 = CacheKeyGenerator.vectorSearch('test', ['b', 'a'], { y: 2, x: 1 });
+        const key1 = CacheKeyGenerator.vectorSearch('test', ['a', 'b'], {
+          x: 1,
+          y: 2,
+        });
+        const key2 = CacheKeyGenerator.vectorSearch('test', ['b', 'a'], {
+          y: 2,
+          x: 1,
+        });
 
         expect(key1).toBe(key2);
       });
@@ -174,8 +188,12 @@ describe('Cache System', () => {
 
     describe('agentRouting', () => {
       it('should generate consistent keys', () => {
-        const key1 = CacheKeyGenerator.agentRouting('route this', { type: 'question' });
-        const key2 = CacheKeyGenerator.agentRouting('route this', { type: 'question' });
+        const key1 = CacheKeyGenerator.agentRouting('route this', {
+          type: 'question',
+        });
+        const key2 = CacheKeyGenerator.agentRouting('route this', {
+          type: 'question',
+        });
 
         expect(key1).toBe(key2);
         expect(key1).toMatch(/^ar:/);
@@ -183,7 +201,7 @@ describe('Cache System', () => {
 
       it('should handle empty context', () => {
         const key = CacheKeyGenerator.agentRouting('test query');
-        
+
         expect(key).toMatch(/^ar:/);
       });
     });
@@ -191,7 +209,7 @@ describe('Cache System', () => {
     describe('agentResponse', () => {
       it('should include agent type in key', () => {
         const key = CacheKeyGenerator.agentResponse('qa', 'question', {});
-        
+
         expect(key).toMatch(/^ap:qa:/);
       });
     });
@@ -199,7 +217,7 @@ describe('Cache System', () => {
     describe('documentEmbedding', () => {
       it('should include model in key', () => {
         const key = CacheKeyGenerator.documentEmbedding('content', 'cohere-v2');
-        
+
         expect(key).toMatch(/^emb:cohere-v2:/);
       });
     });
@@ -207,7 +225,7 @@ describe('Cache System', () => {
     describe('healthCheck', () => {
       it('should include service name', () => {
         const key = CacheKeyGenerator.healthCheck('vectorstore', '/health');
-        
+
         expect(key).toMatch(/^health:vectorstore:/);
       });
     });
@@ -255,7 +273,7 @@ describe('Cache System', () => {
         expect(mockBackend.set).toHaveBeenCalledWith(
           expect.stringMatching(/^vs:/),
           result,
-          expect.any(Number)
+          expect.any(Number),
         );
       });
 
@@ -263,17 +281,32 @@ describe('Cache System', () => {
         const cachedResult = { docs: ['doc1'] };
         mockBackend.get.mockResolvedValue(cachedResult);
 
-        const result = await smartCache.getCachedVectorSearch('query', ['source1'], {});
+        const result = await smartCache.getCachedVectorSearch(
+          'query',
+          ['source1'],
+          {},
+        );
 
         expect(result).toEqual(cachedResult);
-        expect(mockBackend.get).toHaveBeenCalledWith(expect.stringMatching(/^vs:/));
+        expect(mockBackend.get).toHaveBeenCalledWith(
+          expect.stringMatching(/^vs:/),
+        );
       });
 
       it('should respect caching disable flag', async () => {
         process.env.ENABLE_CACHING = 'false';
 
-        const cacheResult = await smartCache.cacheVectorSearch('query', [], {}, {});
-        const getResult = await smartCache.getCachedVectorSearch('query', [], {});
+        const cacheResult = await smartCache.cacheVectorSearch(
+          'query',
+          [],
+          {},
+          {},
+        );
+        const getResult = await smartCache.getCachedVectorSearch(
+          'query',
+          [],
+          {},
+        );
 
         expect(cacheResult).toBe(false);
         expect(getResult).toBeNull();
@@ -300,8 +333,17 @@ describe('Cache System', () => {
         mockBackend.set.mockResolvedValue(true);
         mockBackend.get.mockResolvedValue({ answer: 'Test answer' });
 
-        await smartCache.cacheAgentResponse('qa', 'question', {}, { answer: 'Test answer' });
-        const result = await smartCache.getCachedAgentResponse('qa', 'question', {});
+        await smartCache.cacheAgentResponse(
+          'qa',
+          'question',
+          {},
+          { answer: 'Test answer' },
+        );
+        const result = await smartCache.getCachedAgentResponse(
+          'qa',
+          'question',
+          {},
+        );
 
         expect(mockBackend.set).toHaveBeenCalled();
         expect(result).toEqual({ answer: 'Test answer' });
@@ -314,8 +356,15 @@ describe('Cache System', () => {
         const embedding = [0.1, 0.2, 0.3];
         mockBackend.get.mockResolvedValue(embedding);
 
-        await smartCache.cacheDocumentEmbedding('content', 'cohere-v2', embedding);
-        const result = await smartCache.getCachedDocumentEmbedding('content', 'cohere-v2');
+        await smartCache.cacheDocumentEmbedding(
+          'content',
+          'cohere-v2',
+          embedding,
+        );
+        const result = await smartCache.getCachedDocumentEmbedding(
+          'content',
+          'cohere-v2',
+        );
 
         expect(mockBackend.set).toHaveBeenCalled();
         expect(result).toEqual(embedding);
@@ -327,8 +376,13 @@ describe('Cache System', () => {
         mockBackend.set.mockResolvedValue(true);
         mockBackend.get.mockResolvedValue({ status: 'healthy' });
 
-        await smartCache.cacheHealthCheck('vectorstore', '/health', { status: 'healthy' });
-        const result = await smartCache.getCachedHealthCheck('vectorstore', '/health');
+        await smartCache.cacheHealthCheck('vectorstore', '/health', {
+          status: 'healthy',
+        });
+        const result = await smartCache.getCachedHealthCheck(
+          'vectorstore',
+          '/health',
+        );
 
         expect(mockBackend.set).toHaveBeenCalled();
         expect(result).toEqual({ status: 'healthy' });
@@ -375,7 +429,7 @@ describe('Cache System', () => {
     it('should create new instance after cache reset', async () => {
       const smartCache1 = await getSmartCache();
       await resetCache();
-      
+
       // The smart cache should use a new backend after reset
       const smartCache2 = await getSmartCache();
 
@@ -392,8 +446,17 @@ describe('Cache System', () => {
       const smartCache = new SmartCache(backend);
 
       // Test basic operations
-      await smartCache.cacheVectorSearch('test', ['doc1'], {}, { results: ['test'] });
-      const result = await smartCache.getCachedVectorSearch('test', ['doc1'], {});
+      await smartCache.cacheVectorSearch(
+        'test',
+        ['doc1'],
+        {},
+        { results: ['test'] },
+      );
+      const result = await smartCache.getCachedVectorSearch(
+        'test',
+        ['doc1'],
+        {},
+      );
 
       expect(result).toEqual({ results: ['test'] });
 
@@ -407,14 +470,26 @@ describe('Cache System', () => {
       const smartCache = new SmartCache(backend);
 
       // Cache multiple types of data
-      await smartCache.cacheAgentRouting('route me', { user: 'test' }, { agent: 'qa' });
+      await smartCache.cacheAgentRouting(
+        'route me',
+        { user: 'test' },
+        { agent: 'qa' },
+      );
       await smartCache.cacheDocumentEmbedding('test doc', 'cohere', [1, 2, 3]);
       await smartCache.cacheHealthCheck('service', '/health', { ok: true });
 
       // Verify all are cached
-      const routing = await smartCache.getCachedAgentRouting('route me', { user: 'test' });
-      const embedding = await smartCache.getCachedDocumentEmbedding('test doc', 'cohere');
-      const health = await smartCache.getCachedHealthCheck('service', '/health');
+      const routing = await smartCache.getCachedAgentRouting('route me', {
+        user: 'test',
+      });
+      const embedding = await smartCache.getCachedDocumentEmbedding(
+        'test doc',
+        'cohere',
+      );
+      const health = await smartCache.getCachedHealthCheck(
+        'service',
+        '/health',
+      );
 
       expect(routing).toEqual({ agent: 'qa' });
       expect(embedding).toEqual([1, 2, 3]);

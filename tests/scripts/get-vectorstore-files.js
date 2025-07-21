@@ -5,20 +5,20 @@
  * Retrieve all files and their details from the vector store
  */
 
-import dotenv from 'dotenv';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import dotenv from "dotenv";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-dotenv.config({ path: path.join(__dirname, '.env.local') });
+dotenv.config({ path: path.join(__dirname, ".env.local") });
 
 const VECTOR_STORE_ID = process.env.OPENAI_VECTORSTORE;
 const API_KEY = process.env.OPENAI_API_KEY;
 
 async function getVectorStoreFiles() {
-  if (!API_KEY || !VECTOR_STORE_ID) {
-    console.log('❌ Missing API key or vector store ID');
+  if (!(API_KEY && VECTOR_STORE_ID)) {
+    console.log("❌ Missing API key or vector store ID");
     return;
   }
 
@@ -29,11 +29,11 @@ async function getVectorStoreFiles() {
     const filesResponse = await fetch(
       `https://api.openai.com/v1/vector_stores/${VECTOR_STORE_ID}/files`,
       {
-        method: 'GET',
+        method: "GET",
         headers: {
           Authorization: `Bearer ${API_KEY}`,
-          'Content-Type': 'application/json',
-          'OpenAI-Beta': 'assistants=v2',
+          "Content-Type": "application/json",
+          "OpenAI-Beta": "assistants=v2",
         },
       },
     );
@@ -59,10 +59,10 @@ async function getVectorStoreFiles() {
           const fileResponse = await fetch(
             `https://api.openai.com/v1/files/${file.id}`,
             {
-              method: 'GET',
+              method: "GET",
               headers: {
                 Authorization: `Bearer ${API_KEY}`,
-                'Content-Type': 'application/json',
+                "Content-Type": "application/json",
               },
             },
           );

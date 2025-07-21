@@ -1,17 +1,17 @@
-import { type NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from "next/server";
+import { auth } from "@/app/(auth)/auth";
 import {
+  type FeedbackUpdate,
   getFeedbackService,
   hasUserVoted,
   type MessageFeedback,
-  type FeedbackUpdate,
-} from '@/lib/feedback/feedback';
-import { auth } from '@/app/(auth)/auth';
+} from "@/lib/feedback/feedback";
 
 export async function POST(request: NextRequest) {
   try {
     const session = await auth();
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await request.json();
@@ -25,9 +25,9 @@ export async function POST(request: NextRequest) {
     const result = await feedbackService.submitFeedback(feedback);
     return NextResponse.json(result);
   } catch (error) {
-    console.error('Failed to submit feedback:', error);
+    console.error("Failed to submit feedback:", error);
     return NextResponse.json(
-      { error: 'Failed to submit feedback' },
+      { error: "Failed to submit feedback" },
       { status: 500 },
     );
   }
@@ -37,15 +37,15 @@ export async function PUT(request: NextRequest) {
   try {
     const session = await auth();
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
-    const feedbackId = searchParams.get('id');
+    const feedbackId = searchParams.get("id");
 
     if (!feedbackId) {
       return NextResponse.json(
-        { error: 'Feedback ID required' },
+        { error: "Feedback ID required" },
         { status: 400 },
       );
     }
@@ -56,9 +56,9 @@ export async function PUT(request: NextRequest) {
     const result = await feedbackService.updateFeedback(feedbackId, updates);
     return NextResponse.json(result);
   } catch (error) {
-    console.error('Failed to update feedback:', error);
+    console.error("Failed to update feedback:", error);
     return NextResponse.json(
-      { error: 'Failed to update feedback' },
+      { error: "Failed to update feedback" },
       { status: 500 },
     );
   }
@@ -68,12 +68,12 @@ export async function GET(request: NextRequest) {
   try {
     const session = await auth();
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
-    const messageId = searchParams.get('messageId');
-    const runId = searchParams.get('runId');
+    const messageId = searchParams.get("messageId");
+    const runId = searchParams.get("runId");
     const userId = session.user.id;
 
     const feedbackService = await getFeedbackService();
@@ -88,14 +88,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(result);
     } else {
       return NextResponse.json(
-        { error: 'messageId or runId required' },
+        { error: "messageId or runId required" },
         { status: 400 },
       );
     }
   } catch (error) {
-    console.error('Failed to get feedback:', error);
+    console.error("Failed to get feedback:", error);
     return NextResponse.json(
-      { error: 'Failed to get feedback' },
+      { error: "Failed to get feedback" },
       { status: 500 },
     );
   }

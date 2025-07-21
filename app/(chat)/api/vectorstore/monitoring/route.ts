@@ -1,60 +1,60 @@
-import { type NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
-import { getVectorStoreMonitoringService } from '@/lib/vectorstore/monitoring';
-import { getOpenAIVectorStoreService } from '@/lib/vectorstore/openai';
-import { getNeonVectorStoreService } from '@/lib/vectorstore/neon';
-import { getUnifiedVectorStoreService } from '@/lib/vectorstore/unified';
+import { type NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import { getVectorStoreMonitoringService } from "@/lib/vectorstore/monitoring";
+import { getNeonVectorStoreService } from "@/lib/vectorstore/neon";
+import { getOpenAIVectorStoreService } from "@/lib/vectorstore/openai";
+import { getUnifiedVectorStoreService } from "@/lib/vectorstore/unified";
 
 // Request schemas
 const HealthCheckRequest = z.object({
   provider: z
-    .enum(['openai', 'neon', 'unified', 'all'])
+    .enum(["openai", "neon", "unified", "all"])
     .optional()
-    .default('all'),
+    .default("all"),
 });
 
 const MetricsRequest = z.object({
-  provider: z.enum(['openai', 'neon', 'unified', 'memory']).optional(),
+  provider: z.enum(["openai", "neon", "unified", "memory"]).optional(),
   metricType: z
     .enum([
-      'search_latency',
-      'search_success',
-      'search_error',
-      'token_usage',
-      'file_upload',
-      'file_upload_error',
-      'vector_store_health',
-      'embedding_generation',
-      'retrieval_accuracy',
-      'cache_hit',
-      'cache_miss',
-      'connection_error',
-      'rate_limit_error',
-      'quota_exceeded',
-      'service_health',
+      "search_latency",
+      "search_success",
+      "search_error",
+      "token_usage",
+      "file_upload",
+      "file_upload_error",
+      "vector_store_health",
+      "embedding_generation",
+      "retrieval_accuracy",
+      "cache_hit",
+      "cache_miss",
+      "connection_error",
+      "rate_limit_error",
+      "quota_exceeded",
+      "service_health",
     ])
     .optional(),
-  timeWindow: z.string().optional().default('24h'),
+  timeWindow: z.string().optional().default("24h"),
 });
 
 const PerformanceRequest = z.object({
-  provider: z.enum(['openai', 'neon', 'unified', 'memory']),
-  timeWindow: z.string().optional().default('24h'),
+  provider: z.enum(["openai", "neon", "unified", "memory"]),
+  timeWindow: z.string().optional().default("24h"),
 });
 
 export async function GET(request: NextRequest) {
   const monitoringService = getVectorStoreMonitoringService();
   const { searchParams } = new URL(request.url);
-  const action = searchParams.get('action') || 'dashboard';
+  const action = searchParams.get("action") || "dashboard";
 
   try {
     switch (action) {
-      case 'health': {
+      case "health": {
         const params = HealthCheckRequest.parse({
-          provider: searchParams.get('provider'),
+          provider: searchParams.get("provider"),
         });
 
-        if (params.provider === 'all') {
+        if (params.provider === "all") {
           // Perform health checks for all providers
           const [openaiService, neonService, unifiedService] =
             await Promise.all([
@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
             })),
             Promise.resolve({
               isHealthy: neonService.isEnabled,
-              error: !neonService.isEnabled ? 'Service disabled' : undefined,
+              error: neonService.isEnabled ? undefined : "Service disabled",
             }),
             Promise.resolve({
               isHealthy: true, // Unified service is always enabled
@@ -81,17 +81,17 @@ export async function GET(request: NextRequest) {
             success: true,
             data: {
               openai: {
-                provider: 'openai' as const,
+                provider: "openai" as const,
                 ...healthChecks[0],
                 lastChecked: new Date(),
               },
               neon: {
-                provider: 'neon' as const,
+                provider: "neon" as const,
                 ...healthChecks[1],
                 lastChecked: new Date(),
               },
               unified: {
-                provider: 'unified' as const,
+                provider: "unified" as const,
                 ...healthChecks[2],
                 lastChecked: new Date(),
               },
@@ -101,14 +101,14 @@ export async function GET(request: NextRequest) {
           // Perform health check for specific provider
           let healthResult: { isHealthy: boolean; error?: string };
 
-          if (params.provider === 'openai') {
+          if (params.provider === "openai") {
             const service = await getOpenAIVectorStoreService();
             healthResult = await service.healthCheck();
-          } else if (params.provider === 'neon') {
+          } else if (params.provider === "neon") {
             const service = await getNeonVectorStoreService();
             healthResult = {
               isHealthy: service.isEnabled,
-              error: !service.isEnabled ? 'Service disabled' : undefined,
+              error: service.isEnabled ? undefined : "Service disabled",
             };
           } else {
             healthResult = { isHealthy: true };
@@ -125,11 +125,11 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      case 'metrics': {
+      case "metrics": {
         const params = MetricsRequest.parse({
-          provider: searchParams.get('provider'),
-          metricType: searchParams.get('metricType'),
-          timeWindow: searchParams.get('timeWindow'),
+          provider: searchParams.get("provider"),
+          metricType: searchParams.get("metricType"),
+          timeWindow: searchParams.get("timeWindow"),
         });
 
         const metrics = monitoringService.getMetrics(
@@ -150,10 +150,10 @@ export async function GET(request: NextRequest) {
         });
       }
 
-      case 'performance': {
+      case "performance": {
         const params = PerformanceRequest.parse({
-          provider: searchParams.get('provider'),
-          timeWindow: searchParams.get('timeWindow'),
+          provider: searchParams.get("provider"),
+          timeWindow: searchParams.get("timeWindow"),
         });
 
         const performance = monitoringService.getPerformanceMetrics(
@@ -167,7 +167,7 @@ export async function GET(request: NextRequest) {
         });
       }
 
-      case 'dashboard': {
+      case "dashboard": {
         const dashboardData = await monitoringService.getDashboardData();
 
         // Add real-time health status
@@ -183,8 +183,8 @@ export async function GET(request: NextRequest) {
         });
       }
 
-      case 'export': {
-        const timeWindow = searchParams.get('timeWindow') || '24h';
+      case "export": {
+        const timeWindow = searchParams.get("timeWindow") || "24h";
         const metrics = await monitoringService.exportMetrics(timeWindow);
 
         return NextResponse.json({
@@ -198,7 +198,7 @@ export async function GET(request: NextRequest) {
         });
       }
 
-      case 'alerts': {
+      case "alerts": {
         const dashboardData = await monitoringService.getDashboardData();
 
         return NextResponse.json({
@@ -216,24 +216,24 @@ export async function GET(request: NextRequest) {
             success: false,
             error: `Unknown action: ${action}`,
             availableActions: [
-              'health',
-              'metrics',
-              'performance',
-              'dashboard',
-              'export',
-              'alerts',
+              "health",
+              "metrics",
+              "performance",
+              "dashboard",
+              "export",
+              "alerts",
             ],
           },
           { status: 400 },
         );
     }
   } catch (error) {
-    console.error('Vector store monitoring API error:', error);
+    console.error("Vector store monitoring API error:", error);
 
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : 'Internal server error',
+        error: error instanceof Error ? error.message : "Internal server error",
       },
       { status: 500 },
     );
@@ -249,9 +249,9 @@ export async function POST(request: NextRequest) {
     const { action, ...params } = body;
 
     switch (action) {
-      case 'test_search': {
+      case "test_search": {
         // Record a test search metric
-        const provider = params.provider || 'openai';
+        const provider = params.provider || "openai";
         const latency = params.latency || Math.random() * 1000;
         const success = params.success !== false;
 
@@ -261,22 +261,22 @@ export async function POST(request: NextRequest) {
         } else {
           monitoringService.recordSearchError(
             provider,
-            new Error('Test error'),
+            new Error("Test error"),
           );
         }
 
         return NextResponse.json({
           success: true,
-          message: 'Test metric recorded',
+          message: "Test metric recorded",
           data: { provider, latency, success },
         });
       }
 
-      case 'cleanup': {
+      case "cleanup": {
         monitoringService.cleanup();
         return NextResponse.json({
           success: true,
-          message: 'Metrics cleanup completed',
+          message: "Metrics cleanup completed",
         });
       }
 
@@ -285,18 +285,18 @@ export async function POST(request: NextRequest) {
           {
             success: false,
             error: `Unknown action: ${action}`,
-            availableActions: ['test_search', 'cleanup'],
+            availableActions: ["test_search", "cleanup"],
           },
           { status: 400 },
         );
     }
   } catch (error) {
-    console.error('Vector store monitoring POST error:', error);
+    console.error("Vector store monitoring POST error:", error);
 
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : 'Internal server error',
+        error: error instanceof Error ? error.message : "Internal server error",
       },
       { status: 500 },
     );

@@ -1,8 +1,10 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import AlertCircle from "lucide-react/dist/esm/icons/alert-circle";
+import MessageSquare from "lucide-react/dist/esm/icons/message-square";
+import ThumbsDown from "lucide-react/dist/esm/icons/thumbs-down";
+import ThumbsUp from "lucide-react/dist/esm/icons/thumbs-up";
+import React, { useState } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -12,14 +14,12 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { Badge } from '@/components/ui/badge';
-import { useFeedback } from '@/hooks/use-feedback';
-import ThumbsUp from 'lucide-react/dist/esm/icons/thumbs-up';
-import ThumbsDown from 'lucide-react/dist/esm/icons/thumbs-down';
-import MessageSquare from 'lucide-react/dist/esm/icons/message-square';
-import AlertCircle from 'lucide-react/dist/esm/icons/alert-circle';
-import { cn } from '@/lib/utils';
+} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { useFeedback } from "@/hooks/use-feedback";
+import { cn } from "@/lib/utils";
 
 interface MessageFeedbackProps {
   messageId: string;
@@ -44,7 +44,7 @@ export function MessageFeedback({
     error,
   } = useFeedback(messageId, userId);
 
-  const handleVote = async (vote: 'up' | 'down') => {
+  const handleVote = async (vote: "up" | "down") => {
     if (existingFeedback) {
       if (existingFeedback.vote === vote) {
         // Same vote clicked - show comment dialog
@@ -68,7 +68,7 @@ export function MessageFeedback({
   };
 
   const handleCommentSubmit = async (data: {
-    vote: 'up' | 'down';
+    vote: "up" | "down";
     comment: string;
   }) => {
     if (existingFeedback) {
@@ -85,35 +85,35 @@ export function MessageFeedback({
   };
 
   return (
-    <div className={cn('flex items-center gap-2', className)}>
+    <div className={cn("flex items-center gap-2", className)}>
       {/* Voting Buttons */}
       <div className="flex items-center gap-1">
         <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => handleVote('up')}
-          disabled={isSubmitting}
-          className={cn(
-            'h-8 w-8 p-0',
-            existingFeedback?.vote === 'up' &&
-              'bg-green-100 text-green-700 hover:bg-green-200',
-          )}
           aria-label="Thumbs up"
+          className={cn(
+            "h-8 w-8 p-0",
+            existingFeedback?.vote === "up" &&
+              "bg-green-100 text-green-700 hover:bg-green-200",
+          )}
+          disabled={isSubmitting}
+          onClick={() => handleVote("up")}
+          size="sm"
+          variant="ghost"
         >
           <ThumbsUp size={16} />
         </Button>
 
         <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => handleVote('down')}
-          disabled={isSubmitting}
-          className={cn(
-            'h-8 w-8 p-0',
-            existingFeedback?.vote === 'down' &&
-              'bg-red-100 text-red-700 hover:bg-red-200',
-          )}
           aria-label="Thumbs down"
+          className={cn(
+            "h-8 w-8 p-0",
+            existingFeedback?.vote === "down" &&
+              "bg-red-100 text-red-700 hover:bg-red-200",
+          )}
+          disabled={isSubmitting}
+          onClick={() => handleVote("down")}
+          size="sm"
+          variant="ghost"
         >
           <ThumbsDown size={16} />
         </Button>
@@ -122,22 +122,22 @@ export function MessageFeedback({
       {/* Comment Button */}
       {existingFeedback && (
         <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setShowCommentDialog(true)}
-          disabled={isSubmitting}
-          className="h-8 px-2 text-xs"
           aria-label="Add comment"
+          className="h-8 px-2 text-xs"
+          disabled={isSubmitting}
+          onClick={() => setShowCommentDialog(true)}
+          size="sm"
+          variant="ghost"
         >
-          <MessageSquare size={14} className="mr-1" />
-          {existingFeedback.comment ? 'Edit' : 'Comment'}
+          <MessageSquare className="mr-1" size={14} />
+          {existingFeedback.comment ? "Edit" : "Comment"}
         </Button>
       )}
 
       {/* Comment Badge */}
       {existingFeedback?.comment && (
-        <Badge variant="secondary" className="text-xs px-2 py-1">
-          <MessageSquare size={12} className="mr-1" />
+        <Badge className="px-2 py-1 text-xs" variant="secondary">
+          <MessageSquare className="mr-1" size={12} />
           Comment added
         </Badge>
       )}
@@ -145,18 +145,18 @@ export function MessageFeedback({
       {/* Error Display */}
       {error && (
         <div className="flex items-center text-destructive text-xs">
-          <AlertCircle size={12} className="mr-1" />
+          <AlertCircle className="mr-1" size={12} />
           {error.message}
         </div>
       )}
 
       {/* Comment Dialog */}
       <FeedbackDialog
+        initialComment={existingFeedback?.comment || ""}
+        initialVote={existingFeedback?.vote || "up"}
         isOpen={showCommentDialog}
         onClose={() => setShowCommentDialog(false)}
         onSubmit={handleCommentSubmit}
-        initialVote={existingFeedback?.vote || 'up'}
-        initialComment={existingFeedback?.comment || ''}
       />
     </div>
   );
@@ -165,8 +165,8 @@ export function MessageFeedback({
 interface FeedbackDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: { vote: 'up' | 'down'; comment: string }) => void;
-  initialVote: 'up' | 'down';
+  onSubmit: (data: { vote: "up" | "down"; comment: string }) => void;
+  initialVote: "up" | "down";
   initialComment: string;
 }
 
@@ -177,7 +177,7 @@ export function FeedbackDialog({
   initialVote,
   initialComment,
 }: FeedbackDialogProps) {
-  const [vote, setVote] = useState<'up' | 'down'>(initialVote);
+  const [vote, setVote] = useState<"up" | "down">(initialVote);
   const [comment, setComment] = useState(initialComment);
 
   const hasChanges = vote !== initialVote || comment !== initialComment;
@@ -194,7 +194,7 @@ export function FeedbackDialog({
   };
 
   return (
-    <AlertDialog open={isOpen} onOpenChange={handleClose}>
+    <AlertDialog onOpenChange={handleClose} open={isOpen}>
       <AlertDialogContent className="sm:max-w-md">
         <AlertDialogHeader>
           <AlertDialogTitle>Provide Feedback</AlertDialogTitle>
@@ -206,35 +206,35 @@ export function FeedbackDialog({
         <div className="space-y-4">
           {/* Vote Selection */}
           <div className="space-y-2">
-            <label htmlFor="rating-buttons" className="text-sm font-medium">
+            <label className="font-medium text-sm" htmlFor="rating-buttons">
               Rating
             </label>
-            <div id="rating-buttons" className="flex gap-2">
+            <div className="flex gap-2" id="rating-buttons">
               <Button
+                aria-label="Thumbs up"
+                className={cn(
+                  "flex items-center gap-2",
+                  vote === "up" &&
+                    "border-green-300 bg-green-100 text-green-700",
+                )}
+                onClick={() => setVote("up")}
+                size="sm"
                 type="button"
                 variant="outline"
-                size="sm"
-                onClick={() => setVote('up')}
-                className={cn(
-                  'flex items-center gap-2',
-                  vote === 'up' &&
-                    'bg-green-100 text-green-700 border-green-300',
-                )}
-                aria-label="Thumbs up"
               >
                 <ThumbsUp size={16} />
                 Helpful
               </Button>
               <Button
+                aria-label="Thumbs down"
+                className={cn(
+                  "flex items-center gap-2",
+                  vote === "down" && "border-red-300 bg-red-100 text-red-700",
+                )}
+                onClick={() => setVote("down")}
+                size="sm"
                 type="button"
                 variant="outline"
-                size="sm"
-                onClick={() => setVote('down')}
-                className={cn(
-                  'flex items-center gap-2',
-                  vote === 'down' && 'bg-red-100 text-red-700 border-red-300',
-                )}
-                aria-label="Thumbs down"
               >
                 <ThumbsDown size={16} />
                 Not helpful
@@ -244,19 +244,19 @@ export function FeedbackDialog({
 
           {/* Comment Input */}
           <div className="space-y-2">
-            <label htmlFor="comment" className="text-sm font-medium">
+            <label className="font-medium text-sm" htmlFor="comment">
               Comment (optional)
             </label>
             <Textarea
+              aria-label="Comment"
+              className="min-h-[80px] resize-none"
               id="comment"
-              value={comment}
+              maxLength={500}
               onChange={(e) => setComment(e.target.value)}
               placeholder="Share what was helpful or how we can improve..."
-              className="min-h-[80px] resize-none"
-              maxLength={500}
-              aria-label="Comment"
+              value={comment}
             />
-            <div className="text-xs text-muted-foreground text-right">
+            <div className="text-right text-muted-foreground text-xs">
               {comment.length}/500
             </div>
           </div>
@@ -264,7 +264,7 @@ export function FeedbackDialog({
 
         <AlertDialogFooter>
           <AlertDialogCancel onClick={handleClose}>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={handleSubmit} disabled={!hasChanges}>
+          <AlertDialogAction disabled={!hasChanges} onClick={handleSubmit}>
             Submit
           </AlertDialogAction>
         </AlertDialogFooter>
@@ -284,7 +284,7 @@ export function FeedbackStats({ runId, className }: FeedbackStatsProps) {
   return (
     <div
       className={cn(
-        'flex items-center gap-2 text-xs text-muted-foreground',
+        "flex items-center gap-2 text-muted-foreground text-xs",
         className,
       )}
     >

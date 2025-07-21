@@ -1,22 +1,22 @@
-import 'server-only';
+import "server-only";
 
-import { z } from 'zod';
-import { eq, and } from 'drizzle-orm';
-import { nanoid } from 'nanoid';
-import { POSTGRES_URL } from '../env';
+import { and, eq } from "drizzle-orm";
+import { nanoid } from "nanoid";
+import { z } from "zod";
+import { POSTGRES_URL } from "../env";
 
 // Feedback schemas
 export const MessageFeedback = z.object({
   runId: z.string().min(1),
   messageId: z.string().min(1),
   userId: z.string().min(1),
-  vote: z.enum(['up', 'down']),
+  vote: z.enum(["up", "down"]),
   comment: z.string().optional(),
   metadata: z.record(z.any()).optional(),
 });
 
 export const FeedbackUpdate = z.object({
-  vote: z.enum(['up', 'down']).optional(),
+  vote: z.enum(["up", "down"]).optional(),
   comment: z.string().optional(),
   metadata: z.record(z.any()).optional(),
 });
@@ -70,7 +70,7 @@ export function createFeedbackService(db: any): FeedbackService {
       };
 
       try {
-        const { feedback: feedbackTable } = await import('@/lib/db/schema');
+        const { feedback: feedbackTable } = await import("@/lib/db/schema");
 
         const [result] = await db
           .insert(feedbackTable)
@@ -79,14 +79,14 @@ export function createFeedbackService(db: any): FeedbackService {
 
         return result as StoredFeedback;
       } catch (error) {
-        console.error('Failed to submit feedback:', error);
+        console.error("Failed to submit feedback:", error);
         throw error;
       }
     },
 
     async getFeedbackByRunId(runId: string): Promise<StoredFeedback[]> {
       try {
-        const { feedback: feedbackTable } = await import('@/lib/db/schema');
+        const { feedback: feedbackTable } = await import("@/lib/db/schema");
 
         const results = await db
           .select()
@@ -95,14 +95,14 @@ export function createFeedbackService(db: any): FeedbackService {
 
         return results as StoredFeedback[];
       } catch (error) {
-        console.error('Failed to get feedback by run ID:', error);
+        console.error("Failed to get feedback by run ID:", error);
         return [];
       }
     },
 
     async getFeedbackByUserId(userId: string): Promise<StoredFeedback[]> {
       try {
-        const { feedback: feedbackTable } = await import('@/lib/db/schema');
+        const { feedback: feedbackTable } = await import("@/lib/db/schema");
 
         const results = await db
           .select()
@@ -111,7 +111,7 @@ export function createFeedbackService(db: any): FeedbackService {
 
         return results as StoredFeedback[];
       } catch (error) {
-        console.error('Failed to get feedback by user ID:', error);
+        console.error("Failed to get feedback by user ID:", error);
         return [];
       }
     },
@@ -123,7 +123,7 @@ export function createFeedbackService(db: any): FeedbackService {
       const validatedUpdates = FeedbackUpdate.parse(updates);
 
       try {
-        const { feedback: feedbackTable } = await import('@/lib/db/schema');
+        const { feedback: feedbackTable } = await import("@/lib/db/schema");
 
         const [result] = await db
           .update(feedbackTable)
@@ -136,20 +136,20 @@ export function createFeedbackService(db: any): FeedbackService {
 
         return result as StoredFeedback;
       } catch (error) {
-        console.error('Failed to update feedback:', error);
+        console.error("Failed to update feedback:", error);
         throw error;
       }
     },
 
     async deleteFeedback(id: string): Promise<boolean> {
       try {
-        const { feedback: feedbackTable } = await import('@/lib/db/schema');
+        const { feedback: feedbackTable } = await import("@/lib/db/schema");
 
         await db.delete(feedbackTable).where(eq(feedbackTable.id, id));
 
         return true;
       } catch (error) {
-        console.error('Failed to delete feedback:', error);
+        console.error("Failed to delete feedback:", error);
         return false;
       }
     },
@@ -160,11 +160,11 @@ export function createFeedbackService(db: any): FeedbackService {
 
         const stats = {
           total: feedbackList.length,
-          upvotes: feedbackList.filter((f) => f.vote === 'up').length,
-          downvotes: feedbackList.filter((f) => f.vote === 'down').length,
+          upvotes: feedbackList.filter((f) => f.vote === "up").length,
+          downvotes: feedbackList.filter((f) => f.vote === "down").length,
           ratio:
             feedbackList.length > 0
-              ? feedbackList.filter((f) => f.vote === 'up').length /
+              ? feedbackList.filter((f) => f.vote === "up").length /
                 feedbackList.length
               : 0,
           hasComments: feedbackList.filter(
@@ -174,7 +174,7 @@ export function createFeedbackService(db: any): FeedbackService {
 
         return FeedbackStats.parse(stats);
       } catch (error) {
-        console.error('Failed to get feedback stats:', error);
+        console.error("Failed to get feedback stats:", error);
         return {
           total: 0,
           upvotes: 0,
@@ -193,7 +193,7 @@ export function createFeedbackService(db: any): FeedbackService {
       );
 
       try {
-        const { feedback: feedbackTable } = await import('@/lib/db/schema');
+        const { feedback: feedbackTable } = await import("@/lib/db/schema");
 
         const feedbackData = validatedFeedbackList.map((feedback) => ({
           id: nanoid(),
@@ -209,7 +209,7 @@ export function createFeedbackService(db: any): FeedbackService {
 
         return results as StoredFeedback[];
       } catch (error) {
-        console.error('Failed to submit batch feedback:', error);
+        console.error("Failed to submit batch feedback:", error);
         throw error;
       }
     },
@@ -246,7 +246,7 @@ export async function hasUserVoted(
   userId: string,
 ): Promise<StoredFeedback | null> {
   try {
-    const { feedback: feedbackTable } = await import('@/lib/db/schema');
+    const { feedback: feedbackTable } = await import("@/lib/db/schema");
 
     const [result] = await service.db
       .select()
@@ -261,7 +261,7 @@ export async function hasUserVoted(
 
     return result || null;
   } catch (error) {
-    console.error('Failed to check user vote:', error);
+    console.error("Failed to check user vote:", error);
     return null;
   }
 }
@@ -287,8 +287,8 @@ let feedbackService: FeedbackService | null = null;
 
 export async function getFeedbackService(): Promise<FeedbackService> {
   if (!feedbackService) {
-    const { drizzle } = await import('drizzle-orm/postgres-js');
-    const postgres = (await import('postgres')).default;
+    const { drizzle } = await import("drizzle-orm/postgres-js");
+    const postgres = (await import("postgres")).default;
     // Use validated environment variable
     const client = postgres(POSTGRES_URL);
     const db = drizzle(client);

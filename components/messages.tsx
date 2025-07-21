@@ -1,20 +1,20 @@
-import type { UIMessage } from 'ai';
-import { PreviewMessage, ThinkingMessage } from './message';
-import { Greeting } from './greeting';
-import { memo } from 'react';
-import type { Vote } from '@/lib/db/schema';
-import equal from 'fast-deep-equal';
-import type { UseChatHelpers } from '@ai-sdk/react';
-import { motion } from 'framer-motion';
-import { useMessages } from '@/hooks/use-messages';
+import type { UseChatHelpers } from "@ai-sdk/react";
+import type { UIMessage } from "ai";
+import equal from "fast-deep-equal";
+import { motion } from "framer-motion";
+import { memo } from "react";
+import { useMessages } from "@/hooks/use-messages";
+import type { Vote } from "@/lib/db/schema";
+import { Greeting } from "./greeting";
+import { PreviewMessage, ThinkingMessage } from "./message";
 
 interface MessagesProps {
   chatId: string;
-  status: UseChatHelpers['status'];
+  status: UseChatHelpers["status"];
   votes: Array<Vote> | undefined;
   messages: Array<UIMessage>;
-  setMessages: UseChatHelpers['setMessages'];
-  reload: UseChatHelpers['reload'];
+  setMessages: UseChatHelpers["setMessages"];
+  reload: UseChatHelpers["reload"];
   isReadonly: boolean;
   isArtifactVisible: boolean;
 }
@@ -41,40 +41,40 @@ function PureMessages({
 
   return (
     <div
+      className="relative flex min-w-0 flex-1 flex-col gap-6 overflow-y-scroll pt-4"
       ref={messagesContainerRef}
-      className="flex flex-col min-w-0 gap-6 flex-1 overflow-y-scroll pt-4 relative"
     >
       {messages.length === 0 && <Greeting />}
 
       {messages.map((message, index) => (
         <PreviewMessage
-          key={message.id}
           chatId={chatId}
+          isLoading={status === "streaming" && messages.length - 1 === index}
+          isReadonly={isReadonly}
+          key={message.id}
           message={message}
-          isLoading={status === 'streaming' && messages.length - 1 === index}
+          reload={reload}
+          requiresScrollPadding={
+            hasSentMessage && index === messages.length - 1
+          }
+          setMessages={setMessages}
           vote={
             votes
               ? votes.find((vote) => vote.messageId === message.id)
               : undefined
           }
-          setMessages={setMessages}
-          reload={reload}
-          isReadonly={isReadonly}
-          requiresScrollPadding={
-            hasSentMessage && index === messages.length - 1
-          }
         />
       ))}
 
-      {status === 'submitted' &&
+      {status === "submitted" &&
         messages.length > 0 &&
-        messages[messages.length - 1].role === 'user' && <ThinkingMessage />}
+        messages[messages.length - 1].role === "user" && <ThinkingMessage />}
 
       <motion.div
-        ref={messagesEndRef}
-        className="shrink-0 min-w-[24px] min-h-[24px]"
-        onViewportLeave={onViewportLeave}
+        className="min-h-[24px] min-w-[24px] shrink-0"
         onViewportEnter={onViewportEnter}
+        onViewportLeave={onViewportLeave}
+        ref={messagesEndRef}
       />
     </div>
   );

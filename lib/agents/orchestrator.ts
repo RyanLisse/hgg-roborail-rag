@@ -1,20 +1,20 @@
+import { checkProviderHealth, validateProviderConfig } from "../ai/providers";
+import { PlannerAgent } from "./planner-agent";
+import { QAAgent } from "./qa-agent";
+import { ResearchAgent } from "./research-agent";
+import { RewriteAgent } from "./rewrite-agent";
+import { SmartAgentRouter } from "./router";
 import type {
   Agent,
+  AgentConfig,
   AgentRequest,
   AgentResponse,
   AgentType,
-  AgentConfig,
-} from './types';
+} from "./types";
 import {
   AgentConfig as AgentConfigSchema,
   AgentRequest as AgentRequestSchema,
-} from './types';
-import { QAAgent } from './qa-agent';
-import { RewriteAgent } from './rewrite-agent';
-import { PlannerAgent } from './planner-agent';
-import { ResearchAgent } from './research-agent';
-import { SmartAgentRouter } from './router';
-import { validateProviderConfig, checkProviderHealth } from '../ai/providers';
+} from "./types";
 
 /**
  * Multi-Agent Orchestration System
@@ -39,10 +39,10 @@ export class AgentOrchestrator {
   }
 
   private initializeAgents(): void {
-    this.agents.set('qa', new QAAgent());
-    this.agents.set('rewrite', new RewriteAgent());
-    this.agents.set('planner', new PlannerAgent());
-    this.agents.set('research', new ResearchAgent());
+    this.agents.set("qa", new QAAgent());
+    this.agents.set("rewrite", new RewriteAgent());
+    this.agents.set("planner", new PlannerAgent());
+    this.agents.set("research", new ResearchAgent());
   }
 
   /**
@@ -122,21 +122,21 @@ export class AgentOrchestrator {
 
       return response;
     } catch (error) {
-      console.error('Orchestrator error:', error);
+      console.error("Orchestrator error:", error);
 
       // Return error response
       return {
         content:
-          'I encountered an error processing your request. Please try again.',
-        agent: 'qa', // Default to QA for error responses
+          "I encountered an error processing your request. Please try again.",
+        agent: "qa", // Default to QA for error responses
         metadata: {
-          modelUsed: 'unknown',
+          modelUsed: "unknown",
           responseTime: Date.now() - startTime,
         },
         streamingSupported: false,
         errorDetails: {
-          code: 'orchestration_error',
-          message: error instanceof Error ? error.message : 'Unknown error',
+          code: "orchestration_error",
+          message: error instanceof Error ? error.message : "Unknown error",
           retryable: true,
         },
       };
@@ -161,7 +161,9 @@ export class AgentOrchestrator {
 
       // Check if agent supports streaming
       const agent = this.agents.get(routingDecision.selectedAgent);
-      if (!agent?.capability.supportsStreaming || !agent.processRequestStream) {
+      if (
+        !(agent?.capability.supportsStreaming && agent.processRequestStream)
+      ) {
         // Fall back to non-streaming
         const response = await this.processRequest(validatedRequest);
         yield response.content;
@@ -196,7 +198,7 @@ export class AgentOrchestrator {
 
       try {
         for await (const chunk of streamGenerator) {
-          if (typeof chunk === 'string') {
+          if (typeof chunk === "string") {
             yield chunk;
           } else {
             finalResponse = chunk;
@@ -207,7 +209,7 @@ export class AgentOrchestrator {
         if (routingDecision.fallbackAgent) {
           const fallbackAgent = this.agents.get(routingDecision.fallbackAgent);
           if (fallbackAgent) {
-            console.log('Streaming failed, trying fallback agent');
+            console.log("Streaming failed, trying fallback agent");
             const fallbackResponse =
               await fallbackAgent.processRequest(enhancedRequest);
             yield fallbackResponse.content;
@@ -219,27 +221,27 @@ export class AgentOrchestrator {
 
       return (
         finalResponse || {
-          content: '',
+          content: "",
           agent: routingDecision.selectedAgent,
-          metadata: { modelUsed: 'unknown' },
+          metadata: { modelUsed: "unknown" },
           streamingSupported: true,
         }
       );
     } catch (error) {
-      console.error('Orchestrator streaming error:', error);
+      console.error("Orchestrator streaming error:", error);
 
       const errorMessage =
-        'I encountered an error processing your request. Please try again.';
+        "I encountered an error processing your request. Please try again.";
       yield errorMessage;
 
       return {
         content: errorMessage,
-        agent: 'qa',
-        metadata: { modelUsed: 'unknown' },
+        agent: "qa",
+        metadata: { modelUsed: "unknown" },
         streamingSupported: false,
         errorDetails: {
-          code: 'streaming_error',
-          message: error instanceof Error ? error.message : 'Unknown error',
+          code: "streaming_error",
+          message: error instanceof Error ? error.message : "Unknown error",
           retryable: true,
         },
       };
@@ -267,7 +269,7 @@ export class AgentOrchestrator {
           agent.processRequest(request),
           new Promise<AgentResponse>((_, reject) =>
             setTimeout(
-              () => reject(new Error('Agent timeout')),
+              () => reject(new Error("Agent timeout")),
               this.config.timeout,
             ),
           ),
@@ -275,7 +277,7 @@ export class AgentOrchestrator {
 
         return response;
       } catch (error) {
-        lastError = error instanceof Error ? error : new Error('Unknown error');
+        lastError = error instanceof Error ? error : new Error("Unknown error");
         console.warn(
           `Agent ${agentType} attempt ${attempt + 1} failed:`,
           lastError.message,
@@ -320,13 +322,13 @@ export class AgentOrchestrator {
    * Enhanced system health check with provider validation
    */
   async healthCheck(): Promise<{
-    status: 'healthy' | 'degraded' | 'unhealthy';
+    status: "healthy" | "degraded" | "unhealthy";
     agents: Record<
       AgentType,
-      { status: 'available' | 'error'; lastChecked: string; error?: string }
+      { status: "available" | "error"; lastChecked: string; error?: string }
     >;
     providers: {
-      status: 'healthy' | 'degraded' | 'error';
+      status: "healthy" | "degraded" | "error";
       details: any;
     };
     performance: {
@@ -338,7 +340,7 @@ export class AgentOrchestrator {
     const startTime = Date.now();
     const agentStatuses: Record<
       string,
-      { status: 'available' | 'error'; lastChecked: string; error?: string }
+      { status: "available" | "error"; lastChecked: string; error?: string }
     > = {};
     let healthyCount = 0;
     const responseTimes: number[] = [];
@@ -350,16 +352,16 @@ export class AgentOrchestrator {
       providerHealth = await checkProviderHealth();
     } catch (error) {
       providerHealth = {
-        status: 'error',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        status: "error",
+        error: error instanceof Error ? error.message : "Unknown error",
       };
     }
 
     // Test each agent with appropriate models
     const testQueries = [
-      { query: 'Hello', expected: 'greeting' },
-      { query: 'What is 2+2?', expected: 'math' },
-      { query: 'Rewrite: "hi there"', expected: 'rewrite' },
+      { query: "Hello", expected: "greeting" },
+      { query: "What is 2+2?", expected: "math" },
+      { query: 'Rewrite: "hi there"', expected: "rewrite" },
     ];
 
     for (const [type, agent] of Array.from(this.agents.entries())) {
@@ -383,7 +385,7 @@ export class AgentOrchestrator {
         const response = await Promise.race([
           agent.processRequest(testRequest),
           new Promise<never>((_, reject) =>
-            setTimeout(() => reject(new Error('Timeout')), 5000),
+            setTimeout(() => reject(new Error("Timeout")), 5000),
           ),
         ]);
 
@@ -392,19 +394,19 @@ export class AgentOrchestrator {
 
         // Validate response quality
         if (!response.content || response.content.length < 3) {
-          throw new Error('Invalid response content');
+          throw new Error("Invalid response content");
         }
 
         agentStatuses[type] = {
-          status: 'available',
+          status: "available",
           lastChecked: new Date().toISOString(),
         };
         healthyCount++;
       } catch (error) {
         agentStatuses[type] = {
-          status: 'error',
+          status: "error",
           lastChecked: new Date().toISOString(),
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: error instanceof Error ? error.message : "Unknown error",
         };
         console.warn(`Agent ${type} health check failed:`, error);
       }
@@ -419,37 +421,37 @@ export class AgentOrchestrator {
       responseTimes.length / (this.agents.size * testQueries.length);
 
     const totalAgents = this.agents.size;
-    let agentStatus: 'healthy' | 'degraded' | 'unhealthy';
+    let agentStatus: "healthy" | "degraded" | "unhealthy";
 
     if (healthyCount === totalAgents) {
-      agentStatus = 'healthy';
+      agentStatus = "healthy";
     } else if (healthyCount > 0) {
-      agentStatus = 'degraded';
+      agentStatus = "degraded";
     } else {
-      agentStatus = 'unhealthy';
+      agentStatus = "unhealthy";
     }
 
     // Determine overall status considering both agents and providers
-    let overallStatus: 'healthy' | 'degraded' | 'unhealthy';
+    let overallStatus: "healthy" | "degraded" | "unhealthy";
     const isProvidersHealthy =
-      providerValidation.isValid && providerHealth.status !== 'error';
+      providerValidation.isValid && providerHealth.status !== "error";
 
-    if (agentStatus === 'healthy' && isProvidersHealthy) {
-      overallStatus = 'healthy';
+    if (agentStatus === "healthy" && isProvidersHealthy) {
+      overallStatus = "healthy";
     } else if (
-      agentStatus === 'degraded' ||
-      (!isProvidersHealthy && providerHealth.status === 'degraded')
+      agentStatus === "degraded" ||
+      (!isProvidersHealthy && providerHealth.status === "degraded")
     ) {
-      overallStatus = 'degraded';
+      overallStatus = "degraded";
     } else {
-      overallStatus = 'unhealthy';
+      overallStatus = "unhealthy";
     }
 
     return {
       status: overallStatus,
       agents: agentStatuses,
       providers: {
-        status: isProvidersHealthy ? (providerHealth.status as any) : 'error',
+        status: isProvidersHealthy ? (providerHealth.status as any) : "error",
         details: {
           validation: providerValidation,
           health: providerHealth,

@@ -120,6 +120,7 @@ Cache Updates
 ### **Chat API** (`/api/chat`)
 
 **POST** - Create/Stream Chat Messages
+
 ```typescript
 Request Flow:
 1. Request validation (Zod schema)
@@ -135,6 +136,7 @@ Response: Streamed AI response with data stream
 ```
 
 **GET** - Resume Interrupted Streams
+
 ```typescript
 Request Flow:
 1. Stream context validation
@@ -147,6 +149,7 @@ Response: Continued stream or empty response
 ```
 
 **DELETE** - Remove Chat
+
 ```typescript
 Request Flow:
 1. Authentication check
@@ -159,6 +162,7 @@ Response: Deletion confirmation
 ### **Vector Store APIs** (`/api/vectorstore/*`)
 
 **Search** (`/search`, `/search-enhanced`)
+
 ```typescript
 Request Flow:
 1. Query optimization
@@ -171,6 +175,7 @@ Response: Ranked search results with metadata
 ```
 
 **Upload** (`/upload`)
+
 ```typescript
 Request Flow:
 1. File validation
@@ -183,6 +188,7 @@ Response: Document IDs and metadata
 ```
 
 **Monitoring** (`/monitoring`)
+
 ```typescript
 Request Flow:
 1. Service health checks
@@ -195,6 +201,7 @@ Response: System status and metrics
 ### **Agent APIs** (`/api/agents/*`)
 
 **Process** (`/process`)
+
 ```typescript
 Request Flow:
 1. Query classification
@@ -207,6 +214,7 @@ Response: Agent-processed response
 ```
 
 **Analyze** (`/analyze`)
+
 ```typescript
 Request Flow:
 1. Complexity analysis
@@ -271,11 +279,11 @@ Suggestion (∞)   Vote_v2 (1)
 ```typescript
 // UI State
 const [messages, setMessages] = useState<UIMessage[]>([]);
-const [input, setInput] = useState<string>('');
+const [input, setInput] = useState<string>("");
 const [attachments, setAttachments] = useState<Attachment[]>([]);
 
 // Derived State
-const isLoading = status === 'streaming';
+const isLoading = status === "streaming";
 const canSubmit = input.trim().length > 0 && !isLoading;
 ```
 
@@ -283,26 +291,19 @@ const canSubmit = input.trim().length > 0 && !isLoading;
 
 ```typescript
 // Chat History
-const { data: chats } = useSWR('/api/history', fetcher);
+const { data: chats } = useSWR("/api/history", fetcher);
 
 // Votes
 const { data: votes } = useSWR(`/api/vote?chatId=${id}`, fetcher);
 
 // Vector Store Status
-const { data: sources } = useSWR('/api/vectorstore/sources', fetcher);
+const { data: sources } = useSWR("/api/vectorstore/sources", fetcher);
 ```
 
 ### 3. **Streaming State (AI SDK)**
 
 ```typescript
-const {
-  messages,
-  input,
-  handleSubmit,
-  status,
-  append,
-  reload,
-} = useChat({
+const { messages, input, handleSubmit, status, append, reload } = useChat({
   id: chatId,
   initialMessages,
   experimental_throttle: 300,

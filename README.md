@@ -24,7 +24,7 @@
 - [AI SDK](https://sdk.vercel.ai/docs)
   - Unified API for generating text, structured objects, and tool calls with LLMs
   - Hooks for building dynamic chat and generative user interfaces
-  - Supports xAI (default), OpenAI, Fireworks, and other model providers
+  - Supports OpenAI (default) and Google model providers
 - [shadcn/ui](https://ui.shadcn.com)
   - Styling with [Tailwind CSS](https://tailwindcss.com)
   - Component primitives from [Radix UI](https://radix-ui.com) for accessibility and flexibility
@@ -36,13 +36,14 @@
 
 ## Model Providers
 
-This template ships with [xAI](https://x.ai) `grok-2-1212` as the default chat model. However, with the [AI SDK](https://sdk.vercel.ai/docs), you can switch LLM providers to [OpenAI](https://openai.com), [Anthropic](https://anthropic.com), [Cohere](https://cohere.com/), and [many more](https://sdk.vercel.ai/providers/ai-sdk-providers) with just a few lines of code.
+This template ships with [OpenAI](https://openai.com) `gpt-4.1` as the default chat model. The system supports both OpenAI and [Google](https://ai.google.dev) model providers, with the [AI SDK](https://sdk.vercel.ai/docs) allowing seamless switching between models with just a few lines of code.
 
 ## Deploy Your Own
 
 This is a custom RAG chatbot implementation with advanced features including:
+
 - LangSmith observability and feedback collection
-- Multimodal embeddings with Cohere v2 API  
+- Multimodal embeddings with Cohere v2 API
 - OpenAI responses API integration
 - Comprehensive user feedback system
 
@@ -83,11 +84,13 @@ This project includes a robust development workflow with automated code quality 
 The project uses [Husky](https://typicode.github.io/husky/) to enforce code quality:
 
 #### Pre-commit Hook
+
 - Automatically runs on `git commit`
 - Uses [lint-staged](https://github.com/okonet/lint-staged) to format and lint staged files
 - Formats code with Biome and fixes linting issues where possible
 
 #### Pre-push Hook
+
 - Automatically runs on `git push`
 - Executes TypeScript type checking
 - Runs linting checks

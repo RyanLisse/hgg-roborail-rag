@@ -3,9 +3,9 @@
  * Environment-aware cache with automatic backend selection and smart caching strategies
  */
 
+import { MemoryCacheBackend } from './memory-cache';
 import type { CacheBackend, CacheConfig } from './types';
 import { CACHE_PRESETS } from './types';
-import { MemoryCacheBackend } from './memory-cache';
 
 export * from './types';
 
@@ -32,7 +32,7 @@ export function getCacheConfig(): CacheConfig {
       enablePubSub: isProduction,
     },
     memory: {
-      maxSize: 10000,
+      maxSize: 10_000,
       maxMemoryMB: 100,
       cleanupIntervalMs: 5 * 60 * 1000, // 5 minutes
     },

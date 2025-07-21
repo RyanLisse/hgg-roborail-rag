@@ -1,13 +1,13 @@
-import { type NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
-import { FaultToleranceFactory } from '@/lib/vectorstore/fault-tolerance';
-import { getFaultTolerantOpenAIVectorStoreService } from '@/lib/vectorstore/openai-fault-tolerant';
-import { getFaultTolerantNeonVectorStoreService } from '@/lib/vectorstore/neon-fault-tolerant';
-import { getFaultTolerantUnifiedVectorStoreService } from '@/lib/vectorstore/unified-fault-tolerant';
+import { type NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import { FaultToleranceFactory } from "@/lib/vectorstore/fault-tolerance";
+import { getFaultTolerantNeonVectorStoreService } from "@/lib/vectorstore/neon-fault-tolerant";
+import { getFaultTolerantOpenAIVectorStoreService } from "@/lib/vectorstore/openai-fault-tolerant";
+import { getFaultTolerantUnifiedVectorStoreService } from "@/lib/vectorstore/unified-fault-tolerant";
 
 // Request schemas
 const HealthCheckRequest = z.object({
-  services: z.array(z.enum(['openai', 'neon', 'unified', 'system'])).optional(),
+  services: z.array(z.enum(["openai", "neon", "unified", "system"])).optional(),
   detailed: z.boolean().default(false),
 });
 
@@ -36,24 +36,24 @@ const SystemHealthResponse = z.object({
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const { searchParams } = new URL(request.url);
-    const servicesParam = searchParams.get('services');
-    const detailedParam = searchParams.get('detailed');
+    const servicesParam = searchParams.get("services");
+    const detailedParam = searchParams.get("detailed");
 
     const requestData = HealthCheckRequest.parse({
-      services: servicesParam ? servicesParam.split(',') : undefined,
-      detailed: detailedParam === 'true',
+      services: servicesParam ? servicesParam.split(",") : undefined,
+      detailed: detailedParam === "true",
     });
 
     const requestedServices = requestData.services || [
-      'openai',
-      'neon',
-      'unified',
-      'system',
+      "openai",
+      "neon",
+      "unified",
+      "system",
     ];
     const services: any[] = [];
 
     // Check individual services
-    if (requestedServices.includes('openai')) {
+    if (requestedServices.includes("openai")) {
       try {
         const openaiService = getFaultTolerantOpenAIVectorStoreService();
         const health = await openaiService.getSystemHealth();
@@ -62,7 +62,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           : undefined;
 
         services.push({
-          name: 'openai',
+          name: "openai",
           healthy: health.healthy,
           status: health,
           metrics,
@@ -70,17 +70,17 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         });
       } catch (error) {
         services.push({
-          name: 'openai',
+          name: "openai",
           healthy: false,
           status: {
-            error: error instanceof Error ? error.message : 'Unknown error',
+            error: error instanceof Error ? error.message : "Unknown error",
           },
           lastCheck: Date.now(),
         });
       }
     }
 
-    if (requestedServices.includes('neon')) {
+    if (requestedServices.includes("neon")) {
       try {
         const neonService = await getFaultTolerantNeonVectorStoreService();
         const health = await neonService.getSystemHealth();
@@ -89,7 +89,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           : undefined;
 
         services.push({
-          name: 'neon',
+          name: "neon",
           healthy: health.healthy,
           status: health,
           metrics,
@@ -97,17 +97,17 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         });
       } catch (error) {
         services.push({
-          name: 'neon',
+          name: "neon",
           healthy: false,
           status: {
-            error: error instanceof Error ? error.message : 'Unknown error',
+            error: error instanceof Error ? error.message : "Unknown error",
           },
           lastCheck: Date.now(),
         });
       }
     }
 
-    if (requestedServices.includes('unified')) {
+    if (requestedServices.includes("unified")) {
       try {
         const unifiedService =
           await getFaultTolerantUnifiedVectorStoreService();
@@ -117,7 +117,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           : undefined;
 
         services.push({
-          name: 'unified',
+          name: "unified",
           healthy: (health.unified as any)?.healthy ?? false,
           status: health,
           metrics,
@@ -125,32 +125,32 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         });
       } catch (error) {
         services.push({
-          name: 'unified',
+          name: "unified",
           healthy: false,
           status: {
-            error: error instanceof Error ? error.message : 'Unknown error',
+            error: error instanceof Error ? error.message : "Unknown error",
           },
           lastCheck: Date.now(),
         });
       }
     }
 
-    if (requestedServices.includes('system')) {
+    if (requestedServices.includes("system")) {
       try {
         const systemHealth = await FaultToleranceFactory.getSystemHealth();
 
         services.push({
-          name: 'system',
+          name: "system",
           healthy: systemHealth.healthy,
           status: systemHealth,
           lastCheck: Date.now(),
         });
       } catch (error) {
         services.push({
-          name: 'system',
+          name: "system",
           healthy: false,
           status: {
-            error: error instanceof Error ? error.message : 'Unknown error',
+            error: error instanceof Error ? error.message : "Unknown error",
           },
           lastCheck: Date.now(),
         });
@@ -182,15 +182,15 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       data: response,
     });
   } catch (error) {
-    console.error('Health check API error:', error);
+    console.error("Health check API error:", error);
 
     return NextResponse.json(
       {
         success: false,
         error: {
           message:
-            error instanceof Error ? error.message : 'Unknown error occurred',
-          code: 'HEALTH_CHECK_FAILED',
+            error instanceof Error ? error.message : "Unknown error occurred",
+          code: "HEALTH_CHECK_FAILED",
         },
       },
       { status: 500 },
@@ -204,84 +204,84 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const body = await request.json();
     const requestData = HealthCheckRequest.parse(body);
 
-    const requestedServices = requestData.services || ['system'];
+    const requestedServices = requestData.services || ["system"];
     const results: any[] = [];
 
     // Trigger health checks for requested services
-    if (requestedServices.includes('system')) {
+    if (requestedServices.includes("system")) {
       try {
         const systemHealth = await FaultToleranceFactory.getSystemHealth();
         results.push({
-          service: 'system',
+          service: "system",
           result: systemHealth,
           triggered: true,
         });
       } catch (error) {
         results.push({
-          service: 'system',
+          service: "system",
           result: {
-            error: error instanceof Error ? error.message : 'Unknown error',
+            error: error instanceof Error ? error.message : "Unknown error",
           },
           triggered: false,
         });
       }
     }
 
-    if (requestedServices.includes('openai')) {
+    if (requestedServices.includes("openai")) {
       try {
         const openaiService = getFaultTolerantOpenAIVectorStoreService();
         const health = await openaiService.healthCheck();
         results.push({
-          service: 'openai',
+          service: "openai",
           result: health,
           triggered: true,
         });
       } catch (error) {
         results.push({
-          service: 'openai',
+          service: "openai",
           result: {
-            error: error instanceof Error ? error.message : 'Unknown error',
+            error: error instanceof Error ? error.message : "Unknown error",
           },
           triggered: false,
         });
       }
     }
 
-    if (requestedServices.includes('neon')) {
+    if (requestedServices.includes("neon")) {
       try {
         const neonService = await getFaultTolerantNeonVectorStoreService();
         const health = await neonService.healthCheck();
         results.push({
-          service: 'neon',
+          service: "neon",
           result: health,
           triggered: true,
         });
       } catch (error) {
         results.push({
-          service: 'neon',
+          service: "neon",
           result: {
-            error: error instanceof Error ? error.message : 'Unknown error',
+            error: error instanceof Error ? error.message : "Unknown error",
           },
           triggered: false,
         });
       }
     }
 
-    if (requestedServices.includes('unified')) {
+    if (requestedServices.includes("unified")) {
       try {
         const unifiedService =
           await getFaultTolerantUnifiedVectorStoreService();
         const availableSources = await unifiedService.getAvailableSources();
         results.push({
-          service: 'unified',
+          service: "unified",
           result: { availableSources, healthy: availableSources.length > 0 },
           triggered: true,
         });
       } catch (error) {
         results.push({
-          service: 'unified',
+          service: "unified",
           result: {
-            error: error instanceof Error ? error.message : 'Unknown error',
+            error: error instanceof Error ? error.message : "Unknown error",
           },
           triggered: false,
         });
@@ -296,15 +296,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       },
     });
   } catch (error) {
-    console.error('Health check trigger API error:', error);
+    console.error("Health check trigger API error:", error);
 
     return NextResponse.json(
       {
         success: false,
         error: {
           message:
-            error instanceof Error ? error.message : 'Unknown error occurred',
-          code: 'HEALTH_CHECK_TRIGGER_FAILED',
+            error instanceof Error ? error.message : "Unknown error occurred",
+          code: "HEALTH_CHECK_TRIGGER_FAILED",
         },
       },
       { status: 500 },

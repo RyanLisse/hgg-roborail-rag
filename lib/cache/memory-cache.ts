@@ -29,7 +29,7 @@ export class MemoryCacheBackend implements CacheBackend {
       cleanupIntervalMs?: number;
     } = {},
   ) {
-    this.maxSize = options.maxSize ?? 10000;
+    this.maxSize = options.maxSize ?? 10_000;
     this.maxMemoryMB = options.maxMemoryMB ?? 100;
 
     // Periodic cleanup of expired entries

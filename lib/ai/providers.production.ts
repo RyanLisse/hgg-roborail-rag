@@ -1,50 +1,23 @@
-import { openai, createOpenAI } from '@ai-sdk/openai';
-import { anthropic } from '@ai-sdk/anthropic';
-import { google } from '@ai-sdk/google';
-import { cohere } from '@ai-sdk/cohere';
-import { groq } from '@ai-sdk/groq';
+import { google } from "@ai-sdk/google";
+import { openai } from "@ai-sdk/openai";
 import {
   customProvider,
-  wrapLanguageModel,
   extractReasoningMiddleware,
   type LanguageModel,
-} from 'ai';
-import { z } from 'zod';
-import { getModelById } from './models';
-import {
-  OPENAI_API_KEY,
-  ANTHROPIC_API_KEY,
-  GOOGLE_GENERATIVE_AI_API_KEY,
-  COHERE_API_KEY,
-  GROQ_API_KEY,
-  XAI_API_KEY,
-} from '../env';
-
-// xAI provider (using OpenAI SDK with custom base URL)
-const xai = createOpenAI({
-  baseURL: 'https://api.x.ai/v1',
-  apiKey: XAI_API_KEY ?? '',
-});
+  wrapLanguageModel,
+} from "ai";
+import { z } from "zod";
+import { GOOGLE_GENERATIVE_AI_API_KEY, OPENAI_API_KEY } from "../env";
+import { chatModels, getModelById } from "./models";
 
 // Provider instances
 export const aiProviders = {
-  openai: openai,
-  anthropic: anthropic,
-  google: google,
-  cohere: cohere,
-  groq: groq,
-  xai: xai,
+  openai,
+  google,
 } as const;
 
 // Provider validation schema
-const providerSchema = z.enum([
-  'openai',
-  'anthropic',
-  'google',
-  'cohere',
-  'groq',
-  'xai',
-]);
+const providerSchema = z.enum(["openai", "google"]);
 
 // Get model instance by model ID
 export function getModelInstance(modelId: string) {
@@ -69,7 +42,7 @@ export function getModelInstance(modelId: string) {
 // Get embedding model instance
 export function getEmbeddingModelInstance(modelId: string) {
   // For now, use OpenAI text-embedding-3-small for all embeddings
-  return openai.embedding('text-embedding-3-small');
+  return openai.embedding("text-embedding-3-small");
 }
 
 // Enhanced language model factory with reasoning support
@@ -82,8 +55,8 @@ function createDynamicLanguageModel(modelId: string): LanguageModel {
       model: baseModel,
       middleware: [
         extractReasoningMiddleware({
-          tagName: 'thinking',
-          separator: '\n\n',
+          tagName: "thinking",
+          separator: "\n\n",
         }),
       ],
     });
@@ -96,15 +69,15 @@ function createDynamicLanguageModel(modelId: string): LanguageModel {
 // Helper function to identify reasoning models
 function isReasoningModel(modelId: string): boolean {
   const reasoningPatterns = [
-    'o1-',
-    'o1.',
-    'o3-',
-    'o3.',
-    'o4-',
-    'o4.',
-    'reasoning',
-    'think',
-    'step-by-step',
+    "o1-",
+    "o1.",
+    "o3-",
+    "o3.",
+    "o4-",
+    "o4.",
+    "reasoning",
+    "think",
+    "step-by-step",
   ];
 
   return reasoningPatterns.some((pattern) =>
@@ -118,14 +91,14 @@ function createAllLanguageModels(): Record<string, LanguageModel> {
 
   // Primary models with fallbacks - June 2025 optimized
   const primaryModels = {
-    'chat-model': 'openai-gpt-4.1',
-    'chat-model-fast': 'openai-gpt-4.1-mini',
-    'chat-model-reasoning': 'openai-o3-mini',
-    'chat-model-advanced-reasoning': 'openai-o4-mini',
-    'title-model': 'openai-gpt-4.1-nano',
-    'artifact-model': 'anthropic-claude-sonnet-4-20250514',
-    'research-model': 'google-gemini-2.5-pro-latest',
-    'rewrite-model': 'anthropic-claude-3-7-sonnet-20250219',
+    "chat-model": "openai-gpt-4.1",
+    "chat-model-fast": "openai-gpt-4.1-mini",
+    "chat-model-reasoning": "openai-o3-mini",
+    "chat-model-advanced-reasoning": "openai-o4-mini",
+    "title-model": "openai-gpt-4.1-nano",
+    "artifact-model": "openai-gpt-4.1",
+    "research-model": "google-gemini-2.5-pro-latest",
+    "rewrite-model": "openai-gpt-4.1",
   };
 
   // Create primary models with fallback logic
@@ -153,10 +126,9 @@ function createAllLanguageModels(): Record<string, LanguageModel> {
 
   // Dynamically add all available models from the models config
   try {
-    const { chatModels } = require('./models');
     const availableProviders = getAvailableProviders();
 
-    chatModels.forEach((model: any) => {
+    chatModels.forEach((model) => {
       // Only create models for available providers
       if (availableProviders.includes(model.provider)) {
         try {
@@ -167,13 +139,13 @@ function createAllLanguageModels(): Record<string, LanguageModel> {
       }
     });
   } catch (error) {
-    console.error('Failed to load chat models configuration:', error);
+    console.error("Failed to load chat models configuration:", error);
   }
 
   // Ensure we have at least one working model
   if (Object.keys(models).length === 0) {
     throw new Error(
-      'No language models could be initialized. Check your API keys.',
+      "No language models could be initialized. Check your API keys.",
     );
   }
 
@@ -183,12 +155,8 @@ function createAllLanguageModels(): Record<string, LanguageModel> {
 // Get available providers based on API keys
 function getAvailableProviders(): string[] {
   const providers = [];
-  if (OPENAI_API_KEY) providers.push('openai');
-  if (ANTHROPIC_API_KEY) providers.push('anthropic');
-  if (GOOGLE_GENERATIVE_AI_API_KEY) providers.push('google');
-  if (COHERE_API_KEY) providers.push('cohere');
-  if (GROQ_API_KEY) providers.push('groq');
-  if (XAI_API_KEY) providers.push('xai');
+  if (OPENAI_API_KEY) providers.push("openai");
+  if (GOOGLE_GENERATIVE_AI_API_KEY) providers.push("google");
   return providers;
 }
 
@@ -198,27 +166,10 @@ function getFallbackModel(originalModelId: string): string | null {
 
   // Fallback hierarchy based on capabilities and availability
   const fallbacks: Record<string, string[]> = {
-    'openai-gpt-4.1': [
-      'openai-gpt-4o',
-      'anthropic-claude-sonnet-4-20250514',
-      'google-gemini-2.5-pro-latest',
-    ],
-    'openai-o3-mini': [
-      'openai-o1-mini',
-      'openai-gpt-4.1',
-      'anthropic-claude-sonnet-4-20250514',
-    ],
-    'openai-o4-mini': ['openai-o3-mini', 'openai-o1-mini', 'openai-gpt-4.1'],
-    'anthropic-claude-sonnet-4-20250514': [
-      'anthropic-claude-3-7-sonnet-20250219',
-      'openai-gpt-4.1',
-      'google-gemini-2.5-pro-latest',
-    ],
-    'google-gemini-2.5-pro-latest': [
-      'google-gemini-1.5-pro',
-      'openai-gpt-4.1',
-      'anthropic-claude-sonnet-4-20250514',
-    ],
+    "openai-gpt-4.1": ["openai-gpt-4o", "google-gemini-2.5-pro-latest"],
+    "openai-o3-mini": ["openai-o1-mini", "openai-gpt-4.1"],
+    "openai-o4-mini": ["openai-o3-mini", "openai-o1-mini", "openai-gpt-4.1"],
+    "google-gemini-2.5-pro-latest": ["google-gemini-1.5-pro", "openai-gpt-4.1"],
   };
 
   const modelFallbacks = fallbacks[originalModelId] || [];
@@ -229,15 +180,12 @@ function getFallbackModel(originalModelId: string): string | null {
       if (model && availableProviders.includes(model.provider)) {
         return fallback;
       }
-    } catch {
-      continue;
-    }
+    } catch {}
   }
 
   // Ultimate fallback: any working model
-  if (OPENAI_API_KEY) return 'openai-gpt-4o-mini';
-  if (ANTHROPIC_API_KEY) return 'anthropic-claude-3-5-haiku-20241022';
-  if (GOOGLE_GENERATIVE_AI_API_KEY) return 'google-gemini-1.5-flash';
+  if (OPENAI_API_KEY) return "openai-gpt-4o-mini";
+  if (GOOGLE_GENERATIVE_AI_API_KEY) return "google-gemini-1.5-flash";
 
   return null;
 }
@@ -249,7 +197,7 @@ export const myProvider = customProvider({
 
 // Provider health check
 export async function checkProviderHealth(): Promise<{
-  status: 'healthy' | 'degraded' | 'error';
+  status: "healthy" | "degraded" | "error";
   availableModels: string[];
   unavailableModels: string[];
   providers: Record<string, boolean>;
@@ -274,19 +222,19 @@ export async function checkProviderHealth(): Promise<{
     const models = createAllLanguageModels();
     availableModels.push(...Object.keys(models));
   } catch (error) {
-    console.error('Failed to check model availability:', error);
+    console.error("Failed to check model availability:", error);
   }
 
   const healthyProviders = Object.values(providers).filter(Boolean).length;
   const totalProviders = Object.keys(providers).length;
 
-  let status: 'healthy' | 'degraded' | 'error';
+  let status: "healthy" | "degraded" | "error";
   if (healthyProviders === totalProviders && availableModels.length > 0) {
-    status = 'healthy';
+    status = "healthy";
   } else if (healthyProviders > 0 && availableModels.length > 0) {
-    status = 'degraded';
+    status = "degraded";
   } else {
-    status = 'error';
+    status = "error";
   }
 
   return {
@@ -312,35 +260,16 @@ export function validateProviderConfig(): {
   const providerChecks = [
     {
       key: OPENAI_API_KEY,
-      name: 'OPENAI_API_KEY',
-      provider: 'openai',
-      required: false,
-    },
-    {
-      key: ANTHROPIC_API_KEY,
-      name: 'ANTHROPIC_API_KEY',
-      provider: 'anthropic',
+      name: "OPENAI_API_KEY",
+      provider: "openai",
       required: false,
     },
     {
       key: GOOGLE_GENERATIVE_AI_API_KEY,
-      name: 'GOOGLE_GENERATIVE_AI_API_KEY',
-      provider: 'google',
+      name: "GOOGLE_GENERATIVE_AI_API_KEY",
+      provider: "google",
       required: false,
     },
-    {
-      key: COHERE_API_KEY,
-      name: 'COHERE_API_KEY',
-      provider: 'cohere',
-      required: false,
-    },
-    {
-      key: GROQ_API_KEY,
-      name: 'GROQ_API_KEY',
-      provider: 'groq',
-      required: false,
-    },
-    { key: XAI_API_KEY, name: 'XAI_API_KEY', provider: 'xai', required: false },
   ];
 
   // Validate each provider key
@@ -349,7 +278,7 @@ export function validateProviderConfig(): {
       availableProviders.push(check.provider);
 
       // Validate key format
-      if (check.provider === 'openai' && !check.key.startsWith('sk-')) {
+      if (check.provider === "openai" && !check.key.startsWith("sk-")) {
         warnings.push(`${check.name} should start with 'sk-'`);
       }
     } else if (check.required) {
@@ -359,20 +288,20 @@ export function validateProviderConfig(): {
 
   // Ensure at least one provider is available
   if (availableProviders.length === 0) {
-    errors.push('At least one AI provider API key must be configured');
+    errors.push("At least one AI provider API key must be configured");
   }
 
   // Log configuration status
   if (availableProviders.length > 0) {
-    console.log(`✅ Available AI providers: ${availableProviders.join(', ')}`);
+    console.log(`✅ Available AI providers: ${availableProviders.join(", ")}`);
   }
 
   if (warnings.length > 0) {
-    console.warn('⚠️  Provider configuration warnings:', warnings);
+    console.warn("⚠️  Provider configuration warnings:", warnings);
   }
 
   if (errors.length > 0) {
-    console.error('❌ Provider configuration errors:', errors);
+    console.error("❌ Provider configuration errors:", errors);
   }
 
   return {

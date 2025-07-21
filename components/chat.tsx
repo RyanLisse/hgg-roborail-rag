@@ -1,35 +1,35 @@
-'use client';
+"use client";
 
-import type { Attachment, UIMessage } from 'ai';
-import { useChat } from '@ai-sdk/react';
-import { useEffect, useState } from 'react';
-import useSWR, { useSWRConfig } from 'swr';
-import { ChatHeader } from '@/components/chat-header';
-import type { Vote } from '@/lib/db/schema';
-import { fetcher, fetchWithErrorHandlers, generateUUID } from '@/lib/utils';
-import { Artifact } from './artifact';
-import { MultimodalInput } from './multimodal-input';
-import { Messages } from './messages';
-import { useArtifactSelector } from '@/hooks/use-artifact';
-import { unstable_serialize } from 'swr/infinite';
-import { getChatHistoryPaginationKey } from './sidebar-history';
-import { toast } from './toast';
-import type { Session } from 'next-auth';
-import { useSearchParams } from 'next/navigation';
-import { useAutoResume } from '@/hooks/use-auto-resume';
-import { ChatSDKError } from '@/lib/errors';
+import { useChat } from "@ai-sdk/react";
+import type { Attachment, UIMessage } from "ai";
+import { useSearchParams } from "next/navigation";
+import type { Session } from "next-auth";
+import { useEffect, useState } from "react";
+import useSWR, { useSWRConfig } from "swr";
+import { unstable_serialize } from "swr/infinite";
+import { ChatHeader } from "@/components/chat-header";
 import {
   DatabaseSelector,
   useDatabaseSelection,
-} from '@/components/database-selector';
-import { useChatVisibility } from '@/hooks/use-chat-visibility';
-import type { VisibilityType } from '@/components/visibility-selector';
+} from "@/components/database-selector";
+import type { VisibilityType } from "@/components/visibility-selector";
+import { useArtifactSelector } from "@/hooks/use-artifact";
+import { useAutoResume } from "@/hooks/use-auto-resume";
+import { useChatVisibility } from "@/hooks/use-chat-visibility";
+import type { Vote } from "@/lib/db/schema";
+import { ChatSDKError } from "@/lib/errors";
+import { fetcher, fetchWithErrorHandlers, generateUUID } from "@/lib/utils";
+import { Artifact } from "./artifact";
+import { Messages } from "./messages";
+import { MultimodalInput } from "./multimodal-input";
+import { getChatHistoryPaginationKey } from "./sidebar-history";
+import { toast } from "./toast";
 
 export function Chat({
   id,
   initialMessages,
   initialChatModel,
-  initialVisibilityType = 'private',
+  initialVisibilityType = "private",
   isReadonly,
   session,
   autoResume,
@@ -45,7 +45,7 @@ export function Chat({
   const { mutate } = useSWRConfig();
 
   const searchParams = useSearchParams();
-  const query = searchParams.get('query');
+  const query = searchParams.get("query");
 
   const [hasAppendedQuery, setHasAppendedQuery] = useState(false);
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
@@ -99,7 +99,7 @@ export function Chat({
     onError: (error) => {
       if (error instanceof ChatSDKError) {
         toast({
-          type: 'error',
+          type: "error",
           description: error.message,
         });
       }
@@ -114,12 +114,12 @@ export function Chat({
   useEffect(() => {
     if (query && !hasAppendedQuery) {
       append({
-        role: 'user',
+        role: "user",
         content: query,
       });
 
       setHasAppendedQuery(true);
-      window.history.replaceState({}, '', `/chat/${id}`);
+      window.history.replaceState({}, "", `/chat/${id}`);
     }
   }, [query, append, hasAppendedQuery, id]);
 
@@ -133,59 +133,59 @@ export function Chat({
 
   return (
     <>
-      <div className="flex flex-col min-w-0 h-dvh bg-background">
+      <div className="flex h-dvh min-w-0 flex-col bg-background">
         <ChatHeader
+          availableSources={availableSources}
           chatId={id}
+          isReadonly={isReadonly}
+          onSourcesChange={setSelectedSources}
           selectedModelId={initialChatModel}
           selectedSources={selectedSources}
-          onSourcesChange={setSelectedSources}
-          availableSources={availableSources}
-          sourceStats={sourceStats}
-          isReadonly={isReadonly}
           session={session}
+          sourceStats={sourceStats}
         />
 
         <Messages
           chatId={id}
+          isArtifactVisible={isArtifactVisible}
+          isReadonly={isReadonly}
+          messages={messages}
+          reload={reload}
+          setMessages={setMessages}
           status={status}
           votes={votes}
-          messages={messages}
-          setMessages={setMessages}
-          reload={reload}
-          isReadonly={isReadonly}
-          isArtifactVisible={isArtifactVisible}
         />
 
-        <form className="flex flex-col mx-auto px-4 bg-background pb-4 md:pb-6 gap-2 w-full md:max-w-3xl">
+        <form className="mx-auto flex w-full flex-col gap-2 bg-background px-4 pb-4 md:max-w-3xl md:pb-6">
           {!isReadonly && (
             <div className="flex flex-col gap-2">
               {/* Database Selector for Vector Stores - Mobile only */}
               <div className="flex items-center gap-2 px-2 md:hidden">
-                <span className="text-sm text-muted-foreground min-w-fit">
+                <span className="min-w-fit text-muted-foreground text-sm">
                   Data Sources:
                 </span>
                 <DatabaseSelector
-                  selectedSources={selectedSources}
-                  onSourcesChange={setSelectedSources}
                   availableSources={availableSources}
-                  sourceStats={sourceStats}
-                  disabled={isLoadingSources}
                   className="flex-1"
+                  disabled={isLoadingSources}
+                  onSourcesChange={setSelectedSources}
+                  selectedSources={selectedSources}
+                  sourceStats={sourceStats}
                 />
               </div>
 
               <MultimodalInput
+                append={append}
+                attachments={attachments}
                 chatId={id}
-                input={input}
-                setInput={setInput}
                 handleSubmit={handleSubmit}
+                input={input}
+                messages={messages}
+                setAttachments={setAttachments}
+                setInput={setInput}
+                setMessages={setMessages}
                 status={status}
                 stop={stop}
-                attachments={attachments}
-                setAttachments={setAttachments}
-                messages={messages}
-                setMessages={setMessages}
-                append={append}
               />
             </div>
           )}
@@ -193,20 +193,20 @@ export function Chat({
       </div>
 
       <Artifact
+        append={append}
+        attachments={attachments}
         chatId={id}
-        input={input}
-        setInput={setInput}
         handleSubmit={handleSubmit}
+        input={input}
+        isReadonly={isReadonly}
+        messages={messages}
+        reload={reload}
+        setAttachments={setAttachments}
+        setInput={setInput}
+        setMessages={setMessages}
         status={status}
         stop={stop}
-        attachments={attachments}
-        setAttachments={setAttachments}
-        append={append}
-        messages={messages}
-        setMessages={setMessages}
-        reload={reload}
         votes={votes}
-        isReadonly={isReadonly}
       />
     </>
   );

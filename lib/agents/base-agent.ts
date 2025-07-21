@@ -1,18 +1,18 @@
-import { generateText, streamText, tool } from 'ai';
-import { z } from 'zod';
-import { getModelInstance } from '../ai/providers';
-import { getUnifiedVectorStoreService } from '../vectorstore/unified';
+import { generateText, streamText, tool } from "ai";
+import { z } from "zod";
+import { getModelInstance } from "../ai/providers";
+import { getUnifiedVectorStoreService } from "../vectorstore/unified";
 import type {
   Agent,
+  AgentCapability,
   AgentRequest,
   AgentResponse,
   AgentType,
-  AgentCapability,
-} from './types';
+} from "./types";
 import {
   AgentRequest as AgentRequestSchema,
   AgentResponse as AgentResponseSchema,
-} from './types';
+} from "./types";
 
 // Base agent implementation
 export abstract class BaseAgent implements Agent {
@@ -31,27 +31,27 @@ export abstract class BaseAgent implements Agent {
   abstract getSystemPrompt(request: AgentRequest): string;
 
   protected getTools(request: AgentRequest): Record<string, any> | undefined {
-    if (!this.capability.requiresTools || !request.options?.useTools) {
-      return undefined;
+    if (!(this.capability.requiresTools && request.options?.useTools)) {
+      return;
     }
 
     // Enhanced AI SDK tool patterns
     return {
       searchDocuments: tool({
-        description: 'Search through uploaded documents and knowledge base',
+        description: "Search through uploaded documents and knowledge base",
         parameters: z.object({
-          query: z.string().describe('Search query'),
+          query: z.string().describe("Search query"),
           maxResults: z
             .number()
             .optional()
-            .describe('Maximum number of results'),
+            .describe("Maximum number of results"),
         }),
         execute: async ({ query, maxResults = 5 }) => {
           try {
             const unifiedService = await getUnifiedVectorStoreService();
             const results = await unifiedService.searchAcrossSources({
               query,
-              sources: request.context?.sources || ['openai'],
+              sources: request.context?.sources || ["openai"],
               maxResults,
               threshold: 0.3,
               optimizePrompts: false,
@@ -67,20 +67,20 @@ export abstract class BaseAgent implements Agent {
             };
           } catch (error) {
             return {
-              error: `Search failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+              error: `Search failed: ${error instanceof Error ? error.message : "Unknown error"}`,
             };
           }
         },
       }),
 
       analyzeComplexity: tool({
-        description: 'Analyze the complexity of a query or task',
+        description: "Analyze the complexity of a query or task",
         parameters: z.object({
-          task: z.string().describe('Task or query to analyze'),
+          task: z.string().describe("Task or query to analyze"),
         }),
         execute: async ({ task }) => {
           // Simple complexity analysis
-          const wordCount = task.split(' ').length;
+          const wordCount = task.split(" ").length;
           const questionCount = (task.match(/\?/g) || []).length;
           const technicalTerms = (
             task.match(
@@ -88,15 +88,15 @@ export abstract class BaseAgent implements Agent {
             ) || []
           ).length;
 
-          let complexity: 'simple' | 'moderate' | 'complex' = 'simple';
+          let complexity: "simple" | "moderate" | "complex" = "simple";
           if (wordCount > 50 || questionCount > 2 || technicalTerms > 2) {
-            complexity = 'complex';
+            complexity = "complex";
           } else if (
             wordCount > 20 ||
             questionCount > 1 ||
             technicalTerms > 0
           ) {
-            complexity = 'moderate';
+            complexity = "moderate";
           }
 
           return {
@@ -107,8 +107,8 @@ export abstract class BaseAgent implements Agent {
               technicalTerms,
               requiresMultipleSteps: wordCount > 30,
               requiresExternalData:
-                task.includes('current') || task.includes('latest'),
-              requiresSynthesis: questionCount > 1 || task.includes('compare'),
+                task.includes("current") || task.includes("latest"),
+              requiresSynthesis: questionCount > 1 || task.includes("compare"),
             },
             score: Math.min(
               (wordCount + questionCount * 10 + technicalTerms * 5) / 100,
@@ -131,20 +131,20 @@ export abstract class BaseAgent implements Agent {
       // Prepare messages
       const systemPrompt = this.getSystemPrompt(validatedRequest);
       const messages = [
-        { role: 'system' as const, content: systemPrompt },
+        { role: "system" as const, content: systemPrompt },
         ...validatedRequest.chatHistory.map((msg) => ({
-          role: msg.role as 'user' | 'assistant' | 'system',
+          role: msg.role as "user" | "assistant" | "system",
           content: msg.content,
         })),
-        { role: 'user' as const, content: validatedRequest.query },
+        { role: "user" as const, content: validatedRequest.query },
       ];
 
       // Configure model options
       const modelId =
         validatedRequest.options?.modelId ||
         this.capability.temperature !== undefined
-          ? 'anthropic-claude-sonnet-4-20250514'
-          : 'openai-gpt-4.1';
+          ? "anthropic-claude-sonnet-4-20250514"
+          : "openai-gpt-4.1";
 
       const modelInstance = getModelInstance(modelId);
       const tools = this.getTools(validatedRequest);
@@ -192,14 +192,14 @@ export abstract class BaseAgent implements Agent {
         content: this.getErrorMessage(error),
         agent: this.type,
         metadata: {
-          modelUsed: validatedRequest.options?.modelId || 'unknown',
+          modelUsed: validatedRequest.options?.modelId || "unknown",
           responseTime: Date.now() - startTime,
         },
         streamingSupported: this.capability.supportsStreaming,
         errorDetails: {
-          code: 'processing_error',
+          code: "processing_error",
           message:
-            error instanceof Error ? error.message : 'Unknown error occurred',
+            error instanceof Error ? error.message : "Unknown error occurred",
           retryable: true,
         },
       });
@@ -217,7 +217,7 @@ export abstract class BaseAgent implements Agent {
 
     const startTime = Date.now();
     const validatedRequest = this.validateRequest(request);
-    let fullContent = '';
+    let fullContent = "";
 
     try {
       // Get relevant context if sources are specified
@@ -226,18 +226,18 @@ export abstract class BaseAgent implements Agent {
       // Prepare messages
       const systemPrompt = this.getSystemPrompt(validatedRequest);
       const messages = [
-        { role: 'system' as const, content: systemPrompt },
+        { role: "system" as const, content: systemPrompt },
         ...validatedRequest.chatHistory.map((msg) => ({
-          role: msg.role as 'user' | 'assistant' | 'system',
+          role: msg.role as "user" | "assistant" | "system",
           content: msg.content,
         })),
-        { role: 'user' as const, content: validatedRequest.query },
+        { role: "user" as const, content: validatedRequest.query },
       ];
 
       // Configure model options
       const modelId =
         validatedRequest.options?.modelId ||
-        'anthropic-claude-sonnet-4-20250514';
+        "anthropic-claude-sonnet-4-20250514";
       const modelInstance = getModelInstance(modelId);
       const tools = this.getTools(validatedRequest);
 
@@ -297,14 +297,14 @@ export abstract class BaseAgent implements Agent {
         content: errorMessage,
         agent: this.type,
         metadata: {
-          modelUsed: validatedRequest.options?.modelId || 'unknown',
+          modelUsed: validatedRequest.options?.modelId || "unknown",
           responseTime: Date.now() - startTime,
         },
         streamingSupported: true,
         errorDetails: {
-          code: 'streaming_error',
+          code: "streaming_error",
           message:
-            error instanceof Error ? error.message : 'Unknown error occurred',
+            error instanceof Error ? error.message : "Unknown error occurred",
           retryable: true,
         },
       });
@@ -328,7 +328,7 @@ export abstract class BaseAgent implements Agent {
 
       return results;
     } catch (error) {
-      console.warn('Failed to retrieve context:', error);
+      console.warn("Failed to retrieve context:", error);
       return [];
     }
   }
@@ -350,6 +350,6 @@ export abstract class BaseAgent implements Agent {
     if (error instanceof Error) {
       return `I encountered an error while processing your request: ${error.message}. Please try again or rephrase your question.`;
     }
-    return 'I encountered an unexpected error. Please try again.';
+    return "I encountered an unexpected error. Please try again.";
   }
 }

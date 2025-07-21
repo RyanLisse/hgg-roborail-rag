@@ -1,18 +1,18 @@
-'use client';
+"use client";
 
-import { useState, useCallback } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCallback, useState } from "react";
+import { useDebounceCallback } from "usehooks-ts";
 import type {
-  MessageFeedback,
   FeedbackUpdate,
+  MessageFeedback,
   StoredFeedback,
-} from '@/lib/feedback/feedback';
+} from "@/lib/feedback/feedback";
 import {
   getLangSmithService,
   submitUserFeedback,
   type UserFeedback,
-} from '@/lib/observability/langsmith';
-import { useDebounceCallback } from 'usehooks-ts';
+} from "@/lib/observability/langsmith";
 
 export function useFeedback(messageId: string, userId: string) {
   const [error, setError] = useState<Error | null>(null);
@@ -21,11 +21,11 @@ export function useFeedback(messageId: string, userId: string) {
   // Query for existing feedback
   const { data: existingFeedback, isLoading } = useQuery<StoredFeedback | null>(
     {
-      queryKey: ['feedback', messageId, userId],
+      queryKey: ["feedback", messageId, userId],
       queryFn: async () => {
         const response = await fetch(`/api/feedback?messageId=${messageId}`);
         if (!response.ok) {
-          throw new Error('Failed to fetch feedback');
+          throw new Error("Failed to fetch feedback");
         }
         return await response.json();
       },
@@ -39,16 +39,16 @@ export function useFeedback(messageId: string, userId: string) {
       mutationFn: async (
         feedback: MessageFeedback,
       ): Promise<StoredFeedback> => {
-        const response = await fetch('/api/feedback', {
-          method: 'POST',
+        const response = await fetch("/api/feedback", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify(feedback),
         });
 
         if (!response.ok) {
-          throw new Error('Failed to submit feedback');
+          throw new Error("Failed to submit feedback");
         }
 
         const result = await response.json();
@@ -59,8 +59,8 @@ export function useFeedback(messageId: string, userId: string) {
           if (langSmithService.isEnabled && feedback.runId) {
             const langSmithFeedback: UserFeedback = {
               runId: feedback.runId,
-              score: feedback.vote === 'up' ? 1 : 0,
-              value: feedback.vote === 'up' ? 'thumbs_up' : 'thumbs_down',
+              score: feedback.vote === "up" ? 1 : 0,
+              value: feedback.vote === "up" ? "thumbs_up" : "thumbs_down",
               comment: feedback.comment,
               userId: feedback.userId,
             };
@@ -69,7 +69,7 @@ export function useFeedback(messageId: string, userId: string) {
           }
         } catch (langSmithError) {
           console.warn(
-            'Failed to submit feedback to LangSmith:',
+            "Failed to submit feedback to LangSmith:",
             langSmithError,
           );
           // Don't fail the main operation if LangSmith fails
@@ -78,7 +78,7 @@ export function useFeedback(messageId: string, userId: string) {
         return result;
       },
       onSuccess: (data) => {
-        queryClient.setQueryData(['feedback', messageId, userId], data);
+        queryClient.setQueryData(["feedback", messageId, userId], data);
         setError(null);
       },
       onError: (error: Error) => {
@@ -91,22 +91,22 @@ export function useFeedback(messageId: string, userId: string) {
     {
       mutationFn: async (updates: FeedbackUpdate): Promise<StoredFeedback> => {
         if (!existingFeedback) {
-          throw new Error('No existing feedback to update');
+          throw new Error("No existing feedback to update");
         }
 
         const response = await fetch(
           `/api/feedback?id=${existingFeedback.id}`,
           {
-            method: 'PUT',
+            method: "PUT",
             headers: {
-              'Content-Type': 'application/json',
+              "Content-Type": "application/json",
             },
             body: JSON.stringify(updates),
           },
         );
 
         if (!response.ok) {
-          throw new Error('Failed to update feedback');
+          throw new Error("Failed to update feedback");
         }
 
         const result = await response.json();
@@ -117,11 +117,11 @@ export function useFeedback(messageId: string, userId: string) {
           if (langSmithService.isEnabled && existingFeedback.runId) {
             const langSmithFeedback: UserFeedback = {
               runId: existingFeedback.runId,
-              score: (updates.vote || existingFeedback.vote) === 'up' ? 1 : 0,
+              score: (updates.vote || existingFeedback.vote) === "up" ? 1 : 0,
               value:
-                (updates.vote || existingFeedback.vote) === 'up'
-                  ? 'thumbs_up'
-                  : 'thumbs_down',
+                (updates.vote || existingFeedback.vote) === "up"
+                  ? "thumbs_up"
+                  : "thumbs_down",
               comment:
                 updates.comment !== undefined
                   ? updates.comment
@@ -133,7 +133,7 @@ export function useFeedback(messageId: string, userId: string) {
           }
         } catch (langSmithError) {
           console.warn(
-            'Failed to update feedback in LangSmith:',
+            "Failed to update feedback in LangSmith:",
             langSmithError,
           );
         }
@@ -141,7 +141,7 @@ export function useFeedback(messageId: string, userId: string) {
         return result;
       },
       onSuccess: (data) => {
-        queryClient.setQueryData(['feedback', messageId, userId], data);
+        queryClient.setQueryData(["feedback", messageId, userId], data);
         setError(null);
       },
       onError: (error: Error) => {
@@ -199,11 +199,11 @@ export function useFeedback(messageId: string, userId: string) {
 // Hook for feedback statistics
 export function useFeedbackStats(runId: string) {
   return useQuery({
-    queryKey: ['feedback-stats', runId],
+    queryKey: ["feedback-stats", runId],
     queryFn: async () => {
       const response = await fetch(`/api/feedback/stats?runId=${runId}`);
       if (!response.ok) {
-        throw new Error('Failed to fetch feedback stats');
+        throw new Error("Failed to fetch feedback stats");
       }
       return await response.json();
     },
@@ -219,16 +219,16 @@ export function useBulkFeedback() {
   const { mutate: submitBulkFeedback, isPending: isSubmittingBulk } =
     useMutation({
       mutationFn: async (feedbackList: MessageFeedback[]) => {
-        const response = await fetch('/api/feedback/batch', {
-          method: 'POST',
+        const response = await fetch("/api/feedback/batch", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({ feedbackList }),
         });
 
         if (!response.ok) {
-          throw new Error('Failed to submit bulk feedback');
+          throw new Error("Failed to submit bulk feedback");
         }
 
         return await response.json();
@@ -237,7 +237,7 @@ export function useBulkFeedback() {
         // Update cache for each feedback item
         results.forEach((feedback: StoredFeedback) => {
           queryClient.setQueryData(
-            ['feedback', feedback.messageId, feedback.userId],
+            ["feedback", feedback.messageId, feedback.userId],
             feedback,
           );
         });
@@ -253,11 +253,11 @@ export function useBulkFeedback() {
 // Hook for getting feedback by run ID
 export function useRunFeedback(runId: string) {
   return useQuery({
-    queryKey: ['run-feedback', runId],
+    queryKey: ["run-feedback", runId],
     queryFn: async () => {
       const response = await fetch(`/api/feedback?runId=${runId}`);
       if (!response.ok) {
-        throw new Error('Failed to fetch run feedback');
+        throw new Error("Failed to fetch run feedback");
       }
       return await response.json();
     },
@@ -275,18 +275,18 @@ export function useFeedbackExists(messageId: string, userId: string): boolean {
 // Helper function to get feedback summary
 export function useFeedbackSummary(runIds: string[]) {
   return useQuery({
-    queryKey: ['feedback-summary', runIds],
+    queryKey: ["feedback-summary", runIds],
     queryFn: async () => {
-      const response = await fetch('/api/feedback/summary', {
-        method: 'POST',
+      const response = await fetch("/api/feedback/summary", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ runIds }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch feedback summary');
+        throw new Error("Failed to fetch feedback summary");
       }
 
       return await response.json();

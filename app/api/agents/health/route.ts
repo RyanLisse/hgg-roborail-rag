@@ -1,5 +1,5 @@
-import { getSystemHealth, getAgentCapabilities } from '@/lib/agents';
-import { withApiErrorHandling, ApiResponses } from '@/lib/api/error-handling';
+import { getAgentCapabilities, getSystemHealth } from "@/lib/agents";
+import { ApiResponses, withApiErrorHandling } from "@/lib/api/error-handling";
 
 export const maxDuration = 10;
 
@@ -12,7 +12,7 @@ export const GET = withApiErrorHandling(
     ]);
 
     return ApiResponses.success({
-      status: 'healthy',
+      status: "healthy",
       timestamp: new Date().toISOString(),
       health,
       capabilities,

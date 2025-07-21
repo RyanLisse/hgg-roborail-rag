@@ -3,7 +3,7 @@
  * Production-ready cache with pub/sub for multi-instance coordination
  */
 
-import type { DistributedCacheBackend, CacheStats } from './types';
+import type { CacheStats, DistributedCacheBackend } from './types';
 
 export class RedisCacheBackend implements DistributedCacheBackend {
   public readonly name = 'redis';
@@ -102,7 +102,7 @@ export class RedisCacheBackend implements DistributedCacheBackend {
   }
 
   async get<T>(key: string): Promise<T | null> {
-    if (!this.isConnected || !this.client) {
+    if (!(this.isConnected && this.client)) {
       this.stats.misses++;
       return null;
     }
@@ -127,7 +127,7 @@ export class RedisCacheBackend implements DistributedCacheBackend {
   }
 
   async set<T>(key: string, value: T, ttl?: number): Promise<boolean> {
-    if (!this.isConnected || !this.client) {
+    if (!(this.isConnected && this.client)) {
       return false;
     }
 
@@ -154,7 +154,7 @@ export class RedisCacheBackend implements DistributedCacheBackend {
   }
 
   async delete(key: string): Promise<boolean> {
-    if (!this.isConnected || !this.client) {
+    if (!(this.isConnected && this.client)) {
       return false;
     }
 
@@ -170,7 +170,7 @@ export class RedisCacheBackend implements DistributedCacheBackend {
   }
 
   async clear(pattern?: string): Promise<number> {
-    if (!this.isConnected || !this.client) {
+    if (!(this.isConnected && this.client)) {
       return 0;
     }
 
@@ -200,7 +200,7 @@ export class RedisCacheBackend implements DistributedCacheBackend {
   }
 
   async mget<T>(keys: string[]): Promise<Array<T | null>> {
-    if (!this.isConnected || !this.client || keys.length === 0) {
+    if (!(this.isConnected && this.client) || keys.length === 0) {
       this.stats.misses += keys.length;
       return new Array(keys.length).fill(null);
     }
@@ -234,7 +234,7 @@ export class RedisCacheBackend implements DistributedCacheBackend {
   async mset<T>(
     entries: Array<{ key: string; value: T; ttl?: number }>,
   ): Promise<boolean> {
-    if (!this.isConnected || !this.client || entries.length === 0) {
+    if (!(this.isConnected && this.client) || entries.length === 0) {
       return false;
     }
 
@@ -267,7 +267,7 @@ export class RedisCacheBackend implements DistributedCacheBackend {
   }
 
   async getStats(): Promise<CacheStats> {
-    if (!this.isConnected || !this.client) {
+    if (!(this.isConnected && this.client)) {
       return {
         hits: this.stats.hits,
         misses: this.stats.misses,
@@ -312,7 +312,7 @@ export class RedisCacheBackend implements DistributedCacheBackend {
   }
 
   async healthCheck(): Promise<boolean> {
-    if (!this.isConnected || !this.client) {
+    if (!(this.isConnected && this.client)) {
       return false;
     }
 

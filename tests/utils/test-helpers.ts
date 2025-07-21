@@ -1,4 +1,4 @@
-import { type Page, expect } from '@playwright/test';
+import { expect, type Page } from "@playwright/test";
 
 /**
  * Test utility functions for improved reliability and performance
@@ -12,11 +12,11 @@ export async function waitForElementWithRetry(
   selector: string,
   options: {
     timeout?: number;
-    state?: 'visible' | 'hidden' | 'attached' | 'detached';
+    state?: "visible" | "hidden" | "attached" | "detached";
     retries?: number;
   } = {},
 ) {
-  const { timeout = 15000, state = 'visible', retries = 2 } = options;
+  const { timeout = 15_000, state = "visible", retries = 2 } = options;
 
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
@@ -40,11 +40,11 @@ export async function waitForElementWithRetry(
 /**
  * Enhanced page load waiting with multiple indicators
  */
-export async function waitForPageReady(page: Page, timeout = 30000) {
+export async function waitForPageReady(page: Page, timeout = 30_000) {
   try {
     await Promise.race([
       // Wait for network to be idle
-      page.waitForLoadState('networkidle', { timeout }),
+      page.waitForLoadState("networkidle", { timeout }),
 
       // Or wait for main app elements
       Promise.all([
@@ -58,14 +58,14 @@ export async function waitForPageReady(page: Page, timeout = 30000) {
 
       // Timeout fallback
       new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Page ready timeout')), timeout),
+        setTimeout(() => reject(new Error("Page ready timeout")), timeout),
       ),
     ]);
 
     // Additional small wait for React hydration
     await page.waitForTimeout(500);
   } catch (error) {
-    console.warn('Page ready check failed, continuing...', error);
+    console.warn("Page ready check failed, continuing...", error);
   }
 }
 
@@ -83,10 +83,10 @@ export async function sendMessageWithRetry(
     try {
       // Ensure input is ready
       await waitForElementWithRetry(page, '[data-testid="multimodal-input"]', {
-        timeout: 10000,
+        timeout: 10_000,
       });
 
-      const input = page.getByTestId('multimodal-input');
+      const input = page.getByTestId("multimodal-input");
       await input.click();
       await input.fill(message);
 
@@ -95,11 +95,11 @@ export async function sendMessageWithRetry(
         () =>
           !document
             .querySelector('[data-testid="send-button"]')
-            ?.hasAttribute('disabled'),
+            ?.hasAttribute("disabled"),
         { timeout: 5000 },
       );
 
-      const sendButton = page.getByTestId('send-button');
+      const sendButton = page.getByTestId("send-button");
       await sendButton.click();
 
       if (waitForResponse) {
@@ -107,14 +107,14 @@ export async function sendMessageWithRetry(
         await Promise.race([
           page
             .waitForResponse(
-              (response) => response.url().includes('/api/chat'),
-              { timeout: 45000 },
+              (response) => response.url().includes("/api/chat"),
+              { timeout: 45_000 },
             )
             .then((res) => res.finished()),
 
           // Or wait for new message to appear
-          page.waitForSelector('.message-content:last-child', {
-            timeout: 30000,
+          page.waitForSelector(".message-content:last-child", {
+            timeout: 30_000,
           }),
         ]);
       }
@@ -143,22 +143,22 @@ export async function waitForChatResponse(
     skipIfNoResponse?: boolean;
   } = {},
 ) {
-  const { timeout = 30000, expectText, skipIfNoResponse = true } = options;
+  const { timeout = 30_000, expectText, skipIfNoResponse = true } = options;
 
   try {
     // Wait for new message content
-    await page.waitForSelector('.message-content:last-child', { timeout });
+    await page.waitForSelector(".message-content:last-child", { timeout });
 
     if (expectText) {
-      const lastMessage = page.locator('.message-content').last();
-      await expect(lastMessage).toContainText(expectText, { timeout: 10000 });
+      const lastMessage = page.locator(".message-content").last();
+      await expect(lastMessage).toContainText(expectText, { timeout: 10_000 });
     }
 
     // Small delay for UI to fully update
     await page.waitForTimeout(300);
   } catch (error) {
     if (skipIfNoResponse) {
-      console.warn('Chat response timeout - continuing test...');
+      console.warn("Chat response timeout - continuing test...");
       return;
     }
     throw error;
@@ -173,13 +173,13 @@ export async function uploadFileWithRetry(
   filePath: string,
   options: { timeout?: number; retries?: number } = {},
 ) {
-  const { timeout = 15000, retries = 2 } = options;
+  const { timeout = 15_000, retries = 2 } = options;
 
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
       // Try different upload methods
       const fileInput = page.locator('input[type="file"]');
-      const attachButton = page.getByTestId('attachments-button');
+      const attachButton = page.getByTestId("attachments-button");
 
       // Click attachment button if visible
       if (await attachButton.isVisible({ timeout: 2000 })) {
@@ -216,30 +216,30 @@ export async function verifyAppState(page: Page) {
   try {
     // Check for error pages or broken states
     const errorIndicators = [
-      'Application error',
-      '500',
-      '404',
-      'Something went wrong',
-      'Internal Server Error',
+      "Application error",
+      "500",
+      "404",
+      "Something went wrong",
+      "Internal Server Error",
     ];
 
-    const pageText = await page.textContent('body');
+    const pageText = await page.textContent("body");
     const hasError = errorIndicators.some((indicator) =>
       pageText?.includes(indicator),
     );
 
     if (hasError) {
-      throw new Error('App is in error state');
+      throw new Error("App is in error state");
     }
 
     // Verify core elements are present
     await waitForElementWithRetry(page, '[data-testid="multimodal-input"]', {
-      timeout: 10000,
+      timeout: 10_000,
     });
 
     return true;
   } catch (error) {
-    console.error('App state verification failed:', error);
+    console.error("App state verification failed:", error);
     return false;
   }
 }
@@ -266,7 +266,7 @@ export function createPerformanceMonitor() {
     },
 
     log() {
-      console.log('Active timings:', Object.keys(timings));
+      console.log("Active timings:", Object.keys(timings));
     },
   };
 }

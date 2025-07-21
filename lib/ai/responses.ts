@@ -1,12 +1,12 @@
-import 'server-only';
+import "server-only";
 
-import OpenAI from 'openai';
-import { getOpenAIVectorStoreService } from '@/lib/vectorstore/openai';
-import { OPENAI_API_KEY } from '../env';
+import OpenAI from "openai";
+import { getOpenAIVectorStoreService } from "@/lib/vectorstore/openai";
+import { OPENAI_API_KEY } from "../env";
 
 export interface SourceAnnotation {
   id: string;
-  type: 'file_citation' | 'file_path';
+  type: "file_citation" | "file_path";
   text: string;
   start_index: number;
   end_index: number;
@@ -51,7 +51,7 @@ export class OpenAIResponsesService {
 
     if (!this.isEnabled) {
       console.warn(
-        'OpenAI Responses API service is disabled - no API key provided',
+        "OpenAI Responses API service is disabled - no API key provided",
       );
       this.client = null as any; // Initialize to avoid undefined
       return;
@@ -68,7 +68,7 @@ export class OpenAIResponsesService {
   ): Promise<ResponseWithSources> {
     if (!this.isEnabled) {
       throw new Error(
-        'OpenAI Responses API service is disabled - no API key provided',
+        "OpenAI Responses API service is disabled - no API key provided",
       );
     }
 
@@ -83,13 +83,13 @@ export class OpenAIResponsesService {
           targetVectorStoreIds = [vectorService.defaultVectorStoreId];
         } else {
           throw new Error(
-            'No vector store IDs provided and no default configured',
+            "No vector store IDs provided and no default configured",
           );
         }
       }
 
       console.log(
-        `🔍 Creating response with file search for vector stores: ${targetVectorStoreIds.join(', ')}`,
+        `🔍 Creating response with file search for vector stores: ${targetVectorStoreIds.join(", ")}`,
       );
 
       // Use OpenAI Responses API with file search
@@ -98,23 +98,23 @@ export class OpenAIResponsesService {
         input,
         tools: [
           {
-            type: 'file_search',
+            type: "file_search",
             vector_store_ids: targetVectorStoreIds,
             max_num_results: maxResults,
           },
         ],
-        include: ['file_search_call.results'],
+        include: ["file_search_call.results"],
       });
 
       const responseData = response as any;
-      console.log('📄 Response received:', {
+      console.log("📄 Response received:", {
         id: responseData.id,
         hasAnnotations: responseData.output?.[0]?.content?.length > 0,
         outputLength: responseData.output?.length || 0,
       });
 
       // Extract content and annotations
-      const content = responseData.output?.[0]?.content || '';
+      const content = responseData.output?.[0]?.content || "";
       const annotations = responseData.output?.[0]?.annotations || [];
 
       // Extract unique source files from annotations
@@ -137,7 +137,7 @@ export class OpenAIResponsesService {
         sources,
       };
     } catch (error) {
-      console.error('Error in OpenAI Responses API:', error);
+      console.error("Error in OpenAI Responses API:", error);
       throw error;
     }
   }
@@ -162,7 +162,7 @@ export class OpenAIResponsesService {
 
     sortedAnnotations.forEach((annotation) => {
       if (
-        annotation.type === 'file_citation' &&
+        annotation.type === "file_citation" &&
         annotation.file_citation?.file_id
       ) {
         const fileId = annotation.file_citation.file_id;
@@ -217,13 +217,13 @@ export class OpenAIResponsesService {
    * Format citations for display
    */
   static formatCitations(sources: SourceFile[]): string {
-    if (!sources.length) return '';
+    if (!sources.length) return "";
 
     const citations = sources.map((source, index) => {
       return `[${index + 1}] ${source.name}`;
     });
 
-    return `\n\n**Sources:**\n${citations.join('\n')}`;
+    return `\n\n**Sources:**\n${citations.join("\n")}`;
   }
 
   /**
@@ -233,7 +233,7 @@ export class OpenAIResponsesService {
     return annotations
       .filter(
         (annotation) =>
-          annotation.type === 'file_citation' &&
+          annotation.type === "file_citation" &&
           annotation.file_citation?.quote,
       )
       .map((annotation) => annotation.file_citation?.quote)

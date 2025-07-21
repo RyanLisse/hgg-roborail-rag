@@ -1,28 +1,28 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Skeleton } from '@/components/ui/skeleton';
-import { useRAG } from '@/hooks/use-rag';
-import { useModelSelection } from '@/hooks/use-model-selection';
-import { MessageFeedback } from '@/components/feedback-system';
+import { AlertCircle, FileText, Send, Settings, Upload, X } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { useState } from "react";
 import {
   DatabaseSelector,
   useDatabaseSelection,
-} from '@/components/database-selector';
-import { Upload, Send, X, FileText, AlertCircle, Settings } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { useSession } from 'next-auth/react';
+} from "@/components/database-selector";
+import { MessageFeedback } from "@/components/feedback-system";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
+import { useModelSelection } from "@/hooks/use-model-selection";
+import { useRAG } from "@/hooks/use-rag";
+import { cn } from "@/lib/utils";
 
 export function RAGChat() {
-  const [question, setQuestion] = useState('');
+  const [question, setQuestion] = useState("");
   const [chatHistory, setChatHistory] = useState<
     Array<{
-      role: 'user' | 'assistant';
+      role: "user" | "assistant";
       content: string;
       messageId?: string;
       runId?: string;
@@ -51,9 +51,9 @@ export function RAGChat() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!question.trim() || !selectedModel) return;
+    if (!(question.trim() && selectedModel)) return;
 
-    const userMessage = { role: 'user' as const, content: question };
+    const userMessage = { role: "user" as const, content: question };
     const newHistory = [...chatHistory, userMessage];
     setChatHistory(newHistory);
 
@@ -64,7 +64,7 @@ export function RAGChat() {
         modelId: selectedModel.id,
         options: {
           vectorStoreSources: selectedSources,
-          useFileSearch: selectedSources.includes('openai'),
+          useFileSearch: selectedSources.includes("openai"),
           useWebSearch: false, // Can be made configurable
         },
       });
@@ -76,7 +76,7 @@ export function RAGChat() {
         setChatHistory((prev) => [
           ...prev,
           {
-            role: 'assistant',
+            role: "assistant",
             content: result.answer,
             messageId,
             runId: result.runId, // From RAG service LangSmith tracking
@@ -84,10 +84,10 @@ export function RAGChat() {
         ]);
       }
     } catch (err) {
-      console.error('Query failed:', err);
+      console.error("Query failed:", err);
     }
 
-    setQuestion('');
+    setQuestion("");
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -107,15 +107,15 @@ export function RAGChat() {
   };
 
   const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes';
+    if (bytes === 0) return "0 Bytes";
     const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return `${Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
+    <div className="mx-auto max-w-4xl space-y-6 p-6">
       {/* Document Upload Section */}
       <Card>
         <CardHeader>
@@ -128,38 +128,38 @@ export function RAGChat() {
           <div className="space-y-4">
             {/* Vector Store Selector */}
             <div className="space-y-2">
-              <h4 className="text-sm font-medium flex items-center gap-2">
+              <h4 className="flex items-center gap-2 font-medium text-sm">
                 <Settings size={16} />
                 Data Sources
               </h4>
               <DatabaseSelector
-                selectedSources={selectedSources}
-                onSourcesChange={setSelectedSources}
                 availableSources={availableSources}
-                sourceStats={sourceStats}
                 disabled={isLoadingSources}
+                onSourcesChange={setSelectedSources}
+                selectedSources={selectedSources}
+                sourceStats={sourceStats}
               />
             </div>
 
             {/* File Upload */}
-            <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
-              <Upload className="mx-auto size-12 text-muted-foreground/50 mb-4" />
+            <div className="rounded-lg border-2 border-muted-foreground/25 border-dashed p-6 text-center">
+              <Upload className="mx-auto mb-4 size-12 text-muted-foreground/50" />
               <div className="space-y-2">
-                <h3 className="text-sm font-medium">Upload Documents</h3>
-                <p className="text-xs text-muted-foreground">
+                <h3 className="font-medium text-sm">Upload Documents</h3>
+                <p className="text-muted-foreground text-xs">
                   Support for PDF, TXT, MD, and DOCX files
                 </p>
-                <Button variant="outline" size="sm" asChild>
-                  <label htmlFor="file-upload" className="cursor-pointer">
+                <Button asChild size="sm" variant="outline">
+                  <label className="cursor-pointer" htmlFor="file-upload">
                     Browse Files
                     <input
-                      id="file-upload"
-                      type="file"
-                      multiple
                       accept=".pdf,.txt,.md,.docx"
-                      onChange={handleFileUpload}
-                      className="sr-only"
                       aria-label="Upload documents"
+                      className="sr-only"
+                      id="file-upload"
+                      multiple
+                      onChange={handleFileUpload}
+                      type="file"
                     />
                   </label>
                 </Button>
@@ -170,38 +170,38 @@ export function RAGChat() {
           {/* Documents List */}
           {documents.length > 0 && (
             <div className="space-y-2">
-              <h4 className="text-sm font-medium">Uploaded Documents</h4>
+              <h4 className="font-medium text-sm">Uploaded Documents</h4>
               <div className="space-y-2">
                 {documents.map((doc) => (
                   <div
+                    className="flex items-center justify-between rounded-lg border p-3"
                     key={doc.id}
-                    className="flex items-center justify-between p-3 border rounded-lg"
                   >
                     <div className="flex items-center gap-3">
-                      <FileText size={16} className="text-muted-foreground" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">
+                      <FileText className="text-muted-foreground" size={16} />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-medium text-sm">
                           {doc.name}
                         </p>
-                        <p className="text-xs text-muted-foreground">
-                          {formatFileSize(doc.size)} •{' '}
+                        <p className="text-muted-foreground text-xs">
+                          {formatFileSize(doc.size)} •{" "}
                           {doc.uploadedAt.toLocaleDateString()}
                         </p>
                       </div>
                       <Badge
-                        variant={
-                          doc.status === 'processed' ? 'default' : 'secondary'
-                        }
                         className="text-xs"
+                        variant={
+                          doc.status === "processed" ? "default" : "secondary"
+                        }
                       >
                         {doc.status}
                       </Badge>
                     </div>
                     <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeDocument(doc.id)}
                       aria-label="Remove document"
+                      onClick={() => removeDocument(doc.id)}
+                      size="sm"
+                      variant="ghost"
                     >
                       <X size={16} />
                     </Button>
@@ -221,28 +221,28 @@ export function RAGChat() {
         <CardContent className="space-y-4">
           {/* Chat History */}
           {chatHistory.length > 0 && (
-            <div className="space-y-4 max-h-96 overflow-y-auto">
+            <div className="max-h-96 space-y-4 overflow-y-auto">
               {chatHistory.map((message, index) => (
                 <div
-                  key={`message-${index}-${message.content.slice(0, 10)}`}
                   className={cn(
-                    'p-3 rounded-lg',
-                    message.role === 'user'
-                      ? 'bg-primary/10 ml-8'
-                      : 'bg-muted mr-8',
+                    "rounded-lg p-3",
+                    message.role === "user"
+                      ? "ml-8 bg-primary/10"
+                      : "mr-8 bg-muted",
                   )}
+                  key={`message-${index}-${message.content.slice(0, 10)}`}
                 >
-                  <div className="text-xs font-medium mb-1 capitalize">
+                  <div className="mb-1 font-medium text-xs capitalize">
                     {message.role}
                   </div>
                   <div className="text-sm">{message.content}</div>
 
                   {/* Add feedback component for assistant messages */}
-                  {message.role === 'assistant' &&
+                  {message.role === "assistant" &&
                     message.messageId &&
                     message.runId &&
                     session?.user?.id && (
-                      <div className="mt-3 pt-2 border-t border-border/50">
+                      <div className="mt-3 border-border/50 border-t pt-2">
                         <MessageFeedback
                           messageId={message.messageId}
                           runId={message.runId}
@@ -257,12 +257,12 @@ export function RAGChat() {
 
           {/* Current Response */}
           {isLoading && (
-            <div className="p-3 bg-muted rounded-lg mr-8">
-              <div className="text-xs font-medium mb-2">Assistant</div>
+            <div className="mr-8 rounded-lg bg-muted p-3">
+              <div className="mb-2 font-medium text-xs">Assistant</div>
               <div className="space-y-2">
                 <Skeleton className="h-4 w-full" />
                 <Skeleton className="h-4 w-3/4" />
-                <p className="text-xs text-muted-foreground">
+                <p className="text-muted-foreground text-xs">
                   Generating response...
                 </p>
               </div>
@@ -271,15 +271,15 @@ export function RAGChat() {
 
           {response && !isLoading && (
             <div className="space-y-4">
-              <div className="p-3 bg-muted rounded-lg mr-8">
-                <div className="text-xs font-medium mb-2">Assistant</div>
-                <div className="text-sm whitespace-pre-wrap">
+              <div className="mr-8 rounded-lg bg-muted p-3">
+                <div className="mb-2 font-medium text-xs">Assistant</div>
+                <div className="whitespace-pre-wrap text-sm">
                   {response.answer}
                 </div>
 
                 {/* Add feedback for current response if user is logged in */}
                 {response.runId && session?.user?.id && (
-                  <div className="mt-3 pt-2 border-t border-border/50">
+                  <div className="mt-3 border-border/50 border-t pt-2">
                     <MessageFeedback
                       messageId={crypto.randomUUID()} // Temporary ID for current response
                       runId={response.runId}
@@ -293,22 +293,22 @@ export function RAGChat() {
               {response.sources.length > 0 && (
                 <div className="space-y-2">
                   <Separator />
-                  <div className="text-xs font-medium text-muted-foreground">
+                  <div className="font-medium text-muted-foreground text-xs">
                     Sources
                   </div>
                   <div className="grid gap-2">
                     {response.sources.map((source, index) => (
                       <div
+                        className="rounded border p-2 text-xs"
                         key={`source-${source.documentId}-${index}`}
-                        className="p-2 border rounded text-xs"
                       >
-                        <div className="font-medium mb-1">
+                        <div className="mb-1 font-medium">
                           {source.metadata?.title || source.documentId}
-                          <Badge variant="outline" className="ml-2 text-xs">
+                          <Badge className="ml-2 text-xs" variant="outline">
                             {Math.round(source.score * 100)}% match
                           </Badge>
                         </div>
-                        <div className="text-muted-foreground line-clamp-2">
+                        <div className="line-clamp-2 text-muted-foreground">
                           {source.content}
                         </div>
                       </div>
@@ -320,56 +320,56 @@ export function RAGChat() {
           )}
 
           {error && (
-            <div className="p-3 border border-destructive/20 bg-destructive/5 rounded-lg">
+            <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-3">
               <div className="flex items-center gap-2 text-destructive">
                 <AlertCircle size={16} />
-                <span className="text-sm font-medium">Error</span>
+                <span className="font-medium text-sm">Error</span>
               </div>
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="mt-1 text-muted-foreground text-sm">
                 {error.message ||
-                  'An error occurred while processing your request.'}
+                  "An error occurred while processing your request."}
               </p>
             </div>
           )}
 
           {/* Question Input */}
-          <form onSubmit={handleSubmit} className="flex gap-2">
+          <form className="flex gap-2" onSubmit={handleSubmit}>
             <Textarea
-              value={question}
-              onChange={(e) => setQuestion(e.target.value)}
-              placeholder="Ask a question about RoboRail documentation..."
               className="min-h-[60px] resize-none"
+              onChange={(e) => setQuestion(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
+                if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
                   handleSubmit(e);
                 }
               }}
+              placeholder="Ask a question about RoboRail documentation..."
+              value={question}
             />
             <Button
-              type="submit"
-              disabled={!question.trim() || isLoading || !selectedModel}
-              className="self-end"
               aria-label="Send"
+              className="self-end"
+              disabled={!question.trim() || isLoading || !selectedModel}
+              type="submit"
             >
               <Send size={16} />
             </Button>
           </form>
 
           {!selectedModel && (
-            <p className="text-xs text-muted-foreground text-center">
+            <p className="text-center text-muted-foreground text-xs">
               Please select a model to start chatting
             </p>
           )}
 
           {/* Vector Store Info */}
-          {selectedSources.includes('openai') && (
-            <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-              <div className="flex items-center gap-2 text-sm font-medium text-green-800">
-                <div className="size-2 bg-green-600 rounded-full" />
+          {selectedSources.includes("openai") && (
+            <div className="rounded-lg border border-green-200 bg-green-50 p-3">
+              <div className="flex items-center gap-2 font-medium text-green-800 text-sm">
+                <div className="size-2 rounded-full bg-green-600" />
                 Connected to RoboRail Documentation
               </div>
-              <div className="text-xs text-green-700 mt-1">
+              <div className="mt-1 text-green-700 text-xs">
                 Using OpenAI vector store vs_6849955367a88191bf89d7660230325f
                 with RoboRail technical documentation
               </div>
@@ -379,25 +379,25 @@ export function RAGChat() {
           {/* RoboRail Example Questions */}
           {chatHistory.length === 0 && selectedModel && (
             <div className="space-y-3">
-              <div className="text-sm font-medium text-muted-foreground">
+              <div className="font-medium text-muted-foreground text-sm">
                 Try asking about RoboRail:
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
                 {[
-                  'How do I calibrate the RoboRail system?',
-                  'What are the safety procedures for RoboRail?',
-                  'What is the measurement accuracy of RoboRail?',
-                  'How do I troubleshoot RoboRail issues?',
-                  'What are the operating procedures for RoboRail?',
-                  'How do I maintain the RoboRail system?',
+                  "How do I calibrate the RoboRail system?",
+                  "What are the safety procedures for RoboRail?",
+                  "What is the measurement accuracy of RoboRail?",
+                  "How do I troubleshoot RoboRail issues?",
+                  "What are the operating procedures for RoboRail?",
+                  "How do I maintain the RoboRail system?",
                 ].map((exampleQuestion) => (
                   <Button
-                    key={exampleQuestion}
-                    variant="outline"
-                    size="sm"
-                    className="text-left text-xs h-auto py-2 px-3 justify-start"
-                    onClick={() => setQuestion(exampleQuestion)}
+                    className="h-auto justify-start px-3 py-2 text-left text-xs"
                     disabled={isLoading}
+                    key={exampleQuestion}
+                    onClick={() => setQuestion(exampleQuestion)}
+                    size="sm"
+                    variant="outline"
                   >
                     {exampleQuestion}
                   </Button>

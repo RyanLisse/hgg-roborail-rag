@@ -1,33 +1,33 @@
-'use client';
+"use client";
 
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { ChevronDown, ChevronRight } from 'lucide-react';
-import { useState } from 'react';
-import type { AgentRouting, AgentMetadata } from './data-stream-handler';
-import { cn } from '@/lib/utils';
+import { ChevronDown, ChevronRight } from "lucide-react";
+import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import type { AgentMetadata, AgentRouting } from "./data-stream-handler";
 
 const agentLabels = {
-  qa: 'Q&A Agent',
-  rewrite: 'Rewrite Agent',
-  planner: 'Planner Agent',
-  research: 'Research Agent',
+  qa: "Q&A Agent",
+  rewrite: "Rewrite Agent",
+  planner: "Planner Agent",
+  research: "Research Agent",
 };
 
 const agentColors = {
-  qa: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
-  rewrite: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+  qa: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
+  rewrite: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
   planner:
-    'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300',
+    "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
   research:
-    'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300',
+    "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300",
 };
 
 const complexityColors = {
-  simple: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300',
+  simple: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
   moderate:
-    'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
-  complex: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
+    "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
+  complex: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
 };
 
 export function AgentInfo({
@@ -46,24 +46,24 @@ export function AgentInfo({
   const confidencePercentage = Math.round(routing.confidence * 100);
 
   return (
-    <div className={cn('border rounded-lg p-3 bg-muted/30', className)}>
+    <div className={cn("rounded-lg border bg-muted/30 p-3", className)}>
       <Button
-        variant="ghost"
-        size="sm"
-        className="w-full justify-between p-0 h-auto"
+        className="h-auto w-full justify-between p-0"
         onClick={() => setIsOpen(!isOpen)}
+        size="sm"
+        variant="ghost"
       >
         <div className="flex items-center gap-2">
           <Badge className={agentColors[routing.selectedAgent]}>
             {agentLabels[routing.selectedAgent]}
           </Badge>
           <Badge
-            variant="outline"
             className={complexityColors[routing.estimatedComplexity]}
+            variant="outline"
           >
             {routing.estimatedComplexity}
           </Badge>
-          <span className="text-sm text-muted-foreground">
+          <span className="text-muted-foreground text-sm">
             {confidencePercentage}% confidence
           </span>
         </div>
@@ -77,7 +77,7 @@ export function AgentInfo({
       {isOpen && (
         <div className="mt-3 space-y-3">
           <div>
-            <h4 className="text-sm font-medium text-muted-foreground mb-1">
+            <h4 className="mb-1 font-medium text-muted-foreground text-sm">
               Routing Decision
             </h4>
             <p className="text-sm">{routing.reasoning}</p>
@@ -85,7 +85,7 @@ export function AgentInfo({
 
           {metadata && (
             <>
-              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <div className="flex items-center gap-4 text-muted-foreground text-sm">
                 <span>Model: {metadata.modelUsed}</span>
                 {metadata.responseTime && (
                   <span>{metadata.responseTime}ms</span>
@@ -100,27 +100,27 @@ export function AgentInfo({
 
               {metadata.sources && metadata.sources.length > 0 && (
                 <div>
-                  <h4 className="text-sm font-medium text-muted-foreground mb-2">
+                  <h4 className="mb-2 font-medium text-muted-foreground text-sm">
                     Sources ({metadata.sources.length})
                   </h4>
                   <div className="space-y-1">
                     {metadata.sources.slice(0, 3).map((source) => (
                       <div
+                        className="rounded bg-background p-2 text-sm"
                         key={source.id}
-                        className="text-sm bg-background rounded p-2"
                       >
-                        <div className="flex justify-between items-start">
-                          <span className="text-muted-foreground truncate flex-1">
+                        <div className="flex items-start justify-between">
+                          <span className="flex-1 truncate text-muted-foreground">
                             {source.content.slice(0, 100)}...
                           </span>
-                          <Badge variant="outline" className="ml-2 text-xs">
+                          <Badge className="ml-2 text-xs" variant="outline">
                             {Math.round(source.score * 100)}%
                           </Badge>
                         </div>
                       </div>
                     ))}
                     {metadata.sources.length > 3 && (
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-muted-foreground text-xs">
                         and {metadata.sources.length - 3} more sources
                       </p>
                     )}
@@ -130,15 +130,15 @@ export function AgentInfo({
 
               {metadata.citations && metadata.citations.length > 0 && (
                 <div>
-                  <h4 className="text-sm font-medium text-muted-foreground mb-1">
+                  <h4 className="mb-1 font-medium text-muted-foreground text-sm">
                     Citations
                   </h4>
                   <div className="flex flex-wrap gap-1">
                     {metadata.citations.map((citation) => (
                       <Badge
+                        className="text-xs"
                         key={citation}
                         variant="outline"
-                        className="text-xs"
                       >
                         {citation}
                       </Badge>

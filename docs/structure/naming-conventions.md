@@ -5,7 +5,9 @@
 ### File Naming Conventions
 
 #### 1. Component Files
+
 **Pattern**: `kebab-case.tsx`
+
 ```
 ✅ Consistent Examples:
 - chat-header.tsx
@@ -21,7 +23,9 @@
 ```
 
 #### 2. API Route Files
+
 **Pattern**: Next.js conventions (`route.ts`, `page.tsx`)
+
 ```
 ✅ Standard Next.js:
 - route.ts (API endpoints)
@@ -31,7 +35,9 @@
 ```
 
 #### 3. Library Files
+
 **Pattern**: Mixed conventions
+
 ```
 ✅ Good Examples:
 - base-agent.ts
@@ -47,7 +53,9 @@
 ```
 
 #### 4. Test Files
+
 **Pattern**: Mixed patterns
+
 ```
 ✅ Consistent:
 - agents.test.ts
@@ -63,7 +71,9 @@
 ### Directory Naming Conventions
 
 #### 1. Feature Directories
+
 **Pattern**: `kebab-case`
+
 ```
 ✅ Good Examples:
 - vector-store (clear purpose)
@@ -76,7 +86,9 @@
 ```
 
 #### 2. Route Groups
+
 **Pattern**: Next.js conventions with parentheses
+
 ```
 ✅ Standard:
 - (auth) - Authentication routes
@@ -84,7 +96,9 @@
 ```
 
 #### 3. Special Directories
+
 **Pattern**: Various conventions
+
 ```
 ✅ Clear Purpose:
 - __tests__ (Jest convention)
@@ -101,26 +115,29 @@
 ### 1. Inconsistent Component Naming
 
 #### Problem: Multiple Patterns
+
 ```typescript
 // Different component naming styles
-export function Chat() { }           // Generic
-export function ChatHeader() { }     // Feature-prefixed
-export function MultimodalInput() { } // Descriptive compound
-export function Message() { }        // Too generic
+export function Chat() {} // Generic
+export function ChatHeader() {} // Feature-prefixed
+export function MultimodalInput() {} // Descriptive compound
+export function Message() {} // Too generic
 ```
 
 #### Proposed Solution
+
 ```typescript
 // Consistent feature-based naming
-export function ChatInterface() { }
-export function ChatHeader() { }
-export function ChatInput() { }
-export function ChatMessage() { }
+export function ChatInterface() {}
+export function ChatHeader() {}
+export function ChatInput() {}
+export function ChatMessage() {}
 ```
 
 ### 2. Generic File Names
 
 #### Current Generic Names
+
 - `utils.ts` - What kind of utilities?
 - `types.ts` - What types?
 - `constants.ts` - What constants?
@@ -128,6 +145,7 @@ export function ChatMessage() { }
 - `schema.ts` - Database schema (should be specific)
 
 #### Improved Specific Names
+
 - `string-utils.ts`, `date-utils.ts`, `validation-utils.ts`
 - `api-types.ts`, `component-types.ts`, `database-types.ts`
 - `app-constants.ts`, `api-constants.ts`
@@ -136,6 +154,7 @@ export function ChatMessage() { }
 ### 3. Inconsistent Directory Structure
 
 #### Current Issues
+
 ```
 lib/
 ├── ai/                    # Generic
@@ -146,6 +165,7 @@ lib/
 ```
 
 #### Proposed Consistency
+
 ```
 lib/
 ├── ai-models/             # Specific purpose
@@ -160,6 +180,7 @@ lib/
 ### File Naming Rules
 
 #### 1. Component Files
+
 ```
 Format: {feature}-{component}.tsx
 Examples:
@@ -171,6 +192,7 @@ Examples:
 ```
 
 #### 2. Hook Files
+
 ```
 Format: use-{purpose}.ts
 Examples:
@@ -181,6 +203,7 @@ Examples:
 ```
 
 #### 3. Utility Files
+
 ```
 Format: {domain}-{type}.ts
 Examples:
@@ -191,6 +214,7 @@ Examples:
 ```
 
 #### 4. Type Definition Files
+
 ```
 Format: {domain}-types.ts
 Examples:
@@ -201,6 +225,7 @@ Examples:
 ```
 
 #### 5. Test Files
+
 ```
 Format: {filename}.test.ts
 Examples:
@@ -212,6 +237,7 @@ Examples:
 ### Directory Naming Rules
 
 #### 1. Feature Directories
+
 ```
 Format: {feature-name} (kebab-case)
 Examples:
@@ -222,6 +248,7 @@ Examples:
 ```
 
 #### 2. Utility Directories
+
 ```
 Format: {purpose} (clear, descriptive)
 Examples:
@@ -234,6 +261,7 @@ Examples:
 ## Component Naming Patterns
 
 ### 1. Chat Components
+
 ```
 Current:                    Proposed:
 chat.tsx                 -> chat-interface.tsx
@@ -245,6 +273,7 @@ multimodal-input.tsx     -> chat-input.tsx
 ```
 
 ### 2. Artifact Components
+
 ```
 Current:                    Proposed:
 artifact.tsx             -> artifact-container.tsx
@@ -255,6 +284,7 @@ text-editor.tsx          -> artifact-text-editor.tsx
 ```
 
 ### 3. Navigation Components
+
 ```
 Current:                    Proposed:
 app-sidebar.tsx          -> app-sidebar.tsx ✓
@@ -266,6 +296,7 @@ sidebar-user-nav.tsx     -> sidebar-user-menu.tsx
 ## Library Naming Patterns
 
 ### 1. Agent System
+
 ```
 Current:                    Proposed:
 agents/index.ts          -> agents/index.ts ✓
@@ -276,6 +307,7 @@ orchestrator.ts          -> agent-orchestrator.ts
 ```
 
 ### 2. Vector Store
+
 ```
 Current:                    Proposed:
 index.ts                 -> index.ts ✓
@@ -286,6 +318,7 @@ memory-class.ts          -> memory-store.ts
 ```
 
 ### 3. Database
+
 ```
 Current:                    Proposed:
 schema.ts                -> db-schema.ts
@@ -297,12 +330,14 @@ utils.ts                 -> db-utils.ts
 ## Implementation Guidelines
 
 ### 1. Gradual Migration Strategy
+
 1. **Phase 1**: New files follow new conventions
 2. **Phase 2**: Rename files during regular maintenance
 3. **Phase 3**: Update all imports and references
 4. **Phase 4**: Update documentation and examples
 
 ### 2. Naming Checklist
+
 - [ ] Does the name clearly indicate purpose?
 - [ ] Is it consistent with similar files?
 - [ ] Avoids abbreviations and acronyms?
@@ -312,13 +347,17 @@ utils.ts                 -> db-utils.ts
 ### 3. Special Cases
 
 #### UI Components (shadcn/ui)
+
 Keep existing names for compatibility:
+
 - `button.tsx` ✓
 - `card.tsx` ✓
 - `input.tsx` ✓
 
 #### Next.js Conventions
+
 Maintain framework requirements:
+
 - `page.tsx` ✓
 - `layout.tsx` ✓
 - `route.ts` ✓
@@ -326,7 +365,9 @@ Maintain framework requirements:
 - `error.tsx` ✓
 
 #### Third-party Integrations
+
 Follow library conventions:
+
 - `middleware.ts` ✓ (Next.js)
 - `instrumentation.ts` ✓ (Next.js)
 - `next.config.ts` ✓ (Next.js)
@@ -334,16 +375,19 @@ Follow library conventions:
 ## Benefits of Consistent Naming
 
 ### 1. Developer Experience
+
 - **Predictable file locations** - developers can guess file names
 - **Faster navigation** - consistent patterns enable quick finding
 - **Better tooling support** - IDEs can provide better auto-completion
 
 ### 2. Code Organization
+
 - **Logical grouping** - related files have similar names
 - **Clear hierarchy** - naming reflects code structure
 - **Easier refactoring** - batch operations on similar files
 
 ### 3. Team Collaboration
+
 - **Reduced confusion** - everyone follows same patterns
 - **Faster onboarding** - new developers understand naming logic
 - **Better code reviews** - reviewers can focus on logic, not naming
@@ -351,6 +395,7 @@ Follow library conventions:
 ## Automation Opportunities
 
 ### 1. Linting Rules
+
 ```javascript
 // ESLint rule for file naming
 "unicorn/filename-case": ["error", {
@@ -361,11 +406,13 @@ Follow library conventions:
 ```
 
 ### 2. Pre-commit Hooks
+
 - Validate file naming conventions
 - Check for generic names
 - Enforce directory structure
 
 ### 3. IDE Configuration
+
 - File templates with correct naming
 - Code snippets with proper patterns
 - Auto-rename suggestions

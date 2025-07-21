@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import useSWR from 'swr';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { fetcher } from '@/lib/utils';
+import { useState } from "react";
+import useSWR from "swr";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { fetcher } from "@/lib/utils";
 
 interface HealthStatus {
   provider: string;
@@ -51,9 +51,9 @@ interface DashboardData {
 }
 
 export function VectorStoreMonitoring() {
-  const [selectedTimeWindow, setSelectedTimeWindow] = useState('24h');
-  const [selectedProvider, setSelectedProvider] = useState<string | 'all'>(
-    'all',
+  const [selectedTimeWindow, setSelectedTimeWindow] = useState("24h");
+  const [selectedProvider, setSelectedProvider] = useState<string | "all">(
+    "all",
   );
 
   // Fetch dashboard data
@@ -64,16 +64,16 @@ export function VectorStoreMonitoring() {
   } = useSWR<{
     success: boolean;
     data: DashboardData;
-  }>('/api/vectorstore/monitoring?action=dashboard', fetcher, {
-    refreshInterval: 30000, // Refresh every 30 seconds
+  }>("/api/vectorstore/monitoring?action=dashboard", fetcher, {
+    refreshInterval: 30_000, // Refresh every 30 seconds
   });
 
   // Fetch health data
   const { data: healthData, error: healthError } = useSWR<{
     success: boolean;
     data: Record<string, HealthStatus>;
-  }>('/api/vectorstore/monitoring?action=health&provider=all', fetcher, {
-    refreshInterval: 60000, // Refresh every minute
+  }>("/api/vectorstore/monitoring?action=health&provider=all", fetcher, {
+    refreshInterval: 60_000, // Refresh every minute
   });
 
   const formatLatency = (latency: number) => {
@@ -86,22 +86,22 @@ export function VectorStoreMonitoring() {
   };
 
   const getHealthBadgeVariant = (isHealthy: boolean) => {
-    return isHealthy ? 'default' : 'destructive';
+    return isHealthy ? "default" : "destructive";
   };
 
   const getPerformanceBadgeVariant = (successRate: number) => {
-    if (successRate >= 0.95) return 'default';
-    if (successRate >= 0.9) return 'secondary';
-    return 'destructive';
+    if (successRate >= 0.95) return "default";
+    if (successRate >= 0.9) return "secondary";
+    return "destructive";
   };
 
   const testSearch = async (provider: string) => {
     try {
-      const response = await fetch('/api/vectorstore/monitoring', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/vectorstore/monitoring", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          action: 'test_search',
+          action: "test_search",
           provider,
           latency: Math.random() * 2000 + 500,
           success: Math.random() > 0.1, // 90% success rate
@@ -112,7 +112,7 @@ export function VectorStoreMonitoring() {
         mutateDashboard();
       }
     } catch (error) {
-      console.error('Failed to test search:', error);
+      console.error("Failed to test search:", error);
     }
   };
 
@@ -120,13 +120,13 @@ export function VectorStoreMonitoring() {
     return (
       <div className="p-6">
         <Card className="p-6">
-          <h2 className="text-xl font-semibold text-red-600 mb-4">
+          <h2 className="mb-4 font-semibold text-red-600 text-xl">
             Monitoring Dashboard Error
           </h2>
-          <p className="text-sm text-gray-600">
+          <p className="text-gray-600 text-sm">
             Failed to load monitoring data. Please check the API endpoints.
           </p>
-          <pre className="mt-4 p-4 bg-gray-100 rounded text-sm overflow-auto">
+          <pre className="mt-4 overflow-auto rounded bg-gray-100 p-4 text-sm">
             {JSON.stringify({ dashboardError, healthError }, null, 2)}
           </pre>
         </Card>
@@ -134,15 +134,15 @@ export function VectorStoreMonitoring() {
     );
   }
 
-  if (!dashboardData || !healthData) {
+  if (!(dashboardData && healthData)) {
     return (
       <div className="p-6">
         <Card className="p-6">
           <div className="animate-pulse">
-            <div className="h-4 bg-gray-200 rounded w-1/4 mb-4" />
+            <div className="mb-4 h-4 w-1/4 rounded bg-gray-200" />
             <div className="space-y-2">
-              <div className="h-3 bg-gray-200 rounded" />
-              <div className="h-3 bg-gray-200 rounded w-3/4" />
+              <div className="h-3 rounded bg-gray-200" />
+              <div className="h-3 w-3/4 rounded bg-gray-200" />
             </div>
           </div>
         </Card>
@@ -154,14 +154,14 @@ export function VectorStoreMonitoring() {
   const healthStatuses = healthData.data;
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6 p-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Vector Store Monitoring</h1>
+        <h1 className="font-bold text-3xl">Vector Store Monitoring</h1>
         <div className="flex items-center gap-2">
           <select
-            value={selectedTimeWindow}
+            className="rounded border px-3 py-1 text-sm"
             onChange={(e) => setSelectedTimeWindow(e.target.value)}
-            className="px-3 py-1 border rounded text-sm"
+            value={selectedTimeWindow}
           >
             <option value="1h">Last Hour</option>
             <option value="24h">Last 24 Hours</option>
@@ -175,34 +175,34 @@ export function VectorStoreMonitoring() {
 
       {/* Health Status Overview */}
       <Card className="p-6">
-        <h2 className="text-xl font-semibold mb-4">Health Status</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <h2 className="mb-4 font-semibold text-xl">Health Status</h2>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {Object.entries(healthStatuses).map(([provider, status]) => (
-            <div key={provider} className="border rounded p-4">
-              <div className="flex items-center justify-between mb-2">
+            <div className="rounded border p-4" key={provider}>
+              <div className="mb-2 flex items-center justify-between">
                 <h3 className="font-medium capitalize">{provider}</h3>
                 <Badge variant={getHealthBadgeVariant(status.isHealthy)}>
-                  {status.isHealthy ? 'Healthy' : 'Unhealthy'}
+                  {status.isHealthy ? "Healthy" : "Unhealthy"}
                 </Badge>
               </div>
               {status.latency && (
-                <p className="text-sm text-gray-600">
+                <p className="text-gray-600 text-sm">
                   Latency: {formatLatency(status.latency)}
                 </p>
               )}
               {status.vectorStoreStatus && (
-                <p className="text-sm text-gray-600">
+                <p className="text-gray-600 text-sm">
                   {status.vectorStoreStatus}
                 </p>
               )}
               {status.errorMessage && (
-                <p className="text-sm text-red-600 mt-1">
+                <p className="mt-1 text-red-600 text-sm">
                   {status.errorMessage}
                 </p>
               )}
-              <div className="flex items-center justify-between mt-3">
-                <p className="text-xs text-gray-500">
-                  Last checked:{' '}
+              <div className="mt-3 flex items-center justify-between">
+                <p className="text-gray-500 text-xs">
+                  Last checked:{" "}
                   {new Date(status.lastChecked).toLocaleTimeString()}
                 </p>
                 <Button
@@ -220,13 +220,13 @@ export function VectorStoreMonitoring() {
 
       {/* Performance Metrics */}
       <Card className="p-6">
-        <h2 className="text-xl font-semibold mb-4">
+        <h2 className="mb-4 font-semibold text-xl">
           Performance Metrics ({selectedTimeWindow})
         </h2>
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
           {Object.entries(overview).map(([provider, metrics]) => (
-            <div key={provider} className="border rounded p-4">
-              <div className="flex items-center justify-between mb-3">
+            <div className="rounded border p-4" key={provider}>
+              <div className="mb-3 flex items-center justify-between">
                 <h3 className="font-medium capitalize">{provider}</h3>
                 <Badge
                   variant={getPerformanceBadgeVariant(metrics.successRate)}
@@ -257,7 +257,7 @@ export function VectorStoreMonitoring() {
                 <div className="flex justify-between">
                   <span className="text-gray-600">Error Rate:</span>
                   <span
-                    className={`font-medium ${metrics.errorRate > 0.05 ? 'text-red-600' : ''}`}
+                    className={`font-medium ${metrics.errorRate > 0.05 ? "text-red-600" : ""}`}
                   >
                     {formatSuccessRate(metrics.errorRate)}
                   </span>
@@ -273,7 +273,7 @@ export function VectorStoreMonitoring() {
               </div>
 
               <Separator className="my-3" />
-              <p className="text-xs text-gray-500">
+              <p className="text-gray-500 text-xs">
                 Updated: {new Date(metrics.lastUpdated).toLocaleString()}
               </p>
             </div>
@@ -284,39 +284,39 @@ export function VectorStoreMonitoring() {
       {/* Recent Errors */}
       {recentErrors.length > 0 && (
         <Card className="p-6">
-          <h2 className="text-xl font-semibold mb-4">
+          <h2 className="mb-4 font-semibold text-xl">
             Recent Errors (Last Hour)
           </h2>
           <div className="space-y-3">
             {recentErrors.slice(0, 5).map((error) => (
               <div
+                className="border-red-500 border-l-4 py-2 pl-4"
                 key={error.id}
-                className="border-l-4 border-red-500 pl-4 py-2"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Badge variant="destructive" className="text-xs">
+                    <Badge className="text-xs" variant="destructive">
                       {error.provider}
                     </Badge>
-                    <span className="text-sm font-medium">
+                    <span className="font-medium text-sm">
                       {error.metricType}
                     </span>
                   </div>
-                  <span className="text-xs text-gray-500">
+                  <span className="text-gray-500 text-xs">
                     {new Date(error.timestamp).toLocaleString()}
                   </span>
                 </div>
                 {error.errorMessage && (
-                  <p className="text-sm text-red-600 mt-1">
+                  <p className="mt-1 text-red-600 text-sm">
                     {error.errorMessage}
                   </p>
                 )}
                 {error.metadata && (
                   <details className="mt-2">
-                    <summary className="text-xs text-gray-500 cursor-pointer">
+                    <summary className="cursor-pointer text-gray-500 text-xs">
                       View Details
                     </summary>
-                    <pre className="text-xs bg-gray-50 p-2 rounded mt-1 overflow-auto">
+                    <pre className="mt-1 overflow-auto rounded bg-gray-50 p-2 text-xs">
                       {JSON.stringify(error.metadata, null, 2)}
                     </pre>
                   </details>
@@ -329,10 +329,10 @@ export function VectorStoreMonitoring() {
 
       {/* System Information */}
       <Card className="p-6">
-        <h2 className="text-xl font-semibold mb-4">System Information</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+        <h2 className="mb-4 font-semibold text-xl">System Information</h2>
+        <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-2">
           <div>
-            <h3 className="font-medium mb-2">Monitoring Status</h3>
+            <h3 className="mb-2 font-medium">Monitoring Status</h3>
             <ul className="space-y-1 text-gray-600">
               <li>• Real-time health checks enabled</li>
               <li>• Performance metrics collected</li>
@@ -341,7 +341,7 @@ export function VectorStoreMonitoring() {
             </ul>
           </div>
           <div>
-            <h3 className="font-medium mb-2">Data Retention</h3>
+            <h3 className="mb-2 font-medium">Data Retention</h3>
             <ul className="space-y-1 text-gray-600">
               <li>• Metrics: 30 days</li>
               <li>• Health checks: 7 days</li>
@@ -351,8 +351,8 @@ export function VectorStoreMonitoring() {
           </div>
         </div>
         <Separator className="my-4" />
-        <p className="text-xs text-gray-500">
-          Last updated:{' '}
+        <p className="text-gray-500 text-xs">
+          Last updated:{" "}
           {new Date(dashboardData.data.timestamp).toLocaleString()}
         </p>
       </Card>

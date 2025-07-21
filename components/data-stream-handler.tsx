@@ -1,21 +1,21 @@
-'use client';
+"use client";
 
-import { useChat } from '@ai-sdk/react';
-import { useEffect, useRef } from 'react';
-import { artifactDefinitions, type ArtifactKind } from './artifact';
-import type { Suggestion } from '@/lib/db/schema';
-import { initialArtifactData, useArtifact } from '@/hooks/use-artifact';
-import { useAgentInfo } from '@/hooks/use-agent-info';
+import { useChat } from "@ai-sdk/react";
+import { useEffect, useRef } from "react";
+import { useAgentInfo } from "@/hooks/use-agent-info";
+import { initialArtifactData, useArtifact } from "@/hooks/use-artifact";
+import type { Suggestion } from "@/lib/db/schema";
+import { type ArtifactKind, artifactDefinitions } from "./artifact";
 
 export type AgentRouting = {
-  selectedAgent: 'qa' | 'rewrite' | 'planner' | 'research';
+  selectedAgent: "qa" | "rewrite" | "planner" | "research";
   confidence: number;
   reasoning: string;
-  estimatedComplexity: 'simple' | 'moderate' | 'complex';
+  estimatedComplexity: "simple" | "moderate" | "complex";
 };
 
 export type AgentMetadata = {
-  agent: 'qa' | 'rewrite' | 'planner' | 'research';
+  agent: "qa" | "rewrite" | "planner" | "research";
   modelUsed: string;
   sources?: Array<{
     id: string;
@@ -30,18 +30,18 @@ export type AgentMetadata = {
 
 export type DataStreamDelta = {
   type:
-    | 'text-delta'
-    | 'code-delta'
-    | 'sheet-delta'
-    | 'image-delta'
-    | 'title'
-    | 'id'
-    | 'suggestion'
-    | 'clear'
-    | 'finish'
-    | 'kind'
-    | 'agent-routing'
-    | 'agent-metadata';
+    | "text-delta"
+    | "code-delta"
+    | "sheet-delta"
+    | "image-delta"
+    | "title"
+    | "id"
+    | "suggestion"
+    | "clear"
+    | "finish"
+    | "kind"
+    | "agent-routing"
+    | "agent-metadata";
   content?: string | Suggestion;
   routing?: AgentRouting;
   metadata?: AgentMetadata;
@@ -74,51 +74,51 @@ export function DataStreamHandler({ id }: { id: string }) {
 
       setArtifact((draftArtifact) => {
         if (!draftArtifact) {
-          return { ...initialArtifactData, status: 'streaming' };
+          return { ...initialArtifactData, status: "streaming" };
         }
 
         switch (delta.type) {
-          case 'id':
+          case "id":
             return {
               ...draftArtifact,
               documentId: delta.content as string,
-              status: 'streaming',
+              status: "streaming",
             };
 
-          case 'title':
+          case "title":
             return {
               ...draftArtifact,
               title: delta.content as string,
-              status: 'streaming',
+              status: "streaming",
             };
 
-          case 'kind':
+          case "kind":
             return {
               ...draftArtifact,
               kind: delta.content as ArtifactKind,
-              status: 'streaming',
+              status: "streaming",
             };
 
-          case 'clear':
+          case "clear":
             return {
               ...draftArtifact,
-              content: '',
-              status: 'streaming',
+              content: "",
+              status: "streaming",
             };
 
-          case 'finish':
+          case "finish":
             return {
               ...draftArtifact,
-              status: 'idle',
+              status: "idle",
             };
 
-          case 'agent-routing':
+          case "agent-routing":
             if (delta.routing) {
               setRouting(delta.routing);
             }
             return draftArtifact;
 
-          case 'agent-metadata':
+          case "agent-metadata":
             if (delta.metadata) {
               setAgentMetadata(delta.metadata);
             }

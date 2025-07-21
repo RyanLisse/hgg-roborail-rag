@@ -1,42 +1,42 @@
-import 'server-only';
+import "server-only";
 
-import { z } from 'zod';
+import { z } from "zod";
 
 // Monitoring Schemas
 export const MetricType = z.enum([
-  'search_latency',
-  'search_success',
-  'search_error',
-  'token_usage',
-  'file_upload',
-  'file_upload_error',
-  'vector_store_health',
-  'embedding_generation',
-  'retrieval_accuracy',
-  'cache_hit',
-  'cache_miss',
-  'connection_error',
-  'rate_limit_error',
-  'quota_exceeded',
-  'service_health',
+  "search_latency",
+  "search_success",
+  "search_error",
+  "token_usage",
+  "file_upload",
+  "file_upload_error",
+  "vector_store_health",
+  "embedding_generation",
+  "retrieval_accuracy",
+  "cache_hit",
+  "cache_miss",
+  "connection_error",
+  "rate_limit_error",
+  "quota_exceeded",
+  "service_health",
 ]);
 
 export const VectorStoreProvider = z.enum([
-  'openai',
-  'neon',
-  'unified',
-  'memory',
+  "openai",
+  "neon",
+  "unified",
+  "memory",
 ]);
 
 export const ErrorCategory = z.enum([
-  'network_error',
-  'authentication_error',
-  'rate_limit_error',
-  'quota_exceeded',
-  'validation_error',
-  'service_unavailable',
-  'timeout_error',
-  'unknown_error',
+  "network_error",
+  "authentication_error",
+  "rate_limit_error",
+  "quota_exceeded",
+  "validation_error",
+  "service_unavailable",
+  "timeout_error",
+  "unknown_error",
 ]);
 
 export const MetricEvent = z.object({
@@ -83,7 +83,7 @@ export const AlertRule = z.object({
   provider: VectorStoreProvider.optional(),
   metricType: MetricType,
   threshold: z.number(),
-  operator: z.enum(['gt', 'lt', 'gte', 'lte', 'eq']),
+  operator: z.enum(["gt", "lt", "gte", "lte", "eq"]),
   timeWindow: z.string(),
   isActive: z.boolean(),
   lastTriggered: z.date().optional(),
@@ -92,10 +92,10 @@ export const AlertRule = z.object({
 export const MonitoringConfig = z.object({
   enabled: z.boolean().default(true),
   metricsRetentionDays: z.number().default(30),
-  healthCheckIntervalMs: z.number().default(60000), // 1 minute
+  healthCheckIntervalMs: z.number().default(60_000), // 1 minute
   alertingEnabled: z.boolean().default(true),
   enableDetailedLogging: z.boolean().default(false),
-  maxMetricsPerProvider: z.number().default(10000),
+  maxMetricsPerProvider: z.number().default(10_000),
   performanceThresholds: z
     .object({
       maxLatencyMs: z.number().default(5000),
@@ -134,30 +134,30 @@ class MetricsStore {
   private initializeDefaultAlerts() {
     const defaultAlerts: AlertRule[] = [
       {
-        id: 'high_latency',
-        name: 'High Search Latency',
-        metricType: 'search_latency',
+        id: "high_latency",
+        name: "High Search Latency",
+        metricType: "search_latency",
         threshold: this.config.performanceThresholds.maxLatencyMs,
-        operator: 'gt',
-        timeWindow: '5m',
+        operator: "gt",
+        timeWindow: "5m",
         isActive: true,
       },
       {
-        id: 'low_success_rate',
-        name: 'Low Success Rate',
-        metricType: 'search_success',
+        id: "low_success_rate",
+        name: "Low Success Rate",
+        metricType: "search_success",
         threshold: this.config.performanceThresholds.minSuccessRate,
-        operator: 'lt',
-        timeWindow: '10m',
+        operator: "lt",
+        timeWindow: "10m",
         isActive: true,
       },
       {
-        id: 'high_error_rate',
-        name: 'High Error Rate',
-        metricType: 'search_error',
+        id: "high_error_rate",
+        name: "High Error Rate",
+        metricType: "search_error",
         threshold: this.config.performanceThresholds.maxErrorRate,
-        operator: 'gt',
-        timeWindow: '10m',
+        operator: "gt",
+        timeWindow: "10m",
         isActive: true,
       },
     ];
@@ -167,7 +167,7 @@ class MetricsStore {
     });
   }
 
-  addMetric(metric: Omit<MetricEvent, 'id' | 'timestamp'>): MetricEvent {
+  addMetric(metric: Omit<MetricEvent, "id" | "timestamp">): MetricEvent {
     const event = MetricEvent.parse({
       ...metric,
       id: crypto.randomUUID(),
@@ -195,13 +195,13 @@ class MetricsStore {
     timeWindow?: string,
   ): MetricEvent[] {
     const now = new Date();
-    const windowMs = this.parseTimeWindow(timeWindow || '24h');
+    const windowMs = this.parseTimeWindow(timeWindow || "24h");
     const cutoff = new Date(now.getTime() - windowMs);
 
     const allMetrics: MetricEvent[] = [];
 
     for (const [key, metrics] of this.metrics.entries()) {
-      const [keyProvider, keyMetricType] = key.split('_');
+      const [keyProvider, keyMetricType] = key.split("_");
 
       if (provider && keyProvider !== provider) continue;
       if (metricType && keyMetricType !== metricType) continue;
@@ -229,16 +229,16 @@ class MetricsStore {
 
   getPerformanceMetrics(
     provider: VectorStoreProvider,
-    timeWindow = '24h',
+    timeWindow = "24h",
   ): PerformanceMetrics {
     const metrics = this.getMetrics(provider, undefined, timeWindow);
     const searchMetrics = metrics.filter(
-      (m) => m.metricType === 'search_latency',
+      (m) => m.metricType === "search_latency",
     );
     const successMetrics = metrics.filter(
-      (m) => m.metricType === 'search_success',
+      (m) => m.metricType === "search_success",
     );
-    const errorMetrics = metrics.filter((m) => m.metricType === 'search_error');
+    const errorMetrics = metrics.filter((m) => m.metricType === "search_error");
 
     const totalRequests = searchMetrics.length;
     const successCount = successMetrics.filter(
@@ -256,7 +256,7 @@ class MetricsStore {
     const p99Index = Math.floor(latencies.length * 0.99);
 
     const tokensUsed = metrics
-      .filter((m) => m.metricType === 'token_usage')
+      .filter((m) => m.metricType === "token_usage")
       .reduce((sum, m) => sum + m.value, 0);
 
     return PerformanceMetrics.parse({
@@ -293,15 +293,15 @@ class MetricsStore {
     const value = metric.value;
 
     switch (operator) {
-      case 'gt':
+      case "gt":
         return value > threshold;
-      case 'lt':
+      case "lt":
         return value < threshold;
-      case 'gte':
+      case "gte":
         return value >= threshold;
-      case 'lte':
+      case "lte":
         return value <= threshold;
-      case 'eq':
+      case "eq":
         return value === threshold;
       default:
         return false;
@@ -332,13 +332,13 @@ class MetricsStore {
     const num = Number.parseInt(value, 10);
 
     switch (unit) {
-      case 's':
+      case "s":
         return num * 1000;
-      case 'm':
+      case "m":
         return num * 60 * 1000;
-      case 'h':
+      case "h":
         return num * 60 * 60 * 1000;
-      case 'd':
+      case "d":
         return num * 24 * 60 * 60 * 1000;
       default:
         return 24 * 60 * 60 * 1000;
@@ -385,9 +385,9 @@ export function withPerformanceMonitoring<T extends any[], R>(
       const monitoringService = getVectorStoreMonitoringService();
       monitoringService.recordMetric({
         provider,
-        metricType: success ? 'search_success' : 'search_error',
+        metricType: success ? "search_success" : "search_error",
         value: success ? 1 : 0,
-        unit: 'count',
+        unit: "count",
         duration,
         success,
         errorCategory,
@@ -398,12 +398,12 @@ export function withPerformanceMonitoring<T extends any[], R>(
         },
       });
 
-      if (operation.includes('search') || operation.includes('query')) {
+      if (operation.includes("search") || operation.includes("query")) {
         monitoringService.recordMetric({
           provider,
-          metricType: 'search_latency',
+          metricType: "search_latency",
           value: duration,
-          unit: 'ms',
+          unit: "ms",
           metadata: { operation },
         });
       }
@@ -413,46 +413,46 @@ export function withPerformanceMonitoring<T extends any[], R>(
 
 // Error categorization
 function categorizeError(error: any): ErrorCategory {
-  if (!error) return 'unknown_error';
+  if (!error) return "unknown_error";
 
-  const message = error.message?.toLowerCase() || '';
-  const code = error.code?.toLowerCase() || '';
+  const message = error.message?.toLowerCase() || "";
+  const code = error.code?.toLowerCase() || "";
 
-  if (message.includes('timeout') || code.includes('timeout')) {
-    return 'timeout_error';
+  if (message.includes("timeout") || code.includes("timeout")) {
+    return "timeout_error";
   }
-  if (message.includes('rate limit') || code.includes('rate_limit')) {
-    return 'rate_limit_error';
+  if (message.includes("rate limit") || code.includes("rate_limit")) {
+    return "rate_limit_error";
   }
-  if (message.includes('quota') || message.includes('exceeded')) {
-    return 'quota_exceeded';
+  if (message.includes("quota") || message.includes("exceeded")) {
+    return "quota_exceeded";
   }
   if (
-    message.includes('auth') ||
-    message.includes('unauthorized') ||
-    code === 'invalid_api_key'
+    message.includes("auth") ||
+    message.includes("unauthorized") ||
+    code === "invalid_api_key"
   ) {
-    return 'authentication_error';
+    return "authentication_error";
   }
   if (
-    message.includes('network') ||
-    message.includes('connection') ||
-    code.includes('econnrefused')
+    message.includes("network") ||
+    message.includes("connection") ||
+    code.includes("econnrefused")
   ) {
-    return 'network_error';
+    return "network_error";
   }
-  if (message.includes('validation') || message.includes('invalid')) {
-    return 'validation_error';
+  if (message.includes("validation") || message.includes("invalid")) {
+    return "validation_error";
   }
   if (
-    message.includes('unavailable') ||
-    message.includes('503') ||
-    message.includes('502')
+    message.includes("unavailable") ||
+    message.includes("503") ||
+    message.includes("502")
   ) {
-    return 'service_unavailable';
+    return "service_unavailable";
   }
 
-  return 'unknown_error';
+  return "unknown_error";
 }
 
 // Monitoring service interface
@@ -460,7 +460,7 @@ export interface VectorStoreMonitoringService {
   config: MonitoringConfig;
 
   // Metric recording
-  recordMetric: (metric: Omit<MetricEvent, 'id' | 'timestamp'>) => MetricEvent;
+  recordMetric: (metric: Omit<MetricEvent, "id" | "timestamp">) => MetricEvent;
   recordSearchLatency: (
     provider: VectorStoreProvider,
     latency: number,
@@ -520,7 +520,7 @@ export function createVectorStoreMonitoringService(
   return {
     config: store.config,
 
-    recordMetric(metric: Omit<MetricEvent, 'id' | 'timestamp'>): MetricEvent {
+    recordMetric(metric: Omit<MetricEvent, "id" | "timestamp">): MetricEvent {
       return store.addMetric(metric);
     },
 
@@ -531,9 +531,9 @@ export function createVectorStoreMonitoringService(
     ): void {
       this.recordMetric({
         provider,
-        metricType: 'search_latency',
+        metricType: "search_latency",
         value: latency,
-        unit: 'ms',
+        unit: "ms",
         metadata,
       });
     },
@@ -544,9 +544,9 @@ export function createVectorStoreMonitoringService(
     ): void {
       this.recordMetric({
         provider,
-        metricType: 'search_success',
+        metricType: "search_success",
         value: 1,
-        unit: 'count',
+        unit: "count",
         success: true,
         metadata,
       });
@@ -559,9 +559,9 @@ export function createVectorStoreMonitoringService(
     ): void {
       this.recordMetric({
         provider,
-        metricType: 'search_error',
+        metricType: "search_error",
         value: 1,
-        unit: 'count',
+        unit: "count",
         success: false,
         errorCategory: categorizeError(error),
         errorMessage: error.message,
@@ -576,9 +576,9 @@ export function createVectorStoreMonitoringService(
     ): void {
       this.recordMetric({
         provider,
-        metricType: 'token_usage',
+        metricType: "token_usage",
         value: tokens,
-        unit: 'tokens',
+        unit: "tokens",
         metadata,
       });
     },
@@ -616,7 +616,7 @@ export function createVectorStoreMonitoringService(
 
     getPerformanceMetrics(
       provider: VectorStoreProvider,
-      timeWindow = '24h',
+      timeWindow = "24h",
     ): PerformanceMetrics {
       return store.getPerformanceMetrics(provider, timeWindow);
     },
@@ -631,10 +631,10 @@ export function createVectorStoreMonitoringService(
 
     async getDashboardData() {
       const providers: VectorStoreProvider[] = [
-        'openai',
-        'neon',
-        'unified',
-        'memory',
+        "openai",
+        "neon",
+        "unified",
+        "memory",
       ];
       const overview: Record<VectorStoreProvider, PerformanceMetrics> =
         {} as any;
@@ -644,7 +644,7 @@ export function createVectorStoreMonitoringService(
       }
 
       const healthStatus = this.getHealthStatus();
-      const recentErrors = this.getMetrics(undefined, 'search_error', '1h');
+      const recentErrors = this.getMetrics(undefined, "search_error", "1h");
       const alerts = Array.from(store.alerts.values());
 
       return {
@@ -659,7 +659,7 @@ export function createVectorStoreMonitoringService(
       store.cleanup();
     },
 
-    async exportMetrics(timeWindow = '24h'): Promise<MetricEvent[]> {
+    async exportMetrics(timeWindow = "24h"): Promise<MetricEvent[]> {
       return this.getMetrics(undefined, undefined, timeWindow);
     },
   };
@@ -678,7 +678,7 @@ export function getVectorStoreMonitoringService(): VectorStoreMonitoringService 
 // Health check scheduler
 export function startHealthCheckScheduler(
   service: VectorStoreMonitoringService,
-  providers: VectorStoreProvider[] = ['openai', 'neon', 'unified'],
+  providers: VectorStoreProvider[] = ["openai", "neon", "unified"],
 ): () => void {
   const interval = setInterval(async () => {
     for (const provider of providers) {

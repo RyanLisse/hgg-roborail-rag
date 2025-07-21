@@ -5,71 +5,71 @@
  * Comprehensive report of all vector store configurations and data
  */
 
-import dotenv from 'dotenv';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import dotenv from "dotenv";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-dotenv.config({ path: path.join(__dirname, '.env.local') });
+dotenv.config({ path: path.join(__dirname, ".env.local") });
 
 // Colors for console output
 const colors = {
-  reset: '\x1b[0m',
-  bright: '\x1b[1m',
-  red: '\x1b[31m',
-  green: '\x1b[32m',
-  yellow: '\x1b[33m',
-  blue: '\x1b[34m',
-  magenta: '\x1b[35m',
-  cyan: '\x1b[36m',
+  reset: "\x1b[0m",
+  bright: "\x1b[1m",
+  red: "\x1b[31m",
+  green: "\x1b[32m",
+  yellow: "\x1b[33m",
+  blue: "\x1b[34m",
+  magenta: "\x1b[35m",
+  cyan: "\x1b[36m",
 };
 
-function log(message, color = 'reset') {
+function log(message, color = "reset") {
   console.log(`${colors[color]}${message}${colors.reset}`);
 }
 
 function section(title) {
-  log(`\n${'='.repeat(60)}`, 'cyan');
-  log(`${title}`, 'cyan');
-  log(`${'='.repeat(60)}`, 'cyan');
+  log(`\n${"=".repeat(60)}`, "cyan");
+  log(`${title}`, "cyan");
+  log(`${"=".repeat(60)}`, "cyan");
 }
 
 async function generateReport() {
-  section('VECTOR STORE SUMMARY REPORT');
-  log(`Generated: ${new Date().toISOString()}`, 'blue');
+  section("VECTOR STORE SUMMARY REPORT");
+  log(`Generated: ${new Date().toISOString()}`, "blue");
 
   // Configuration Summary
-  section('1. CONFIGURATION STATUS');
+  section("1. CONFIGURATION STATUS");
 
   const openaiKey = process.env.OPENAI_API_KEY;
   const vectorStoreId = process.env.OPENAI_VECTORSTORE;
   const postgresUrl = process.env.POSTGRES_URL;
 
-  log('OpenAI Vector Store:', 'bright');
+  log("OpenAI Vector Store:", "bright");
   log(
-    `  ✅ API Key: ${openaiKey ? 'Configured' : '❌ Missing'}`,
-    openaiKey ? 'green' : 'red',
+    `  ✅ API Key: ${openaiKey ? "Configured" : "❌ Missing"}`,
+    openaiKey ? "green" : "red",
   );
   log(
-    `  ✅ Vector Store ID: ${vectorStoreId || '❌ Missing'}`,
-    vectorStoreId ? 'green' : 'red',
+    `  ✅ Vector Store ID: ${vectorStoreId || "❌ Missing"}`,
+    vectorStoreId ? "green" : "red",
   );
   log(
     `  🎯 Target Vector Store: vs_6849955367a88191bf89d7660230325f`,
-    'bright',
+    "bright",
   );
 
-  log('\nNeon/pgvector Database:', 'bright');
+  log("\nNeon/pgvector Database:", "bright");
   log(
-    `  ✅ Connection URL: ${postgresUrl ? 'Configured' : '❌ Missing'}`,
-    postgresUrl ? 'green' : 'red',
+    `  ✅ Connection URL: ${postgresUrl ? "Configured" : "❌ Missing"}`,
+    postgresUrl ? "green" : "red",
   );
-  log(`  🎯 Default Embedding Model: text-embedding-3-small`, 'bright');
+  log(`  🎯 Default Embedding Model: text-embedding-3-small`, "bright");
 
   // OpenAI Vector Store Data
   if (openaiKey && vectorStoreId) {
-    section('2. OPENAI VECTOR STORE DATA');
+    section("2. OPENAI VECTOR STORE DATA");
 
     try {
       // Get vector store info
@@ -78,26 +78,26 @@ async function generateReport() {
         {
           headers: {
             Authorization: `Bearer ${openaiKey}`,
-            'OpenAI-Beta': 'assistants=v2',
+            "OpenAI-Beta": "assistants=v2",
           },
         },
       );
 
       if (vsResponse.ok) {
         const vsData = await vsResponse.json();
-        log(`📦 Vector Store: ${vsData.name || 'Unnamed'}`, 'green');
+        log(`📦 Vector Store: ${vsData.name || "Unnamed"}`, "green");
         log(
           `📊 Total Size: ${Math.round(vsData.usage_bytes / 1024)} KB`,
-          'bright',
+          "bright",
         );
         log(
           `📄 Files: ${vsData.file_counts.total} total, ${vsData.file_counts.completed} completed`,
-          'bright',
+          "bright",
         );
-        log(`🟢 Status: ${vsData.status}`, 'green');
+        log(`🟢 Status: ${vsData.status}`, "green");
         log(
           `📅 Last Active: ${new Date(vsData.last_active_at * 1000).toISOString()}`,
-          'bright',
+          "bright",
         );
 
         // Get files
@@ -106,14 +106,14 @@ async function generateReport() {
           {
             headers: {
               Authorization: `Bearer ${openaiKey}`,
-              'OpenAI-Beta': 'assistants=v2',
+              "OpenAI-Beta": "assistants=v2",
             },
           },
         );
 
         if (filesResponse.ok) {
           const filesData = await filesResponse.json();
-          log('\n📋 Files in Vector Store:', 'bright');
+          log("\n📋 Files in Vector Store:", "bright");
 
           for (const file of filesData.data) {
             try {
@@ -126,42 +126,42 @@ async function generateReport() {
 
               if (fileResponse.ok) {
                 const fileDetails = await fileResponse.json();
-                log(`  📄 ${fileDetails.filename}`, 'green');
+                log(`  📄 ${fileDetails.filename}`, "green");
                 log(
                   `     Size: ${Math.round(fileDetails.bytes / 1024)} KB`,
-                  'bright',
+                  "bright",
                 );
                 log(
                   `     Status: ${file.status}`,
-                  file.status === 'completed' ? 'green' : 'yellow',
+                  file.status === "completed" ? "green" : "yellow",
                 );
                 log(
                   `     Created: ${new Date(file.created_at * 1000).toISOString()}`,
-                  'bright',
+                  "bright",
                 );
               }
             } catch (error) {
-              log(`  📄 ${file.id} (details unavailable)`, 'yellow');
+              log(`  📄 ${file.id} (details unavailable)`, "yellow");
             }
           }
         }
       }
     } catch (error) {
-      log(`❌ Error accessing OpenAI vector store: ${error.message}`, 'red');
+      log(`❌ Error accessing OpenAI vector store: ${error.message}`, "red");
     }
   } else {
-    section('2. OPENAI VECTOR STORE DATA');
-    log('❌ Cannot access - missing configuration', 'red');
+    section("2. OPENAI VECTOR STORE DATA");
+    log("❌ Cannot access - missing configuration", "red");
   }
 
   // Neon Database Data
   if (postgresUrl) {
-    section('3. NEON/PGVECTOR DATABASE DATA');
+    section("3. NEON/PGVECTOR DATABASE DATA");
 
     try {
-      const postgres = (await import('postgres')).default;
-      const { drizzle } = await import('drizzle-orm/postgres-js');
-      const { sql } = await import('drizzle-orm');
+      const postgres = (await import("postgres")).default;
+      const { drizzle } = await import("drizzle-orm/postgres-js");
+      const { sql } = await import("drizzle-orm");
 
       const client = postgres(postgresUrl);
       const db = drizzle(client);
@@ -172,9 +172,9 @@ async function generateReport() {
       `);
 
       if (extensionCheck.length > 0) {
-        log(`✅ pgvector extension: v${extensionCheck[0].extversion}`, 'green');
+        log(`✅ pgvector extension: v${extensionCheck[0].extversion}`, "green");
       } else {
-        log('❌ pgvector extension not installed', 'red');
+        log("❌ pgvector extension not installed", "red");
       }
 
       // Check table existence
@@ -184,7 +184,7 @@ async function generateReport() {
       `);
 
       if (tableCheck[0].count > 0) {
-        log('✅ vector_documents table exists', 'green');
+        log("✅ vector_documents table exists", "green");
 
         // Get document count
         const countResult = await db.execute(sql`
@@ -194,7 +194,7 @@ async function generateReport() {
         const docCount = countResult[0]?.count || 0;
         log(
           `📊 Total documents: ${docCount}`,
-          docCount > 0 ? 'green' : 'yellow',
+          docCount > 0 ? "green" : "yellow",
         );
 
         if (docCount > 0) {
@@ -207,19 +207,19 @@ async function generateReport() {
             LIMIT 3;
           `);
 
-          log('\n📋 Recent Documents:', 'bright');
+          log("\n📋 Recent Documents:", "bright");
           for (const doc of sampleDocs) {
             const preview =
               doc.content.length > 80
                 ? `${doc.content.substring(0, 80)}...`
                 : doc.content;
-            log(`  📄 ${doc.id}`, 'green');
-            log(`     Content: ${preview}`, 'bright');
+            log(`  📄 ${doc.id}`, "green");
+            log(`     Content: ${preview}`, "bright");
             log(
-              `     Embedding: ${doc.embedding_dims || 'None'} dimensions`,
-              'bright',
+              `     Embedding: ${doc.embedding_dims || "None"} dimensions`,
+              "bright",
             );
-            log(`     Created: ${doc.created_at}`, 'bright');
+            log(`     Created: ${doc.created_at}`, "bright");
           }
         }
 
@@ -232,87 +232,87 @@ async function generateReport() {
 
         if (indexCheck.length > 0) {
           log(
-            `\n🔍 Vector indexes: ${indexCheck.map((i) => i.indexname).join(', ')}`,
-            'green',
+            `\n🔍 Vector indexes: ${indexCheck.map((i) => i.indexname).join(", ")}`,
+            "green",
           );
         } else {
-          log('\n⚠️ No vector indexes found', 'yellow');
+          log("\n⚠️ No vector indexes found", "yellow");
         }
       } else {
-        log('❌ vector_documents table does not exist', 'red');
+        log("❌ vector_documents table does not exist", "red");
       }
 
       await client.end();
     } catch (error) {
-      log(`❌ Error accessing Neon database: ${error.message}`, 'red');
+      log(`❌ Error accessing Neon database: ${error.message}`, "red");
     }
   } else {
-    section('3. NEON/PGVECTOR DATABASE DATA');
-    log('❌ Cannot access - missing configuration', 'red');
+    section("3. NEON/PGVECTOR DATABASE DATA");
+    log("❌ Cannot access - missing configuration", "red");
   }
 
   // Usage Recommendations
-  section('4. USAGE RECOMMENDATIONS');
+  section("4. USAGE RECOMMENDATIONS");
 
   if (openaiKey && vectorStoreId) {
-    log('✅ OpenAI Vector Store is ready for use:', 'green');
-    log('  • Use file_search tool in conversations', 'bright');
-    log('  • Contains RoboRail documentation (3 files, ~900KB)', 'bright');
+    log("✅ OpenAI Vector Store is ready for use:", "green");
+    log("  • Use file_search tool in conversations", "bright");
+    log("  • Contains RoboRail documentation (3 files, ~900KB)", "bright");
     log(
-      '  • Ideal for Q&A about RoboRail operations, calibration, safety',
-      'bright',
+      "  • Ideal for Q&A about RoboRail operations, calibration, safety",
+      "bright",
     );
-    log('  • Already tested and working with search queries', 'bright');
+    log("  • Already tested and working with search queries", "bright");
   } else {
-    log('❌ OpenAI Vector Store needs configuration:', 'red');
-    log('  • Set OPENAI_API_KEY environment variable', 'bright');
-    log('  • Set OPENAI_VECTORSTORE environment variable', 'bright');
+    log("❌ OpenAI Vector Store needs configuration:", "red");
+    log("  • Set OPENAI_API_KEY environment variable", "bright");
+    log("  • Set OPENAI_VECTORSTORE environment variable", "bright");
   }
 
   if (postgresUrl) {
-    log('\n✅ Neon Database is ready for use:', 'green');
-    log('  • pgvector extension installed', 'bright');
-    log('  • vector_documents table ready', 'bright');
-    log('  • Currently empty - ready for document uploads', 'bright');
-    log('  • Use for custom embeddings and similarity search', 'bright');
+    log("\n✅ Neon Database is ready for use:", "green");
+    log("  • pgvector extension installed", "bright");
+    log("  • vector_documents table ready", "bright");
+    log("  • Currently empty - ready for document uploads", "bright");
+    log("  • Use for custom embeddings and similarity search", "bright");
   } else {
-    log('\n❌ Neon Database needs configuration:', 'red');
-    log('  • Set POSTGRES_URL environment variable', 'bright');
+    log("\n❌ Neon Database needs configuration:", "red");
+    log("  • Set POSTGRES_URL environment variable", "bright");
   }
 
   // Implementation Guide
-  section('5. IMPLEMENTATION GUIDE');
+  section("5. IMPLEMENTATION GUIDE");
 
-  log('File Search Tool Configuration:', 'bright');
+  log("File Search Tool Configuration:", "bright");
   log(
     `{
   "type": "file_search",
   "file_search": {
-    "vector_store_ids": ["${vectorStoreId || 'YOUR_VECTOR_STORE_ID'}"]
+    "vector_store_ids": ["${vectorStoreId || "YOUR_VECTOR_STORE_ID"}"]
   }
 }`,
-    'cyan',
+    "cyan",
   );
 
-  log('\nUnified Vector Store Usage:', 'bright');
-  log('• OpenAI: Best for existing RoboRail docs, managed by OpenAI', 'bright');
+  log("\nUnified Vector Store Usage:", "bright");
+  log("• OpenAI: Best for existing RoboRail docs, managed by OpenAI", "bright");
   log(
-    '• Neon: Best for custom documents, full control over embeddings',
-    'bright',
+    "• Neon: Best for custom documents, full control over embeddings",
+    "bright",
   );
-  log('• Memory: Best for temporary/session-based document storage', 'bright');
+  log("• Memory: Best for temporary/session-based document storage", "bright");
 
-  log('\nNext Steps:', 'bright');
+  log("\nNext Steps:", "bright");
   if (openaiKey && vectorStoreId && postgresUrl) {
-    log('✅ All vector stores configured - ready for production use!', 'green');
+    log("✅ All vector stores configured - ready for production use!", "green");
   } else {
     log(
-      '⚠️ Complete environment variable setup for full functionality',
-      'yellow',
+      "⚠️ Complete environment variable setup for full functionality",
+      "yellow",
     );
   }
 
-  section('END OF REPORT');
+  section("END OF REPORT");
 }
 
 generateReport().catch(console.error);

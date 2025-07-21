@@ -1,5 +1,5 @@
 // Test mocks for database queries
-import type { User, Chat, DBMessage } from './schema';
+import type { Chat, DBMessage, User } from './schema';
 
 // Mock data stores
 const mockUsers: Map<string, User> = new Map();

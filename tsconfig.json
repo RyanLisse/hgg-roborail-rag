@@ -21,7 +21,8 @@
     "paths": {
       "@/*": ["./*"]
     },
-    "typeRoots": ["./node_modules/@types", "./types"]
+    "typeRoots": ["./node_modules/@types", "./types"],
+    "strictNullChecks": true
   },
   "include": [
     "next-env.d.ts",

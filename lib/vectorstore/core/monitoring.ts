@@ -1,4 +1,4 @@
-import type { ServiceMetrics, VectorStoreService } from './types';
+import type { ServiceMetrics, VectorStoreService } from "./types";
 
 /**
  * Performance monitoring state
@@ -54,13 +54,13 @@ export function wrapMethodWithMonitoring<T extends any[], R>(
  */
 export function wrapServiceWithMonitoring<T extends VectorStoreService>(
   service: T,
-  monitoredMethods: (keyof T)[] = ['search', 'healthCheck'],
+  monitoredMethods: (keyof T)[] = ["search", "healthCheck"],
 ): T {
   const wrappedService = { ...service };
 
   for (const methodName of monitoredMethods) {
     const originalMethod = service[methodName];
-    if (typeof originalMethod === 'function') {
+    if (typeof originalMethod === "function") {
       (wrappedService as any)[methodName] = wrapMethodWithMonitoring(
         service.serviceName,
         String(methodName),
@@ -75,10 +75,7 @@ export function wrapServiceWithMonitoring<T extends VectorStoreService>(
 /**
  * Record a metric
  */
-function recordMetric(
-  serviceName: string,
-  metric: ServiceMetrics,
-): void {
+function recordMetric(serviceName: string, metric: ServiceMetrics): void {
   if (!metrics.has(serviceName)) {
     metrics.set(serviceName, []);
   }
@@ -141,7 +138,9 @@ export function getPerformanceSummary(
   let filteredMetrics = serviceMetrics;
   if (timeWindow) {
     const cutoff = Date.now() - timeWindow;
-    filteredMetrics = serviceMetrics.filter((m) => m.timestamp.getTime() > cutoff);
+    filteredMetrics = serviceMetrics.filter(
+      (m) => m.timestamp.getTime() > cutoff,
+    );
   }
 
   if (filteredMetrics.length === 0) {
@@ -158,8 +157,7 @@ export function getPerformanceSummary(
   const successful = filteredMetrics.filter((m) => m.success);
   const totalRequests = filteredMetrics.length;
   const successRate = (successful.length / totalRequests) * 100;
-  const errorRate =
-    ((totalRequests - successful.length) / totalRequests) * 100;
+  const errorRate = ((totalRequests - successful.length) / totalRequests) * 100;
 
   const averageResponseTime =
     filteredMetrics.reduce((sum, m) => sum + m.duration, 0) / totalRequests;
@@ -184,11 +182,11 @@ export function getPerformanceSummary(
 /**
  * Log performance summary
  */
-export function logPerformanceSummary(serviceName: string, timeWindow?: number): void {
-  const summary = getPerformanceSummary(
-    serviceName,
-    timeWindow,
-  );
+export function logPerformanceSummary(
+  serviceName: string,
+  timeWindow?: number,
+): void {
+  const summary = getPerformanceSummary(serviceName, timeWindow);
 
   console.log(`📊 Performance Summary for ${serviceName}:`);
   console.log(`   Total Requests: ${summary.totalRequests}`);
@@ -215,9 +213,9 @@ export function logPerformanceSummary(serviceName: string, timeWindow?: number):
 export const PerformanceMonitor = {
   wrapMethod: wrapMethodWithMonitoring,
   wrapService: wrapServiceWithMonitoring,
-  getServiceMetrics: getServiceMetrics,
-  getAllMetrics: getAllMetrics,
-  clearMetrics: clearMetrics,
-  getPerformanceSummary: getPerformanceSummary,
-  logPerformanceSummary: logPerformanceSummary,
+  getServiceMetrics,
+  getAllMetrics,
+  clearMetrics,
+  getPerformanceSummary,
+  logPerformanceSummary,
 };

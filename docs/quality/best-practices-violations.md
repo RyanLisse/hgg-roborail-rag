@@ -12,11 +12,13 @@ The codebase demonstrates strong adherence to modern development practices with 
 
 #### 1. Static-Only Classes (Critical) 🔴
 
-**Files:** 
+**Files:**
+
 - `lib/vectorstore/core/errors.ts`
 - `lib/vectorstore/core/monitoring.ts`
 
 **Violation:**
+
 ```typescript
 export class VectorStoreErrorHandler {
   static classify(error: Error): ClassifiedError { ... }
@@ -26,6 +28,7 @@ export class VectorStoreErrorHandler {
 ```
 
 **Best Practice:**
+
 ```typescript
 // Convert to functional modules
 export const classifyError = (error: Error): ClassifiedError => { ... };
@@ -45,12 +48,13 @@ export namespace VectorStoreErrorHandler {
 **File:** `lib/vectorstore/fault-tolerant/generic-wrapper.ts`
 
 **Violation:**
+
 ```typescript
 import {
   type FaultTolerantService,
   FaultToleranceFactory,
   type ServiceProvider, // ← Unused import
-} from './types';
+} from "./types";
 ```
 
 **Best Practice:** Remove unused imports to reduce bundle size
@@ -58,6 +62,7 @@ import {
 #### 3. Accessibility Issues (Low) ⚠️
 
 **Biome a11y rules with custom overrides:**
+
 ```jsonc
 "useSemanticElements": "off", // Should be "warn"
 "noAutofocus": "off",         // Intentionally disabled
@@ -78,6 +83,7 @@ import {
 #### 1. Excessive `any` Usage ⚠️
 
 **Locations:**
+
 ```typescript
 // lib/vectorstore/unified.ts:37
 metadata: z.record(z.any()).optional(),
@@ -90,6 +96,7 @@ onClick?: (event: any) => void;
 ```
 
 **Best Practice:**
+
 ```typescript
 // Use specific types
 metadata: z.record(z.union([z.string(), z.number(), z.boolean()])).optional(),
@@ -104,14 +111,17 @@ onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
 #### 2. Missing Return Type Annotations
 
 **Current Practice (Inconsistent):**
+
 ```typescript
 // Some functions lack explicit return types
-async function processData(input) { // ← Missing return type
+async function processData(input) {
+  // ← Missing return type
   return await transformData(input);
 }
 ```
 
 **Best Practice:**
+
 ```typescript
 async function processData(input: DataInput): Promise<ProcessedData> {
   return await transformData(input);
@@ -123,11 +133,13 @@ async function processData(input: DataInput): Promise<ProcessedData> {
 #### 1. Component Prop Interfaces
 
 **Issues Found:**
+
 - Some components use inline prop types
 - Missing default props documentation
 - Inconsistent prop naming conventions
 
 **Example Violation:**
+
 ```typescript
 // Current
 const Button = ({ variant, size, children, ...props }: {
@@ -139,6 +151,7 @@ const Button = ({ variant, size, children, ...props }: {
 ```
 
 **Best Practice:**
+
 ```typescript
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'ghost';
@@ -146,11 +159,11 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
 }
 
-const Button: React.FC<ButtonProps> = ({ 
-  variant = 'primary', 
-  size = 'md', 
-  children, 
-  ...props 
+const Button: React.FC<ButtonProps> = ({
+  variant = 'primary',
+  size = 'md',
+  children,
+  ...props
 }) => { ... }
 ```
 
@@ -162,6 +175,7 @@ const Button: React.FC<ButtonProps> = ({
 #### 3. Component Organization
 
 **Issues:**
+
 - Some components exceed recommended size (200+ lines)
 - Mixed concerns within single components
 - Inconsistent file structure
@@ -173,6 +187,7 @@ const Button: React.FC<ButtonProps> = ({
 #### 1. Mixed Responsibilities in Components
 
 **Example:** `components/chat.tsx`
+
 ```typescript
 // Current - Multiple responsibilities
 const Chat = () => {
@@ -181,10 +196,11 @@ const Chat = () => {
   // UI rendering
   // Event handling
   // Validation logic
-}
+};
 ```
 
 **Best Practice:**
+
 ```typescript
 // Separated concerns
 const useChatLogic = () => {
@@ -198,7 +214,7 @@ const useChatApi = () => {
 const Chat = () => {
   const logic = useChatLogic();
   const api = useChatApi();
-  
+
   return <ChatPresentation {...logic} {...api} />;
 };
 ```
@@ -215,7 +231,8 @@ const Chat = () => {
 
 **Example:** `lib/vectorstore/unified.ts` (32 imports)
 
-**Best Practice:** 
+**Best Practice:**
+
 - Use dependency injection
 - Create aggregate interfaces
 - Implement facade pattern
@@ -225,11 +242,13 @@ const Chat = () => {
 #### 1. Inconsistent Error Types
 
 **Current:**
+
 - API routes use different error response formats
 - Some errors lack proper classification
 - Missing correlation IDs
 
 **Best Practice:**
+
 ```typescript
 interface StandardError {
   success: false;
@@ -252,6 +271,7 @@ interface StandardError {
 **Found in:** Large components with expensive calculations
 
 **Example:**
+
 ```typescript
 // Current - Recalculates on every render
 const ExpensiveComponent = ({ data }) => {
@@ -261,10 +281,11 @@ const ExpensiveComponent = ({ data }) => {
 ```
 
 **Best Practice:**
+
 ```typescript
 const ExpensiveComponent = ({ data }) => {
-  const processedData = useMemo(() => 
-    complexCalculation(data), 
+  const processedData = useMemo(() =>
+    complexCalculation(data),
     [data]
   );
   return <div>{processedData}</div>;
@@ -274,6 +295,7 @@ const ExpensiveComponent = ({ data }) => {
 #### 2. Inefficient Re-renders
 
 **Issues:**
+
 - Some components lack React.memo where appropriate
 - Props drilling instead of context for shared state
 - Large component trees without optimization
@@ -283,6 +305,7 @@ const ExpensiveComponent = ({ data }) => {
 #### 1. Large Single Files
 
 **Issues:**
+
 - `components/icons.tsx` (1,338 lines) affects bundle splitting
 - Some utility modules are monolithic
 
@@ -300,21 +323,24 @@ const ExpensiveComponent = ({ data }) => {
 **Status:** ✅ Generally good with Zod schemas
 
 **Minor Issues:**
+
 - Some API routes lack complete validation
 - File upload validation could be more strict
 
 ### Environment Variables
 
 **Current Practice:**
+
 ```typescript
 // Some direct process.env access
 const apiKey = process.env.OPENAI_API_KEY;
 ```
 
 **Best Practice:**
+
 ```typescript
 // Centralized env validation
-import { env } from '@/lib/env';
+import { env } from "@/lib/env";
 const apiKey = env.OPENAI_API_KEY; // Type-safe and validated
 ```
 
@@ -323,6 +349,7 @@ const apiKey = env.OPENAI_API_KEY; // Type-safe and validated
 ### Test Coverage
 
 **Current Status:**
+
 - Good unit test coverage for lib modules
 - Comprehensive E2E tests with Playwright
 - Some components lack focused tests
@@ -330,11 +357,13 @@ const apiKey = env.OPENAI_API_KEY; // Type-safe and validated
 ### Test Organization
 
 **Issues:**
+
 - Some test files are very large
 - Inconsistent test data setup
 - Missing error scenario tests
 
 **Best Practice:**
+
 ```typescript
 describe('VectorStoreService', () => {
   describe('search functionality', () => {
@@ -396,6 +425,7 @@ type RerankingResult<T> = {
 ### High Priority
 
 1. **Convert Static Classes to Modules**
+
    ```typescript
    // lib/vectorstore/core/errors.ts
    export const ErrorHandler = {
@@ -405,6 +435,7 @@ type RerankingResult<T> = {
    ```
 
 2. **Fix Unused Imports**
+
    - Remove ServiceProvider import from generic-wrapper.ts
    - Audit other files for unused imports
    - Add pre-commit hook to prevent future violations
@@ -417,11 +448,13 @@ type RerankingResult<T> = {
 ### Medium Priority
 
 1. **Component Refactoring**
+
    - Split large components into smaller units
    - Extract custom hooks for complex logic
    - Implement proper prop interfaces
 
 2. **Performance Optimization**
+
    - Add memoization to expensive calculations
    - Implement React.memo for pure components
    - Optimize bundle splitting
@@ -434,6 +467,7 @@ type RerankingResult<T> = {
 ### Low Priority
 
 1. **Documentation Improvements**
+
    - Add JSDoc comments to public APIs
    - Document complex type definitions
    - Create architectural decision records
@@ -446,18 +480,21 @@ type RerankingResult<T> = {
 ## Quality Gates
 
 ### Pre-commit Checks
+
 - [ ] No new static-only classes
 - [ ] No unused imports
 - [ ] TypeScript strict mode passes
 - [ ] All linting rules pass
 
 ### CI/CD Pipeline
+
 - [ ] Bundle size within limits
 - [ ] Performance benchmarks pass
 - [ ] Security audit clean
 - [ ] Test coverage maintained
 
 ### Code Review Guidelines
+
 - [ ] Component props properly typed
 - [ ] Error handling follows standards
 - [ ] Performance considerations addressed

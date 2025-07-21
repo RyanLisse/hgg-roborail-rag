@@ -1,15 +1,15 @@
-import type { Suggestion } from '@/lib/db/schema';
-import type { UseChatHelpers } from '@ai-sdk/react';
-import type { ComponentType, Dispatch, ReactNode, SetStateAction } from 'react';
-import type { DataStreamDelta } from './data-stream-handler';
-import type { UIArtifact } from './artifact';
+import type { UseChatHelpers } from "@ai-sdk/react";
+import type { ComponentType, Dispatch, ReactNode, SetStateAction } from "react";
+import type { Suggestion } from "@/lib/db/schema";
+import type { UIArtifact } from "./artifact";
+import type { DataStreamDelta } from "./data-stream-handler";
 
 export type ArtifactActionContext<M = any> = {
   content: string;
-  handleVersionChange: (type: 'next' | 'prev' | 'toggle' | 'latest') => void;
+  handleVersionChange: (type: "next" | "prev" | "toggle" | "latest") => void;
   currentVersionIndex: number;
   isCurrentVersion: boolean;
-  mode: 'edit' | 'diff';
+  mode: "edit" | "diff";
   metadata: M;
   setMetadata: Dispatch<SetStateAction<M>>;
 };
@@ -23,7 +23,7 @@ type ArtifactAction<M = any> = {
 };
 
 export type ArtifactToolbarContext = {
-  appendMessage: UseChatHelpers['append'];
+  appendMessage: UseChatHelpers["append"];
 };
 
 export type ArtifactToolbarItem = {
@@ -35,10 +35,10 @@ export type ArtifactToolbarItem = {
 interface ArtifactContent<M = any> {
   title: string;
   content: string;
-  mode: 'edit' | 'diff';
+  mode: "edit" | "diff";
   isCurrentVersion: boolean;
   currentVersionIndex: number;
-  status: 'streaming' | 'idle';
+  status: "streaming" | "idle";
   suggestions: Array<Suggestion>;
   onSaveContent: (updatedContent: string, debounce: boolean) => void;
   isInline: boolean;

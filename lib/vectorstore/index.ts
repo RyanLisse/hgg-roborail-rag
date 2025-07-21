@@ -3,10 +3,10 @@
  * Implements lazy loading for vector store providers to reduce initial bundle size
  */
 
-import 'server-only';
+import "server-only";
 
 // Core types that are needed immediately
-export type { VectorStoreType } from './unified';
+export type { VectorStoreType } from "./unified";
 
 // Lazy loading factory for vector stores
 let openaiStore: any = null;
@@ -18,12 +18,12 @@ let unifiedStore: any = null;
  * Get OpenAI vector store with lazy loading
  */
 export async function getOpenAIVectorStore() {
-  if (!openaiStore && process.env.ENABLE_CODE_SPLITTING !== 'false') {
-    const { getOpenAIVectorStoreService } = await import('./openai');
+  if (!openaiStore && process.env.ENABLE_CODE_SPLITTING !== "false") {
+    const { getOpenAIVectorStoreService } = await import("./openai");
     openaiStore = await getOpenAIVectorStoreService();
   } else if (!openaiStore) {
     // Fallback to direct import if code splitting disabled
-    const { getOpenAIVectorStoreService } = require('./openai');
+    const { getOpenAIVectorStoreService } = require("./openai");
     openaiStore = await getOpenAIVectorStoreService();
   }
   return openaiStore;
@@ -33,12 +33,12 @@ export async function getOpenAIVectorStore() {
  * Get Neon vector store with lazy loading
  */
 export async function getNeonVectorStore() {
-  if (!neonStore && process.env.ENABLE_CODE_SPLITTING !== 'false') {
-    const { getNeonVectorStoreService } = await import('./neon');
+  if (!neonStore && process.env.ENABLE_CODE_SPLITTING !== "false") {
+    const { getNeonVectorStoreService } = await import("./neon");
     neonStore = await getNeonVectorStoreService();
   } else if (!neonStore) {
     // Fallback to direct import if code splitting disabled
-    const { getNeonVectorStoreService } = require('./neon');
+    const { getNeonVectorStoreService } = require("./neon");
     neonStore = await getNeonVectorStoreService();
   }
   return neonStore;
@@ -48,12 +48,12 @@ export async function getNeonVectorStore() {
  * Get Memory vector store with lazy loading
  */
 export async function getMemoryVectorStore() {
-  if (!memoryStore && process.env.ENABLE_CODE_SPLITTING !== 'false') {
-    const { MemoryVectorStore } = await import('./memory-class');
+  if (!memoryStore && process.env.ENABLE_CODE_SPLITTING !== "false") {
+    const { MemoryVectorStore } = await import("./memory-class");
     memoryStore = new MemoryVectorStore();
   } else if (!memoryStore) {
     // Fallback to direct import if code splitting disabled
-    const { MemoryVectorStore } = require('./memory-class');
+    const { MemoryVectorStore } = require("./memory-class");
     memoryStore = new MemoryVectorStore();
   }
   return memoryStore;
@@ -63,12 +63,12 @@ export async function getMemoryVectorStore() {
  * Get Unified vector store with lazy loading
  */
 export async function getUnifiedVectorStore() {
-  if (!unifiedStore && process.env.ENABLE_CODE_SPLITTING !== 'false') {
-    const { getUnifiedVectorStoreService } = await import('./unified');
+  if (!unifiedStore && process.env.ENABLE_CODE_SPLITTING !== "false") {
+    const { getUnifiedVectorStoreService } = await import("./unified");
     unifiedStore = await getUnifiedVectorStoreService();
   } else if (!unifiedStore) {
     // Fallback to direct import if code splitting disabled
-    const { getUnifiedVectorStoreService } = require('./unified');
+    const { getUnifiedVectorStoreService } = require("./unified");
     unifiedStore = await getUnifiedVectorStoreService();
   }
   return unifiedStore;

@@ -1,19 +1,20 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
+import { useEffect, useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuCheckboxItem,
-} from '@/components/ui/dropdown-menu';
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
-import { CheckIcon, ChevronDownIcon, DatabaseIcon } from './icons';
-type VectorStoreType = 'openai' | 'neon' | 'memory';
+} from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
+import { CheckIcon, ChevronDownIcon, DatabaseIcon } from "./icons";
+
+type VectorStoreType = "openai" | "neon" | "memory";
 
 interface DatabaseSelectorProps {
   selectedSources: VectorStoreType[];
@@ -25,21 +26,21 @@ interface DatabaseSelectorProps {
 }
 
 const sourceLabels: Record<VectorStoreType, string> = {
-  openai: 'OpenAI Vector Store',
-  neon: 'NeonDB (pgvector)',
-  memory: 'In-Memory Store',
+  openai: "OpenAI Vector Store",
+  neon: "NeonDB (pgvector)",
+  memory: "In-Memory Store",
 };
 
 const sourceDescriptions: Record<VectorStoreType, string> = {
-  openai: 'OpenAI file search with vector store',
-  neon: 'PostgreSQL with pgvector extension',
-  memory: 'Temporary in-memory vector storage',
+  openai: "OpenAI file search with vector store",
+  neon: "PostgreSQL with pgvector extension",
+  memory: "Temporary in-memory vector storage",
 };
 
 const sourceColors: Record<VectorStoreType, string> = {
-  openai: 'bg-green-100 text-green-800 border-green-200',
-  neon: 'bg-blue-100 text-blue-800 border-blue-200',
-  memory: 'bg-gray-100 text-gray-800 border-gray-200',
+  openai: "bg-green-100 text-green-800 border-green-200",
+  neon: "bg-blue-100 text-blue-800 border-blue-200",
+  memory: "bg-gray-100 text-gray-800 border-gray-200",
 };
 
 export function DatabaseSelector({
@@ -64,7 +65,7 @@ export function DatabaseSelector({
 
   const getSelectedLabel = () => {
     if (selectedSources.length === 0) {
-      return 'No sources selected';
+      return "No sources selected";
     }
 
     if (selectedSources.length === 1) {
@@ -72,27 +73,27 @@ export function DatabaseSelector({
     }
 
     if (selectedSources.length === availableSources.length) {
-      return 'All sources';
+      return "All sources";
     }
 
     return `${selectedSources.length} sources`;
   };
 
   return (
-    <div className={cn('flex flex-col gap-2', className)}>
-      <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+    <div className={cn("flex flex-col gap-2", className)}>
+      <DropdownMenu onOpenChange={setIsOpen} open={isOpen}>
         <DropdownMenuTrigger asChild>
           <Button
-            variant="outline"
             className={cn(
-              'w-full justify-between gap-2 text-sm font-medium',
-              'data-[state=open]:bg-accent data-[state=open]:text-accent-foreground',
-              disabled && 'opacity-50 cursor-not-allowed',
+              "w-full justify-between gap-2 font-medium text-sm",
+              "data-[state=open]:bg-accent data-[state=open]:text-accent-foreground",
+              disabled && "cursor-not-allowed opacity-50",
             )}
             disabled={disabled}
+            variant="outline"
           >
             <div className="flex items-center gap-2">
-              <DatabaseIcon size={16} className="text-muted-foreground" />
+              <DatabaseIcon className="text-muted-foreground" size={16} />
               <span className="truncate">{getSelectedLabel()}</span>
             </div>
             <div className="opacity-50">
@@ -102,7 +103,7 @@ export function DatabaseSelector({
         </DropdownMenuTrigger>
 
         <DropdownMenuContent className="w-80">
-          <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground px-2 py-1.5">
+          <DropdownMenuLabel className="px-2 py-1.5 font-semibold text-muted-foreground text-xs">
             Vector Store Sources
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
@@ -114,38 +115,38 @@ export function DatabaseSelector({
 
             return (
               <DropdownMenuCheckboxItem
-                key={source}
                 checked={isSelected}
-                onCheckedChange={() => handleSourceToggle(source)}
-                disabled={!isEnabled}
                 className={cn(
-                  'flex cursor-pointer items-start justify-between',
-                  'py-2 px-2 my-0.5 rounded-md',
-                  'hover:bg-accent/50',
-                  !isEnabled && 'opacity-50 cursor-not-allowed',
+                  "flex cursor-pointer items-start justify-between",
+                  "my-0.5 rounded-md px-2 py-2",
+                  "hover:bg-accent/50",
+                  !isEnabled && "cursor-not-allowed opacity-50",
                 )}
+                disabled={!isEnabled}
+                key={source}
+                onCheckedChange={() => handleSourceToggle(source)}
               >
                 <div className="flex-1 space-y-1">
                   <div className="flex items-center gap-2">
                     <span className="font-medium">{sourceLabels[source]}</span>
                     {!isEnabled && (
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge className="text-xs" variant="secondary">
                         Disabled
                       </Badge>
                     )}
                     {isEnabled && stats?.count !== undefined && (
-                      <Badge variant="outline" className="text-xs">
+                      <Badge className="text-xs" variant="outline">
                         {stats.count} docs
                       </Badge>
                     )}
                   </div>
-                  <div className="text-xs text-muted-foreground">
+                  <div className="text-muted-foreground text-xs">
                     {sourceDescriptions[source]}
                   </div>
                 </div>
 
                 {isSelected && (
-                  <div className="text-primary ml-2 mt-1">
+                  <div className="mt-1 ml-2 text-primary">
                     <CheckIcon size={16} />
                   </div>
                 )}
@@ -156,7 +157,7 @@ export function DatabaseSelector({
           <DropdownMenuSeparator />
 
           <div className="px-2 py-1.5">
-            <div className="text-xs text-muted-foreground">
+            <div className="text-muted-foreground text-xs">
               Select multiple sources to search across all of them
               simultaneously.
             </div>
@@ -169,9 +170,9 @@ export function DatabaseSelector({
         <div className="flex flex-wrap gap-1">
           {selectedSources.map((source) => (
             <Badge
+              className={cn("text-xs", sourceColors[source])}
               key={source}
               variant="outline"
-              className={cn('text-xs', sourceColors[source])}
             >
               {sourceLabels[source]}
               {sourceStats?.[source]?.count !== undefined && (
@@ -190,11 +191,11 @@ export function DatabaseSelector({
 // Hook for managing database selection state
 export function useDatabaseSelection() {
   const [selectedSources, setSelectedSources] = useState<VectorStoreType[]>([
-    'openai',
+    "openai",
   ]);
   const [availableSources, setAvailableSources] = useState<VectorStoreType[]>([
-    'openai',
-    'memory',
+    "openai",
+    "memory",
   ]);
   const [sourceStats, setSourceStats] = useState<
     Record<VectorStoreType, { enabled: boolean; count?: number }>
@@ -211,10 +212,10 @@ export function useDatabaseSelection() {
         setIsLoading(true);
 
         // Load available sources from the unified service
-        const response = await fetch('/api/vectorstore/sources');
+        const response = await fetch("/api/vectorstore/sources");
         if (response.ok) {
           const data = await response.json();
-          setAvailableSources(data.availableSources || ['openai', 'memory']);
+          setAvailableSources(data.availableSources || ["openai", "memory"]);
           setSourceStats(
             data.sourceStats || {
               openai: { enabled: true, count: 0 },
@@ -224,9 +225,9 @@ export function useDatabaseSelection() {
           );
 
           // Update selected sources to prioritize OpenAI, fallback to available ones
-          const defaultSources = data.availableSources?.includes('openai')
-            ? ['openai']
-            : ['memory'];
+          const defaultSources = data.availableSources?.includes("openai")
+            ? ["openai"]
+            : ["memory"];
           setSelectedSources(
             (prev) =>
               prev.filter((source) =>
@@ -235,7 +236,7 @@ export function useDatabaseSelection() {
           );
         }
       } catch (error) {
-        console.error('Failed to load available vector store sources:', error);
+        console.error("Failed to load available vector store sources:", error);
       } finally {
         setIsLoading(false);
       }
@@ -246,13 +247,13 @@ export function useDatabaseSelection() {
 
   const refreshStats = async () => {
     try {
-      const response = await fetch('/api/vectorstore/sources');
+      const response = await fetch("/api/vectorstore/sources");
       if (response.ok) {
         const data = await response.json();
         setSourceStats(data.sourceStats || sourceStats);
       }
     } catch (error) {
-      console.error('Failed to refresh vector store stats:', error);
+      console.error("Failed to refresh vector store stats:", error);
     }
   };
 

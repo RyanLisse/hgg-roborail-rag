@@ -5,10 +5,10 @@
  */
 
 import {
-  type FaultTolerantService,
-  FaultToleranceFactory,
   FallbackMode,
-} from '../fault-tolerance';
+  FaultToleranceFactory,
+  type FaultTolerantService,
+} from "../fault-tolerance";
 
 export interface FaultTolerantConfig {
   maxRetries: number;
@@ -31,19 +31,19 @@ export interface FaultTolerantConfig {
 export const DEFAULT_FAULT_TOLERANT_CONFIG: FaultTolerantConfig = {
   maxRetries: 3,
   initialDelay: 1000,
-  maxDelay: 30000,
+  maxDelay: 30_000,
   backoffMultiplier: 2,
   jitterEnabled: true,
-  timeout: 30000,
+  timeout: 30_000,
   fallbackMode: FallbackMode.RETURN_EMPTY,
   enableCircuitBreaker: true,
   circuitBreakerThreshold: 5,
-  circuitBreakerTimeout: 60000,
+  circuitBreakerTimeout: 60_000,
   enableBulkheading: true,
   bulkheadSize: 10,
   enableRateLimiting: true,
   rateLimit: 100,
-  rateLimitWindow: 60000,
+  rateLimitWindow: 60_000,
 };
 
 /**
@@ -86,7 +86,7 @@ export class GenericFaultTolerantService<TService> {
     return async (...args: Args): Promise<Return> => {
       try {
         const method = this.baseService[methodName] as any;
-        if (typeof method !== 'function') {
+        if (typeof method !== "function") {
           throw new Error(`Method ${String(methodName)} is not a function`);
         }
         return await method.apply(this.baseService, args);
@@ -104,15 +104,15 @@ export class GenericFaultTolerantService<TService> {
    */
   getWrappedMethods() {
     return {
-      search: this.wrapMethod('search' as keyof TService, {
+      search: this.wrapMethod("search" as keyof TService, {
         fallbackValue: [],
       }),
-      upload: this.wrapMethod('upload' as keyof TService, {}),
-      delete: this.wrapMethod('delete' as keyof TService, {}),
-      healthCheck: this.wrapMethod('healthCheck' as keyof TService, {
-        fallbackValue: { status: 'unhealthy', timestamp: Date.now() },
+      upload: this.wrapMethod("upload" as keyof TService, {}),
+      delete: this.wrapMethod("delete" as keyof TService, {}),
+      healthCheck: this.wrapMethod("healthCheck" as keyof TService, {
+        fallbackValue: { status: "unhealthy", timestamp: Date.now() },
       }),
-      getStats: this.wrapMethod('getStats' as keyof TService, {
+      getStats: this.wrapMethod("getStats" as keyof TService, {
         fallbackValue: { documentsCount: 0, lastUpdated: new Date() },
       }),
     };
@@ -177,21 +177,21 @@ export function createFaultTolerantService<TService>(
 export const SERVICE_CONFIGS = {
   openai: {
     maxRetries: 3,
-    timeout: 30000,
+    timeout: 30_000,
     circuitBreakerThreshold: 5,
     rateLimit: 50, // Lower rate limit for OpenAI
   } as Partial<FaultTolerantConfig>,
 
   neon: {
     maxRetries: 5,
-    timeout: 15000,
+    timeout: 15_000,
     circuitBreakerThreshold: 10,
     rateLimit: 200, // Higher rate limit for database
   } as Partial<FaultTolerantConfig>,
 
   unified: {
     maxRetries: 2,
-    timeout: 45000,
+    timeout: 45_000,
     circuitBreakerThreshold: 3,
     rateLimit: 100,
   } as Partial<FaultTolerantConfig>,

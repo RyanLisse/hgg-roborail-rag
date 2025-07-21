@@ -71,16 +71,19 @@ AuthForm (auth-form.tsx) - Unified auth interface
 ## Component Design Patterns
 
 ### 1. **Container/Presentational Pattern**
+
 - **Containers**: `Chat`, `Messages`, `SidebarHistory`
 - **Presentational**: UI components, message display, form elements
 - **Benefits**: Clear separation of logic and presentation
 
 ### 2. **Compound Component Pattern**
+
 - **Sidebar System**: `Sidebar`, `SidebarHeader`, `SidebarContent`, `SidebarFooter`
 - **UI Components**: Dialog, DropdownMenu, Sheet components
 - **Benefits**: Flexible, composable interfaces
 
 ### 3. **Hook-Based State Management**
+
 - **Custom Hooks**: `useMessages`, `useChatVisibility`, `useArtifact`
 - **External State**: SWR for server state, React state for UI
 - **Benefits**: Reusable logic, clean separation of concerns
@@ -88,6 +91,7 @@ AuthForm (auth-form.tsx) - Unified auth interface
 ## Component Categories
 
 ### **Core UI Components** (components/ui/)
+
 ```
 ├── alert-dialog.tsx     # Modal dialogs
 ├── badge.tsx           # Status indicators
@@ -106,6 +110,7 @@ AuthForm (auth-form.tsx) - Unified auth interface
 ```
 
 ### **Feature Components** (components/)
+
 ```
 Chat System:
 ├── chat.tsx                  # Main chat container
@@ -165,6 +170,7 @@ Utility Components:
 ## Data Flow Patterns
 
 ### 1. **Server State Management**
+
 ```
 SWR (useSWR) → API Routes → Database
 ├── Chat History: /api/history
@@ -175,6 +181,7 @@ SWR (useSWR) → API Routes → Database
 ```
 
 ### 2. **Client State Management**
+
 ```
 React State + Custom Hooks
 ├── Chat State: useChat (AI SDK)
@@ -184,6 +191,7 @@ React State + Custom Hooks
 ```
 
 ### 3. **Real-time Updates**
+
 ```
 Streaming Responses:
 ├── AI Chat: Server-sent events
@@ -194,16 +202,19 @@ Streaming Responses:
 ## Component Performance Optimizations
 
 ### 1. **Memoization Strategies**
+
 - **React.memo**: `Messages`, `PreviewMessage`, `SidebarHistory`
 - **useMemo**: Expensive calculations, filtered lists
 - **useCallback**: Event handlers, API calls
 
 ### 2. **Code Splitting**
+
 - **Dynamic Imports**: Heavy components loaded on demand
 - **Lazy Loading**: Artifact editors, complex UI components
 - **Route-based Splitting**: Automatic with Next.js App Router
 
 ### 3. **Rendering Optimizations**
+
 - **Virtual Scrolling**: Long message lists
 - **Incremental Rendering**: Large chat histories
 - **Optimistic Updates**: Immediate UI feedback
@@ -211,16 +222,19 @@ Streaming Responses:
 ## Component Testing Strategy
 
 ### 1. **Unit Testing**
+
 - **Vitest**: Component logic and utilities
 - **Testing Library**: Component rendering and interactions
 - **Mock Providers**: Isolated component testing
 
 ### 2. **Integration Testing**
+
 - **Component Integration**: Multi-component workflows
 - **API Integration**: Component-server interactions
 - **State Management**: Cross-component state changes
 
 ### 3. **E2E Testing**
+
 - **Playwright**: Full user journeys
 - **Chat Workflows**: Message sending, artifact creation
 - **Authentication**: Login/logout flows
@@ -228,16 +242,19 @@ Streaming Responses:
 ## Accessibility Considerations
 
 ### 1. **ARIA Compliance**
+
 - **Semantic HTML**: Proper element usage
 - **ARIA Labels**: Screen reader support
 - **Keyboard Navigation**: Full keyboard accessibility
 
 ### 2. **Visual Accessibility**
+
 - **Color Contrast**: WCAG AA compliance
 - **Focus Indicators**: Clear focus states
 - **Dark Mode**: Theme provider support
 
 ### 3. **Motion Accessibility**
+
 - **Reduced Motion**: Respects user preferences
 - **Animation Controls**: Optional animations
 - **Loading States**: Clear progress indicators
@@ -245,16 +262,19 @@ Streaming Responses:
 ## Component Extension Patterns
 
 ### 1. **Composition over Inheritance**
+
 - **Render Props**: Flexible component composition
 - **Children Props**: Content injection
 - **Slot Pattern**: Designated content areas
 
 ### 2. **Plugin Architecture**
+
 - **Artifact Types**: Extensible content types
 - **AI Providers**: Pluggable AI services
 - **Vector Stores**: Configurable storage backends
 
 ### 3. **Theme Customization**
+
 - **CSS Variables**: Dynamic theming
 - **Component Variants**: Style variations
 - **Custom Properties**: Brand customization

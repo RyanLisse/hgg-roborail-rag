@@ -1,19 +1,19 @@
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig, devices } from "@playwright/test";
 
 /**
  * Set NODE_ENV and read environment variables from file.
  * https://github.com/motdotla/dotenv
  */
-import { config } from 'dotenv';
+import { config } from "dotenv";
 
 // Set test environment
 if (!process.env.NODE_ENV) {
-  Object.assign(process.env, { NODE_ENV: 'test' });
+  Object.assign(process.env, { NODE_ENV: "test" });
 }
-process.env.PLAYWRIGHT = 'true';
+process.env.PLAYWRIGHT = "true";
 
 config({
-  path: '.env.test',
+  path: ".env.test",
 });
 
 /* Use process.env.PORT by default and fallback to port 3000 */
@@ -29,7 +29,7 @@ const baseURL = `http://localhost:${PORT}`;
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
-  testDir: './tests',
+  testDir: "./tests",
   /* Optimize parallel execution */
   fullyParallel: false, // Keep disabled to avoid DB conflicts
   /* Fail the build on CI if you accidentally left test.only in the source code. */
@@ -40,9 +40,9 @@ export default defineConfig({
   workers: process.env.CI ? 1 : 2, // Single worker in CI, allow 2 locally
   /* Optimized reporter configuration */
   reporter: [
-    ['html'],
-    ['list'], // Better CI output
-    ...(process.env.CI ? [['github'] as any] : []),
+    ["html"],
+    ["list"], // Better CI output
+    ...(process.env.CI ? [["github"] as any] : []),
   ],
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
@@ -50,9 +50,9 @@ export default defineConfig({
     baseURL,
 
     /* Optimized trace collection */
-    trace: 'retain-on-failure',
-    screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
+    trace: "retain-on-failure",
+    screenshot: "only-on-failure",
+    video: "retain-on-failure",
 
     /* Browser optimizations */
     headless: !!process.env.CI,
@@ -60,8 +60,8 @@ export default defineConfig({
     ignoreHTTPSErrors: true,
 
     /* Optimized timeouts with shorter defaults */
-    actionTimeout: 45000, // Reduced from 60s to 45s
-    navigationTimeout: 30000, // Reduced from 60s to 30s
+    actionTimeout: 45_000, // Reduced from 60s to 45s
+    navigationTimeout: 30_000, // Reduced from 60s to 30s
   },
 
   /* Reduced global timeout with better error handling */
@@ -77,49 +77,49 @@ export default defineConfig({
   /* Configure projects with optimized settings */
   projects: [
     {
-      name: 'e2e',
+      name: "e2e",
       testMatch: /e2e\/(?!stagehand).*.test.ts/, // Exclude stagehand tests
       use: {
-        ...devices['Desktop Chrome'],
+        ...devices["Desktop Chrome"],
         // Faster page loads
         launchOptions: {
           args: [
-            '--disable-web-security',
-            '--disable-features=VizDisplayCompositor',
-            '--disable-background-networking',
-            '--disable-background-timer-throttling',
-            '--disable-renderer-backgrounding',
-            '--disable-backgrounding-occluded-windows',
+            "--disable-web-security",
+            "--disable-features=VizDisplayCompositor",
+            "--disable-background-networking",
+            "--disable-background-timer-throttling",
+            "--disable-renderer-backgrounding",
+            "--disable-backgrounding-occluded-windows",
           ],
         },
       },
     },
     {
-      name: 'stagehand',
+      name: "stagehand",
       testMatch: /e2e\/stagehand.*.test.ts/, // Only stagehand tests
       use: {
-        ...devices['Desktop Chrome'],
+        ...devices["Desktop Chrome"],
         // Stagehand-specific optimizations
         headless: false, // Required for Stagehand
-        actionTimeout: 75000, // Reduced from 90s to 75s
-        navigationTimeout: 45000, // Reduced from 90s to 45s
+        actionTimeout: 75_000, // Reduced from 90s to 75s
+        navigationTimeout: 45_000, // Reduced from 90s to 45s
         launchOptions: {
           args: [
-            '--disable-web-security',
-            '--disable-dev-shm-usage',
-            '--no-sandbox', // Required for some CI environments
+            "--disable-web-security",
+            "--disable-dev-shm-usage",
+            "--no-sandbox", // Required for some CI environments
           ],
         },
       },
     },
     {
-      name: 'routes',
+      name: "routes",
       testMatch: /routes\/.*.test.ts/,
       use: {
-        ...devices['Desktop Chrome'],
+        ...devices["Desktop Chrome"],
         // Fast settings for route tests
-        actionTimeout: 10000,
-        navigationTimeout: 15000,
+        actionTimeout: 10_000,
+        navigationTimeout: 15_000,
       },
     },
 
@@ -154,20 +154,20 @@ export default defineConfig({
     // },
   ],
 
-  /* Run your local dev server before starting the tests - temporarily disabled */
-  // webServer: {
-  //   command: 'pnpm dev',
-  //   url: `${baseURL}/ping`,
-  //   timeout: 60 * 1000, // Reduced from 120s to 60s
-  //   reuseExistingServer: !process.env.CI,
-  //   env: {
-  //     NODE_ENV: 'test',
-  //     PLAYWRIGHT: 'true',
-  //     // Optimize Next.js startup
-  //     NEXT_TELEMETRY_DISABLED: '1',
-  //     TURBO_CI: '1',
-  //   },
-  //   stdout: 'pipe',
-  //   stderr: 'pipe',
-  // },
+  /* Run your local dev server before starting the tests */
+  webServer: {
+    command: "pnpm dev",
+    url: `${baseURL}/ping`,
+    timeout: 60 * 1000, // Reduced from 120s to 60s
+    reuseExistingServer: !process.env.CI,
+    env: {
+      NODE_ENV: "test",
+      PLAYWRIGHT: "true",
+      // Optimize Next.js startup
+      NEXT_TELEMETRY_DISABLED: "1",
+      TURBO_CI: "1",
+    },
+    stdout: "pipe",
+    stderr: "pipe",
+  },
 });

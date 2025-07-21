@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import { EditorView } from '@codemirror/view';
-import { EditorState, Transaction } from '@codemirror/state';
-import { python } from '@codemirror/lang-python';
-import { oneDark } from '@codemirror/theme-one-dark';
-import { basicSetup } from 'codemirror';
-import React, { memo, useEffect, useRef } from 'react';
-import type { Suggestion } from '@/lib/db/schema';
+import { python } from "@codemirror/lang-python";
+import { EditorState, Transaction } from "@codemirror/state";
+import { oneDark } from "@codemirror/theme-one-dark";
+import { EditorView } from "@codemirror/view";
+import { basicSetup } from "codemirror";
+import React, { memo, useEffect, useRef } from "react";
+import type { Suggestion } from "@/lib/db/schema";
 
 type EditorProps = {
   content: string;
   onSaveContent: (updatedContent: string, debounce: boolean) => void;
-  status: 'streaming' | 'idle';
+  status: "streaming" | "idle";
   isCurrentVersion: boolean;
   currentVersionIndex: number;
   suggestions: Array<Suggestion>;
@@ -75,7 +75,7 @@ function PureCodeEditor({ content, onSaveContent, status }: EditorProps) {
     if (editorRef.current && content) {
       const currentContent = editorRef.current.state.doc.toString();
 
-      if (status === 'streaming' || currentContent !== content) {
+      if (status === "streaming" || currentContent !== content) {
         const transaction = editorRef.current.state.update({
           changes: {
             from: 0,
@@ -92,7 +92,7 @@ function PureCodeEditor({ content, onSaveContent, status }: EditorProps) {
 
   return (
     <div
-      className="relative not-prose w-full pb-[calc(80dvh)] text-sm"
+      className="not-prose relative w-full pb-[calc(80dvh)] text-sm"
       ref={containerRef}
     />
   );
@@ -103,7 +103,7 @@ function areEqual(prevProps: EditorProps, nextProps: EditorProps) {
   if (prevProps.currentVersionIndex !== nextProps.currentVersionIndex)
     return false;
   if (prevProps.isCurrentVersion !== nextProps.isCurrentVersion) return false;
-  if (prevProps.status === 'streaming' && nextProps.status === 'streaming')
+  if (prevProps.status === "streaming" && nextProps.status === "streaming")
     return false;
   if (prevProps.content !== nextProps.content) return false;
 

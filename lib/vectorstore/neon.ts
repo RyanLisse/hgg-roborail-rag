@@ -1,17 +1,17 @@
-import 'server-only';
+import "server-only";
 
-import { z } from 'zod';
-import { embed } from 'ai';
-import { getEmbeddingModelInstance } from '../ai/providers';
-import { drizzle } from 'drizzle-orm/postgres-js';
-import { desc, gt, sql } from 'drizzle-orm';
-import postgres from 'postgres';
-import { vectorDocuments } from '../db/schema';
-import { POSTGRES_URL } from '../env';
+import { embed } from "ai";
+import { desc, gt, sql } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
+import { z } from "zod";
+import { getEmbeddingModelInstance } from "../ai/providers";
+import { vectorDocuments } from "../db/schema";
+import { POSTGRES_URL } from "../env";
 import {
   getVectorStoreMonitoringService,
   withPerformanceMonitoring,
-} from './monitoring';
+} from "./monitoring";
 
 // Schemas
 export const NeonDocument = z.object({
@@ -88,21 +88,21 @@ export function createNeonVectorStoreService(
 ): NeonVectorStoreService {
   // Check if we're in test mode first
   const isTestMode =
-    process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT === 'true';
+    process.env.NODE_ENV === "test" || process.env.PLAYWRIGHT === "true";
 
   const validatedConfig: NeonVectorStoreConfig = {
-    connectionString: config?.connectionString || POSTGRES_URL || '',
-    embeddingModel: config?.embeddingModel || 'text-embedding-3-small',
+    connectionString: config?.connectionString || POSTGRES_URL || "",
+    embeddingModel: config?.embeddingModel || "text-embedding-3-small",
     isEnabled: !isTestMode && !!(config?.connectionString || POSTGRES_URL),
   };
 
   // In test mode, always return disabled service
   if (isTestMode || !validatedConfig.isEnabled) {
     if (isTestMode) {
-      console.log('Test mode: Neon vector store service disabled');
+      console.log("Test mode: Neon vector store service disabled");
     } else {
       console.warn(
-        'Neon vector store service is disabled - no connection string provided',
+        "Neon vector store service is disabled - no connection string provided",
       );
     }
     return {
@@ -110,31 +110,31 @@ export function createNeonVectorStoreService(
       isEnabled: false,
       embeddingModel: validatedConfig.embeddingModel,
       addDocument: async () => {
-        throw new Error('Neon vector store service is disabled');
+        throw new Error("Neon vector store service is disabled");
       },
       addDocuments: async () => {
-        throw new Error('Neon vector store service is disabled');
+        throw new Error("Neon vector store service is disabled");
       },
       getDocument: async () => {
-        throw new Error('Neon vector store service is disabled');
+        throw new Error("Neon vector store service is disabled");
       },
       updateDocument: async () => {
-        throw new Error('Neon vector store service is disabled');
+        throw new Error("Neon vector store service is disabled");
       },
       deleteDocument: async () => {
-        throw new Error('Neon vector store service is disabled');
+        throw new Error("Neon vector store service is disabled");
       },
       searchSimilar: async () => {
-        throw new Error('Neon vector store service is disabled');
+        throw new Error("Neon vector store service is disabled");
       },
       searchSimilarByEmbedding: async () => {
-        throw new Error('Neon vector store service is disabled');
+        throw new Error("Neon vector store service is disabled");
       },
       generateEmbedding: async () => {
-        throw new Error('Neon vector store service is disabled');
+        throw new Error("Neon vector store service is disabled");
       },
       initializeExtensions: async () => {
-        throw new Error('Neon vector store service is disabled');
+        throw new Error("Neon vector store service is disabled");
       },
     };
   }
@@ -160,16 +160,16 @@ export function createNeonVectorStoreService(
           WITH (lists = 100);
         `);
 
-        console.log('Neon pgvector extensions initialized successfully');
+        console.log("Neon pgvector extensions initialized successfully");
       } catch (error) {
-        console.error('Failed to initialize Neon pgvector extensions:', error);
+        console.error("Failed to initialize Neon pgvector extensions:", error);
         throw error;
       }
     },
 
     generateEmbedding: withPerformanceMonitoring(
-      'neon',
-      'generateEmbedding',
+      "neon",
+      "generateEmbedding",
       async (text: string): Promise<number[]> => {
         const monitoringService = getVectorStoreMonitoringService();
 
@@ -181,10 +181,10 @@ export function createNeonVectorStoreService(
 
           // Record embedding generation metrics
           monitoringService.recordMetric({
-            provider: 'neon',
-            metricType: 'embedding_generation',
+            provider: "neon",
+            metricType: "embedding_generation",
             value: 1,
-            unit: 'count',
+            unit: "count",
             success: true,
             metadata: {
               textLength: text.length,
@@ -195,16 +195,16 @@ export function createNeonVectorStoreService(
           return embedding;
         } catch (error) {
           monitoringService.recordMetric({
-            provider: 'neon',
-            metricType: 'embedding_generation',
+            provider: "neon",
+            metricType: "embedding_generation",
             value: 0,
-            unit: 'count',
+            unit: "count",
             success: false,
             errorMessage:
-              error instanceof Error ? error.message : 'Unknown error',
+              error instanceof Error ? error.message : "Unknown error",
           });
 
-          console.error('Failed to generate embedding:', error);
+          console.error("Failed to generate embedding:", error);
           throw error;
         }
       },
@@ -233,7 +233,7 @@ export function createNeonVectorStoreService(
           embedding,
         });
       } catch (error) {
-        console.error('Failed to add document to Neon vector store:', error);
+        console.error("Failed to add document to Neon vector store:", error);
         throw error;
       }
     },
@@ -273,7 +273,7 @@ export function createNeonVectorStoreService(
           }),
         );
       } catch (error) {
-        console.error('Failed to add documents to Neon vector store:', error);
+        console.error("Failed to add documents to Neon vector store:", error);
         throw error;
       }
     },
@@ -288,7 +288,7 @@ export function createNeonVectorStoreService(
 
         return document ? NeonDocument.parse(document) : null;
       } catch (error) {
-        console.error('Failed to get document from Neon vector store:', error);
+        console.error("Failed to get document from Neon vector store:", error);
         throw error;
       }
     },
@@ -316,7 +316,7 @@ export function createNeonVectorStoreService(
 
         return NeonDocument.parse(updatedDocument);
       } catch (error) {
-        console.error('Failed to update document in Neon vector store:', error);
+        console.error("Failed to update document in Neon vector store:", error);
         throw error;
       }
     },
@@ -330,7 +330,7 @@ export function createNeonVectorStoreService(
         return true;
       } catch (error) {
         console.error(
-          'Failed to delete document from Neon vector store:',
+          "Failed to delete document from Neon vector store:",
           error,
         );
         return false;
@@ -338,8 +338,8 @@ export function createNeonVectorStoreService(
     },
 
     searchSimilar: withPerformanceMonitoring(
-      'neon',
-      'searchSimilar',
+      "neon",
+      "searchSimilar",
       async function (
         this: any,
         request: NeonSearchRequest,
@@ -362,12 +362,12 @@ export function createNeonVectorStoreService(
           const executionTime = Date.now() - startTime;
 
           // Record successful search metrics
-          monitoringService.recordSearchLatency('neon', executionTime, {
+          monitoringService.recordSearchLatency("neon", executionTime, {
             query: validatedRequest.query,
             resultsCount: results.length,
             threshold: validatedRequest.threshold,
           });
-          monitoringService.recordSearchSuccess('neon', {
+          monitoringService.recordSearchSuccess("neon", {
             query: validatedRequest.query,
             resultsCount: results.length,
           });
@@ -375,12 +375,12 @@ export function createNeonVectorStoreService(
           return results;
         } catch (error) {
           // Record search error
-          monitoringService.recordSearchError('neon', error as Error, {
+          monitoringService.recordSearchError("neon", error as Error, {
             query: validatedRequest.query,
           });
 
           console.error(
-            'Failed to search similar documents in Neon vector store:',
+            "Failed to search similar documents in Neon vector store:",
             error,
           );
           throw error;
@@ -421,7 +421,7 @@ export function createNeonVectorStoreService(
         });
       } catch (error) {
         console.error(
-          'Failed to search by embedding in Neon vector store:',
+          "Failed to search by embedding in Neon vector store:",
           error,
         );
         throw error;
@@ -439,16 +439,16 @@ export async function getNeonVectorStoreService(): Promise<NeonVectorStoreServic
 
     // Initialize extensions on first use, but not in test mode
     const isTestMode =
-      process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT === 'true';
+      process.env.NODE_ENV === "test" || process.env.PLAYWRIGHT === "true";
     if (neonVectorStoreService.isEnabled && !isTestMode) {
       try {
         await neonVectorStoreService.initializeExtensions();
       } catch (error) {
-        console.warn('Failed to initialize Neon pgvector extensions:', error);
+        console.warn("Failed to initialize Neon pgvector extensions:", error);
       }
     } else if (isTestMode) {
       console.log(
-        'Test mode: Skipping Neon pgvector extensions initialization',
+        "Test mode: Skipping Neon pgvector extensions initialization",
       );
     }
   }

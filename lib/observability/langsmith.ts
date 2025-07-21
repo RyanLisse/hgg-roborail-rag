@@ -1,6 +1,6 @@
-import { Client as LangSmithClient } from 'langsmith';
-import { z } from 'zod';
-import { langSmithConfig } from '../env';
+import { Client as LangSmithClient } from "langsmith";
+import { z } from "zod";
+import { langSmithConfig } from "../env";
 
 // Configuration schema
 export const LangSmithConfig = z.object({
@@ -13,7 +13,7 @@ export const LangSmithConfig = z.object({
 export const UserFeedback = z.object({
   runId: z.string(),
   score: z.number().min(0).max(1), // 0 for negative, 1 for positive
-  value: z.enum(['thumbs_up', 'thumbs_down']),
+  value: z.enum(["thumbs_up", "thumbs_down"]),
   comment: z.string().optional(),
   userId: z.string(),
   metadata: z.record(z.any()).optional(),
@@ -59,7 +59,7 @@ export function createLangSmithService(
   const validatedConfig = LangSmithConfig.parse(config);
 
   if (!validatedConfig.apiKey) {
-    console.warn('LangSmith API key not provided. Observability disabled.');
+    console.warn("LangSmith API key not provided. Observability disabled.");
     return {
       client: null as any,
       isEnabled: false,
@@ -79,7 +79,7 @@ export function createLangSmithService(
       projectName: validatedConfig.projectName,
     };
   } catch (error) {
-    console.error('Failed to initialize LangSmith client:', error);
+    console.error("Failed to initialize LangSmith client:", error);
     return {
       client: null as any,
       isEnabled: false,
@@ -105,8 +105,8 @@ export async function trackRagGeneration(
 
     await service.client.createRun({
       id: runId,
-      name: 'rag_generation',
-      run_type: 'chain',
+      name: "rag_generation",
+      run_type: "chain",
       inputs: {
         question: validatedData.question,
         sources: validatedData.sources,
@@ -122,14 +122,14 @@ export async function trackRagGeneration(
           usage: validatedData.usage,
           timestamp: Date.now(),
         },
-        tags: ['rag', 'generation'],
+        tags: ["rag", "generation"],
       },
       project_name: service.projectName,
     });
 
     return runId;
   } catch (error) {
-    console.error('Failed to track RAG generation:', error);
+    console.error("Failed to track RAG generation:", error);
     return null;
   }
 }
@@ -148,7 +148,7 @@ export async function submitUserFeedback(
 
     await service.client.createFeedback(
       validatedFeedback.runId,
-      'user_feedback',
+      "user_feedback",
       {
         score: validatedFeedback.score,
         value: validatedFeedback.value,
@@ -158,7 +158,7 @@ export async function submitUserFeedback(
 
     return validatedFeedback.runId;
   } catch (error) {
-    console.error('Failed to submit user feedback:', error);
+    console.error("Failed to submit user feedback:", error);
     return null;
   }
 }
@@ -185,7 +185,7 @@ export async function updateRunMetadata(
 
     return true;
   } catch (error) {
-    console.error('Failed to update run metadata:', error);
+    console.error("Failed to update run metadata:", error);
     return false;
   }
 }

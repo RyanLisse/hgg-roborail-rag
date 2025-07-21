@@ -1,26 +1,26 @@
-import 'server-only';
+import "server-only";
 
-import { z } from 'zod';
+import { z } from "zod";
 
 // ====================================
 // FALLBACK CONFIGURATION
 // ====================================
 
 export enum FallbackMode {
-  FAIL_FAST = 'FAIL_FAST', // Fail immediately without fallback
-  GRACEFUL = 'GRACEFUL', // Try fallbacks gracefully
-  SILENT = 'SILENT', // Return empty/default values
-  CACHED = 'CACHED', // Return cached values if available
-  PARTIAL = 'PARTIAL', // Return partial results
-  RETURN_EMPTY = 'RETURN_EMPTY', // Return empty results when fallback fails
+  FAIL_FAST = "FAIL_FAST", // Fail immediately without fallback
+  GRACEFUL = "GRACEFUL", // Try fallbacks gracefully
+  SILENT = "SILENT", // Return empty/default values
+  CACHED = "CACHED", // Return cached values if available
+  PARTIAL = "PARTIAL", // Return partial results
+  RETURN_EMPTY = "RETURN_EMPTY", // Return empty results when fallback fails
 }
 
 export const FallbackConfig = z.object({
   mode: z.nativeEnum(FallbackMode).default(FallbackMode.GRACEFUL),
   enableCaching: z.boolean().default(true),
-  cacheRetentionMs: z.number().min(60000).max(86400000).default(3600000), // 1 hour
-  maxCacheSize: z.number().min(100).max(10000).default(1000),
-  fallbackTimeoutMs: z.number().min(1000).max(30000).default(10000),
+  cacheRetentionMs: z.number().min(60_000).max(86_400_000).default(3_600_000), // 1 hour
+  maxCacheSize: z.number().min(100).max(10_000).default(1000),
+  fallbackTimeoutMs: z.number().min(1000).max(30_000).default(10_000),
   enablePartialResults: z.boolean().default(true),
   partialResultsThreshold: z.number().min(0).max(1).default(0.5), // Accept if 50% sources succeed
 });
@@ -201,7 +201,7 @@ export class FallbackManager<T> {
           results.push({
             provider: provider.name,
             result: null,
-            error: new Error('Provider not available'),
+            error: new Error("Provider not available"),
           });
           continue;
         }
@@ -440,11 +440,11 @@ export class FallbackManager<T> {
 
 export class GracefulDegradation {
   private static readonly degradationLevels = [
-    'full_service',
-    'reduced_functionality',
-    'basic_service',
-    'minimal_service',
-    'emergency_mode',
+    "full_service",
+    "reduced_functionality",
+    "basic_service",
+    "minimal_service",
+    "emergency_mode",
   ];
 
   private currentLevel = 0; // Start with full service
@@ -489,7 +489,7 @@ export class GracefulDegradation {
 
   getCurrentLevelName(): string {
     return (
-      GracefulDegradation.degradationLevels[this.currentLevel] || 'unknown'
+      GracefulDegradation.degradationLevels[this.currentLevel] || "unknown"
     );
   }
 
@@ -517,6 +517,6 @@ export class GracefulDegradation {
   reset(): void {
     this.currentLevel = 0;
     this.degradationReasons = [];
-    console.log('🔄 Service degradation reset to full service');
+    console.log("🔄 Service degradation reset to full service");
   }
 }

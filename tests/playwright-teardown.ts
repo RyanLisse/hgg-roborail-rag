@@ -1,6 +1,6 @@
-import type { FullConfig } from '@playwright/test';
-import { exec } from 'node:child_process';
-import { promisify } from 'node:util';
+import { exec } from "node:child_process";
+import { promisify } from "node:util";
+import type { FullConfig } from "@playwright/test";
 
 const execAsync = promisify(exec);
 
@@ -10,12 +10,12 @@ const execAsync = promisify(exec);
  */
 async function globalTeardown(config: FullConfig) {
   const startTime = Date.now();
-  console.log('🧹 Starting test environment teardown...');
+  console.log("🧹 Starting test environment teardown...");
 
   try {
     // Comprehensive cleanup with timeout
     const cleanupCommands = [
-      'lsof -ti:3000,3001 | xargs kill -9 2>/dev/null || true',
+      "lsof -ti:3000,3001 | xargs kill -9 2>/dev/null || true",
       'pkill -f "next dev" 2>/dev/null || true',
       'pkill -f "pnpm dev" 2>/dev/null || true',
     ];
@@ -26,9 +26,9 @@ async function globalTeardown(config: FullConfig) {
       ),
     );
 
-    console.log('✅ Process cleanup complete');
+    console.log("✅ Process cleanup complete");
   } catch (error) {
-    console.log('⚠️  Cleanup completed with warnings');
+    console.log("⚠️  Cleanup completed with warnings");
   }
 
   // Clean up environment

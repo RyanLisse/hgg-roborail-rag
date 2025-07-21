@@ -1,26 +1,26 @@
-import { generateText } from 'ai';
-import { getModelInstance } from '../ai/providers';
+import { generateText } from "ai";
+import { getModelInstance } from "../ai/providers";
+import { getUnifiedVectorStoreService } from "../vectorstore/unified";
 import type {
+  AgentRequest,
   AgentRouter,
   AgentRoutingDecision,
-  UserIntent,
-  QueryComplexity,
   AgentType,
-  AgentRequest,
+  QueryComplexity,
+  UserIntent,
   VectorStoreType,
-} from './types';
+} from "./types";
 import {
   AgentRoutingDecision as AgentRoutingDecisionSchema,
   QueryComplexity as QueryComplexitySchema,
-} from './types';
-import { getUnifiedVectorStoreService } from '../vectorstore/unified';
+} from "./types";
 
 export class SmartAgentRouter implements AgentRouter {
-  private readonly routingModel = 'openai-gpt-4.1-mini'; // Fast model for routing decisions
+  private readonly routingModel = "openai-gpt-4.1-mini"; // Fast model for routing decisions
 
   async routeQuery(
     query: string,
-    context?: AgentRequest['context'],
+    context?: AgentRequest["context"],
   ): Promise<AgentRoutingDecision> {
     try {
       // Analyze query in parallel
@@ -62,16 +62,16 @@ export class SmartAgentRouter implements AgentRouter {
         estimatedComplexity: complexity.level,
       });
     } catch (error) {
-      console.error('Router error, falling back to QA agent:', error);
+      console.error("Router error, falling back to QA agent:", error);
 
       // Fallback to QA agent on any error
       return AgentRoutingDecisionSchema.parse({
-        selectedAgent: 'qa',
+        selectedAgent: "qa",
         confidence: 0.5,
-        reasoning: 'Fallback to QA agent due to routing error',
-        fallbackAgent: 'research',
-        suggestedSources: ['openai'],
-        estimatedComplexity: 'moderate',
+        reasoning: "Fallback to QA agent due to routing error",
+        fallbackAgent: "research",
+        suggestedSources: ["openai"],
+        estimatedComplexity: "moderate",
       });
     }
   }
@@ -94,7 +94,7 @@ Intent:`;
     try {
       const { text } = await generateText({
         model: getModelInstance(this.routingModel),
-        messages: [{ role: 'user', content: prompt }],
+        messages: [{ role: "user", content: prompt }],
         maxTokens: 50,
         temperature: 0.1,
       });
@@ -102,24 +102,24 @@ Intent:`;
       const intent = text.trim().toLowerCase();
 
       // Map response to valid intent
-      if (intent.includes('question') || intent.includes('factual'))
-        return 'question_answering';
-      if (intent.includes('summar')) return 'summarization';
-      if (intent.includes('rewrit') || intent.includes('rephras'))
-        return 'rewriting';
-      if (intent.includes('plan')) return 'planning';
-      if (intent.includes('research') || intent.includes('investigat'))
-        return 'research';
-      if (intent.includes('compar')) return 'comparison';
-      if (intent.includes('analy')) return 'analysis';
+      if (intent.includes("question") || intent.includes("factual"))
+        return "question_answering";
+      if (intent.includes("summar")) return "summarization";
+      if (intent.includes("rewrit") || intent.includes("rephras"))
+        return "rewriting";
+      if (intent.includes("plan")) return "planning";
+      if (intent.includes("research") || intent.includes("investigat"))
+        return "research";
+      if (intent.includes("compar")) return "comparison";
+      if (intent.includes("analy")) return "analysis";
 
-      return 'question_answering'; // Default fallback
+      return "question_answering"; // Default fallback
     } catch (error) {
       console.warn(
-        'Intent classification failed, defaulting to question_answering:',
+        "Intent classification failed, defaulting to question_answering:",
         error,
       );
-      return 'question_answering';
+      return "question_answering";
     }
   }
 
@@ -143,10 +143,10 @@ Intent:`;
     score += requiresSynthesis ? 0.15 : 0;
 
     // Determine complexity level
-    let level: 'simple' | 'moderate' | 'complex';
-    if (score <= 0.3) level = 'simple';
-    else if (score <= 0.6) level = 'moderate';
-    else level = 'complex';
+    let level: "simple" | "moderate" | "complex";
+    if (score <= 0.3) level = "simple";
+    else if (score <= 0.6) level = "moderate";
+    else level = "complex";
 
     return QueryComplexitySchema.parse({
       level,
@@ -169,48 +169,48 @@ Intent:`;
   ): AgentType {
     // Direct intent-to-agent mapping
     switch (intent) {
-      case 'summarization':
-      case 'rewriting':
-        return 'rewrite';
+      case "summarization":
+      case "rewriting":
+        return "rewrite";
 
-      case 'planning':
-        return 'planner';
+      case "planning":
+        return "planner";
 
-      case 'research':
-      case 'analysis':
-        return 'research';
+      case "research":
+      case "analysis":
+        return "research";
 
-      case 'comparison':
+      case "comparison":
         // Use research for complex comparisons, QA for simple ones
-        return complexity.level === 'complex' ? 'research' : 'qa';
+        return complexity.level === "complex" ? "research" : "qa";
 
-      case 'question_answering':
-      case 'general_chat':
+      case "question_answering":
+      case "general_chat":
       default:
         // Select based on complexity for general questions
         if (
-          complexity.level === 'complex' &&
+          complexity.level === "complex" &&
           complexity.factors.requiresMultipleSteps
         ) {
-          return 'planner';
+          return "planner";
         }
         if (
-          complexity.level === 'complex' ||
+          complexity.level === "complex" ||
           complexity.factors.requiresSynthesis
         ) {
-          return 'research';
+          return "research";
         }
-        return 'qa';
+        return "qa";
     }
   }
 
   private getFallbackAgent(primaryAgent: AgentType): AgentType {
     // Define fallback chains
     const fallbacks: Record<AgentType, AgentType> = {
-      qa: 'research',
-      rewrite: 'qa',
-      planner: 'qa',
-      research: 'qa',
+      qa: "research",
+      rewrite: "qa",
+      planner: "qa",
+      research: "qa",
     };
 
     return fallbacks[primaryAgent];
@@ -226,26 +226,26 @@ Intent:`;
     // Boost confidence for clear intent indicators
     const lowerQuery = query.toLowerCase();
     if (
-      intent === 'rewriting' &&
-      (lowerQuery.includes('rewrite') || lowerQuery.includes('rephrase'))
+      intent === "rewriting" &&
+      (lowerQuery.includes("rewrite") || lowerQuery.includes("rephrase"))
     ) {
       confidence += 0.2;
     }
     if (
-      intent === 'planning' &&
-      (lowerQuery.includes('plan') || lowerQuery.includes('step'))
+      intent === "planning" &&
+      (lowerQuery.includes("plan") || lowerQuery.includes("step"))
     ) {
       confidence += 0.2;
     }
     if (
-      intent === 'research' &&
-      (lowerQuery.includes('research') || lowerQuery.includes('analyze'))
+      intent === "research" &&
+      (lowerQuery.includes("research") || lowerQuery.includes("analyze"))
     ) {
       confidence += 0.2;
     }
 
     // Adjust for complexity alignment
-    if (complexity.level === 'simple' && intent === 'question_answering') {
+    if (complexity.level === "simple" && intent === "question_answering") {
       confidence += 0.1;
     }
 
@@ -263,13 +263,13 @@ Intent:`;
     ];
 
     if (complexity.factors.requiresMultipleSteps) {
-      reasons.push('Multi-step approach needed');
+      reasons.push("Multi-step approach needed");
     }
     if (complexity.factors.requiresSynthesis) {
-      reasons.push('Information synthesis required');
+      reasons.push("Information synthesis required");
     }
 
-    return reasons.join('; ');
+    return reasons.join("; ");
   }
 
   private selectOptimalSources(
@@ -278,33 +278,33 @@ Intent:`;
     available: VectorStoreType[],
   ): VectorStoreType[] {
     // Research and complex queries benefit from multiple sources
-    if (agent === 'research' || intent === 'research') {
+    if (agent === "research" || intent === "research") {
       return available.slice(0, 3); // Use up to 3 sources
     }
 
     // Simple QA can use fewer sources
-    if (agent === 'qa' && available.includes('openai')) {
-      return ['openai']; // Prioritize OpenAI for simple queries
+    if (agent === "qa" && available.includes("openai")) {
+      return ["openai"]; // Prioritize OpenAI for simple queries
     }
 
     return available.slice(0, 2); // Default to 2 sources
   }
 
   private async getAvailableSources(): Promise<
-    ('openai' | 'neon' | 'memory')[]
+    ("openai" | "neon" | "memory")[]
   > {
     try {
       const service = await getUnifiedVectorStoreService();
       const sources = await service.getAvailableSources();
       // Filter out 'unified' since agents work with individual sources
-      return sources.filter((source) => source !== 'unified') as (
-        | 'openai'
-        | 'neon'
-        | 'memory'
+      return sources.filter((source) => source !== "unified") as (
+        | "openai"
+        | "neon"
+        | "memory"
       )[];
     } catch (error) {
-      console.warn('Failed to get available sources, using defaults:', error);
-      return ['openai', 'memory']; // Fallback sources
+      console.warn("Failed to get available sources, using defaults:", error);
+      return ["openai", "memory"]; // Fallback sources
     }
   }
 
