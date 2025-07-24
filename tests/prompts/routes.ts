@@ -1,13 +1,13 @@
-import { generateUUID } from "@/lib/utils";
+import { generateUUID } from '@/lib/utils';
 
 export const TEST_PROMPTS = {
   SKY: {
     MESSAGE: {
       id: generateUUID(),
       createdAt: new Date().toISOString(),
-      role: "user",
-      content: "Why is the sky blue?",
-      parts: [{ type: "text", text: "Why is the sky blue?" }],
+      role: 'user',
+      content: 'Why is the sky blue?',
+      parts: [{ type: 'text', text: 'Why is the sky blue?' }],
     },
     OUTPUT_STREAM: [
       '0:"It\'s "',
@@ -22,9 +22,9 @@ export const TEST_PROMPTS = {
     MESSAGE: {
       id: generateUUID(),
       createdAt: new Date().toISOString(),
-      role: "user",
-      content: "Why is grass green?",
-      parts: [{ type: "text", text: "Why is grass green?" }],
+      role: 'user',
+      content: 'Why is grass green?',
+      parts: [{ type: 'text', text: 'Why is grass green?' }],
     },
 
     OUTPUT_STREAM: [

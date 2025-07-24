@@ -1,46 +1,46 @@
-"use client";
+'use client';
 
-import ChevronDownIcon from "lucide-react/dist/esm/icons/chevron-down";
-import ChevronRightIcon from "lucide-react/dist/esm/icons/chevron-right";
-import { useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { useAgentInfo } from "@/hooks/use-agent-info";
-import { cn } from "@/lib/utils";
+import ChevronDownIcon from 'lucide-react/dist/esm/icons/chevron-down';
+import ChevronRightIcon from 'lucide-react/dist/esm/icons/chevron-right';
+import { useState } from 'react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { useAgentInfo } from '@/hooks/use-agent-info';
+import { cn } from '@/lib/utils';
 
 const agentLabels = {
-  qa: "Q&A Agent",
-  rewrite: "Rewrite Agent",
-  planner: "Planner Agent",
-  research: "Research Agent",
+  qa: 'Q&A Agent',
+  rewrite: 'Rewrite Agent',
+  planner: 'Planner Agent',
+  research: 'Research Agent',
 };
 
 const agentColors = {
-  qa: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
-  rewrite: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+  qa: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
+  rewrite: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
   planner:
-    "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
+    'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300',
   research:
-    "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300",
+    'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300',
 };
 
 const complexityColors = {
-  simple: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
+  simple: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300',
   moderate:
-    "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
-  complex: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
+    'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
+  complex: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
 };
 
 export function AgentStatus({ className }: { className?: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const { routing, metadata } = useAgentInfo();
 
-  if (!routing) return null;
+  if (!routing) { return null; }
 
   const confidencePercentage = Math.round(routing.confidence * 100);
 
   return (
-    <div className={cn("rounded-lg border bg-muted/30 p-3", className)}>
+    <div className={cn('rounded-lg border bg-muted/30 p-3', className)}>
       <Button
         className="h-auto w-full justify-between p-0"
         onClick={() => setIsOpen(!isOpen)}

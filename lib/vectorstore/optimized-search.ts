@@ -11,7 +11,7 @@ import {
   type EnhancedSearchResponse,
   type UnifiedSearchRequest,
   VectorStoreType,
-} from "./core/types";
+} from './core/types';
 
 interface SearchCacheKey {
   query: string;
@@ -57,7 +57,6 @@ class OptimizedVectorSearch {
   private getCachedResult(cacheKey: string): EnhancedSearchResponse | null {
     const cached = this.searchCache.get(cacheKey);
     if (cached && this.isCacheValid(cached)) {
-      console.log("🚀 Cache hit for search query");
       return cached.result;
     }
 
@@ -94,12 +93,11 @@ class OptimizedVectorSearch {
    * Execute parallel search with timeout and early termination
    */
   async executeParallelSearch(
-    request: UnifiedSearchRequest,
+    _request: UnifiedSearchRequest,
     searchMethods: Array<() => Promise<any[]>>,
   ): Promise<any[]> {
     const controller = new AbortController();
     const timeout = setTimeout(() => {
-      console.log("⏰ Search timeout reached, aborting...");
       controller.abort();
     }, this.SEARCH_TIMEOUT);
 
@@ -111,18 +109,16 @@ class OptimizedVectorSearch {
           const result = await Promise.race([
             searchMethod(),
             new Promise((_, reject) => {
-              controller.signal.addEventListener("abort", () => {
+              controller.signal.addEventListener('abort', () => {
                 reject(new Error(`Search ${index} aborted due to timeout`));
               });
             }),
           ]);
 
-          const duration = Date.now() - startTime;
-          console.log(`✅ Search ${index} completed in ${duration}ms`);
+          const _duration = Date.now() - startTime;
 
           return result;
-        } catch (error) {
-          console.warn(`⚠️ Search ${index} failed:`, error);
+        } catch (_error) {
           return [];
         }
       });
@@ -134,12 +130,11 @@ class OptimizedVectorSearch {
       return results
         .filter(
           (result): result is PromiseFulfilledResult<any[]> =>
-            result.status === "fulfilled",
+            result.status === 'fulfilled',
         )
         .flatMap((result) => result.value);
-    } catch (error) {
+    } catch (_error) {
       clearTimeout(timeout);
-      console.error("❌ Parallel search execution failed:", error);
       return [];
     }
   }
@@ -168,14 +163,12 @@ class OptimizedVectorSearch {
     }
 
     try {
-      console.log(`🔍 Starting optimized search for: "${request.query}"`);
 
       // Create search methods for each enabled source
       const searchMethods: Array<() => Promise<any[]>> = [];
 
       if (request.sources?.includes(VectorStoreType.OPENAI)) {
         searchMethods.push(async () => {
-          console.log("🔍 Searching OpenAI...");
           return await vectorStoreService.searchOpenAI(
             request.query,
             Math.ceil(request.maxResults / (request.sources?.length || 1)),
@@ -188,7 +181,6 @@ class OptimizedVectorSearch {
 
       if (request.sources?.includes(VectorStoreType.NEON)) {
         searchMethods.push(async () => {
-          console.log("🔍 Searching Neon...");
           return await vectorStoreService.searchNeon(
             request.query,
             Math.ceil(request.maxResults / (request.sources?.length || 1)),
@@ -200,7 +192,6 @@ class OptimizedVectorSearch {
 
       if (request.sources?.includes(VectorStoreType.MEMORY)) {
         searchMethods.push(async () => {
-          console.log("🔍 Searching Memory...");
           // Memory search implementation
           return [];
         });
@@ -227,7 +218,7 @@ class OptimizedVectorSearch {
         rerankingApplied: false,
         diversificationApplied: false,
         hybridSearchUsed: false,
-        scoringStrategy: "optimized_parallel",
+        scoringStrategy: 'optimized_parallel',
         performance: {
           searchTime: totalTime,
           totalTime,
@@ -239,13 +230,8 @@ class OptimizedVectorSearch {
 
       // Cache the result for future requests
       this.cacheResult(cacheKey, response);
-
-      console.log(
-        `✅ Optimized search completed: ${finalResults.length} results in ${totalTime}ms`,
-      );
       return response;
-    } catch (error) {
-      console.error("❌ Optimized search failed:", error);
+    } catch (_error) {
 
       // Fallback to basic search without caching
       const totalTime = Date.now() - startTime;
@@ -257,12 +243,12 @@ class OptimizedVectorSearch {
         rerankingApplied: false,
         diversificationApplied: false,
         hybridSearchUsed: false,
-        scoringStrategy: "fallback_optimized",
+        scoringStrategy: 'fallback_optimized',
         performance: {
           searchTime: totalTime,
           totalTime,
           cacheHit: false,
-          error: "Search failed",
+          error: 'Search failed',
         },
         // debugInfo: {
         //   error: error instanceof Error ? error.message : 'Unknown error',
@@ -277,7 +263,6 @@ class OptimizedVectorSearch {
    */
   clearCache(): void {
     this.searchCache.clear();
-    console.log("🗑️ Search cache cleared");
   }
 
   /**

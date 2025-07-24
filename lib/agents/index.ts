@@ -1,7 +1,7 @@
-import "server-only";
+import 'server-only';
 
 // Re-export base classes for type definitions (lightweight)
-export { BaseAgent } from "./base-agent";
+export { BaseAgent } from './base-agent';
 // Core types and interfaces
 export type {
   Agent,
@@ -15,10 +15,10 @@ export type {
   QueryComplexity,
   UserIntent,
   VectorStoreType,
-} from "./types";
+} from './types';
 
-import { ServiceTokens } from "../di/container";
-import { createRequestScope, hasService } from "../di/services";
+import { ServiceTokens } from '../di/container';
+import { createRequestScope, hasService } from '../di/services';
 // Import only types and DI utilities (lightweight imports)
 import type {
   AgentConfig,
@@ -28,13 +28,13 @@ import type {
   AgentType,
   QueryComplexity,
   UserIntent,
-} from "./types";
+} from './types';
 
 /**
  * Environment flag to enable/disable code splitting for agents
  */
 export const AGENT_CODE_SPLITTING_ENABLED =
-  process.env.ENABLE_CODE_SPLITTING !== "false";
+  process.env.ENABLE_CODE_SPLITTING !== 'false';
 
 /**
  * Lazy loading factory functions for agents
@@ -45,11 +45,11 @@ export const AGENT_CODE_SPLITTING_ENABLED =
  */
 export async function createQAAgent() {
   if (!AGENT_CODE_SPLITTING_ENABLED) {
-    const { QAAgent } = require("./qa-agent");
+    const { QAAgent } = require('./qa-agent');
     return new QAAgent();
   }
 
-  const { QAAgent } = await import("./qa-agent");
+  const { QAAgent } = await import('./qa-agent');
   return new QAAgent();
 }
 
@@ -58,11 +58,11 @@ export async function createQAAgent() {
  */
 export async function createRewriteAgent() {
   if (!AGENT_CODE_SPLITTING_ENABLED) {
-    const { RewriteAgent } = require("./rewrite-agent");
+    const { RewriteAgent } = require('./rewrite-agent');
     return new RewriteAgent();
   }
 
-  const { RewriteAgent } = await import("./rewrite-agent");
+  const { RewriteAgent } = await import('./rewrite-agent');
   return new RewriteAgent();
 }
 
@@ -71,11 +71,11 @@ export async function createRewriteAgent() {
  */
 export async function createPlannerAgent() {
   if (!AGENT_CODE_SPLITTING_ENABLED) {
-    const { PlannerAgent } = require("./planner-agent");
+    const { PlannerAgent } = require('./planner-agent');
     return new PlannerAgent();
   }
 
-  const { PlannerAgent } = await import("./planner-agent");
+  const { PlannerAgent } = await import('./planner-agent');
   return new PlannerAgent();
 }
 
@@ -84,11 +84,11 @@ export async function createPlannerAgent() {
  */
 export async function createResearchAgent() {
   if (!AGENT_CODE_SPLITTING_ENABLED) {
-    const { ResearchAgent } = require("./research-agent");
+    const { ResearchAgent } = require('./research-agent');
     return new ResearchAgent();
   }
 
-  const { ResearchAgent } = await import("./research-agent");
+  const { ResearchAgent } = await import('./research-agent');
   return new ResearchAgent();
 }
 
@@ -97,11 +97,11 @@ export async function createResearchAgent() {
  */
 export async function createSmartAgentRouter() {
   if (!AGENT_CODE_SPLITTING_ENABLED) {
-    const { SmartAgentRouter } = require("./router");
+    const { SmartAgentRouter } = require('./router');
     return new SmartAgentRouter();
   }
 
-  const { SmartAgentRouter } = await import("./router");
+  const { SmartAgentRouter } = await import('./router');
   return new SmartAgentRouter();
 }
 
@@ -110,11 +110,11 @@ export async function createSmartAgentRouter() {
  */
 export async function createAgentOrchestrator(config?: Partial<AgentConfig>) {
   if (!AGENT_CODE_SPLITTING_ENABLED) {
-    const { AgentOrchestrator } = require("./orchestrator");
+    const { AgentOrchestrator } = require('./orchestrator');
     return new AgentOrchestrator(config);
   }
 
-  const { AgentOrchestrator } = await import("./orchestrator");
+  const { AgentOrchestrator } = await import('./orchestrator');
   return new AgentOrchestrator(config);
 }
 
@@ -123,13 +123,13 @@ export async function createAgentOrchestrator(config?: Partial<AgentConfig>) {
  */
 export async function createAgent(agentType: AgentType) {
   switch (agentType) {
-    case "qa":
+    case 'qa':
       return createQAAgent();
-    case "rewrite":
+    case 'rewrite':
       return createRewriteAgent();
-    case "planner":
+    case 'planner':
       return createPlannerAgent();
-    case "research":
+    case 'research':
       return createResearchAgent();
     default:
       throw new Error(`Unknown agent type: ${agentType}`);
@@ -164,7 +164,7 @@ export function clearAgentCache() {
 /**
  * Preload commonly used agents
  */
-export async function preloadAgents(types: AgentType[] = ["qa"]) {
+export async function preloadAgents(types: AgentType[] = ['qa']) {
   const loadPromises = types.map((type) => getAgent(type));
   await Promise.allSettled(loadPromises);
 }
@@ -186,7 +186,7 @@ export async function getAgentOrchestrator(config?: Partial<AgentConfig>) {
       // Fallback to lazy-loaded instantiation
       const defaultConfig: Partial<AgentConfig> = {
         vectorStoreConfig: {
-          defaultSources: ["memory"],
+          defaultSources: ['memory'],
           searchThreshold: 0.3,
           maxResults: 10,
         },
@@ -225,8 +225,8 @@ export async function createAgentOrchestratorLegacy(
 export async function processQuery(
   query: string,
   options?: {
-    chatHistory?: AgentRequest["chatHistory"];
-    sources?: ("openai" | "neon" | "memory")[];
+    chatHistory?: AgentRequest['chatHistory'];
+    sources?: ('openai' | 'neon' | 'memory')[];
     modelId?: string;
     streaming?: boolean;
   },
@@ -237,14 +237,14 @@ export async function processQuery(
     query,
     chatHistory: options?.chatHistory || [],
     context: {
-      sources: options?.sources || ["memory"],
+      sources: options?.sources || ['memory'],
       maxResults: 10,
-      complexity: "moderate",
+      complexity: 'moderate',
       domainKeywords: [],
       requiresCitations: true,
     },
     options: {
-      modelId: options?.modelId || "anthropic-claude-sonnet-4-20250514",
+      modelId: options?.modelId || 'anthropic-claude-sonnet-4-20250514',
       streaming: options?.streaming ?? false,
       useTools: true,
     },
@@ -259,8 +259,8 @@ export async function processQuery(
 export async function* processQueryStream(
   query: string,
   options?: {
-    chatHistory?: AgentRequest["chatHistory"];
-    sources?: ("openai" | "neon" | "memory")[];
+    chatHistory?: AgentRequest['chatHistory'];
+    sources?: ('openai' | 'neon' | 'memory')[];
     modelId?: string;
   },
 ): AsyncGenerator<string, AgentResponse, unknown> {
@@ -270,14 +270,14 @@ export async function* processQueryStream(
     query,
     chatHistory: options?.chatHistory || [],
     context: {
-      sources: options?.sources || ["memory"],
+      sources: options?.sources || ['memory'],
       maxResults: 10,
-      complexity: "moderate",
+      complexity: 'moderate',
       domainKeywords: [],
       requiresCitations: true,
     },
     options: {
-      modelId: options?.modelId || "anthropic-claude-sonnet-4-20250514",
+      modelId: options?.modelId || 'anthropic-claude-sonnet-4-20250514',
       streaming: true,
       useTools: true,
     },
@@ -287,7 +287,7 @@ export async function* processQueryStream(
   let finalResponse: AgentResponse | undefined;
 
   for await (const chunk of streamGenerator) {
-    if (typeof chunk === "string") {
+    if (typeof chunk === 'string') {
       yield chunk;
     } else {
       finalResponse = chunk;
@@ -296,9 +296,9 @@ export async function* processQueryStream(
 
   return (
     finalResponse || {
-      content: "",
-      agent: "qa",
-      metadata: { modelUsed: "unknown" },
+      content: '',
+      agent: 'qa',
+      metadata: { modelUsed: 'unknown' },
       streamingSupported: true,
     }
   );
@@ -311,8 +311,8 @@ export async function useAgent(
   agentType: AgentType,
   query: string,
   options?: {
-    chatHistory?: AgentRequest["chatHistory"];
-    sources?: ("openai" | "neon" | "memory")[];
+    chatHistory?: AgentRequest['chatHistory'];
+    sources?: ('openai' | 'neon' | 'memory')[];
     modelId?: string;
   },
 ): Promise<AgentResponse> {
@@ -339,14 +339,14 @@ export async function useAgent(
     query,
     chatHistory: options?.chatHistory || [],
     context: {
-      sources: options?.sources || ["memory"],
+      sources: options?.sources || ['memory'],
       maxResults: 10,
-      complexity: "moderate",
+      complexity: 'moderate',
       domainKeywords: [],
       requiresCitations: true,
     },
     options: {
-      modelId: options?.modelId || "anthropic-claude-sonnet-4-20250514",
+      modelId: options?.modelId || 'anthropic-claude-sonnet-4-20250514',
       streaming: false,
       useTools: true,
     },
@@ -405,7 +405,7 @@ export async function analyzeComplexity(
  */
 export async function getRoutingDecision(
   query: string,
-  context?: AgentRequest["context"],
+  context?: AgentRequest['context'],
 ): Promise<AgentRoutingDecision> {
   const router = await getRouter();
   return router.routeQuery(query, context);

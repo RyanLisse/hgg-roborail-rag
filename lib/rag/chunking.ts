@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 // Schemas for chunking configuration and results
 export const ChunkMetadata = z
@@ -8,7 +8,7 @@ export const ChunkMetadata = z
     chunkIndex: z.number(),
     totalChunks: z.number(),
     chunkType: z
-      .enum(["text", "code", "heading", "paragraph", "list", "table"])
+      .enum(['text', 'code', 'heading', 'paragraph', 'list', 'table'])
       .optional(),
     documentStructure: z
       .object({
@@ -29,18 +29,18 @@ export const ChunkMetadata = z
   .passthrough();
 
 export const ChunkingStrategy = z.enum([
-  "character", // Basic character-based chunking
-  "semantic", // Respect document structure boundaries
-  "recursive", // Recursively break down large chunks
-  "hybrid", // Combine multiple strategies
-  "sentence", // Split on sentence boundaries
-  "paragraph", // Split on paragraph boundaries
-  "markdown", // Markdown-aware chunking
-  "code", // Code-aware chunking
+  'character', // Basic character-based chunking
+  'semantic', // Respect document structure boundaries
+  'recursive', // Recursively break down large chunks
+  'hybrid', // Combine multiple strategies
+  'sentence', // Split on sentence boundaries
+  'paragraph', // Split on paragraph boundaries
+  'markdown', // Markdown-aware chunking
+  'code', // Code-aware chunking
 ]);
 
 export const ChunkingConfig = z.object({
-  strategy: ChunkingStrategy.default("hybrid"),
+  strategy: ChunkingStrategy.default('hybrid'),
   chunkSize: z.number().min(100).max(10_000).default(1500),
   chunkOverlap: z.number().min(0).max(1000).default(200),
   preserveStructure: z.boolean().default(true),
@@ -73,7 +73,7 @@ export type DocumentChunk = z.infer<typeof DocumentChunk>;
 export interface Document {
   id: string;
   content: string;
-  type?: "text" | "markdown" | "code" | "html";
+  type?: 'text' | 'markdown' | 'code' | 'html';
   metadata: Record<string, unknown>;
 }
 
@@ -98,19 +98,19 @@ const MARKDOWN_PATTERNS = {
   table: /\|.*\|/g,
 };
 
-const CODE_PATTERNS = {
+const _CODE_PATTERNS = {
   function: /(?:function|def|class|interface|type)\s+\w+/g,
   comment: /\/\*[\s\S]*?\*\/|\/\/.*$/gm,
   block: /\{[\s\S]*?\}/g,
 };
 
 const STRUCTURE_SEPARATORS = [
-  "\n\n\n", // Major section breaks
-  "\n\n", // Paragraph breaks
-  "\n---\n", // Horizontal rules
-  "\n***\n", // Alternative horizontal rules
-  "\n===\n", // Title underlines
-  "\n---", // Section breaks
+  '\n\n\n', // Major section breaks
+  '\n\n', // Paragraph breaks
+  '\n---\n', // Horizontal rules
+  '\n***\n', // Alternative horizontal rules
+  '\n===\n', // Title underlines
+  '\n---', // Section breaks
 ];
 
 // Quality validation functions
@@ -130,7 +130,7 @@ function validateChunkQuality(
   // Check for complete sentences
   const sentences = chunk.split(/[.!?]+/).filter((s) => s.trim().length > 0);
   if (sentences.length > 0) {
-    const lastSentence = sentences[sentences.length - 1].trim();
+    const lastSentence = sentences.at(-1)?.trim() || '';
     if (
       lastSentence.match(/[.!?]$/) ||
       context.chunkIndex === context.totalChunks - 1
@@ -146,14 +146,14 @@ function validateChunkQuality(
   }
 
   // Check for meaningful content (not just whitespace/formatting)
-  const meaningfulContent = chunk.replace(/\s+/g, " ").trim();
+  const meaningfulContent = chunk.replace(/\s+/g, ' ').trim();
   if (meaningfulContent.length > 20) {
     score += 0.2;
     coherence += 0.2;
   }
 
   // Check for balanced parentheses/brackets in code
-  if (context.documentType === "code") {
+  if (context.documentType === 'code') {
     const openBrackets = (chunk.match(/[{[(]/g) || []).length;
     const closeBrackets = (chunk.match(/[}\])]/g) || []).length;
     if (Math.abs(openBrackets - closeBrackets) <= 1) {
@@ -194,11 +194,11 @@ function analyzeDocumentStructure(
   const lists: Array<{ position: number; length: number }> = [];
   const naturalBreaks: number[] = [];
 
-  if (documentType === "markdown") {
+  if (documentType === 'markdown') {
     // Extract headings
     let match: RegExpExecArray | null = MARKDOWN_PATTERNS.heading.exec(content);
     while (match !== null) {
-      const level = match[0].indexOf(" ") - 1; // Count # characters
+      const level = match[0].indexOf(' ') - 1; // Count # characters
       headings.push({
         level,
         text: match[1],
@@ -390,12 +390,12 @@ class RecursiveChunker {
       const splits = content.split(separator);
       if (splits.length > 1) {
         const chunks: string[] = [];
-        let currentChunk = "";
+        let currentChunk = '';
 
         for (let i = 0; i < splits.length; i++) {
           const split = splits[i];
           const testChunk =
-            currentChunk + (currentChunk ? separator : "") + split;
+            currentChunk + (currentChunk ? separator : '') + split;
 
           if (testChunk.length <= chunkSize) {
             currentChunk = testChunk;
@@ -546,40 +546,40 @@ export class DocumentChunkingService {
 
     // Apply appropriate chunking strategy
     switch (strategy) {
-      case "character":
+      case 'character':
         chunks = CharacterChunker.chunk(document.content, validatedConfig);
         break;
-      case "semantic":
+      case 'semantic':
         chunks = SemanticChunker.chunk(
           document.content,
           validatedConfig,
           document.type,
         );
         break;
-      case "recursive":
+      case 'recursive':
         chunks = RecursiveChunker.chunk(
           document.content,
           validatedConfig,
           document.type,
         );
         break;
-      case "hybrid":
+      case 'hybrid':
         chunks = HybridChunker.chunk(
           document.content,
           validatedConfig,
           document.type,
         );
         break;
-      case "sentence":
+      case 'sentence':
         chunks = this.chunkBySentences(document.content, validatedConfig);
         break;
-      case "paragraph":
+      case 'paragraph':
         chunks = this.chunkByParagraphs(document.content, validatedConfig);
         break;
-      case "markdown":
+      case 'markdown':
         chunks = this.chunkMarkdown(document.content, validatedConfig);
         break;
-      case "code":
+      case 'code':
         chunks = this.chunkCode(document.content, validatedConfig);
         break;
       default:
@@ -607,7 +607,7 @@ export class DocumentChunkingService {
       const end = start + chunk.length;
       lastEnd = end;
 
-      const preservedStructure = strategy !== "character";
+      const preservedStructure = strategy !== 'character';
 
       const quality = enableQualityValidation
         ? validateChunkQuality(chunk, {
@@ -688,7 +688,7 @@ export class DocumentChunkingService {
       const chunks: string[] = [];
       for (let i = 0; i < sentences.length; i += sentencesPerChunk) {
         const chunkSentences = sentences.slice(i, i + sentencesPerChunk);
-        const chunk = chunkSentences.join(" ");
+        const chunk = chunkSentences.join(' ');
         if (chunk.trim().length > 0) {
           chunks.push(chunk);
         }
@@ -708,20 +708,20 @@ export class DocumentChunkingService {
 
     // Fallback to original logic for single sentence or edge cases
     const chunks: string[] = [];
-    let currentChunk = "";
+    let currentChunk = '';
 
     for (const sentence of sentences) {
-      const testChunk = currentChunk + (currentChunk ? " " : "") + sentence;
+      const testChunk = currentChunk + (currentChunk ? ' ' : '') + sentence;
 
       if (testChunk.length <= config.chunkSize) {
         currentChunk = testChunk;
       } else {
-        if (currentChunk) chunks.push(currentChunk);
+        if (currentChunk) { chunks.push(currentChunk); }
         currentChunk = sentence;
       }
     }
 
-    if (currentChunk) chunks.push(currentChunk);
+    if (currentChunk) { chunks.push(currentChunk); }
     return chunks.length > 1
       ? chunks
       : sentences.length > 1
@@ -734,33 +734,33 @@ export class DocumentChunkingService {
       .split(/\n\s*\n/)
       .filter((p) => p.trim().length > 0);
     const chunks: string[] = [];
-    let currentChunk = "";
+    let currentChunk = '';
 
     for (const paragraph of paragraphs) {
-      const testChunk = currentChunk + (currentChunk ? "\n\n" : "") + paragraph;
+      const testChunk = currentChunk + (currentChunk ? '\n\n' : '') + paragraph;
 
       if (testChunk.length <= config.chunkSize) {
         currentChunk = testChunk;
       } else {
-        if (currentChunk) chunks.push(currentChunk);
+        if (currentChunk) { chunks.push(currentChunk); }
 
         // If single paragraph is too large, split it
         if (paragraph.length > config.chunkSize) {
           chunks.push(...CharacterChunker.chunk(paragraph, config));
-          currentChunk = "";
+          currentChunk = '';
         } else {
           currentChunk = paragraph;
         }
       }
     }
 
-    if (currentChunk) chunks.push(currentChunk);
+    if (currentChunk) { chunks.push(currentChunk); }
     return chunks;
   }
 
   private chunkMarkdown(content: string, config: ChunkingConfig): string[] {
     // Use semantic chunking with markdown-specific patterns
-    return SemanticChunker.chunk(content, config, "markdown");
+    return SemanticChunker.chunk(content, config, 'markdown');
   }
 
   private chunkCode(content: string, config: ChunkingConfig): string[] {
@@ -776,7 +776,7 @@ export class DocumentChunkingService {
 
     if (functionMatches.length > 0) {
       const chunks: string[] = [];
-      let currentChunk = "";
+      let currentChunk = '';
       let lastEnd = 0;
 
       for (let i = 0; i < functionMatches.length; i++) {
@@ -799,14 +799,14 @@ export class DocumentChunkingService {
           const functionStart = functionMatch.index;
           let braceCount = 0;
           let inString = false;
-          let stringChar = "";
+          let stringChar = '';
 
           for (let j = functionStart; j < content.length; j++) {
             const char = content[j];
-            const prevChar = j > 0 ? content[j - 1] : "";
+            const prevChar = j > 0 ? content[j - 1] : '';
 
             // Handle string literals
-            if ((char === '"' || char === "'") && prevChar !== "\\") {
+            if ((char === '"' || char === "'") && prevChar !== '\\') {
               if (!inString) {
                 inString = true;
                 stringChar = char;
@@ -816,8 +816,8 @@ export class DocumentChunkingService {
             }
 
             if (!inString) {
-              if (char === "{") braceCount++;
-              if (char === "}") braceCount--;
+              if (char === '{') { braceCount++; }
+              if (char === '}') { braceCount--; }
 
               // Found the closing brace for the function
               if (
@@ -871,28 +871,29 @@ export class DocumentChunkingService {
 
       return chunks.length > 0
         ? chunks
-        : RecursiveChunker.chunk(content, config, "code");
+        : RecursiveChunker.chunk(content, config, 'code');
     }
 
-    return RecursiveChunker.chunk(content, config, "code");
+    return RecursiveChunker.chunk(content, config, 'code');
   }
 
   private detectChunkType(
     chunk: string,
     documentType?: string,
-  ): ChunkMetadata["chunkType"] {
-    if (documentType === "code") return "code";
-    if (chunk.match(/^#{1,6}\s/)) return "heading";
-    if (chunk.match(/^\s*[-*+]\s/)) return "list";
-    if (chunk.match(/\|.*\|/)) return "table";
+  ): ChunkMetadata['chunkType'] {
+    if (documentType === 'code') { return 'code'; }
+    if (chunk.match(/^#{1,6}\s/)) { return 'heading'; }
+    if (chunk.match(/^\s*[-*+]\s/)) { return 'list'; }
+    if (chunk.match(/\|.*\|/)) { return 'table'; }
     // Check if chunk contains paragraph-like content (not just code or lists)
     if (
       chunk.match(/[a-zA-Z]{10,}/) &&
       !chunk.match(/^\s*[-*+]\s/) &&
       !chunk.match(/^#{1,6}\s/)
-    )
-      return "paragraph";
-    return "text";
+    ) {
+      return 'paragraph';
+    }
+    return 'text';
   }
 
   private estimateTokens(content: string): number {
@@ -942,7 +943,7 @@ export function createSimpleChunks(
   overlap = 200,
 ): string[] {
   return CharacterChunker.chunk(content, {
-    strategy: "character",
+    strategy: 'character',
     chunkSize,
     chunkOverlap: overlap,
     preserveStructure: false,

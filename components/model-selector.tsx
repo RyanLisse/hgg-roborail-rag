@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,15 +8,15 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useModelSelection } from "@/hooks/use-model-selection";
-import type { ChatModel } from "@/lib/ai/models";
-import { cn } from "@/lib/utils";
-import { CheckIcon, ChevronDownIcon } from "./icons";
+} from '@/components/ui/dropdown-menu';
+import { useModelSelection } from '@/hooks/use-model-selection';
+import type { ChatModel } from '@/lib/ai/models';
+import { cn } from '@/lib/utils';
+import { CheckIcon, ChevronDownIcon } from './icons';
 
 const providerLabels: Record<string, string> = {
-  openai: "OpenAI",
-  google: "Google",
+  openai: 'OpenAI',
+  google: 'Google',
 };
 
 export function ModelSelector({
@@ -30,7 +30,7 @@ export function ModelSelector({
   if (isLoading) {
     return (
       <Button
-        className={cn("justify-between gap-2", className)}
+        className={cn('justify-between gap-2', className)}
         disabled
         variant="outline"
       >
@@ -47,8 +47,8 @@ export function ModelSelector({
       <DropdownMenuTrigger asChild>
         <Button
           className={cn(
-            "w-fit justify-between gap-2 font-medium text-sm",
-            "data-[state=open]:bg-accent data-[state=open]:text-accent-foreground",
+            'w-fit justify-between gap-2 font-medium text-sm',
+            'data-[state=open]:bg-accent data-[state=open]:text-accent-foreground',
             className,
           )}
           variant="outline"
@@ -63,7 +63,7 @@ export function ModelSelector({
                   <span>{selectedModel.name}</span>
                 </span>
               ) : (
-                "Select model"
+                'Select model'
               )}
             </span>
             <div className="opacity-50">
@@ -81,10 +81,10 @@ export function ModelSelector({
             {(models as ChatModel[]).map((model) => (
               <DropdownMenuItem
                 className={cn(
-                  "flex cursor-pointer items-center justify-between",
-                  "my-0.5 rounded-md px-2 py-1.5",
-                  "hover:bg-accent/50",
-                  selectedModel?.id === model.id && "bg-accent/80",
+                  'flex cursor-pointer items-center justify-between',
+                  'my-0.5 rounded-md px-2 py-1.5',
+                  'hover:bg-accent/50',
+                  selectedModel?.id === model.id && 'bg-accent/80',
                 )}
                 key={model.id}
                 onSelect={() => selectModel(model)}

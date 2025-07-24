@@ -5,10 +5,16 @@ import {
   customProvider,
   type LanguageModel,
   type LanguageModelV1CallOptions,
-  type LanguageModelV1StreamPart,
 } from 'ai';
 
-type LanguageModelV1FinishReason = 'stop' | 'length' | 'content-filter' | 'tool-calls' | 'error' | 'other';
+type LanguageModelV1FinishReason =
+  | 'stop'
+  | 'length'
+  | 'content-filter'
+  | 'tool-calls'
+  | 'error'
+  | 'other';
+
 import { getResponseChunksByPrompt } from '@/tests/prompts/utils';
 
 // Create a test language model that returns mocked responses
@@ -20,7 +26,7 @@ function createTestLanguageModel(modelId: string): LanguageModel {
     defaultObjectGenerationMode: 'json',
     supportsImageUrls: true,
 
-    doGenerate: async (options: LanguageModelV1CallOptions) => {
+    doGenerate: async (_options: LanguageModelV1CallOptions) => {
       throw new Error('doGenerate not implemented for test model');
     },
 
@@ -84,7 +90,7 @@ export function getModelInstance(modelId: string) {
   return createTestLanguageModel(modelId);
 }
 
-export function getEmbeddingModelInstance(modelId: string) {
+export function getEmbeddingModelInstance(_modelId: string) {
   // Return a mock embedding model
   return {
     specificationVersion: 'v1',

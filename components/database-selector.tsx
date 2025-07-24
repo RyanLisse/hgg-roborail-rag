@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { useEffect, useState } from 'react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -10,11 +10,11 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
-import { CheckIcon, ChevronDownIcon, DatabaseIcon } from "./icons";
+} from '@/components/ui/dropdown-menu';
+import { cn } from '@/lib/utils';
+import { CheckIcon, ChevronDownIcon, DatabaseIcon } from './icons';
 
-type VectorStoreType = "openai" | "neon" | "memory";
+type VectorStoreType = 'openai' | 'neon' | 'memory';
 
 interface DatabaseSelectorProps {
   selectedSources: VectorStoreType[];
@@ -26,21 +26,21 @@ interface DatabaseSelectorProps {
 }
 
 const sourceLabels: Record<VectorStoreType, string> = {
-  openai: "OpenAI Vector Store",
-  neon: "NeonDB (pgvector)",
-  memory: "In-Memory Store",
+  openai: 'OpenAI Vector Store',
+  neon: 'NeonDB (pgvector)',
+  memory: 'In-Memory Store',
 };
 
 const sourceDescriptions: Record<VectorStoreType, string> = {
-  openai: "OpenAI file search with vector store",
-  neon: "PostgreSQL with pgvector extension",
-  memory: "Temporary in-memory vector storage",
+  openai: 'OpenAI file search with vector store',
+  neon: 'PostgreSQL with pgvector extension',
+  memory: 'Temporary in-memory vector storage',
 };
 
 const sourceColors: Record<VectorStoreType, string> = {
-  openai: "bg-green-100 text-green-800 border-green-200",
-  neon: "bg-blue-100 text-blue-800 border-blue-200",
-  memory: "bg-gray-100 text-gray-800 border-gray-200",
+  openai: 'bg-green-100 text-green-800 border-green-200',
+  neon: 'bg-blue-100 text-blue-800 border-blue-200',
+  memory: 'bg-gray-100 text-gray-800 border-gray-200',
 };
 
 export function DatabaseSelector({
@@ -65,7 +65,7 @@ export function DatabaseSelector({
 
   const getSelectedLabel = () => {
     if (selectedSources.length === 0) {
-      return "No sources selected";
+      return 'No sources selected';
     }
 
     if (selectedSources.length === 1) {
@@ -73,21 +73,21 @@ export function DatabaseSelector({
     }
 
     if (selectedSources.length === availableSources.length) {
-      return "All sources";
+      return 'All sources';
     }
 
     return `${selectedSources.length} sources`;
   };
 
   return (
-    <div className={cn("flex flex-col gap-2", className)}>
+    <div className={cn('flex flex-col gap-2', className)}>
       <DropdownMenu onOpenChange={setIsOpen} open={isOpen}>
         <DropdownMenuTrigger asChild>
           <Button
             className={cn(
-              "w-full justify-between gap-2 font-medium text-sm",
-              "data-[state=open]:bg-accent data-[state=open]:text-accent-foreground",
-              disabled && "cursor-not-allowed opacity-50",
+              'w-full justify-between gap-2 font-medium text-sm',
+              'data-[state=open]:bg-accent data-[state=open]:text-accent-foreground',
+              disabled && 'cursor-not-allowed opacity-50',
             )}
             disabled={disabled}
             variant="outline"
@@ -117,10 +117,10 @@ export function DatabaseSelector({
               <DropdownMenuCheckboxItem
                 checked={isSelected}
                 className={cn(
-                  "flex cursor-pointer items-start justify-between",
-                  "my-0.5 rounded-md px-2 py-2",
-                  "hover:bg-accent/50",
-                  !isEnabled && "cursor-not-allowed opacity-50",
+                  'flex cursor-pointer items-start justify-between',
+                  'my-0.5 rounded-md px-2 py-2',
+                  'hover:bg-accent/50',
+                  !isEnabled && 'cursor-not-allowed opacity-50',
                 )}
                 disabled={!isEnabled}
                 key={source}
@@ -170,7 +170,7 @@ export function DatabaseSelector({
         <div className="flex flex-wrap gap-1">
           {selectedSources.map((source) => (
             <Badge
-              className={cn("text-xs", sourceColors[source])}
+              className={cn('text-xs', sourceColors[source])}
               key={source}
               variant="outline"
             >
@@ -191,11 +191,11 @@ export function DatabaseSelector({
 // Hook for managing database selection state
 export function useDatabaseSelection() {
   const [selectedSources, setSelectedSources] = useState<VectorStoreType[]>([
-    "openai",
+    'openai',
   ]);
   const [availableSources, setAvailableSources] = useState<VectorStoreType[]>([
-    "openai",
-    "memory",
+    'openai',
+    'memory',
   ]);
   const [sourceStats, setSourceStats] = useState<
     Record<VectorStoreType, { enabled: boolean; count?: number }>
@@ -212,10 +212,10 @@ export function useDatabaseSelection() {
         setIsLoading(true);
 
         // Load available sources from the unified service
-        const response = await fetch("/api/vectorstore/sources");
+        const response = await fetch('/api/vectorstore/sources');
         if (response.ok) {
           const data = await response.json();
-          setAvailableSources(data.availableSources || ["openai", "memory"]);
+          setAvailableSources(data.availableSources || ['openai', 'memory']);
           setSourceStats(
             data.sourceStats || {
               openai: { enabled: true, count: 0 },
@@ -225,9 +225,9 @@ export function useDatabaseSelection() {
           );
 
           // Update selected sources to prioritize OpenAI, fallback to available ones
-          const defaultSources = data.availableSources?.includes("openai")
-            ? ["openai"]
-            : ["memory"];
+          const defaultSources = data.availableSources?.includes('openai')
+            ? ['openai']
+            : ['memory'];
           setSelectedSources(
             (prev) =>
               prev.filter((source) =>
@@ -235,8 +235,7 @@ export function useDatabaseSelection() {
               ) || defaultSources,
           );
         }
-      } catch (error) {
-        console.error("Failed to load available vector store sources:", error);
+      } catch (_error) {
       } finally {
         setIsLoading(false);
       }
@@ -247,13 +246,12 @@ export function useDatabaseSelection() {
 
   const refreshStats = async () => {
     try {
-      const response = await fetch("/api/vectorstore/sources");
+      const response = await fetch('/api/vectorstore/sources');
       if (response.ok) {
         const data = await response.json();
         setSourceStats(data.sourceStats || sourceStats);
       }
-    } catch (error) {
-      console.error("Failed to refresh vector store stats:", error);
+    } catch (_error) {
     }
   };
 

@@ -1,6 +1,6 @@
-import fs from "node:fs";
-import path from "node:path";
-import { expect, test } from "@playwright/test";
+import fs from 'node:fs';
+import path from 'node:path';
+import { expect, test } from '@playwright/test';
 import {
   createPerformanceMonitor,
   sendMessageWithRetry,
@@ -8,9 +8,9 @@ import {
   verifyAppState,
   waitForChatResponse,
   waitForPageReady,
-} from "../utils/test-helpers";
+} from '../utils/test-helpers';
 
-test.describe("RAG Workflow E2E Tests", () => {
+test.describe('RAG Workflow E2E Tests', () => {
   // Test data
   const testDocumentContent = `
 # AI and Machine Learning Guide
@@ -45,12 +45,12 @@ Deep Learning is a subset of machine learning that uses artificial neural networ
 `;
 
   const createTestDocument = () => {
-    const tempDir = path.join(process.cwd(), "temp");
+    const tempDir = path.join(process.cwd(), 'temp');
     if (!fs.existsSync(tempDir)) {
       fs.mkdirSync(tempDir, { recursive: true });
     }
 
-    const filePath = path.join(tempDir, "ai-ml-guide.md");
+    const filePath = path.join(tempDir, 'ai-ml-guide.md');
     fs.writeFileSync(filePath, testDocumentContent);
     return filePath;
   };
@@ -60,18 +60,17 @@ Deep Learning is a subset of machine learning that uses artificial neural networ
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
       }
-    } catch (error) {
-      console.warn("Failed to cleanup test document:", error);
+    } catch (_error) {
     }
   };
 
   test.beforeEach(async ({ page }) => {
     const monitor = createPerformanceMonitor();
-    monitor.start("page-setup");
+    monitor.start('page-setup');
 
     try {
       // Navigate to the app
-      await page.goto("/");
+      await page.goto('/');
 
       // Optimized page ready check
       await waitForPageReady(page, 20_000);
@@ -79,7 +78,7 @@ Deep Learning is a subset of machine learning that uses artificial neural networ
       // Verify app is in good state
       const isHealthy = await verifyAppState(page);
       if (!isHealthy) {
-        throw new Error("App failed health check");
+        throw new Error('App failed health check');
       }
 
       // Handle authentication if needed
@@ -89,14 +88,14 @@ Deep Learning is a subset of machine learning that uses artificial neural networ
         await waitForPageReady(page, 10_000);
       }
 
-      monitor.end("page-setup");
+      monitor.end('page-setup');
     } catch (error) {
-      monitor.end("page-setup");
+      monitor.end('page-setup');
       throw error;
     }
   });
 
-  test("should complete full RAG workflow: upload → ask → verify sources", async ({
+  test('should complete full RAG workflow: upload → ask → verify sources', async ({
     page,
   }) => {
     const testFilePath = createTestDocument();
@@ -104,18 +103,15 @@ Deep Learning is a subset of machine learning that uses artificial neural networ
 
     try {
       // Step 1: Upload document
-      monitor.start("document-upload");
-      console.log("Step 1: Uploading document...");
+      monitor.start('document-upload');
 
       await uploadFileWithRetry(page, testFilePath, { timeout: 15_000 });
-      console.log("✓ Document uploaded successfully");
-      monitor.end("document-upload");
+      monitor.end('document-upload');
 
       // Step 2: Send the document to vector store
-      monitor.start("document-processing");
-      console.log("Step 2: Processing document...");
+      monitor.start('document-processing');
 
-      await sendMessageWithRetry(page, "Process this document for RAG search", {
+      await sendMessageWithRetry(page, 'Process this document for RAG search', {
         waitForResponse: true,
       });
 
@@ -124,36 +120,26 @@ Deep Learning is a subset of machine learning that uses artificial neural networ
         timeout: 45_000,
         expectText: /uploaded|processed|added|vector|stored/i,
       });
-
-      console.log("✓ Document processed for RAG");
-      monitor.end("document-processing");
-
-      // Step 3: Ask a question about the document
-      console.log("Step 3: Asking question about document content...");
+      monitor.end('document-processing');
 
       await chatInput.fill(
-        "What are the three types of machine learning mentioned in the document?",
+        'What are the three types of machine learning mentioned in the document?',
       );
       await sendButton.click();
 
       // Wait for AI response
-      await page.waitForSelector(".message-content:last-child", {
+      await page.waitForSelector('.message-content:last-child', {
         timeout: 30_000,
       });
 
       // Verify the response contains relevant information
-      const responseMessage = page.locator(".message-content").last();
+      const responseMessage = page.locator('.message-content').last();
       const responseText = await responseMessage.textContent();
 
       expect(responseText).toBeTruthy();
       expect(responseText?.toLowerCase()).toMatch(
         /(supervised|unsupervised|reinforcement)/,
       );
-
-      console.log("✓ Question answered successfully");
-
-      // Step 4: Verify sources are displayed
-      console.log("Step 4: Verifying sources...");
 
       // Look for source citations or file references
       const sourcesSection = page.locator(
@@ -177,24 +163,17 @@ Deep Learning is a subset of machine learning that uses artificial neural networ
         hasSourcesSection || hasFileReference || hasCitationLinks;
 
       if (hasAnySources) {
-        console.log("✓ Sources/citations displayed");
       } else {
-        console.log(
-          "⚠ No explicit sources found, but response was generated from document content",
-        );
       }
 
-      // Step 5: Test search functionality
-      console.log("Step 5: Testing search functionality...");
-
-      await chatInput.fill("Search for information about neural networks");
+      await chatInput.fill('Search for information about neural networks');
       await sendButton.click();
 
-      await page.waitForSelector(".message-content:last-child", {
+      await page.waitForSelector('.message-content:last-child', {
         timeout: 30_000,
       });
 
-      const searchResponse = page.locator(".message-content").last();
+      const searchResponse = page.locator('.message-content').last();
       const searchText = await searchResponse.textContent();
 
       expect(searchText).toBeTruthy();
@@ -202,35 +181,28 @@ Deep Learning is a subset of machine learning that uses artificial neural networ
         /(neural network|computing system|biological)/,
       );
 
-      console.log("✓ Search functionality working");
-
-      // Step 6: Test complex query requiring synthesis
-      console.log("Step 6: Testing complex synthesis query...");
-
       await chatInput.fill(
-        "Compare supervised and unsupervised learning based on the document",
+        'Compare supervised and unsupervised learning based on the document',
       );
       await sendButton.click();
 
-      await page.waitForSelector(".message-content:last-child", {
+      await page.waitForSelector('.message-content:last-child', {
         timeout: 30_000,
       });
 
-      const synthesisResponse = page.locator(".message-content").last();
+      const synthesisResponse = page.locator('.message-content').last();
       const synthesisText = await synthesisResponse.textContent();
 
       expect(synthesisText).toBeTruthy();
       expect(synthesisText?.toLowerCase()).toMatch(
         /(supervised.*unsupervised|labeled.*unlabeled|difference|compare)/,
       );
-
-      console.log("✓ Complex synthesis query handled");
     } finally {
       cleanupTestDocument(testFilePath);
     }
   });
 
-  test("should handle multiple document uploads", async ({ page }) => {
+  test('should handle multiple document uploads', async ({ page }) => {
     const doc1Path = createTestDocument();
     const doc2Content = `
 # Database Systems Guide
@@ -251,8 +223,8 @@ Database systems are organized collections of data that can be easily accessed, 
 - **Transactions**: Units of work that are completed entirely or not at all
 `;
 
-    const tempDir = path.join(process.cwd(), "temp");
-    const doc2Path = path.join(tempDir, "database-guide.md");
+    const tempDir = path.join(process.cwd(), 'temp');
+    const doc2Path = path.join(tempDir, 'database-guide.md');
     fs.writeFileSync(doc2Path, doc2Content);
 
     try {
@@ -263,10 +235,10 @@ Database systems are organized collections of data that can be easily accessed, 
         timeout: 10_000,
       });
 
-      const chatInput = page.getByTestId("multimodal-input");
-      await chatInput.fill("Upload AI document");
-      await page.getByTestId("send-button").click();
-      await page.waitForSelector(".message-content", { timeout: 30_000 });
+      const chatInput = page.getByTestId('multimodal-input');
+      await chatInput.fill('Upload AI document');
+      await page.getByTestId('send-button').click();
+      await page.waitForSelector('.message-content', { timeout: 30_000 });
 
       // Upload second document
       await fileInput.setInputFiles([doc2Path]);
@@ -274,71 +246,67 @@ Database systems are organized collections of data that can be easily accessed, 
         timeout: 10_000,
       });
 
-      await chatInput.fill("Upload database document");
-      await page.getByTestId("send-button").click();
-      await page.waitForSelector(".message-content:nth-last-child(1)", {
+      await chatInput.fill('Upload database document');
+      await page.getByTestId('send-button').click();
+      await page.waitForSelector('.message-content:nth-last-child(1)', {
         timeout: 30_000,
       });
 
       // Ask a question that requires both documents
       await chatInput.fill(
-        "What are the similarities between AI and database systems in terms of data organization?",
+        'What are the similarities between AI and database systems in terms of data organization?',
       );
-      await page.getByTestId("send-button").click();
-      await page.waitForSelector(".message-content:last-child", {
+      await page.getByTestId('send-button').click();
+      await page.waitForSelector('.message-content:last-child', {
         timeout: 30_000,
       });
 
       const response = await page
-        .locator(".message-content")
+        .locator('.message-content')
         .last()
         .textContent();
       expect(response).toBeTruthy();
       expect(response?.toLowerCase()).toMatch(
         /(data|organization|structure|system)/,
       );
-
-      console.log("✓ Multiple document workflow completed");
     } finally {
       cleanupTestDocument(doc1Path);
       cleanupTestDocument(doc2Path);
     }
   });
 
-  test("should handle vector store errors gracefully", async ({ page }) => {
+  test('should handle vector store errors gracefully', async ({ page }) => {
     // Test error handling when vector store is unavailable
-    const chatInput = page.getByTestId("multimodal-input");
+    const chatInput = page.getByTestId('multimodal-input');
 
     // Try to search when no documents are available
-    await chatInput.fill("Search for information about quantum computing");
-    await page.getByTestId("send-button").click();
+    await chatInput.fill('Search for information about quantum computing');
+    await page.getByTestId('send-button').click();
 
-    await page.waitForSelector(".message-content:last-child", {
+    await page.waitForSelector('.message-content:last-child', {
       timeout: 30_000,
     });
 
     const response = await page
-      .locator(".message-content")
+      .locator('.message-content')
       .last()
       .textContent();
     expect(response).toBeTruthy();
 
     // Should either provide a helpful message or general knowledge response
     const isErrorHandled =
-      response?.toLowerCase().includes("no documents") ||
-      response?.toLowerCase().includes("quantum computing");
+      response?.toLowerCase().includes('no documents') ||
+      response?.toLowerCase().includes('quantum computing');
 
     expect(isErrorHandled).toBe(true);
-
-    console.log("✓ Error handling works correctly");
   });
 
-  test("should support different file formats", async ({ page }) => {
+  test('should support different file formats', async ({ page }) => {
     // Test with a text file instead of markdown
     const txtContent =
-      "This is a simple text file for testing. It contains information about software testing methodologies including unit testing, integration testing, and end-to-end testing.";
-    const tempDir = path.join(process.cwd(), "temp");
-    const txtPath = path.join(tempDir, "testing-guide.txt");
+      'This is a simple text file for testing. It contains information about software testing methodologies including unit testing, integration testing, and end-to-end testing.';
+    const tempDir = path.join(process.cwd(), 'temp');
+    const txtPath = path.join(tempDir, 'testing-guide.txt');
 
     if (!fs.existsSync(tempDir)) {
       fs.mkdirSync(tempDir, { recursive: true });
@@ -354,34 +322,32 @@ Database systems are organized collections of data that can be easily accessed, 
         timeout: 10_000,
       });
 
-      const chatInput = page.getByTestId("multimodal-input");
-      await chatInput.fill("Process this text file");
-      await page.getByTestId("send-button").click();
-      await page.waitForSelector(".message-content", { timeout: 30_000 });
+      const chatInput = page.getByTestId('multimodal-input');
+      await chatInput.fill('Process this text file');
+      await page.getByTestId('send-button').click();
+      await page.waitForSelector('.message-content', { timeout: 30_000 });
 
       // Ask about the content
       await chatInput.fill(
-        "What testing methodologies are mentioned in the text file?",
+        'What testing methodologies are mentioned in the text file?',
       );
-      await page.getByTestId("send-button").click();
-      await page.waitForSelector(".message-content:last-child", {
+      await page.getByTestId('send-button').click();
+      await page.waitForSelector('.message-content:last-child', {
         timeout: 30_000,
       });
 
       const response = await page
-        .locator(".message-content")
+        .locator('.message-content')
         .last()
         .textContent();
       expect(response).toBeTruthy();
       expect(response?.toLowerCase()).toMatch(/(unit|integration|end-to-end)/);
-
-      console.log("✓ Text file format supported");
     } finally {
       cleanupTestDocument(txtPath);
     }
   });
 
-  test("should handle large document uploads", async ({ page }) => {
+  test('should handle large document uploads', async ({ page }) => {
     // Create a larger document
     const largeContent = `
 # Comprehensive Guide to Modern Software Development
@@ -407,14 +373,14 @@ Key points for section ${i + 1}:
 - Point 5: Testing strategies
 
 `,
-).join("")}
+).join('')}
 
 ## Conclusion
 This comprehensive guide covers all essential aspects of modern software development practices.
 `;
 
-    const tempDir = path.join(process.cwd(), "temp");
-    const largePath = path.join(tempDir, "large-guide.md");
+    const tempDir = path.join(process.cwd(), 'temp');
+    const largePath = path.join(tempDir, 'large-guide.md');
 
     if (!fs.existsSync(tempDir)) {
       fs.mkdirSync(tempDir, { recursive: true });
@@ -430,33 +396,31 @@ This comprehensive guide covers all essential aspects of modern software develop
         timeout: 10_000,
       });
 
-      const chatInput = page.getByTestId("multimodal-input");
-      await chatInput.fill("Process this large document");
-      await page.getByTestId("send-button").click();
+      const chatInput = page.getByTestId('multimodal-input');
+      await chatInput.fill('Process this large document');
+      await page.getByTestId('send-button').click();
 
       // Wait longer for large document processing
-      await page.waitForSelector(".message-content", { timeout: 60_000 });
+      await page.waitForSelector('.message-content', { timeout: 60_000 });
 
       // Ask about specific content
-      await chatInput.fill("What is covered in section 25?");
-      await page.getByTestId("send-button").click();
-      await page.waitForSelector(".message-content:last-child", {
+      await chatInput.fill('What is covered in section 25?');
+      await page.getByTestId('send-button').click();
+      await page.waitForSelector('.message-content:last-child', {
         timeout: 30_000,
       });
 
       const response = await page
-        .locator(".message-content")
+        .locator('.message-content')
         .last()
         .textContent();
       expect(response).toBeTruthy();
-
-      console.log("✓ Large document processing completed");
     } finally {
       cleanupTestDocument(largePath);
     }
   });
 
-  test("should maintain conversation context with RAG", async ({ page }) => {
+  test('should maintain conversation context with RAG', async ({ page }) => {
     const testFilePath = createTestDocument();
 
     try {
@@ -467,27 +431,27 @@ This comprehensive guide covers all essential aspects of modern software develop
         timeout: 10_000,
       });
 
-      const chatInput = page.getByTestId("multimodal-input");
-      await chatInput.fill("Process this AI guide");
-      await page.getByTestId("send-button").click();
-      await page.waitForSelector(".message-content", { timeout: 30_000 });
+      const chatInput = page.getByTestId('multimodal-input');
+      await chatInput.fill('Process this AI guide');
+      await page.getByTestId('send-button').click();
+      await page.waitForSelector('.message-content', { timeout: 30_000 });
 
       // First question
-      await chatInput.fill("What is machine learning?");
-      await page.getByTestId("send-button").click();
-      await page.waitForSelector(".message-content:last-child", {
+      await chatInput.fill('What is machine learning?');
+      await page.getByTestId('send-button').click();
+      await page.waitForSelector('.message-content:last-child', {
         timeout: 30_000,
       });
 
       // Follow-up question using context
-      await chatInput.fill("What are its main types?");
-      await page.getByTestId("send-button").click();
-      await page.waitForSelector(".message-content:last-child", {
+      await chatInput.fill('What are its main types?');
+      await page.getByTestId('send-button').click();
+      await page.waitForSelector('.message-content:last-child', {
         timeout: 30_000,
       });
 
       const followUpResponse = await page
-        .locator(".message-content")
+        .locator('.message-content')
         .last()
         .textContent();
       expect(followUpResponse).toBeTruthy();
@@ -496,28 +460,26 @@ This comprehensive guide covers all essential aspects of modern software develop
       );
 
       // Another contextual question
-      await chatInput.fill("Can you explain the first one in more detail?");
-      await page.getByTestId("send-button").click();
-      await page.waitForSelector(".message-content:last-child", {
+      await chatInput.fill('Can you explain the first one in more detail?');
+      await page.getByTestId('send-button').click();
+      await page.waitForSelector('.message-content:last-child', {
         timeout: 30_000,
       });
 
       const detailResponse = await page
-        .locator(".message-content")
+        .locator('.message-content')
         .last()
         .textContent();
       expect(detailResponse).toBeTruthy();
       expect(detailResponse?.toLowerCase()).toMatch(
         /(supervised|labeled|training)/,
       );
-
-      console.log("✓ Conversation context maintained");
     } finally {
       cleanupTestDocument(testFilePath);
     }
   });
 
-  test("should handle concurrent queries efficiently", async ({ page }) => {
+  test('should handle concurrent queries efficiently', async ({ page }) => {
     const testFilePath = createTestDocument();
 
     try {
@@ -528,22 +490,22 @@ This comprehensive guide covers all essential aspects of modern software develop
         timeout: 10_000,
       });
 
-      const chatInput = page.getByTestId("multimodal-input");
-      await chatInput.fill("Process this document");
-      await page.getByTestId("send-button").click();
-      await page.waitForSelector(".message-content", { timeout: 30_000 });
+      const chatInput = page.getByTestId('multimodal-input');
+      await chatInput.fill('Process this document');
+      await page.getByTestId('send-button').click();
+      await page.waitForSelector('.message-content', { timeout: 30_000 });
 
       // Send multiple queries in sequence (simulating concurrent usage)
       const queries = [
-        "What is AI?",
-        "Define machine learning",
-        "List the applications",
-        "Explain neural networks",
+        'What is AI?',
+        'Define machine learning',
+        'List the applications',
+        'Explain neural networks',
       ];
 
       for (const query of queries) {
         await chatInput.fill(query);
-        await page.getByTestId("send-button").click();
+        await page.getByTestId('send-button').click();
         // Don't wait for full response, just send next query
         await page.waitForTimeout(1000);
       }
@@ -552,19 +514,17 @@ This comprehensive guide covers all essential aspects of modern software develop
       await page.waitForTimeout(10_000);
 
       // Check that we have responses
-      const messages = page.locator(".message-content");
+      const messages = page.locator('.message-content');
       const messageCount = await messages.count();
 
       // Should have at least the upload confirmation plus query responses
       expect(messageCount).toBeGreaterThan(queries.length);
-
-      console.log("✓ Concurrent queries handled");
     } finally {
       cleanupTestDocument(testFilePath);
     }
   });
 
-  test("should provide feedback on search quality", async ({ page }) => {
+  test('should provide feedback on search quality', async ({ page }) => {
     const testFilePath = createTestDocument();
 
     try {
@@ -575,17 +535,17 @@ This comprehensive guide covers all essential aspects of modern software develop
         timeout: 10_000,
       });
 
-      const chatInput = page.getByTestId("multimodal-input");
-      await chatInput.fill("Add this AI guide to knowledge base");
-      await page.getByTestId("send-button").click();
-      await page.waitForSelector(".message-content", { timeout: 30_000 });
+      const chatInput = page.getByTestId('multimodal-input');
+      await chatInput.fill('Add this AI guide to knowledge base');
+      await page.getByTestId('send-button').click();
+      await page.waitForSelector('.message-content', { timeout: 30_000 });
 
       // Ask a question that should have good results
       await chatInput.fill(
-        "What are the key concepts in AI mentioned in the guide?",
+        'What are the key concepts in AI mentioned in the guide?',
       );
-      await page.getByTestId("send-button").click();
-      await page.waitForSelector(".message-content:last-child", {
+      await page.getByTestId('send-button').click();
+      await page.waitForSelector('.message-content:last-child', {
         timeout: 30_000,
       });
 
@@ -596,40 +556,35 @@ This comprehensive guide covers all essential aspects of modern software develop
       const hasFeedback = (await feedbackButtons.count()) > 0;
 
       if (hasFeedback) {
-        console.log("✓ Feedback system available");
 
         // Test feedback interaction
         const thumbsUp = page.locator('button:has-text("👍")').first();
         if (await thumbsUp.isVisible()) {
           await thumbsUp.click();
-          console.log("✓ Feedback interaction works");
         }
       } else {
-        console.log("ℹ No explicit feedback UI found");
       }
 
       // Ask a question that might not have good results
       await chatInput.fill(
-        "What is the capital of Mars according to the document?",
+        'What is the capital of Mars according to the document?',
       );
-      await page.getByTestId("send-button").click();
-      await page.waitForSelector(".message-content:last-child", {
+      await page.getByTestId('send-button').click();
+      await page.waitForSelector('.message-content:last-child', {
         timeout: 30_000,
       });
 
       const noResultResponse = await page
-        .locator(".message-content")
+        .locator('.message-content')
         .last()
         .textContent();
       expect(noResultResponse).toBeTruthy();
 
       // Should handle gracefully when no relevant info is found
-      const hasGracefulHandling =
-        noResultResponse?.toLowerCase().includes("not found") ||
-        noResultResponse?.toLowerCase().includes("no information") ||
-        noResultResponse?.toLowerCase().includes("not mentioned");
-
-      console.log("✓ Graceful handling of irrelevant queries");
+      const _hasGracefulHandling =
+        noResultResponse?.toLowerCase().includes('not found') ||
+        noResultResponse?.toLowerCase().includes('no information') ||
+        noResultResponse?.toLowerCase().includes('not mentioned');
     } finally {
       cleanupTestDocument(testFilePath);
     }

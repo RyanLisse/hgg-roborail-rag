@@ -49,7 +49,7 @@ export class RedisCacheBackend implements DistributedCacheBackend {
         url: this.config.url,
         socket: {
           reconnectStrategy: (retries) => {
-            if (retries > this.maxRetries) return false;
+            if (retries > this.maxRetries) { return false; }
             this.stats.reconnects++;
             return Math.min(retries * this.retryDelayMs, 5000);
           },
@@ -71,9 +71,7 @@ export class RedisCacheBackend implements DistributedCacheBackend {
       }
 
       this.isConnected = true;
-      console.log('✅ Redis cache connected successfully');
     } catch (error) {
-      console.error('❌ Redis cache connection failed:', error);
       this.isConnected = false;
       throw error;
     }
@@ -91,9 +89,7 @@ export class RedisCacheBackend implements DistributedCacheBackend {
 
       this.isConnected = false;
       this.subscriptions.clear();
-      console.log('✅ Redis cache disconnected');
-    } catch (error) {
-      console.error('❌ Redis disconnect error:', error);
+    } catch (_error) {
     }
   }
 
@@ -118,8 +114,7 @@ export class RedisCacheBackend implements DistributedCacheBackend {
 
       this.stats.hits++;
       return JSON.parse(value) as T;
-    } catch (error) {
-      console.error('Redis get error:', error);
+    } catch (_error) {
       this.stats.errors++;
       this.stats.misses++;
       return null;
@@ -146,8 +141,7 @@ export class RedisCacheBackend implements DistributedCacheBackend {
       }
 
       return true;
-    } catch (error) {
-      console.error('Redis set error:', error);
+    } catch (_error) {
       this.stats.errors++;
       return false;
     }
@@ -162,8 +156,7 @@ export class RedisCacheBackend implements DistributedCacheBackend {
       const redisKey = this.getKey(key);
       const result = await this.client.del(redisKey);
       return result > 0;
-    } catch (error) {
-      console.error('Redis delete error:', error);
+    } catch (_error) {
       this.stats.errors++;
       return false;
     }
@@ -192,8 +185,7 @@ export class RedisCacheBackend implements DistributedCacheBackend {
 
       const result = await this.client.del(keys);
       return result;
-    } catch (error) {
-      console.error('Redis clear error:', error);
+    } catch (_error) {
       this.stats.errors++;
       return 0;
     }
@@ -223,8 +215,7 @@ export class RedisCacheBackend implements DistributedCacheBackend {
           return null;
         }
       });
-    } catch (error) {
-      console.error('Redis mget error:', error);
+    } catch (_error) {
       this.stats.errors++;
       this.stats.misses += keys.length;
       return new Array(keys.length).fill(null);
@@ -259,8 +250,7 @@ export class RedisCacheBackend implements DistributedCacheBackend {
 
       await pipeline.exec();
       return true;
-    } catch (error) {
-      console.error('Redis mset error:', error);
+    } catch (_error) {
       this.stats.errors++;
       return false;
     }
@@ -297,8 +287,7 @@ export class RedisCacheBackend implements DistributedCacheBackend {
         memoryUsage,
         evictions: 0, // Redis handles evictions internally
       };
-    } catch (error) {
-      console.error('Redis getStats error:', error);
+    } catch (_error) {
       this.stats.errors++;
       return {
         hits: this.stats.hits,
@@ -325,8 +314,7 @@ export class RedisCacheBackend implements DistributedCacheBackend {
       await this.delete(testKey);
 
       return retrieved !== null;
-    } catch (error) {
-      console.error('Redis health check failed:', error);
+    } catch (_error) {
       this.stats.errors++;
       return false;
     }
@@ -343,8 +331,7 @@ export class RedisCacheBackend implements DistributedCacheBackend {
       const serializedMessage = JSON.stringify(message);
       await this.publisher.publish(channel, serializedMessage);
       return true;
-    } catch (error) {
-      console.error('Redis publish error:', error);
+    } catch (_error) {
       return false;
     }
   }
@@ -356,8 +343,6 @@ export class RedisCacheBackend implements DistributedCacheBackend {
     if (!this.subscriber) {
       throw new Error('Redis subscriber not available');
     }
-
-    try {
       // Track handlers for this channel
       if (!this.subscriptions.has(channel)) {
         this.subscriptions.set(channel, new Set());
@@ -371,17 +356,12 @@ export class RedisCacheBackend implements DistributedCacheBackend {
             if (handlers) {
               handlers.forEach((h) => h(parsedMessage));
             }
-          } catch (error) {
-            console.error('Redis message parsing error:', error);
+          } catch (_error) {
           }
         });
       }
 
       this.subscriptions.get(channel)?.add(handler);
-    } catch (error) {
-      console.error('Redis subscribe error:', error);
-      throw error;
-    }
   }
 
   async unsubscribe(channel: string): Promise<void> {
@@ -392,8 +372,7 @@ export class RedisCacheBackend implements DistributedCacheBackend {
     try {
       await this.subscriber.unsubscribe(channel);
       this.subscriptions.delete(channel);
-    } catch (error) {
-      console.error('Redis unsubscribe error:', error);
+    } catch (_error) {
     }
   }
 

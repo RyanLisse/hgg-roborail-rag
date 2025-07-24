@@ -1,12 +1,12 @@
-import { type NextRequest, NextResponse } from "next/server";
-import { auth } from "@/app/(auth)/auth";
-import { getUnifiedVectorStoreService } from "@/lib/vectorstore/unified";
+import { type NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/app/(auth)/auth';
+import { getUnifiedVectorStoreService } from '@/lib/vectorstore/unified';
 
 export async function POST(request: NextRequest) {
   try {
     const session = await auth();
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await request.json();
@@ -23,30 +23,23 @@ export async function POST(request: NextRequest) {
     } = body;
 
     if (!query) {
-      return NextResponse.json({ error: "Query is required" }, { status: 400 });
+      return NextResponse.json({ error: 'Query is required' }, { status: 400 });
     }
-
-    console.log(
-      `🔍 Vector store search request with optimization: ${optimizePrompts}`,
-    );
     if (queryContext) {
-      console.log(
-        `📊 Query context: ${queryContext.type || "auto-detect"} (${queryContext.domain || "general"})`,
-      );
     }
 
     const vectorStoreService = await getUnifiedVectorStoreService();
 
     const searchRequest = {
       query,
-      sources: sources || ["openai", "memory"], // Prioritize OpenAI for RoboRail docs
+      sources: sources || ['openai', 'memory'], // Prioritize OpenAI for RoboRail docs
       maxResults: maxResults || 10,
       threshold: threshold || 0.3,
       metadata,
       // Pass optimization parameters
       queryContext: queryContext || {
-        domain: "roborail",
-        type: "conceptual", // Default fallback
+        domain: 'roborail',
+        type: 'conceptual', // Default fallback
       },
       optimizePrompts,
       promptConfig: promptConfig || {
@@ -85,17 +78,12 @@ export async function POST(request: NextRequest) {
       },
     };
 
-    console.log(
-      `✅ Search completed: ${results.length} results across ${searchRequest.sources.join(", ")}`,
-    );
-
     return NextResponse.json(response);
   } catch (error) {
-    console.error("Failed to search vector stores:", error);
     return NextResponse.json(
       {
-        error: "Failed to search vector stores",
-        details: error instanceof Error ? error.message : "Unknown error",
+        error: 'Failed to search vector stores',
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 },
     );

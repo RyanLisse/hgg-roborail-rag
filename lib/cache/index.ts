@@ -58,19 +58,13 @@ export async function createCacheBackend(
 
       // Try to connect
       await redisCache.connect();
-      console.log('✅ Using Redis cache backend');
       return redisCache;
-    } catch (error) {
-      console.warn(
-        '⚠️ Redis cache unavailable, falling back to memory cache:',
-        error,
-      );
+    } catch (_error) {
     }
   }
 
   // Fallback to memory cache
   const memoryCache = new MemoryCacheBackend(fullConfig.memory);
-  console.log('✅ Using memory cache backend');
   return memoryCache;
 }
 
@@ -136,7 +130,7 @@ export namespace CacheKeyGenerator {
     for (let i = 0; i < input.length; i++) {
       const char = input.charCodeAt(i);
       hash = (hash << 5) - hash + char;
-      hash = hash & hash; // Convert to 32-bit integer
+      hash &= hash; // Convert to 32-bit integer
     }
     return Math.abs(hash).toString(36);
   }
@@ -162,7 +156,7 @@ export class SmartCache {
     result: T,
     ttl?: number,
   ): Promise<boolean> {
-    if (process.env.ENABLE_CACHING === 'false') return false;
+    if (process.env.ENABLE_CACHING === 'false') { return false; }
 
     const key = CacheKeyGenerator.vectorSearch(query, sources, options);
     const cacheTtl = ttl ?? CACHE_PRESETS.VECTOR_SEARCH.ttl;
@@ -178,7 +172,7 @@ export class SmartCache {
     sources: string[],
     options: any,
   ): Promise<T | null> {
-    if (process.env.ENABLE_CACHING === 'false') return null;
+    if (process.env.ENABLE_CACHING === 'false') { return null; }
 
     const key = CacheKeyGenerator.vectorSearch(query, sources, options);
     return this.backend.get<T>(key);
@@ -193,7 +187,7 @@ export class SmartCache {
     decision: T,
     ttl?: number,
   ): Promise<boolean> {
-    if (process.env.ENABLE_CACHING === 'false') return false;
+    if (process.env.ENABLE_CACHING === 'false') { return false; }
 
     const key = CacheKeyGenerator.agentRouting(query, context);
     const cacheTtl = ttl ?? CACHE_PRESETS.AGENT_ROUTING.ttl;
@@ -208,7 +202,7 @@ export class SmartCache {
     query: string,
     context: any,
   ): Promise<T | null> {
-    if (process.env.ENABLE_CACHING === 'false') return null;
+    if (process.env.ENABLE_CACHING === 'false') { return null; }
 
     const key = CacheKeyGenerator.agentRouting(query, context);
     return this.backend.get<T>(key);
@@ -224,7 +218,7 @@ export class SmartCache {
     response: T,
     ttl?: number,
   ): Promise<boolean> {
-    if (process.env.ENABLE_CACHING === 'false') return false;
+    if (process.env.ENABLE_CACHING === 'false') { return false; }
 
     const key = CacheKeyGenerator.agentResponse(agentType, query, context);
     const cacheTtl = ttl ?? CACHE_PRESETS.AGENT_RESPONSE.ttl;
@@ -240,7 +234,7 @@ export class SmartCache {
     query: string,
     context: any,
   ): Promise<T | null> {
-    if (process.env.ENABLE_CACHING === 'false') return null;
+    if (process.env.ENABLE_CACHING === 'false') { return null; }
 
     const key = CacheKeyGenerator.agentResponse(agentType, query, context);
     return this.backend.get<T>(key);
@@ -255,7 +249,7 @@ export class SmartCache {
     embedding: number[],
     ttl?: number,
   ): Promise<boolean> {
-    if (process.env.ENABLE_CACHING === 'false') return false;
+    if (process.env.ENABLE_CACHING === 'false') { return false; }
 
     const key = CacheKeyGenerator.documentEmbedding(content, model);
     const cacheTtl = ttl ?? CACHE_PRESETS.DOCUMENT_EMBEDDING.ttl;
@@ -270,7 +264,7 @@ export class SmartCache {
     content: string,
     model: string,
   ): Promise<number[] | null> {
-    if (process.env.ENABLE_CACHING === 'false') return null;
+    if (process.env.ENABLE_CACHING === 'false') { return null; }
 
     const key = CacheKeyGenerator.documentEmbedding(content, model);
     return this.backend.get<number[]>(key);
@@ -285,7 +279,7 @@ export class SmartCache {
     result: any,
     ttl?: number,
   ): Promise<boolean> {
-    if (process.env.ENABLE_CACHING === 'false') return false;
+    if (process.env.ENABLE_CACHING === 'false') { return false; }
 
     const key = CacheKeyGenerator.healthCheck(service, endpoint);
     const cacheTtl = ttl ?? CACHE_PRESETS.HEALTH_CHECK.ttl;
@@ -297,7 +291,7 @@ export class SmartCache {
    * Get cached health check result
    */
   async getCachedHealthCheck(service: string, endpoint: string): Promise<any> {
-    if (process.env.ENABLE_CACHING === 'false') return null;
+    if (process.env.ENABLE_CACHING === 'false') { return null; }
 
     const key = CacheKeyGenerator.healthCheck(service, endpoint);
     return this.backend.get(key);

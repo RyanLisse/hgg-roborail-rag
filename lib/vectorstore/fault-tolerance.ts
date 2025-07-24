@@ -1,6 +1,6 @@
-import "server-only";
+import 'server-only';
 
-import { z } from "zod";
+import { z } from 'zod';
 import {
   CircuitBreaker,
   CircuitBreakerConfig,
@@ -9,13 +9,13 @@ import {
   ErrorClassifier,
   RetryConfig,
   RetryMechanism,
-} from "./error-handling";
+} from './error-handling';
 import {
   FallbackConfig,
   FallbackManager,
   GracefulDegradation,
   type ServiceProvider,
-} from "./fallback";
+} from './fallback';
 
 // ====================================
 // FAULT TOLERANCE CONFIGURATION
@@ -125,7 +125,7 @@ export class FaultTolerantService<T> {
     },
   ): Promise<R> {
     const startTime = Date.now();
-    const operationName = context?.operationName || "unknown_operation";
+    const operationName = context?.operationName || 'unknown_operation';
 
     this.metrics.totalRequests++;
 
@@ -199,9 +199,6 @@ export class FaultTolerantService<T> {
         this.shouldUseFallback(classifiedError)
       ) {
         try {
-          console.log(
-            `🔄 Attempting fallback for ${operationName} due to ${classifiedError.category}`,
-          );
 
           // Use fallback manager to try alternative approaches
           const fallbackResult = await this.fallbackManager.execute(
@@ -211,11 +208,9 @@ export class FaultTolerantService<T> {
           );
 
           this.metrics.fallbackActivations++;
-          console.log(`✅ Fallback succeeded for ${operationName}`);
 
           return fallbackResult as R;
-        } catch (fallbackError) {
-          console.log(`❌ Fallback also failed for ${operationName}`);
+        } catch (_fallbackError) {
           // Continue to throw original error
         }
       }
@@ -270,7 +265,7 @@ export class FaultTolerantService<T> {
 
     const overallHealthy =
       fallbackHealth.healthy &&
-      circuitBreakerMetrics.state !== "OPEN" &&
+      circuitBreakerMetrics.state !== 'OPEN' &&
       !this.gracefulDegradation.isDegraded();
 
     return {
@@ -310,8 +305,6 @@ export class FaultTolerantService<T> {
       errorsByCategory: {},
       lastUpdated: Date.now(),
     };
-
-    console.log(`🔄 Fault tolerance reset for service: ${this.serviceName}`);
   }
 
   /**
@@ -381,8 +374,7 @@ export class FaultTolerantService<T> {
     this.healthCheckTimer = setInterval(async () => {
       try {
         await this.performPeriodicHealthCheck();
-      } catch (error) {
-        console.error(`Health check failed for ${this.serviceName}:`, error);
+      } catch (_error) {
       }
     }, this.config.healthCheckIntervalMs);
   }
@@ -392,16 +384,10 @@ export class FaultTolerantService<T> {
 
     // Log health status periodically
     if (!health.healthy) {
-      console.warn(`⚠️ Service ${this.serviceName} health check failed:`, {
-        degraded: health.degradationStatus.isDegraded,
-        circuitBreakerState: health.circuitBreakerStatus.state,
-        fallbackHealthy: health.fallbackStatus.healthy,
-      });
     }
 
     // Auto-recovery logic
     if (health.healthy && this.gracefulDegradation.isDegraded()) {
-      console.log(`🔄 Attempting auto-recovery for ${this.serviceName}`);
       this.gracefulDegradation.recover();
     }
   }
@@ -526,8 +512,8 @@ export {
   ErrorClassifier,
   type RetryConfig,
   RetryMechanism,
-} from "./error-handling";
+} from './error-handling';
 
-export type { FallbackConfig, ServiceProvider } from "./fallback";
+export type { FallbackConfig, ServiceProvider } from './fallback';
 
-export { FallbackManager, FallbackMode, GracefulDegradation } from "./fallback";
+export { FallbackManager, FallbackMode, GracefulDegradation } from './fallback';

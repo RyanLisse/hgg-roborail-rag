@@ -1,14 +1,14 @@
-import { redirect } from "next/navigation";
-import { auth } from "@/app/(auth)/auth";
-import { VectorStoreMonitoring } from "@/components/vector-store-monitoring";
+import { redirect } from 'next/navigation';
+import { auth } from '@/app/(auth)/auth';
+import { VectorStoreMonitoring } from '@/components/vector-store-monitoring';
 
 export default async function MonitoringPage() {
   const session = await auth();
 
   // For development, allow access without authentication
   // In production, you might want to restrict this to admin users
-  if (!session && process.env.NODE_ENV === "production") {
-    redirect("/login");
+  if (!session && process.env.NODE_ENV === 'production') {
+    redirect('/login');
   }
 
   return (
@@ -19,7 +19,7 @@ export default async function MonitoringPage() {
 }
 
 export const metadata = {
-  title: "Vector Store Monitoring | RRA",
+  title: 'Vector Store Monitoring | RRA',
   description:
-    "Real-time monitoring and analytics for vector store performance",
+    'Real-time monitoring and analytics for vector store performance',
 };

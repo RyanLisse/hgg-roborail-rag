@@ -1,33 +1,33 @@
-import { z } from "zod";
-import { processQuery, processQueryStream } from "@/lib/agents";
+import { z } from 'zod';
+import { processQuery, processQueryStream } from '@/lib/agents';
 import {
   ApiResponses,
   withStreamingApiErrorHandling,
-} from "@/lib/api/error-handling";
+} from '@/lib/api/error-handling';
 
 export const maxDuration = 60;
 
 const requestSchema = z.object({
-  query: z.string().min(1, "Query is required"),
+  query: z.string().min(1, 'Query is required'),
   chatHistory: z
     .array(
       z.object({
-        role: z.enum(["user", "assistant", "system"]),
+        role: z.enum(['user', 'assistant', 'system']),
         content: z.string(),
       }),
     )
     .optional()
     .default([]),
   sources: z
-    .array(z.enum(["openai", "neon", "memory"]))
+    .array(z.enum(['openai', 'neon', 'memory']))
     .optional()
-    .default(["memory"]),
+    .default(['memory']),
   modelId: z.string().optional(),
   streaming: z.boolean().optional().default(false),
 });
 
 export const POST = withStreamingApiErrorHandling(
-  async (request, { session, validatedBody }) => {
+  async (_request, { session, validatedBody }) => {
     const { query, chatHistory, sources, modelId, streaming } = validatedBody;
 
     if (streaming) {
@@ -43,17 +43,17 @@ export const POST = withStreamingApiErrorHandling(
             });
 
             for await (const chunk of agentStream) {
-              if (typeof chunk === "string") {
+              if (typeof chunk === 'string') {
                 // Stream text chunk
                 const data = JSON.stringify({
-                  type: "text-delta",
+                  type: 'text-delta',
                   content: chunk,
                 });
                 controller.enqueue(encoder.encode(`data: ${data}\n\n`));
               } else {
                 // Stream final response
                 const data = JSON.stringify({
-                  type: "final-response",
+                  type: 'final-response',
                   response: chunk,
                 });
                 controller.enqueue(encoder.encode(`data: ${data}\n\n`));
@@ -61,11 +61,10 @@ export const POST = withStreamingApiErrorHandling(
             }
 
             controller.close();
-          } catch (error) {
-            console.error("Agent streaming error:", error);
+          } catch (_error) {
             const errorData = JSON.stringify({
-              type: "error",
-              error: "An error occurred while processing your request",
+              type: 'error',
+              error: 'An error occurred while processing your request',
             });
             controller.enqueue(encoder.encode(`data: ${errorData}\n\n`));
             controller.close();
@@ -75,9 +74,9 @@ export const POST = withStreamingApiErrorHandling(
 
       return new Response(stream, {
         headers: {
-          "Content-Type": "text/event-stream",
-          "Cache-Control": "no-cache",
-          Connection: "keep-alive",
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          Connection: 'keep-alive',
         },
       });
     } else {

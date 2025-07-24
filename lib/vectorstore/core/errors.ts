@@ -1,5 +1,5 @@
-import type { ClassifiedError, ErrorType } from "./types";
-import { ErrorType as ErrorTypeEnum } from "./types";
+import type { ClassifiedError, ErrorType } from './types';
+import { ErrorType as ErrorTypeEnum } from './types';
 
 export class VectorStoreError extends Error {
   public readonly type: ErrorType;
@@ -13,7 +13,7 @@ export class VectorStoreError extends Error {
     suggestedDelay?: number,
   ) {
     super(message);
-    this.name = "VectorStoreError";
+    this.name = 'VectorStoreError';
     this.type = type;
     this.retryable = retryable;
     this.suggestedDelay = suggestedDelay;
@@ -28,15 +28,15 @@ export function classifyError(error: Error): ClassifiedError {
 
   // Network errors
   if (
-    message.includes("network") ||
-    message.includes("connection") ||
-    message.includes("timeout") ||
-    message.includes("econnrefused") ||
-    message.includes("enotfound")
+    message.includes('network') ||
+    message.includes('connection') ||
+    message.includes('timeout') ||
+    message.includes('econnrefused') ||
+    message.includes('enotfound')
   ) {
     return {
       type: ErrorTypeEnum.NETWORK,
-      message: "Network connection failed",
+      message: 'Network connection failed',
       originalError: error,
       retryable: true,
       suggestedDelay: 2000,
@@ -45,16 +45,16 @@ export function classifyError(error: Error): ClassifiedError {
 
   // Authentication errors
   if (
-    message.includes("unauthorized") ||
-    message.includes("invalid api key") ||
-    message.includes("authentication") ||
-    message.includes("forbidden") ||
-    error.message.includes("401") ||
-    error.message.includes("403")
+    message.includes('unauthorized') ||
+    message.includes('invalid api key') ||
+    message.includes('authentication') ||
+    message.includes('forbidden') ||
+    error.message.includes('401') ||
+    error.message.includes('403')
   ) {
     return {
       type: ErrorTypeEnum.AUTHENTICATION,
-      message: "Authentication failed - check API keys",
+      message: 'Authentication failed - check API keys',
       originalError: error,
       retryable: false,
     };
@@ -62,13 +62,13 @@ export function classifyError(error: Error): ClassifiedError {
 
   // Rate limiting
   if (
-    message.includes("rate limit") ||
-    message.includes("too many requests") ||
-    error.message.includes("429")
+    message.includes('rate limit') ||
+    message.includes('too many requests') ||
+    error.message.includes('429')
   ) {
     return {
       type: ErrorTypeEnum.RATE_LIMIT,
-      message: "Rate limit exceeded",
+      message: 'Rate limit exceeded',
       originalError: error,
       retryable: true,
       suggestedDelay: 60_000, // 1 minute
@@ -77,16 +77,16 @@ export function classifyError(error: Error): ClassifiedError {
 
   // Service unavailable
   if (
-    message.includes("service unavailable") ||
-    message.includes("internal server error") ||
-    message.includes("bad gateway") ||
-    error.message.includes("500") ||
-    error.message.includes("502") ||
-    error.message.includes("503")
+    message.includes('service unavailable') ||
+    message.includes('internal server error') ||
+    message.includes('bad gateway') ||
+    error.message.includes('500') ||
+    error.message.includes('502') ||
+    error.message.includes('503')
   ) {
     return {
       type: ErrorTypeEnum.SERVICE_UNAVAILABLE,
-      message: "Service temporarily unavailable",
+      message: 'Service temporarily unavailable',
       originalError: error,
       retryable: true,
       suggestedDelay: 5000,
@@ -95,14 +95,14 @@ export function classifyError(error: Error): ClassifiedError {
 
   // Validation errors
   if (
-    message.includes("validation") ||
-    message.includes("invalid") ||
-    message.includes("required") ||
-    error.name === "ZodError"
+    message.includes('validation') ||
+    message.includes('invalid') ||
+    message.includes('required') ||
+    error.name === 'ZodError'
   ) {
     return {
       type: ErrorTypeEnum.VALIDATION,
-      message: "Invalid request parameters",
+      message: 'Invalid request parameters',
       originalError: error,
       retryable: false,
     };
@@ -111,7 +111,7 @@ export function classifyError(error: Error): ClassifiedError {
   // Default to unknown
   return {
     type: ErrorTypeEnum.UNKNOWN,
-    message: error.message || "Unknown error occurred",
+    message: error.message || 'Unknown error occurred',
     originalError: error,
     retryable: false,
   };
@@ -183,7 +183,7 @@ export function logError(
   error: ClassifiedError,
   context?: Record<string, any>,
 ): void {
-  const logData = {
+  const _logData = {
     service: serviceName,
     operation,
     errorType: error.type,
@@ -194,22 +194,16 @@ export function logError(
 
   switch (error.type) {
     case ErrorTypeEnum.AUTHENTICATION:
-      console.error("🔐 Authentication Error:", logData);
       break;
     case ErrorTypeEnum.NETWORK:
-      console.warn("🌐 Network Error:", logData);
       break;
     case ErrorTypeEnum.RATE_LIMIT:
-      console.warn("⏱️  Rate Limit Error:", logData);
       break;
     case ErrorTypeEnum.SERVICE_UNAVAILABLE:
-      console.warn("🚫 Service Unavailable:", logData);
       break;
     case ErrorTypeEnum.VALIDATION:
-      console.error("✅ Validation Error:", logData);
       break;
     default:
-      console.error("❓ Unknown Error:", logData);
   }
 }
 

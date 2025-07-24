@@ -11,8 +11,8 @@ import {
 } from './index';
 
 // Mock console methods
-const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+const _consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+const _consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
 // Mock environment variables
 const originalEnv = process.env;

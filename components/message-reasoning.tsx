@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { AnimatePresence, motion } from "framer-motion";
-import { useState } from "react";
-import { ChevronDownIcon, LoaderIcon } from "./icons";
-import { Markdown } from "./markdown";
+import { AnimatePresence, motion } from 'framer-motion';
+import { useState } from 'react';
+import { ChevronDownIcon, LoaderIcon } from './icons';
+import { Markdown } from './markdown';
 
 interface MessageReasoningProps {
   isLoading: boolean;
@@ -24,10 +24,10 @@ export function MessageReasoning({
       marginBottom: 0,
     },
     expanded: {
-      height: "auto",
+      height: 'auto',
       opacity: 1,
-      marginTop: "1rem",
-      marginBottom: "0.5rem",
+      marginTop: '1rem',
+      marginBottom: '0.5rem',
     },
   };
 
@@ -65,8 +65,8 @@ export function MessageReasoning({
             exit="collapsed"
             initial="collapsed"
             key="content"
-            style={{ overflow: "hidden" }}
-            transition={{ duration: 0.2, ease: "easeInOut" }}
+            style={{ overflow: 'hidden' }}
+            transition={{ duration: 0.2, ease: 'easeInOut' }}
             variants={variants}
           >
             <Markdown>{reasoning}</Markdown>

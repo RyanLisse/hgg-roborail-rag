@@ -8,7 +8,7 @@ const mockMessages: Map<string, DBMessage[]> = new Map();
 
 // Mock user data
 let mockUserCounter = 1;
-let mockChatCounter = 1;
+let _mockChatCounter = 1;
 
 // Reset mocks between tests
 export function resetMocks() {
@@ -16,11 +16,11 @@ export function resetMocks() {
   mockChats.clear();
   mockMessages.clear();
   mockUserCounter = 1;
-  mockChatCounter = 1;
+  _mockChatCounter = 1;
 }
 
 // Mock implementations
-export async function getUser(email: string): Promise<Array<User>> {
+export async function getUser(email: string): Promise<User[]> {
   const user = Array.from(mockUsers.values()).find((u) => u.email === email);
   return user ? [user] : [];
 }

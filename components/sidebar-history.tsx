@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { isToday, isYesterday, subMonths, subWeeks } from "date-fns";
-import { motion } from "framer-motion";
-import { useParams, useRouter } from "next/navigation";
-import type { User } from "next-auth";
-import { useState } from "react";
-import { toast } from "sonner";
-import useSWRInfinite from "swr/infinite";
+import { isToday, isYesterday, subMonths, subWeeks } from 'date-fns';
+import { motion } from 'framer-motion';
+import { useParams, useRouter } from 'next/navigation';
+import type { User } from 'next-auth';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import useSWRInfinite from 'swr/infinite';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,17 +16,17 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+} from '@/components/ui/alert-dialog';
 import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarMenu,
   useSidebar,
-} from "@/components/ui/sidebar";
-import type { Chat } from "@/lib/db/schema";
-import { fetcher } from "@/lib/utils";
-import { LoaderIcon } from "./icons";
-import { ChatItem } from "./sidebar-history-item";
+} from '@/components/ui/sidebar';
+import type { Chat } from '@/lib/db/schema';
+import { fetcher } from '@/lib/utils';
+import { LoaderIcon } from './icons';
+import { ChatItem } from './sidebar-history-item';
 
 type GroupedChats = {
   today: Chat[];
@@ -37,7 +37,7 @@ type GroupedChats = {
 };
 
 export interface ChatHistory {
-  chats: Array<Chat>;
+  chats: Chat[];
   hasMore: boolean;
 }
 
@@ -88,11 +88,11 @@ export function getChatHistoryPaginationKey(
     return null;
   }
 
-  if (pageIndex === 0) return `/api/history?limit=${PAGE_SIZE}`;
+  if (pageIndex === 0) { return `/api/history?limit=${PAGE_SIZE}`; }
 
   const firstChatFromPage = previousPageData.chats?.at(-1);
 
-  if (!firstChatFromPage) return null;
+  if (!firstChatFromPage) { return null; }
 
   return `/api/history?ending_before=${firstChatFromPage.id}&limit=${PAGE_SIZE}`;
 }
@@ -125,16 +125,16 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
 
   const handleDelete = async () => {
     const deletePromise = fetch(`/api/chat?id=${deleteId}`, {
-      method: "DELETE",
+      method: 'DELETE',
     });
 
     toast.promise(deletePromise, {
-      loading: "Deleting chat...",
+      loading: 'Deleting chat...',
       success: () => {
         mutate((chatHistories) => {
           if (chatHistories) {
             return chatHistories.map((chatHistory) => {
-              if (!(chatHistory && chatHistory.chats)) {
+              if (!(chatHistory?.chats)) {
                 return chatHistory;
               }
               return {
@@ -146,15 +146,15 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
           return chatHistories;
         });
 
-        return "Chat deleted successfully";
+        return 'Chat deleted successfully';
       },
-      error: "Failed to delete chat",
+      error: 'Failed to delete chat',
     });
 
     setShowDeleteDialog(false);
 
     if (deleteId === id) {
-      router.push("/");
+      router.push('/');
     }
   };
 
@@ -187,7 +187,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
                   className="h-4 max-w-[--skeleton-width] flex-1 rounded-md bg-sidebar-accent-foreground/10"
                   style={
                     {
-                      "--skeleton-width": `${item}%`,
+                      '--skeleton-width': `${item}%`,
                     } as React.CSSProperties
                   }
                 />

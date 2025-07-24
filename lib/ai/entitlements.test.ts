@@ -1,10 +1,10 @@
-import { describe, expect, it } from "vitest";
-import type { UserType } from "@/app/(auth)/auth";
-import { entitlementsByUserType } from "./entitlements";
+import { describe, expect, it } from 'vitest';
+import type { UserType } from '@/app/(auth)/auth';
+import { entitlementsByUserType } from './entitlements';
 
-describe("Entitlements", () => {
-  describe("entitlementsByUserType", () => {
-    it("should have entitlements for guest users", () => {
+describe('Entitlements', () => {
+  describe('entitlementsByUserType', () => {
+    it('should have entitlements for guest users', () => {
       const guestEntitlements = entitlementsByUserType.guest;
 
       expect(guestEntitlements).toBeDefined();
@@ -13,7 +13,7 @@ describe("Entitlements", () => {
       expect(guestEntitlements.availableChatModelIds.length).toBeGreaterThan(0);
     });
 
-    it("should have entitlements for regular users", () => {
+    it('should have entitlements for regular users', () => {
       const regularEntitlements = entitlementsByUserType.regular;
 
       expect(regularEntitlements).toBeDefined();
@@ -24,14 +24,14 @@ describe("Entitlements", () => {
       );
     });
 
-    it("should give regular users more message quota than guests", () => {
+    it('should give regular users more message quota than guests', () => {
       const guestQuota = entitlementsByUserType.guest.maxMessagesPerDay;
       const regularQuota = entitlementsByUserType.regular.maxMessagesPerDay;
 
       expect(regularQuota).toBeGreaterThan(guestQuota);
     });
 
-    it("should give regular users more model options than guests", () => {
+    it('should give regular users more model options than guests', () => {
       const guestModels = entitlementsByUserType.guest.availableChatModelIds;
       const regularModels =
         entitlementsByUserType.regular.availableChatModelIds;
@@ -39,16 +39,16 @@ describe("Entitlements", () => {
       expect(regularModels.length).toBeGreaterThan(guestModels.length);
     });
 
-    it("should include default models for both user types", () => {
+    it('should include default models for both user types', () => {
       const guestModels = entitlementsByUserType.guest.availableChatModelIds;
       const regularModels =
         entitlementsByUserType.regular.availableChatModelIds;
 
       // Core models that should be available to both (updated for OpenAI/Google only)
       const coreModels = [
-        "openai-gpt-4.1",
-        "openai-o4-mini", 
-        "google-gemini-1.5-flash-latest",
+        'openai-gpt-4.1',
+        'openai-o4-mini',
+        'google-gemini-1.5-flash-latest',
       ];
 
       coreModels.forEach((model) => {
@@ -57,16 +57,13 @@ describe("Entitlements", () => {
       });
     });
 
-    it("should include premium models only for regular users", () => {
+    it('should include premium models only for regular users', () => {
       const guestModels = entitlementsByUserType.guest.availableChatModelIds;
       const regularModels =
         entitlementsByUserType.regular.availableChatModelIds;
 
-      // Updated premium models for OpenAI/Google only  
-      const premiumModels = [
-        "openai-o3-pro",
-        "google-gemini-1.5-pro-latest",
-      ];
+      // Updated premium models for OpenAI/Google only
+      const premiumModels = ['openai-o3-pro', 'google-gemini-1.5-pro-latest'];
 
       premiumModels.forEach((model) => {
         expect(guestModels).not.toContain(model);
@@ -74,8 +71,8 @@ describe("Entitlements", () => {
       });
     });
 
-    it("should have valid model ID format", () => {
-      const allUserTypes: UserType[] = ["guest", "regular"];
+    it('should have valid model ID format', () => {
+      const allUserTypes: UserType[] = ['guest', 'regular'];
 
       allUserTypes.forEach((userType) => {
         const entitlements = entitlementsByUserType[userType];
@@ -87,8 +84,8 @@ describe("Entitlements", () => {
       });
     });
 
-    it("should have no duplicate model IDs per user type", () => {
-      const allUserTypes: UserType[] = ["guest", "regular"];
+    it('should have no duplicate model IDs per user type', () => {
+      const allUserTypes: UserType[] = ['guest', 'regular'];
 
       allUserTypes.forEach((userType) => {
         const models = entitlementsByUserType[userType].availableChatModelIds;
@@ -98,7 +95,7 @@ describe("Entitlements", () => {
       });
     });
 
-    it("should have reasonable message limits", () => {
+    it('should have reasonable message limits', () => {
       const guestLimit = entitlementsByUserType.guest.maxMessagesPerDay;
       const regularLimit = entitlementsByUserType.regular.maxMessagesPerDay;
 
@@ -109,28 +106,28 @@ describe("Entitlements", () => {
       expect(regularLimit).toBeLessThan(10_000);
     });
 
-    it("should maintain provider diversity", () => {
+    it('should maintain provider diversity', () => {
       const regularModels =
         entitlementsByUserType.regular.availableChatModelIds;
       const providers = new Set(
-        regularModels.map((model) => model.split("-")[0]),
+        regularModels.map((model) => model.split('-')[0]),
       );
 
       // Should support multiple providers (updated for OpenAI/Google only)
       expect(providers.size).toBeGreaterThanOrEqual(2);
-      expect(providers).toContain("openai");
-      expect(providers).toContain("google");
+      expect(providers).toContain('openai');
+      expect(providers).toContain('google');
     });
 
-    it("should be extensible for future user types", () => {
+    it('should be extensible for future user types', () => {
       // The entitlements structure should support adding new user types
-      expect(typeof entitlementsByUserType).toBe("object");
+      expect(typeof entitlementsByUserType).toBe('object');
 
       // Should have the expected structure for each user type
       Object.values(entitlementsByUserType).forEach((entitlement) => {
-        expect(entitlement).toHaveProperty("maxMessagesPerDay");
-        expect(entitlement).toHaveProperty("availableChatModelIds");
-        expect(typeof entitlement.maxMessagesPerDay).toBe("number");
+        expect(entitlement).toHaveProperty('maxMessagesPerDay');
+        expect(entitlement).toHaveProperty('availableChatModelIds');
+        expect(typeof entitlement.maxMessagesPerDay).toBe('number');
         expect(Array.isArray(entitlement.availableChatModelIds)).toBe(true);
       });
     });

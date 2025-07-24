@@ -1,6 +1,6 @@
-import { expect as baseExpect, test as baseTest } from "@playwright/test";
-import { getUnixTime } from "date-fns";
-import { createAuthenticatedContext, type UserContext } from "./helpers";
+import { expect as baseExpect, test as baseTest } from '@playwright/test';
+import { getUnixTime } from 'date-fns';
+import { createAuthenticatedContext, type UserContext } from './helpers';
 
 interface Fixtures {
   adaContext: UserContext;
@@ -19,7 +19,7 @@ export const test = baseTest.extend<{}, Fixtures>({
       await use(ada);
       await ada.context.close();
     },
-    { scope: "worker" },
+    { scope: 'worker' },
   ],
   babbageContext: [
     async ({ browser }, use, workerInfo) => {
@@ -31,20 +31,20 @@ export const test = baseTest.extend<{}, Fixtures>({
       await use(babbage);
       await babbage.context.close();
     },
-    { scope: "worker" },
+    { scope: 'worker' },
   ],
   curieContext: [
     async ({ browser }, use, workerInfo) => {
       const curie = await createAuthenticatedContext({
         browser,
         name: `curie-${workerInfo.workerIndex}-${getUnixTime(new Date())}`,
-        chatModel: "chat-model-reasoning",
+        chatModel: 'chat-model-reasoning',
       });
 
       await use(curie);
       await curie.context.close();
     },
-    { scope: "worker" },
+    { scope: 'worker' },
   ],
 });
 

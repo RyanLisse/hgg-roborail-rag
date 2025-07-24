@@ -1,5 +1,5 @@
-import { BaseAgent } from "./base-agent";
-import type { AgentRequest } from "./types";
+import { BaseAgent } from './base-agent';
+import type { AgentRequest } from './types';
 
 /**
  * QA Agent - Standard Retrieval-Augmented Generation for question answering
@@ -12,10 +12,10 @@ import type { AgentRequest } from "./types";
  */
 export class QAAgent extends BaseAgent {
   constructor() {
-    super("qa", {
-      name: "Question Answering Agent",
+    super('qa', {
+      name: 'Question Answering Agent',
       description:
-        "Provides accurate answers to questions using retrieved context and knowledge",
+        'Provides accurate answers to questions using retrieved context and knowledge',
       supportsStreaming: true,
       requiresTools: false,
       maxTokens: 1000,
@@ -51,12 +51,12 @@ Response format:
 - Include relevant details and explanations
 - Use clear, accessible language
 - Structure information logically
-${hasContext ? `- Cite sources when available` : ""}
+${hasContext ? `- Cite sources when available` : ''}
 
 Remember to be concise but comprehensive, and always prioritize accuracy over speculation.`;
   }
 
-  protected getTools(request: AgentRequest): Record<string, any> | undefined {
+  protected getTools(_request: AgentRequest): Record<string, any> | undefined {
     // QA agent doesn't require special tools beyond context retrieval
     return;
   }

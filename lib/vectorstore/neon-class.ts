@@ -2,14 +2,14 @@
  * Neon Vector Store class for DI container
  */
 
-import { BaseVectorStoreService } from "./core/base-service";
-import { getNeonVectorStoreService, type NeonVectorStoreService } from "./neon";
+import { BaseVectorStoreService } from './core/base-service';
+import { getNeonVectorStoreService, type NeonVectorStoreService } from './neon';
 
 export class NeonVectorStore extends BaseVectorStoreService {
   private service: Promise<NeonVectorStoreService>;
 
   constructor() {
-    super("neon-vector-store");
+    super('neon-vector-store');
     this.service = getNeonVectorStoreService();
   }
 
@@ -17,7 +17,7 @@ export class NeonVectorStore extends BaseVectorStoreService {
     const service = await this.service;
     return this.withRetry(
       () => service.searchSimilar({ query, ...options }),
-      "search",
+      'search',
     );
   }
 
@@ -29,14 +29,14 @@ export class NeonVectorStore extends BaseVectorStoreService {
 
   async upload(documents: any[]) {
     const service = await this.service;
-    return this.withRetry(() => service.addDocuments(documents), "upload");
+    return this.withRetry(() => service.addDocuments(documents), 'upload');
   }
 
   protected async performHealthCheck(): Promise<void> {
     // Neon service doesn't have health check method, so just check if enabled
     const service = await this.service;
     if (!service.isEnabled) {
-      throw new Error("Neon service is disabled");
+      throw new Error('Neon service is disabled');
     }
   }
 
@@ -44,7 +44,7 @@ export class NeonVectorStore extends BaseVectorStoreService {
     const service = await this.service;
     return this.withRetry(
       () => Promise.all(ids.map((id) => service.deleteDocument(id))),
-      "delete",
+      'delete',
     );
   }
 
@@ -53,13 +53,13 @@ export class NeonVectorStore extends BaseVectorStoreService {
     return this.withRetry(
       async () => ({
         message: service.isEnabled
-          ? "Neon service is healthy"
-          : "Neon service is disabled",
+          ? 'Neon service is healthy'
+          : 'Neon service is disabled',
         isHealthy: service.isEnabled,
         responseTime: 0,
         lastChecked: new Date(),
       }),
-      "healthCheck",
+      'healthCheck',
     );
   }
 
@@ -71,7 +71,7 @@ export class NeonVectorStore extends BaseVectorStoreService {
         lastUpdated: new Date(),
         isEnabled: service.isEnabled,
       }),
-      "getStats",
+      'getStats',
     );
   }
 }

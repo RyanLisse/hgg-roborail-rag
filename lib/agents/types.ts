@@ -1,7 +1,7 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 // Base agent types
-export const AgentType = z.enum(["qa", "rewrite", "planner", "research"]);
+export const AgentType = z.enum(['qa', 'rewrite', 'planner', 'research']);
 
 export const AgentCapability = z.object({
   name: z.string(),
@@ -17,7 +17,7 @@ export const AgentRequest = z.object({
   chatHistory: z
     .array(
       z.object({
-        role: z.enum(["user", "assistant", "system"]),
+        role: z.enum(['user', 'assistant', 'system']),
         content: z.string(),
       }),
     )
@@ -25,18 +25,18 @@ export const AgentRequest = z.object({
   context: z
     .object({
       userIntent: z.string().optional(),
-      complexity: z.enum(["simple", "moderate", "complex"]).default("moderate"),
+      complexity: z.enum(['simple', 'moderate', 'complex']).default('moderate'),
       domainKeywords: z.array(z.string()).default([]),
       sources: z
-        .array(z.enum(["openai", "neon", "memory"]))
-        .default(["openai"]),
+        .array(z.enum(['openai', 'neon', 'memory']))
+        .default(['openai']),
       requiresCitations: z.boolean().default(false),
       maxResults: z.number().min(1).max(20).default(5),
     })
     .optional(),
   options: z
     .object({
-      modelId: z.string().default("anthropic-claude-sonnet-4-20250514"),
+      modelId: z.string().default('anthropic-claude-sonnet-4-20250514'),
       streaming: z.boolean().default(true),
       maxTokens: z.number().optional(),
       temperature: z.number().min(0).max(2).optional(),
@@ -92,27 +92,27 @@ export const AgentRoutingDecision = z.object({
   reasoning: z.string(),
   fallbackAgent: AgentType.optional(),
   suggestedSources: z
-    .array(z.enum(["openai", "neon", "memory"]))
-    .default(["openai"]),
-  estimatedComplexity: z.enum(["simple", "moderate", "complex"]),
+    .array(z.enum(['openai', 'neon', 'memory']))
+    .default(['openai']),
+  estimatedComplexity: z.enum(['simple', 'moderate', 'complex']),
 });
 
 export const AgentConfig = z.object({
-  defaultModel: z.string().default("anthropic-claude-sonnet-4-20250514"),
-  fallbackModel: z.string().default("openai-gpt-4.1-mini"),
+  defaultModel: z.string().default('anthropic-claude-sonnet-4-20250514'),
+  fallbackModel: z.string().default('openai-gpt-4.1-mini'),
   timeout: z.number().default(30_000),
   maxRetries: z.number().default(2),
   enableTelemetry: z.boolean().default(true),
   vectorStoreConfig: z
     .object({
       defaultSources: z
-        .array(z.enum(["openai", "neon", "memory"]))
-        .default(["openai"]),
+        .array(z.enum(['openai', 'neon', 'memory']))
+        .default(['openai']),
       searchThreshold: z.number().min(0).max(1).default(0.3),
       maxResults: z.number().min(1).max(50).default(10),
     })
     .default({
-      defaultSources: ["openai"],
+      defaultSources: ['openai'],
       searchThreshold: 0.3,
       maxResults: 10,
     }),
@@ -120,18 +120,18 @@ export const AgentConfig = z.object({
 
 // Intent classification types
 export const UserIntent = z.enum([
-  "question_answering",
-  "summarization",
-  "rewriting",
-  "planning",
-  "research",
-  "comparison",
-  "analysis",
-  "general_chat",
+  'question_answering',
+  'summarization',
+  'rewriting',
+  'planning',
+  'research',
+  'comparison',
+  'analysis',
+  'general_chat',
 ]);
 
 export const QueryComplexity = z.object({
-  level: z.enum(["simple", "moderate", "complex"]),
+  level: z.enum(['simple', 'moderate', 'complex']),
   factors: z.object({
     wordCount: z.number(),
     questionCount: z.number(),
@@ -168,7 +168,7 @@ export interface Agent {
 export interface AgentRouter {
   routeQuery(
     query: string,
-    context?: AgentRequest["context"],
+    context?: AgentRequest['context'],
   ): Promise<AgentRoutingDecision>;
   classifyIntent(query: string): Promise<UserIntent>;
   analyzeComplexity(query: string): Promise<QueryComplexity>;
@@ -180,5 +180,5 @@ export interface AgentRouter {
 }
 
 // Vector store type definition
-export const VectorStoreType = z.enum(["openai", "neon", "memory"]);
+export const VectorStoreType = z.enum(['openai', 'neon', 'memory']);
 export type VectorStoreType = z.infer<typeof VectorStoreType>;

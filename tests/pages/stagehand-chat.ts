@@ -1,5 +1,5 @@
-import { Stagehand } from "@browserbasehq/stagehand";
-import { expect, type Page } from "@playwright/test";
+import { Stagehand } from '@browserbasehq/stagehand';
+import { expect, type Page } from '@playwright/test';
 
 export class StagehandChatPage {
   private stagehand: Stagehand | null = null;
@@ -11,12 +11,12 @@ export class StagehandChatPage {
       process.env.BROWSERBASE_API_KEY &&
       process.env.BROWSERBASE_PROJECT_ID &&
       process.env.BROWSERBASE_API_KEY !==
-        "test-browserbase-key-for-local-testing"
+        'test-browserbase-key-for-local-testing'
     );
 
     if (this.hasCredentials) {
       this.stagehand = new Stagehand({
-        env: "BROWSERBASE",
+        env: 'BROWSERBASE',
         apiKey: process.env.BROWSERBASE_API_KEY,
         projectId: process.env.BROWSERBASE_PROJECT_ID,
         verbose: 1,
@@ -31,28 +31,21 @@ export class StagehandChatPage {
   async init() {
     if (!this.isAvailable()) {
       throw new Error(
-        "Stagehand is not available - missing Browserbase credentials",
+        'Stagehand is not available - missing Browserbase credentials',
       );
     }
-
-    try {
       await Promise.race([
         this.stagehand?.init(),
         new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("Stagehand init timeout")), 30_000),
+          setTimeout(() => reject(new Error('Stagehand init timeout')), 30_000),
         ),
       ]);
-      console.log("✓ Stagehand initialized successfully");
-    } catch (error) {
-      console.error("Failed to initialize Stagehand:", error);
-      throw error;
-    }
   }
 
   async createNewChat() {
-    await this.page.goto("/");
+    await this.page.goto('/');
     // Wait for the page to load and become interactive
-    await this.stagehand.page.act("wait for the chat interface to load");
+    await this.stagehand.page.act('wait for the chat interface to load');
   }
 
   public getCurrentURL(): string {
@@ -61,10 +54,10 @@ export class StagehandChatPage {
 
   async sendUserMessage(message: string) {
     // Use Stagehand's AI-powered actions instead of brittle selectors
-    await this.stagehand.page.act("click on the message input text area");
+    await this.stagehand.page.act('click on the message input text area');
     await this.stagehand.page.act(`type the message: "${message}"`);
     await this.stagehand.page.act(
-      "click the send button to submit the message",
+      'click the send button to submit the message',
     );
   }
 
@@ -72,7 +65,7 @@ export class StagehandChatPage {
     try {
       // Wait for the API response with timeout
       const response = await this.page.waitForResponse(
-        (response) => response.url().includes("/api/chat"),
+        (response) => response.url().includes('/api/chat'),
         { timeout: 60_000 },
       );
       await response.finished();
@@ -80,14 +73,13 @@ export class StagehandChatPage {
       // Use Stagehand to wait for UI completion with shorter timeout
       await Promise.race([
         this.stagehand?.page.act(
-          "wait for the AI response to finish generating",
+          'wait for the AI response to finish generating',
         ),
         new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("UI completion timeout")), 15_000),
+          setTimeout(() => reject(new Error('UI completion timeout')), 15_000),
         ),
       ]);
-    } catch (error) {
-      console.warn("Generation completion check failed:", error);
+    } catch (_error) {
       // Fallback: wait for send button to be re-enabled
       await this.page.waitForTimeout(2000);
     }
@@ -100,7 +92,7 @@ export class StagehandChatPage {
   }
 
   async sendUserMessageFromSuggestion() {
-    await this.stagehand.page.act("click on any suggested question button");
+    await this.stagehand.page.act('click on any suggested question button');
   }
 
   async isElementVisible(description: string) {
@@ -120,46 +112,46 @@ export class StagehandChatPage {
   async addImageAttachment() {
     // Handle file upload with Stagehand
     await this.stagehand.page.act(
-      "click the attachment button to add an image",
+      'click the attachment button to add an image',
     );
     // Note: File uploading would need additional handling
   }
 
   async getSelectedModel() {
     const modelText = await this.stagehand.page.extract({
-      instruction: "extract the currently selected AI model name",
+      instruction: 'extract the currently selected AI model name',
       schema: {
-        type: "object",
+        type: 'object',
         properties: {
-          modelName: { type: "string" },
+          modelName: { type: 'string' },
         },
-        required: ["modelName"],
+        required: ['modelName'],
       },
     });
     return modelText.modelName;
   }
 
   async chooseModelFromSelector(modelName: string) {
-    await this.stagehand.page.act("click on the model selector dropdown");
+    await this.stagehand.page.act('click on the model selector dropdown');
     await this.stagehand.page.act(`select the model named "${modelName}"`);
   }
 
   async getSelectedVisibility() {
     const visibilityText = await this.stagehand.page.extract({
-      instruction: "extract the currently selected chat visibility setting",
+      instruction: 'extract the currently selected chat visibility setting',
       schema: {
-        type: "object",
+        type: 'object',
         properties: {
-          visibility: { type: "string" },
+          visibility: { type: 'string' },
         },
-        required: ["visibility"],
+        required: ['visibility'],
       },
     });
     return visibilityText.visibility;
   }
 
-  async chooseVisibilityFromSelector(visibility: "public" | "private") {
-    await this.stagehand.page.act("click on the visibility selector dropdown");
+  async chooseVisibilityFromSelector(visibility: 'public' | 'private') {
+    await this.stagehand.page.act('click on the visibility selector dropdown');
     await this.stagehand.page.act(`select ${visibility} visibility`);
   }
 
@@ -167,14 +159,14 @@ export class StagehandChatPage {
     // Extract the latest assistant message content
     const messageData = await this.stagehand.page.extract({
       instruction:
-        "extract the content of the most recent AI assistant message",
+        'extract the content of the most recent AI assistant message',
       schema: {
-        type: "object",
+        type: 'object',
         properties: {
-          content: { type: "string" },
-          hasReasoning: { type: "boolean" },
+          content: { type: 'string' },
+          hasReasoning: { type: 'boolean' },
         },
-        required: ["content"],
+        required: ['content'],
       },
     });
 
@@ -184,19 +176,19 @@ export class StagehandChatPage {
 
       async toggleReasoningVisibility() {
         await this.stagehand.page.act(
-          "click the reasoning toggle button on the latest message",
+          'click the reasoning toggle button on the latest message',
         );
       },
 
       async upvote() {
         await this.stagehand.page.act(
-          "click the upvote button on the latest AI message",
+          'click the upvote button on the latest AI message',
         );
       },
 
       async downvote() {
         await this.stagehand.page.act(
-          "click the downvote button on the latest AI message",
+          'click the downvote button on the latest AI message',
         );
       },
     };
@@ -204,14 +196,14 @@ export class StagehandChatPage {
 
   async getRecentUserMessage() {
     const messageData = await this.stagehand.page.extract({
-      instruction: "extract the content of the most recent user message",
+      instruction: 'extract the content of the most recent user message',
       schema: {
-        type: "object",
+        type: 'object',
         properties: {
-          content: { type: "string" },
-          hasAttachments: { type: "boolean" },
+          content: { type: 'string' },
+          hasAttachments: { type: 'boolean' },
         },
-        required: ["content"],
+        required: ['content'],
       },
     });
 
@@ -221,13 +213,13 @@ export class StagehandChatPage {
 
       async edit(newMessage: string) {
         await this.stagehand.page.act(
-          "click the edit button on the latest user message",
+          'click the edit button on the latest user message',
         );
         await this.stagehand.page.act(
           `replace the message content with: "${newMessage}"`,
         );
         await this.stagehand.page.act(
-          "click the send button to save the edited message",
+          'click the send button to save the edited message',
         );
       },
     };
@@ -242,19 +234,19 @@ export class StagehandChatPage {
 
   async openSideBar() {
     await this.stagehand.page.act(
-      "click the sidebar toggle button to open the sidebar",
+      'click the sidebar toggle button to open the sidebar',
     );
   }
 
   async isScrolledToBottom(): Promise<boolean> {
     const scrollStatus = await this.stagehand.page.extract({
-      instruction: "check if the chat is scrolled to the bottom",
+      instruction: 'check if the chat is scrolled to the bottom',
       schema: {
-        type: "object",
+        type: 'object',
         properties: {
-          isAtBottom: { type: "boolean" },
+          isAtBottom: { type: 'boolean' },
         },
-        required: ["isAtBottom"],
+        required: ['isAtBottom'],
       },
     });
     return scrollStatus.isAtBottom;
@@ -264,7 +256,7 @@ export class StagehandChatPage {
     const start = Date.now();
 
     while (Date.now() - start < timeout) {
-      if (await this.isScrolledToBottom()) return;
+      if (await this.isScrolledToBottom()) { return; }
       await this.page.waitForTimeout(100);
     }
 
@@ -282,24 +274,24 @@ export class StagehandChatPage {
   }
 
   async scrollToTop(): Promise<void> {
-    await this.stagehand.page.act("scroll to the top of the chat");
+    await this.stagehand.page.act('scroll to the top of the chat');
   }
 
   // Vector store selection methods using natural language
-  async selectVectorStore(source: "openai" | "neon" | "memory") {
-    await this.stagehand.page.act("click on the database selector dropdown");
+  async selectVectorStore(source: 'openai' | 'neon' | 'memory') {
+    await this.stagehand.page.act('click on the database selector dropdown');
     await this.stagehand.page.act(`select the ${source} vector store option`);
   }
 
   async getSelectedVectorStores() {
     const storeData = await this.stagehand.page.extract({
-      instruction: "extract the currently selected vector store",
+      instruction: 'extract the currently selected vector store',
       schema: {
-        type: "object",
+        type: 'object',
         properties: {
-          selectedStore: { type: "string" },
+          selectedStore: { type: 'string' },
         },
-        required: ["selectedStore"],
+        required: ['selectedStore'],
       },
     });
     return storeData.selectedStore;
@@ -308,19 +300,19 @@ export class StagehandChatPage {
   // Check button states using AI observation
   async isSendButtonVisible(): Promise<boolean> {
     return await this.stagehand.page.observe(
-      "check if the send message button is visible",
+      'check if the send message button is visible',
     );
   }
 
   async isSendButtonDisabled(): Promise<boolean> {
     return await this.stagehand.page.observe(
-      "check if the send message button is disabled",
+      'check if the send message button is disabled',
     );
   }
 
   async isStopButtonVisible(): Promise<boolean> {
     return await this.stagehand.page.observe(
-      "check if the stop generation button is visible",
+      'check if the stop generation button is visible',
     );
   }
 
@@ -333,12 +325,11 @@ export class StagehandChatPage {
     await this.sendUserMessage(message);
   }
 
-  async waitForResponseUsingAI(timeout = 45_000): Promise<boolean> {
+  async waitForResponseUsingAI(_timeout = 45_000): Promise<boolean> {
     try {
       await this.isGenerationComplete();
       return true;
-    } catch (error) {
-      console.warn("Response timeout:", error);
+    } catch (_error) {
       return false;
     }
   }
@@ -350,35 +341,35 @@ export class StagehandChatPage {
 
   async configureVectorStoresUsingAI(sources: string[]) {
     for (const source of sources) {
-      if (["openai", "neon", "memory"].includes(source)) {
-        await this.selectVectorStore(source as "openai" | "neon" | "memory");
+      if (['openai', 'neon', 'memory'].includes(source)) {
+        await this.selectVectorStore(source as 'openai' | 'neon' | 'memory');
       }
     }
   }
 
   async verifyResponseRelevanceUsingAI(): Promise<boolean> {
     const isRelevant = await this.stagehand?.page.observe(
-      "check if the last AI response contains meaningful, relevant content rather than an error or empty response",
+      'check if the last AI response contains meaningful, relevant content rather than an error or empty response',
     );
     return isRelevant;
   }
 
   async checkForCitationsUsingAI(): Promise<boolean> {
     const hasCitations = await this.stagehand?.page.observe(
-      "check if there are any citations, sources, or references shown with the AI response",
+      'check if there are any citations, sources, or references shown with the AI response',
     );
     return hasCitations;
   }
 
   async countCitationsUsingAI(): Promise<number> {
     const citationData = await this.stagehand?.page.extract({
-      instruction: "count the number of citations or source references visible",
+      instruction: 'count the number of citations or source references visible',
       schema: {
-        type: "object",
+        type: 'object',
         properties: {
-          count: { type: "number" },
+          count: { type: 'number' },
         },
-        required: ["count"],
+        required: ['count'],
       },
     });
     return citationData?.count || 0;
@@ -386,7 +377,7 @@ export class StagehandChatPage {
 
   async checkForErrorUsingAI(): Promise<boolean> {
     const hasError = await this.stagehand?.page.observe(
-      "check if there are any error messages or failed request indicators visible",
+      'check if there are any error messages or failed request indicators visible',
     );
     return hasError;
   }
@@ -395,7 +386,7 @@ export class StagehandChatPage {
     try {
       await this.isGenerationComplete();
       return true;
-    } catch (error) {
+    } catch (_error) {
       const hasError = await this.checkForErrorUsingAI();
       return hasError;
     }
@@ -404,13 +395,13 @@ export class StagehandChatPage {
   async verifyWeatherResponseUsingAI(): Promise<boolean> {
     const weatherResponse = await this.stagehand?.page.extract({
       instruction:
-        "check if the AI response contains weather-related information like temperature, conditions, or weather data",
+        'check if the AI response contains weather-related information like temperature, conditions, or weather data',
       schema: {
-        type: "object",
+        type: 'object',
         properties: {
-          hasWeatherInfo: { type: "boolean" },
+          hasWeatherInfo: { type: 'boolean' },
         },
-        required: ["hasWeatherInfo"],
+        required: ['hasWeatherInfo'],
       },
     });
     return weatherResponse?.hasWeatherInfo;
@@ -418,7 +409,7 @@ export class StagehandChatPage {
 
   async checkForToolUsageUsingAI(): Promise<boolean> {
     const hasToolUsage = await this.stagehand?.page.observe(
-      "check if there are any indicators showing the AI used external tools or functions",
+      'check if there are any indicators showing the AI used external tools or functions',
     );
     return hasToolUsage;
   }
@@ -428,10 +419,10 @@ export class StagehandChatPage {
   }
 
   async waitForLoad() {
-    await this.page.waitForLoadState("networkidle", { timeout: 30_000 });
+    await this.page.waitForLoadState('networkidle', { timeout: 30_000 });
     if (this.isAvailable()) {
       await this.stagehand?.page.act(
-        "wait for the chat interface to be fully loaded",
+        'wait for the chat interface to be fully loaded',
       );
     }
   }

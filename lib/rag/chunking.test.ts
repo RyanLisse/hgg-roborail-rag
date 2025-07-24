@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from 'vitest';
 import {
   type ChunkingConfig,
   ChunkingConfig as ChunkingConfigSchema,
@@ -6,14 +6,14 @@ import {
   createChunkingService,
   type Document,
   DocumentChunkingService,
-} from "./chunking";
+} from './chunking';
 
-describe("Enhanced Document Chunking", () => {
+describe('Enhanced Document Chunking', () => {
   let chunkingService: DocumentChunkingService;
 
   beforeEach(() => {
     chunkingService = createChunkingService({
-      strategy: "hybrid",
+      strategy: 'hybrid',
       chunkSize: 1000,
       chunkOverlap: 100,
       preserveStructure: true,
@@ -21,10 +21,10 @@ describe("Enhanced Document Chunking", () => {
     });
   });
 
-  describe("Configuration Validation", () => {
-    it("should validate chunking configuration schema", () => {
+  describe('Configuration Validation', () => {
+    it('should validate chunking configuration schema', () => {
       const validConfig: ChunkingConfig = {
-        strategy: "semantic",
+        strategy: 'semantic',
         chunkSize: 1500,
         chunkOverlap: 200,
         preserveStructure: true,
@@ -37,37 +37,37 @@ describe("Enhanced Document Chunking", () => {
       expect(() => ChunkingConfigSchema.parse(validConfig)).not.toThrow();
     });
 
-    it("should provide default values for optional config", () => {
+    it('should provide default values for optional config', () => {
       const minimalConfig = {};
       const parsedConfig = ChunkingConfigSchema.parse(minimalConfig);
 
-      expect(parsedConfig.strategy).toBe("hybrid");
+      expect(parsedConfig.strategy).toBe('hybrid');
       expect(parsedConfig.chunkSize).toBe(1500);
       expect(parsedConfig.chunkOverlap).toBe(200);
       expect(parsedConfig.preserveStructure).toBe(true);
     });
 
-    it("should reject invalid configurations", () => {
+    it('should reject invalid configurations', () => {
       expect(() => {
         ChunkingConfigSchema.parse({
-          strategy: "invalid",
+          strategy: 'invalid',
           chunkSize: -100,
         });
       }).toThrow();
     });
   });
 
-  describe("Character-based Chunking", () => {
-    it("should chunk text by character count", async () => {
+  describe('Character-based Chunking', () => {
+    it('should chunk text by character count', async () => {
       const document: Document = {
-        id: "char-test",
-        content: "A".repeat(2500), // 2500 characters
-        type: "text",
-        metadata: { title: "Character Test" },
+        id: 'char-test',
+        content: 'A'.repeat(2500), // 2500 characters
+        type: 'text',
+        metadata: { title: 'Character Test' },
       };
 
       const service = createChunkingService({
-        strategy: "character",
+        strategy: 'character',
         chunkSize: 1000,
         chunkOverlap: 100,
       });
@@ -75,20 +75,20 @@ describe("Enhanced Document Chunking", () => {
       const result = await service.chunkDocument(document);
 
       expect(result.chunks.length).toBeGreaterThan(1);
-      expect(result.strategy).toBe("character");
+      expect(result.strategy).toBe('character');
       expect(result.chunks[0].content.length).toBeLessThanOrEqual(1000);
     });
 
-    it("should handle overlap correctly", async () => {
+    it('should handle overlap correctly', async () => {
       const document: Document = {
-        id: "overlap-test",
-        content: "1234567890".repeat(200), // 2000 characters
-        type: "text",
+        id: 'overlap-test',
+        content: '1234567890'.repeat(200), // 2000 characters
+        type: 'text',
         metadata: {},
       };
 
       const service = createChunkingService({
-        strategy: "character",
+        strategy: 'character',
         chunkSize: 800,
         chunkOverlap: 200,
       });
@@ -107,10 +107,10 @@ describe("Enhanced Document Chunking", () => {
     });
   });
 
-  describe("Semantic Chunking", () => {
-    it("should respect paragraph boundaries", async () => {
+  describe('Semantic Chunking', () => {
+    it('should respect paragraph boundaries', async () => {
       const document: Document = {
-        id: "semantic-test",
+        id: 'semantic-test',
         content: `
 # Introduction
 This is the first paragraph about artificial intelligence.
@@ -124,12 +124,12 @@ Deep learning is a subset of machine learning. It uses neural networks with mult
 ## Natural Language Processing
 NLP helps computers understand human language. It has many applications.
         `.trim(),
-        type: "markdown",
-        metadata: { title: "AI Overview" },
+        type: 'markdown',
+        metadata: { title: 'AI Overview' },
       };
 
       const service = createChunkingService({
-        strategy: "semantic",
+        strategy: 'semantic',
         chunkSize: 500,
         preserveStructure: true,
       });
@@ -137,20 +137,20 @@ NLP helps computers understand human language. It has many applications.
       const result = await service.chunkDocument(document);
 
       expect(result.chunks.length).toBeGreaterThan(1);
-      expect(result.strategy).toBe("semantic");
+      expect(result.strategy).toBe('semantic');
 
       // Check that chunks respect heading boundaries
       const hasHeadingChunks = result.chunks.some(
         (chunk) =>
-          chunk.content.includes("# Introduction") ||
-          chunk.content.includes("## Machine Learning"),
+          chunk.content.includes('# Introduction') ||
+          chunk.content.includes('## Machine Learning'),
       );
       expect(hasHeadingChunks).toBe(true);
     });
 
-    it("should detect different chunk types", async () => {
+    it('should detect different chunk types', async () => {
       const document: Document = {
-        id: "type-test",
+        id: 'type-test',
         content: `
 # Main Heading
 
@@ -166,13 +166,13 @@ function test() {
 }
 \`\`\`
         `.trim(),
-        type: "markdown",
+        type: 'markdown',
         metadata: {},
       };
 
       // Use a smaller chunk size to force multiple chunks
       const service = createChunkingService({
-        strategy: "hybrid",
+        strategy: 'hybrid',
         chunkSize: 100,
         minChunkSize: 10,
         preserveStructure: true,
@@ -182,22 +182,22 @@ function test() {
       const result = await service.chunkDocument(document);
 
       const chunkTypes = result.chunks.map((chunk) => chunk.metadata.chunkType);
-      expect(chunkTypes).toContain("heading");
-      expect(chunkTypes).toContain("paragraph");
+      expect(chunkTypes).toContain('heading');
+      expect(chunkTypes).toContain('paragraph');
     });
   });
 
-  describe("Recursive Chunking", () => {
-    it("should break down large chunks recursively", async () => {
+  describe('Recursive Chunking', () => {
+    it('should break down large chunks recursively', async () => {
       const document: Document = {
-        id: "recursive-test",
-        content: "This is a very long sentence. ".repeat(200), // ~5400 characters
-        type: "text",
+        id: 'recursive-test',
+        content: 'This is a very long sentence. '.repeat(200), // ~5400 characters
+        type: 'text',
         metadata: {},
       };
 
       const service = createChunkingService({
-        strategy: "recursive",
+        strategy: 'recursive',
         chunkSize: 1000,
         maxChunkSize: 1500,
       });
@@ -205,7 +205,7 @@ function test() {
       const result = await service.chunkDocument(document);
 
       expect(result.chunks.length).toBeGreaterThan(1);
-      expect(result.strategy).toBe("recursive");
+      expect(result.strategy).toBe('recursive');
 
       // All chunks should be within size limits
       result.chunks.forEach((chunk) => {
@@ -213,9 +213,9 @@ function test() {
       });
     });
 
-    it("should try multiple separators", async () => {
+    it('should try multiple separators', async () => {
       const document: Document = {
-        id: "separator-test",
+        id: 'separator-test',
         content: `
 Section 1 has enough content to meet the minimum chunk size requirement
 
@@ -227,15 +227,15 @@ Section 2 with more content that goes on for a while and contains multiple sente
 
 Section 3 with even more content that definitely exceeds the chunk size limit and should be split appropriately.
         `.trim(),
-        type: "text",
+        type: 'text',
         metadata: {},
       };
 
       const service = createChunkingService({
-        strategy: "recursive",
+        strategy: 'recursive',
         chunkSize: 100,
         minChunkSize: 10,
-        customSeparators: ["\n---\n", "\n***\n", "\n\n", ". "],
+        customSeparators: ['\n---\n', '\n***\n', '\n\n', '. '],
       });
 
       const result = await service.chunkDocument(document);
@@ -245,17 +245,17 @@ Section 3 with even more content that definitely exceeds the chunk size limit an
       // Should respect separator boundaries where possible
       const hasStructuredSplits = result.chunks.some(
         (chunk) =>
-          chunk.content.includes("Section 1") ||
-          chunk.content.includes("Section 2"),
+          chunk.content.includes('Section 1') ||
+          chunk.content.includes('Section 2'),
       );
       expect(hasStructuredSplits).toBe(true);
     });
   });
 
-  describe("Hybrid Chunking", () => {
-    it("should combine semantic and recursive strategies", async () => {
+  describe('Hybrid Chunking', () => {
+    it('should combine semantic and recursive strategies', async () => {
       const document: Document = {
-        id: "hybrid-test",
+        id: 'hybrid-test',
         content: `
 # Large Document
 
@@ -276,12 +276,12 @@ This subsection has extremely long content that goes on and on with detailed exp
 ## Conclusion
 A brief conclusion that wraps up the document.
         `.trim(),
-        type: "markdown",
-        metadata: { title: "Hybrid Test Doc" },
+        type: 'markdown',
+        metadata: { title: 'Hybrid Test Doc' },
       };
 
       const service = createChunkingService({
-        strategy: "hybrid",
+        strategy: 'hybrid',
         chunkSize: 300,
         maxChunkSize: 500,
       });
@@ -289,7 +289,7 @@ A brief conclusion that wraps up the document.
       const result = await service.chunkDocument(document);
 
       expect(result.chunks.length).toBeGreaterThan(3);
-      expect(result.strategy).toBe("hybrid");
+      expect(result.strategy).toBe('hybrid');
 
       // Should preserve some structure while respecting size limits
       result.chunks.forEach((chunk) => {
@@ -299,24 +299,24 @@ A brief conclusion that wraps up the document.
 
       // Should have preserved some headings
       const hasHeadings = result.chunks.some((chunk) =>
-        chunk.content.includes("#"),
+        chunk.content.includes('#'),
       );
       expect(hasHeadings).toBe(true);
     });
   });
 
-  describe("Specialized Chunking Strategies", () => {
-    it("should chunk by sentences", async () => {
+  describe('Specialized Chunking Strategies', () => {
+    it('should chunk by sentences', async () => {
       const document: Document = {
-        id: "sentence-test",
+        id: 'sentence-test',
         content:
-          "First sentence. Second sentence! Third sentence? Fourth sentence. Fifth sentence with more content.",
-        type: "text",
+          'First sentence. Second sentence! Third sentence? Fourth sentence. Fifth sentence with more content.',
+        type: 'text',
         metadata: {},
       };
 
       const service = createChunkingService({
-        strategy: "sentence",
+        strategy: 'sentence',
         chunkSize: 100,
       });
 
@@ -328,15 +328,15 @@ A brief conclusion that wraps up the document.
       result.chunks.forEach((chunk) => {
         const trimmed = chunk.content.trim();
         if (trimmed.length > 0) {
-          const lastChar = trimmed[trimmed.length - 1];
-          expect([".", "!", "?"]).toContain(lastChar);
+          const lastChar = trimmed.at(-1);
+          expect(['.', '!', '?']).toContain(lastChar);
         }
       });
     });
 
-    it("should chunk by paragraphs", async () => {
+    it('should chunk by paragraphs', async () => {
       const document: Document = {
-        id: "paragraph-test",
+        id: 'paragraph-test',
         content: `
 First paragraph with some content.
 
@@ -344,24 +344,24 @@ Second paragraph with different content.
 
 Third paragraph that might be longer and contain more detailed information about the topic.
         `.trim(),
-        type: "text",
+        type: 'text',
         metadata: {},
       };
 
       const service = createChunkingService({
-        strategy: "paragraph",
+        strategy: 'paragraph',
         chunkSize: 100,
       });
 
       const result = await service.chunkDocument(document);
 
       expect(result.chunks.length).toBeGreaterThan(1);
-      expect(result.strategy).toBe("paragraph");
+      expect(result.strategy).toBe('paragraph');
     });
 
-    it("should handle code chunking", async () => {
+    it('should handle code chunking', async () => {
       const document: Document = {
-        id: "code-test",
+        id: 'code-test',
         content: `
 function firstFunction() {
   return "first";
@@ -382,12 +382,12 @@ function secondFunction() {
   return result.method();
 }
         `.trim(),
-        type: "code",
-        metadata: { language: "javascript" },
+        type: 'code',
+        metadata: { language: 'javascript' },
       };
 
       const service = createChunkingService({
-        strategy: "code",
+        strategy: 'code',
         chunkSize: 100,
         minChunkSize: 10,
       });
@@ -399,17 +399,17 @@ function secondFunction() {
       // Should try to keep functions/classes together
       const hasFunctionChunks = result.chunks.some(
         (chunk) =>
-          chunk.content.includes("function firstFunction") ||
-          chunk.content.includes("class TestClass"),
+          chunk.content.includes('function firstFunction') ||
+          chunk.content.includes('class TestClass'),
       );
       expect(hasFunctionChunks).toBe(true);
     });
   });
 
-  describe("Quality Validation", () => {
-    it("should calculate quality metrics", async () => {
+  describe('Quality Validation', () => {
+    it('should calculate quality metrics', async () => {
       const document: Document = {
-        id: "quality-test",
+        id: 'quality-test',
         content: `
 # Well-Structured Document
 
@@ -421,7 +421,7 @@ Complete thoughts and proper grammar make this a high-quality chunk.
 ## Section 2  
 This section also maintains quality with coherent content.
         `.trim(),
-        type: "markdown",
+        type: 'markdown',
         metadata: {},
       };
 
@@ -445,12 +445,12 @@ This section also maintains quality with coherent content.
       });
     });
 
-    it("should validate chunk completeness", async () => {
+    it('should validate chunk completeness', async () => {
       const document: Document = {
-        id: "completeness-test",
+        id: 'completeness-test',
         content:
-          "Complete sentence one. Complete sentence two. Complete sentence three.",
-        type: "text",
+          'Complete sentence one. Complete sentence two. Complete sentence three.',
+        type: 'text',
         metadata: {},
       };
 
@@ -464,13 +464,13 @@ This section also maintains quality with coherent content.
     });
   });
 
-  describe("Boundary and Metadata Preservation", () => {
-    it("should preserve document boundaries", async () => {
+  describe('Boundary and Metadata Preservation', () => {
+    it('should preserve document boundaries', async () => {
       const document: Document = {
-        id: "boundary-test",
-        content: "Short document content.",
-        type: "text",
-        metadata: { title: "Test", source: "test" },
+        id: 'boundary-test',
+        content: 'Short document content.',
+        type: 'text',
+        metadata: { title: 'Test', source: 'test' },
       };
 
       const result = await chunkingService.chunkDocument(document);
@@ -483,42 +483,42 @@ This section also maintains quality with coherent content.
       });
     });
 
-    it("should preserve original metadata", async () => {
+    it('should preserve original metadata', async () => {
       const document: Document = {
-        id: "metadata-test",
-        content: "Document with metadata.",
-        type: "text",
+        id: 'metadata-test',
+        content: 'Document with metadata.',
+        type: 'text',
         metadata: {
-          title: "Test Document",
-          author: "Test Author",
-          tags: ["test", "metadata"],
-          customField: "custom value",
+          title: 'Test Document',
+          author: 'Test Author',
+          tags: ['test', 'metadata'],
+          customField: 'custom value',
         },
       };
 
       const result = await chunkingService.chunkDocument(document);
 
       result.chunks.forEach((chunk) => {
-        expect(chunk.metadata.title).toBe("Test Document");
-        expect(chunk.metadata.author).toBe("Test Author");
-        expect(chunk.metadata.tags).toEqual(["test", "metadata"]);
-        expect(chunk.metadata.customField).toBe("custom value");
+        expect(chunk.metadata.title).toBe('Test Document');
+        expect(chunk.metadata.author).toBe('Test Author');
+        expect(chunk.metadata.tags).toEqual(['test', 'metadata']);
+        expect(chunk.metadata.customField).toBe('custom value');
         expect(chunk.metadata.chunkIndex).toBeDefined();
         expect(chunk.metadata.totalChunks).toBe(result.chunks.length);
       });
     });
   });
 
-  describe("Configuration Updates", () => {
-    it("should allow strategy updates", () => {
-      const service = createChunkingService({ strategy: "character" });
-      expect(service.getConfig().strategy).toBe("character");
+  describe('Configuration Updates', () => {
+    it('should allow strategy updates', () => {
+      const service = createChunkingService({ strategy: 'character' });
+      expect(service.getConfig().strategy).toBe('character');
 
-      service.updateConfig({ strategy: "semantic" });
-      expect(service.getConfig().strategy).toBe("semantic");
+      service.updateConfig({ strategy: 'semantic' });
+      expect(service.getConfig().strategy).toBe('semantic');
     });
 
-    it("should allow parameter updates", () => {
+    it('should allow parameter updates', () => {
       const service = createChunkingService({ chunkSize: 1000 });
       expect(service.getConfig().chunkSize).toBe(1000);
 
@@ -528,39 +528,39 @@ This section also maintains quality with coherent content.
     });
   });
 
-  describe("Factory Functions", () => {
-    it("should create chunking service with factory function", () => {
+  describe('Factory Functions', () => {
+    it('should create chunking service with factory function', () => {
       const service = createChunkingService({
-        strategy: "hybrid",
+        strategy: 'hybrid',
         chunkSize: 1200,
       });
 
       expect(service).toBeInstanceOf(DocumentChunkingService);
-      expect(service.getConfig().strategy).toBe("hybrid");
+      expect(service.getConfig().strategy).toBe('hybrid');
       expect(service.getConfig().chunkSize).toBe(1200);
     });
 
-    it("should chunk document with standalone function", async () => {
+    it('should chunk document with standalone function', async () => {
       const document: Document = {
-        id: "standalone-test",
-        content: "Test content for standalone function.",
-        type: "text",
+        id: 'standalone-test',
+        content: 'Test content for standalone function.',
+        type: 'text',
         metadata: {},
       };
 
-      const result = await chunkDocument(document, { strategy: "character" });
+      const result = await chunkDocument(document, { strategy: 'character' });
 
       expect(result.chunks).toBeDefined();
-      expect(result.strategy).toBe("character");
+      expect(result.strategy).toBe('character');
     });
   });
 
-  describe("Error Handling", () => {
-    it("should handle empty documents", async () => {
+  describe('Error Handling', () => {
+    it('should handle empty documents', async () => {
       const document: Document = {
-        id: "empty-test",
-        content: "",
-        type: "text",
+        id: 'empty-test',
+        content: '',
+        type: 'text',
         metadata: {},
       };
 
@@ -569,11 +569,11 @@ This section also maintains quality with coherent content.
       expect(result.chunks).toHaveLength(0);
     });
 
-    it("should handle very small documents", async () => {
+    it('should handle very small documents', async () => {
       const document: Document = {
-        id: "small-test",
-        content: "Hi",
-        type: "text",
+        id: 'small-test',
+        content: 'Hi',
+        type: 'text',
         metadata: {},
       };
 
@@ -583,11 +583,11 @@ This section also maintains quality with coherent content.
       expect(result.chunks.length).toBeGreaterThanOrEqual(1);
     });
 
-    it("should handle documents with only whitespace", async () => {
+    it('should handle documents with only whitespace', async () => {
       const document: Document = {
-        id: "whitespace-test",
-        content: "   \n\n   \t\t   ",
-        type: "text",
+        id: 'whitespace-test',
+        content: '   \n\n   \t\t   ',
+        type: 'text',
         metadata: {},
       };
 
@@ -600,12 +600,12 @@ This section also maintains quality with coherent content.
     });
   });
 
-  describe("Performance and Metrics", () => {
-    it("should provide performance metrics", async () => {
+  describe('Performance and Metrics', () => {
+    it('should provide performance metrics', async () => {
       const document: Document = {
-        id: "performance-test",
-        content: "Test content. ".repeat(500), // ~6000 characters
-        type: "text",
+        id: 'performance-test',
+        content: 'Test content. '.repeat(500), // ~6000 characters
+        type: 'text',
         metadata: {},
       };
 
@@ -616,11 +616,11 @@ This section also maintains quality with coherent content.
       expect(result.qualityMetrics).toBeDefined();
     });
 
-    it("should calculate boundary coverage accurately", async () => {
+    it('should calculate boundary coverage accurately', async () => {
       const document: Document = {
-        id: "coverage-test",
-        content: "0123456789".repeat(10), // 100 characters
-        type: "text",
+        id: 'coverage-test',
+        content: '0123456789'.repeat(10), // 100 characters
+        type: 'text',
         metadata: {},
       };
 

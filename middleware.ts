@@ -1,7 +1,7 @@
-import { type NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
-import { guestRegex, isDevelopmentEnvironment } from "./lib/constants";
-import { AUTH_SECRET } from "./lib/env";
+import { type NextRequest, NextResponse } from 'next/server';
+import { getToken } from 'next-auth/jwt';
+import { guestRegex, isDevelopmentEnvironment } from './lib/constants';
+import { AUTH_SECRET } from './lib/env';
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -10,16 +10,16 @@ export async function middleware(request: NextRequest) {
    * Playwright starts the dev server and requires a 200 status to
    * begin the tests, so this ensures that the tests can start
    */
-  if (pathname.startsWith("/ping") || pathname.startsWith("/api/ping")) {
-    return new Response("pong", { status: 200 });
+  if (pathname.startsWith('/ping') || pathname.startsWith('/api/ping')) {
+    return new Response('pong', { status: 200 });
   }
 
   // Skip authentication for specific API routes
   if (
-    pathname.startsWith("/api/auth") ||
-    pathname.startsWith("/api/health") ||
-    pathname.startsWith("/api/ping") ||
-    pathname === "/api/vectorstore/sources" // Allow health check for vector stores
+    pathname.startsWith('/api/auth') ||
+    pathname.startsWith('/api/health') ||
+    pathname.startsWith('/api/ping') ||
+    pathname === '/api/vectorstore/sources' // Allow health check for vector stores
   ) {
     return NextResponse.next();
   }
@@ -38,10 +38,10 @@ export async function middleware(request: NextRequest) {
     );
   }
 
-  const isGuest = guestRegex.test(token?.email ?? "");
+  const isGuest = guestRegex.test(token?.email ?? '');
 
-  if (token && !isGuest && ["/login", "/register"].includes(pathname)) {
-    return NextResponse.redirect(new URL("/", request.url));
+  if (token && !isGuest && ['/login', '/register'].includes(pathname)) {
+    return NextResponse.redirect(new URL('/', request.url));
   }
 
   return NextResponse.next();
@@ -49,11 +49,11 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/",
-    "/chat/:id",
-    "/api/:path*",
-    "/login",
-    "/register",
+    '/',
+    '/chat/:id',
+    '/api/:path*',
+    '/login',
+    '/register',
 
     /*
      * Match all request paths except for the ones starting with:
@@ -61,6 +61,6 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico, sitemap.xml, robots.txt (metadata files)
      */
-    "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)",
+    '/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)',
   ],
 };

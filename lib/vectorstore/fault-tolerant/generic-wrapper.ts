@@ -8,7 +8,7 @@ import {
   FallbackMode,
   FaultToleranceFactory,
   type FaultTolerantService,
-} from "../fault-tolerance";
+} from '../fault-tolerance';
 
 export interface FaultTolerantConfig {
   maxRetries: number;
@@ -52,8 +52,8 @@ export const DEFAULT_FAULT_TOLERANT_CONFIG: FaultTolerantConfig = {
 export class GenericFaultTolerantService<TService> {
   private baseService: TService;
   private faultTolerantService: FaultTolerantService<any>;
-  private serviceName: string;
   private config: FaultTolerantConfig;
+  private serviceName: string;
 
   constructor(
     baseService: TService,
@@ -86,7 +86,7 @@ export class GenericFaultTolerantService<TService> {
     return async (...args: Args): Promise<Return> => {
       try {
         const method = this.baseService[methodName] as any;
-        if (typeof method !== "function") {
+        if (typeof method !== 'function') {
           throw new Error(`Method ${String(methodName)} is not a function`);
         }
         return await method.apply(this.baseService, args);
@@ -104,15 +104,15 @@ export class GenericFaultTolerantService<TService> {
    */
   getWrappedMethods() {
     return {
-      search: this.wrapMethod("search" as keyof TService, {
+      search: this.wrapMethod('search' as keyof TService, {
         fallbackValue: [],
       }),
-      upload: this.wrapMethod("upload" as keyof TService, {}),
-      delete: this.wrapMethod("delete" as keyof TService, {}),
-      healthCheck: this.wrapMethod("healthCheck" as keyof TService, {
-        fallbackValue: { status: "unhealthy", timestamp: Date.now() },
+      upload: this.wrapMethod('upload' as keyof TService, {}),
+      delete: this.wrapMethod('delete' as keyof TService, {}),
+      healthCheck: this.wrapMethod('healthCheck' as keyof TService, {
+        fallbackValue: { status: 'unhealthy', timestamp: Date.now() },
       }),
-      getStats: this.wrapMethod("getStats" as keyof TService, {
+      getStats: this.wrapMethod('getStats' as keyof TService, {
         fallbackValue: { documentsCount: 0, lastUpdated: new Date() },
       }),
     };
@@ -144,12 +144,6 @@ export class GenericFaultTolerantService<TService> {
    */
   updateConfig(newConfig: Partial<FaultTolerantConfig>) {
     this.config = { ...this.config, ...newConfig };
-    // Note: This requires the fault tolerance service to support dynamic reconfiguration
-    // For now, we'll log the change
-    console.log(
-      `🔧 Updated fault tolerance config for ${this.serviceName}:`,
-      newConfig,
-    );
   }
 
   /**

@@ -1,10 +1,10 @@
-import { getAgentCapabilities, getSystemHealth } from "@/lib/agents";
-import { ApiResponses, withApiErrorHandling } from "@/lib/api/error-handling";
+import { getAgentCapabilities, getSystemHealth } from '@/lib/agents';
+import { ApiResponses, withApiErrorHandling } from '@/lib/api/error-handling';
 
 export const maxDuration = 10;
 
 export const GET = withApiErrorHandling(
-  async (request, { session }) => {
+  async (_request, { session }) => {
     // Get system health and agent capabilities
     const [health, capabilities] = await Promise.all([
       getSystemHealth(),
@@ -12,7 +12,7 @@ export const GET = withApiErrorHandling(
     ]);
 
     return ApiResponses.success({
-      status: "healthy",
+      status: 'healthy',
       timestamp: new Date().toISOString(),
       health,
       capabilities,

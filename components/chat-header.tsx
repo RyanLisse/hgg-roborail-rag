@@ -1,17 +1,17 @@
-"use client";
-import { useRouter } from "next/navigation";
-import type { Session } from "next-auth";
-import { memo } from "react";
-import { useWindowSize } from "usehooks-ts";
-import { ModelSelector } from "@/components/model-selector";
-import { SidebarToggle } from "@/components/sidebar-toggle";
-import { Button } from "@/components/ui/button";
-import { DatabaseSelector } from "./database-selector";
-import { PlusIcon } from "./icons";
-import { useSidebar } from "./ui/sidebar";
-import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
+'use client';
+import { useRouter } from 'next/navigation';
+import type { Session } from 'next-auth';
+import { memo } from 'react';
+import { useWindowSize } from 'usehooks-ts';
+import { ModelSelector } from '@/components/model-selector';
+import { SidebarToggle } from '@/components/sidebar-toggle';
+import { Button } from '@/components/ui/button';
+import { DatabaseSelector } from './database-selector';
+import { PlusIcon } from './icons';
+import { useSidebar } from './ui/sidebar';
+import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
-type VectorStoreType = "openai" | "neon" | "memory";
+type VectorStoreType = 'openai' | 'neon' | 'memory';
 
 function PureChatHeader({
   chatId,
@@ -47,7 +47,7 @@ function PureChatHeader({
             <Button
               className="order-2 ml-auto px-2 md:order-1 md:ml-0 md:h-fit md:px-2"
               onClick={() => {
-                router.push("/");
+                router.push('/');
                 router.refresh();
               }}
               variant="outline"

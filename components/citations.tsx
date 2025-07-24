@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { ChevronDown, ChevronUp, FileText, Quote } from "lucide-react";
-import { useState } from "react";
-import type { ParsedCitation, SourceFile } from "@/lib/utils/citations";
+import { ChevronDown, ChevronUp, FileText, Quote } from 'lucide-react';
+import { useState } from 'react';
+import type { ParsedCitation, SourceFile } from '@/lib/utils/citations';
 
 interface CitationsProps {
   citations: ParsedCitation[];
@@ -13,7 +13,7 @@ interface CitationsProps {
 export function Citations({
   citations,
   sources,
-  className = "",
+  className = '',
 }: CitationsProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -27,7 +27,7 @@ export function Citations({
       : sources?.map((source, index) => ({
           id: `source-${index}`,
           number: index + 1,
-          text: "",
+          text: '',
           fileName: source.name,
           fileId: source.id,
           quote: undefined,
@@ -104,16 +104,16 @@ interface InlineCitationProps {
 export function InlineCitation({
   number,
   citationId,
-  className = "",
+  className = '',
 }: InlineCitationProps) {
   const handleClick = () => {
     const element = document.getElementById(`citation-${citationId}`);
     if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "center" });
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
       // Add highlight effect
-      element.classList.add("ring-2", "ring-blue-300", "ring-opacity-75");
+      element.classList.add('ring-2', 'ring-blue-300', 'ring-opacity-75');
       setTimeout(() => {
-        element.classList.remove("ring-2", "ring-blue-300", "ring-opacity-75");
+        element.classList.remove('ring-2', 'ring-blue-300', 'ring-opacity-75');
       }, 2000);
     }
   };
@@ -139,9 +139,9 @@ interface CitationBadgeProps {
 export function CitationBadge({
   count,
   onClick,
-  className = "",
+  className = '',
 }: CitationBadgeProps) {
-  if (count === 0) return null;
+  if (count === 0) { return null; }
 
   return (
     <button
@@ -150,7 +150,7 @@ export function CitationBadge({
       type="button"
     >
       <FileText className="size-3" />
-      {count} source{count !== 1 ? "s" : ""}
+      {count} source{count !== 1 ? 's' : ''}
     </button>
   );
 }

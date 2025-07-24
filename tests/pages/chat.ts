@@ -1,11 +1,11 @@
-import type { Page } from "@playwright/test";
+import type { Page } from '@playwright/test';
 
 export class Chat {
   constructor(private page: Page) {}
 
   // Basic navigation and setup
   async goto() {
-    await this.page.goto("/");
+    await this.page.goto('/');
   }
 
   async createNewChat() {
@@ -14,7 +14,7 @@ export class Chat {
   }
 
   async waitForPageLoad() {
-    await this.page.waitForLoadState("networkidle", { timeout: 30_000 });
+    await this.page.waitForLoadState('networkidle', { timeout: 30_000 });
     // Wait for essential elements to be visible
     await this.page.waitForSelector('[data-testid="multimodal-input"]', {
       timeout: 10_000,
@@ -23,7 +23,7 @@ export class Chat {
 
   // Model selection methods
   async selectModel(modelId: string) {
-    await this.page.getByTestId("model-selector").click();
+    await this.page.getByTestId('model-selector').click();
     await this.page.getByTestId(`model-selector-item-${modelId}`).click();
 
     // Wait for model to be selected
@@ -31,12 +31,12 @@ export class Chat {
   }
 
   async getCurrentModel() {
-    return await this.page.getByTestId("model-selector").innerText();
+    return await this.page.getByTestId('model-selector').innerText();
   }
 
   // Vector source selection
-  async selectVectorSource(source: "openai" | "neon" | "memory") {
-    const databaseSelector = this.page.getByTestId("database-selector");
+  async selectVectorSource(source: 'openai' | 'neon' | 'memory') {
+    const databaseSelector = this.page.getByTestId('database-selector');
 
     if (await databaseSelector.isVisible()) {
       await databaseSelector.click();
@@ -79,25 +79,25 @@ export class Chat {
       await firstSuggestion.click();
     } else {
       // Fallback: send a default message
-      await this.sendMessage("Tell me a joke");
+      await this.sendMessage('Tell me a joke');
     }
   }
 
   async sendMessage(message: string) {
-    const input = this.page.getByTestId("multimodal-input");
-    await input.waitFor({ state: "visible", timeout: 10_000 });
+    const input = this.page.getByTestId('multimodal-input');
+    await input.waitFor({ state: 'visible', timeout: 10_000 });
     await input.click();
     await input.fill(message);
 
-    const sendButton = this.page.getByTestId("send-button");
-    await sendButton.waitFor({ state: "visible", timeout: 5000 });
+    const sendButton = this.page.getByTestId('send-button');
+    await sendButton.waitFor({ state: 'visible', timeout: 5000 });
 
     // Ensure send button is enabled
     await this.page.waitForFunction(
       () =>
         !document
           .querySelector('[data-testid="send-button"]')
-          ?.hasAttribute("disabled"),
+          ?.hasAttribute('disabled'),
       { timeout: 5000 },
     );
 
@@ -116,7 +116,7 @@ export class Chat {
   async hasChatIdInUrl() {
     const hasChatId = await this.hasChatId();
     if (!hasChatId) {
-      throw new Error("Expected URL to contain chat ID");
+      throw new Error('Expected URL to contain chat ID');
     }
   }
 
@@ -124,7 +124,7 @@ export class Chat {
     try {
       // Wait for chat API response
       const response = await this.page.waitForResponse(
-        (response) => response.url().includes("/api/chat"),
+        (response) => response.url().includes('/api/chat'),
         { timeout },
       );
       await response.finished();
@@ -137,8 +137,7 @@ export class Chat {
         '[data-testid="send-button"]:not([disabled])',
         { timeout: 10_000 },
       );
-    } catch (error) {
-      console.warn("Response timeout, continuing with UI checks...");
+    } catch (_error) {
       // Fallback: wait for send button to be enabled
       await this.page
         .waitForSelector('[data-testid="send-button"]:not([disabled])', {
@@ -150,28 +149,28 @@ export class Chat {
 
   async getLastAssistantMessage() {
     const messageElements = await this.page
-      .getByTestId("message-assistant")
+      .getByTestId('message-assistant')
       .all();
     if (messageElements.length === 0) {
-      throw new Error("No assistant messages found");
+      throw new Error('No assistant messages found');
     }
 
-    const lastMessage = messageElements[messageElements.length - 1];
+    const lastMessage = messageElements.at(-1);
     const content = await lastMessage
-      .getByTestId("message-content")
+      .getByTestId('message-content')
       .innerText();
     return content;
   }
 
   async getLastUserMessage() {
-    const messageElements = await this.page.getByTestId("message-user").all();
+    const messageElements = await this.page.getByTestId('message-user').all();
     if (messageElements.length === 0) {
-      throw new Error("No user messages found");
+      throw new Error('No user messages found');
     }
 
-    const lastMessage = messageElements[messageElements.length - 1];
+    const lastMessage = messageElements.at(-1);
     const content = await lastMessage
-      .getByTestId("message-content")
+      .getByTestId('message-content')
       .innerText();
     return content;
   }
@@ -201,8 +200,8 @@ export class Chat {
     const toolIndicators = [
       '[data-testid="tool-call"]',
       '[data-testid="tool-usage"]',
-      ".tool-call",
-      ".tool-usage",
+      '.tool-call',
+      '.tool-usage',
       '*[class*="tool"]',
     ];
 
@@ -220,7 +219,7 @@ export class Chat {
   async hasErrorMessage() {
     const errorSelectors = [
       '[data-testid="error-message"]',
-      ".error-message",
+      '.error-message',
       '*[class*="error"]',
       'text="Error"',
       'text="Failed"',
@@ -239,56 +238,56 @@ export class Chat {
   // Voting functionality
   async upvoteLastMessage() {
     const messageElements = await this.page
-      .getByTestId("message-assistant")
+      .getByTestId('message-assistant')
       .all();
     if (messageElements.length === 0) {
-      throw new Error("No assistant messages to vote on");
+      throw new Error('No assistant messages to vote on');
     }
 
-    const lastMessage = messageElements[messageElements.length - 1];
-    await lastMessage.getByTestId("message-upvote").click();
+    const lastMessage = messageElements.at(-1);
+    await lastMessage.getByTestId('message-upvote').click();
   }
 
   async downvoteLastMessage() {
     const messageElements = await this.page
-      .getByTestId("message-assistant")
+      .getByTestId('message-assistant')
       .all();
     if (messageElements.length === 0) {
-      throw new Error("No assistant messages to vote on");
+      throw new Error('No assistant messages to vote on');
     }
 
-    const lastMessage = messageElements[messageElements.length - 1];
-    await lastMessage.getByTestId("message-downvote").click();
+    const lastMessage = messageElements.at(-1);
+    await lastMessage.getByTestId('message-downvote').click();
   }
 
   // File upload
   async uploadFile(filePath: string) {
-    this.page.on("filechooser", async (fileChooser) => {
+    this.page.on('filechooser', async (fileChooser) => {
       await fileChooser.setFiles(filePath);
     });
 
-    await this.page.getByTestId("attachments-button").click();
+    await this.page.getByTestId('attachments-button').click();
   }
 
   // Utility methods
   async isScrolledToBottom(): Promise<boolean> {
-    const scrollContainer = this.page.locator(".overflow-y-scroll");
+    const scrollContainer = this.page.locator('.overflow-y-scroll');
     return scrollContainer.evaluate(
       (el) => Math.abs(el.scrollHeight - el.scrollTop - el.clientHeight) < 1,
     );
   }
 
   async scrollToBottom() {
-    const scrollContainer = this.page.locator(".overflow-y-scroll");
+    const scrollContainer = this.page.locator('.overflow-y-scroll');
     await scrollContainer.evaluate((el) => {
       el.scrollTop = el.scrollHeight;
     });
   }
 
   async getMessageCount() {
-    const userMessages = await this.page.getByTestId("message-user").count();
+    const userMessages = await this.page.getByTestId('message-user').count();
     const assistantMessages = await this.page
-      .getByTestId("message-assistant")
+      .getByTestId('message-assistant')
       .count();
     return {
       user: userMessages,
@@ -355,8 +354,8 @@ export class Chat {
   async hasNewChatUrl() {
     const url = this.getCurrentUrl();
     return (
-      url === "http://localhost:3000/" ||
-      url.includes("http://localhost:3000/#")
+      url === 'http://localhost:3000/' ||
+      url.includes('http://localhost:3000/#')
     );
   }
 
