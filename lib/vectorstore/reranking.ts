@@ -1,6 +1,6 @@
-import "server-only";
+import 'server-only';
 
-import { z } from "zod";
+import { z } from 'zod';
 import {
   HybridSearchRequest,
   RelevanceScoringEngine,
@@ -8,26 +8,26 @@ import {
   RerankingRequest,
   ScoredDocument,
   ScoringWeights,
-} from "./relevance-scoring";
+} from './relevance-scoring';
 
 // Cross-encoder models for semantic reranking
 export const CrossEncoderModels = z.enum([
-  "ms-marco-MiniLM-L-6-v2",
-  "ms-marco-electra-base",
-  "cross-encoder/ms-marco-TinyBERT-L-2-v2",
-  "sentence-transformers/cross-encoder-roberta-base",
+  'ms-marco-MiniLM-L-6-v2',
+  'ms-marco-electra-base',
+  'cross-encoder/ms-marco-TinyBERT-L-2-v2',
+  'sentence-transformers/cross-encoder-roberta-base',
 ]);
 
 export const RerankingStrategy = z.enum([
-  "relevance_only",
-  "cross_encoder",
-  "hybrid_fusion",
-  "learning_to_rank",
-  "neural_rerank",
+  'relevance_only',
+  'cross_encoder',
+  'hybrid_fusion',
+  'learning_to_rank',
+  'neural_rerank',
 ]);
 
 export const RerankingConfig = z.object({
-  strategy: RerankingStrategy.default("relevance_only"),
+  strategy: RerankingStrategy.default('relevance_only'),
   weights: ScoringWeights.optional(),
   crossEncoderModel: CrossEncoderModels.optional(),
   maxCandidates: z.number().min(1).max(100).default(50),
@@ -67,14 +67,13 @@ export type FusionScore = z.infer<typeof FusionScore>;
 export type {
   HybridSearchRequest,
   RerankingRequest,
-} from "./relevance-scoring";
+} from './relevance-scoring';
 
 /**
  * Advanced document reranking engine
  */
 // biome-ignore lint/complexity/noStaticOnlyClass: Utility class pattern for organized functionality
 export class DocumentRerankingEngine {
-  private static temporalWeights = new Map<string, number>();
   private static userPreferences = new Map<string, RelevanceWeights>();
 
   /**
@@ -88,8 +87,8 @@ export class DocumentRerankingEngine {
 
     const config = RerankingConfig.parse({
       strategy: validatedRequest.enableCrossEncoder
-        ? "cross_encoder"
-        : "relevance_only",
+        ? 'cross_encoder'
+        : 'relevance_only',
       weights: validatedRequest.weights,
       maxCandidates: Math.min(validatedRequest.documents.length, 50),
       enableDiversification: true,
@@ -118,8 +117,8 @@ export class DocumentRerankingEngine {
 
       // Step 2: Apply cross-encoder reranking if enabled
       if (
-        config.strategy === "cross_encoder" ||
-        config.strategy === "neural_rerank"
+        config.strategy === 'cross_encoder' ||
+        config.strategy === 'neural_rerank'
       ) {
         scoredDocuments =
           await DocumentRerankingEngine.applyCrossEncoderReranking(
@@ -184,7 +183,6 @@ export class DocumentRerankingEngine {
         debugInfo: config.debugMode ? debugInfo : undefined,
       });
     } catch (error) {
-      console.error("Document reranking failed:", error);
 
       // Fallback: return original order with basic scoring
       const fallbackDocuments = validatedRequest.documents
@@ -204,10 +202,10 @@ export class DocumentRerankingEngine {
             weights: ScoringWeights.parse({}),
             rank: index + 1,
             scoringMetadata: {
-              scoringStrategy: "fallback",
+              scoringStrategy: 'fallback',
               processingTime: Date.now() - startTime,
               debugInfo: {
-                error: error instanceof Error ? error.message : "Unknown error",
+                error: error instanceof Error ? error.message : 'Unknown error',
               },
             },
           }),
@@ -217,9 +215,9 @@ export class DocumentRerankingEngine {
         scoredDocuments: fallbackDocuments,
         totalCandidates: validatedRequest.documents.length,
         rerankingTime: Date.now() - startTime,
-        strategy: "relevance_only",
+        strategy: 'relevance_only',
         diversificationApplied: false,
-        debugInfo: { error: "Fallback to basic scoring", originalError: error },
+        debugInfo: { error: 'Fallback to basic scoring', originalError: error },
       });
     }
   }
@@ -272,7 +270,7 @@ export class DocumentRerankingEngine {
           id: doc.id,
           content: doc.content,
           metadata: doc.metadata,
-          source: doc.source || "unknown",
+          source: doc.source || 'unknown',
           createdAt: doc.createdAt,
           updatedAt: doc.updatedAt,
           relevanceScore,
@@ -282,14 +280,13 @@ export class DocumentRerankingEngine {
           scoringMetadata: {
             queryType: queryContext?.type,
             queryComplexity: queryContext?.complexity,
-            scoringStrategy: config.strategy || "relevance_only",
+            scoringStrategy: config.strategy || 'relevance_only',
             processingTime: Date.now(),
           },
         });
 
         scoredDocuments.push(scoredDoc);
-      } catch (error) {
-        console.warn(`Failed to score document ${doc.id}:`, error);
+      } catch (_error) {
 
         // Add fallback scored document
         scoredDocuments.push(
@@ -297,7 +294,7 @@ export class DocumentRerankingEngine {
             id: doc.id,
             content: doc.content,
             metadata: doc.metadata,
-            source: doc.source || "unknown",
+            source: doc.source || 'unknown',
             createdAt: doc.createdAt,
             updatedAt: doc.updatedAt,
             relevanceScore: doc.similarity || 0.5,
@@ -312,9 +309,9 @@ export class DocumentRerankingEngine {
             weights,
             rank: 0,
             scoringMetadata: {
-              scoringStrategy: "fallback",
+              scoringStrategy: 'fallback',
               processingTime: Date.now(),
-              debugInfo: { error: "Scoring failed, using fallback" },
+              debugInfo: { error: 'Scoring failed, using fallback' },
             },
           }),
         );
@@ -330,7 +327,7 @@ export class DocumentRerankingEngine {
   private static async applyCrossEncoderReranking(
     documents: ScoredDocument[],
     query: string,
-    config: RerankingConfig,
+    _config: RerankingConfig,
   ): Promise<ScoredDocument[]> {
     // In production, this would use a real cross-encoder model like sentence-transformers
     // For now, we'll implement a simplified version that improves upon basic similarity
@@ -352,7 +349,7 @@ export class DocumentRerankingEngine {
         relevanceScore: combinedScore,
         scoringMetadata: {
           ...doc.scoringMetadata,
-          scoringStrategy: "cross_encoder",
+          scoringStrategy: 'cross_encoder',
           debugInfo: {
             ...doc.scoringMetadata.debugInfo,
             crossEncoderScore,
@@ -431,16 +428,16 @@ export class DocumentRerankingEngine {
    */
   private static getSemanticPairs(): [string, string][] {
     return [
-      ["configure", "setup"],
-      ["install", "deployment"],
-      ["error", "issue"],
-      ["fix", "solution"],
-      ["api", "endpoint"],
-      ["authentication", "auth"],
-      ["authorization", "permission"],
-      ["monitoring", "observability"],
-      ["workflow", "automation"],
-      ["integration", "connection"],
+      ['configure', 'setup'],
+      ['install', 'deployment'],
+      ['error', 'issue'],
+      ['fix', 'solution'],
+      ['api', 'endpoint'],
+      ['authentication', 'auth'],
+      ['authorization', 'permission'],
+      ['monitoring', 'observability'],
+      ['workflow', 'automation'],
+      ['integration', 'connection'],
     ];
   }
 
@@ -485,7 +482,7 @@ export class DocumentRerankingEngine {
     documents: ScoredDocument[],
     threshold: number,
   ): ScoredDocument[] {
-    if (documents.length <= 1) return documents;
+    if (documents.length <= 1) { return documents; }
 
     const diversifiedDocs: ScoredDocument[] = [documents[0]]; // Always include top result
 
@@ -511,7 +508,7 @@ export class DocumentRerankingEngine {
       }
 
       // Limit diversified results
-      if (diversifiedDocs.length >= 10) break;
+      if (diversifiedDocs.length >= 10) { break; }
     }
 
     return diversifiedDocs;
@@ -552,11 +549,11 @@ export class DocumentRerankingEngine {
           (now.getTime() - relevantDate.getTime()) / (1000 * 60 * 60 * 24);
 
         // Apply temporal decay: newer documents get a boost
-        if (ageInDays <= 7) temporalBoost = 1.1;
-        else if (ageInDays <= 30) temporalBoost = 1.05;
-        else if (ageInDays <= 90) temporalBoost = 1.0;
-        else if (ageInDays <= 365) temporalBoost = 0.95;
-        else temporalBoost = 0.9;
+        if (ageInDays <= 7) { temporalBoost = 1.1; }
+        else if (ageInDays <= 30) { temporalBoost = 1.05; }
+        else if (ageInDays <= 90) { temporalBoost = 1.0; }
+        else if (ageInDays <= 365) { temporalBoost = 0.95; }
+        else { temporalBoost = 0.9; }
       }
 
       const adjustedScore = Math.min(doc.relevanceScore * temporalBoost, 1.0);
@@ -663,7 +660,7 @@ export class DocumentRerankingEngine {
     const updatedPrefs = { ...currentPrefs };
 
     for (const [factor, adjustment] of Object.entries(feedback.adjustments)) {
-      if (factor in updatedPrefs && typeof adjustment === "number") {
+      if (factor in updatedPrefs && typeof adjustment === 'number') {
         (updatedPrefs as any)[factor] = Math.max(
           0,
           Math.min(1, (updatedPrefs as any)[factor] + adjustment),
@@ -678,7 +675,7 @@ export class DocumentRerankingEngine {
     );
     if (totalWeight > 0) {
       for (const key of Object.keys(updatedPrefs)) {
-        (updatedPrefs as any)[key] = (updatedPrefs as any)[key] / totalWeight;
+        (updatedPrefs as any)[key] /= totalWeight;
       }
     }
 
@@ -775,12 +772,14 @@ export class LearningToRankEngine {
     }>,
   ): number {
     const interaction = interactions.find((i) => i.documentId === documentId);
-    if (!interaction) return 0;
+    if (!interaction) { return 0; }
 
     let label = 0;
-    if (interaction.clicked) label += 0.5;
-    if (interaction.timeSpent > 30) label += 0.3; // Engaged reading
-    if (interaction.rating) label += (interaction.rating - 3) * 0.1; // Rating contribution
+    if (interaction.clicked) { label += 0.5; }
+    if (interaction.timeSpent > 30) { label += 0.3; // Engaged reading
+}
+    if (interaction.rating) { label += (interaction.rating - 3) * 0.1; // Rating contribution
+}
 
     return Math.max(0, Math.min(1, label));
   }
@@ -794,7 +793,7 @@ export class LearningToRankEngine {
     for (let i = 0; i < query.length; i++) {
       const char = query.charCodeAt(i);
       hash = (hash << 5) - hash + char;
-      hash = hash & hash; // Convert to 32-bit integer
+      hash &= hash; // Convert to 32-bit integer
     }
     return hash.toString();
   }

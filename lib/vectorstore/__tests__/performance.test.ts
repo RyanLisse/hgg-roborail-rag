@@ -1,10 +1,10 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mock server-only module to prevent client component error
-vi.mock("server-only", () => ({}));
+vi.mock('server-only', () => ({}));
 
 // Mock performance API if not available
-if (typeof global.performance === "undefined") {
+if (typeof global.performance === 'undefined') {
   global.performance = {
     now: Date.now,
     mark: vi.fn(),
@@ -17,7 +17,7 @@ if (typeof global.performance === "undefined") {
 }
 
 // Mock monitoring service
-vi.mock("../monitoring", () => ({
+vi.mock('../monitoring', () => ({
   getVectorStoreMonitoringService: vi.fn().mockReturnValue({
     recordSearchLatency: vi.fn(),
     recordSearchError: vi.fn(),
@@ -41,10 +41,10 @@ vi.mock("../monitoring", () => ({
       alertThresholds: {},
     },
   }),
-  withPerformanceMonitoring: vi.fn((store, method, fn) => fn),
+  withPerformanceMonitoring: vi.fn((_store, _method, fn) => fn),
 }));
 
-import { createOpenAIVectorStoreService, type SearchRequest } from "../openai";
+import { createOpenAIVectorStoreService, type SearchRequest } from '../openai';
 
 // Mock OpenAI SDK with performance tracking
 const mockOpenAI = {
@@ -57,7 +57,7 @@ const mockOpenAI = {
   },
 };
 
-vi.mock("openai", () => ({
+vi.mock('openai', () => ({
   default: vi.fn().mockImplementation(() => mockOpenAI),
 }));
 
@@ -65,7 +65,7 @@ vi.mock("openai", () => ({
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
-describe("Vector Store Performance Tests", () => {
+describe('Vector Store Performance Tests', () => {
   let service: ReturnType<typeof createOpenAIVectorStoreService>;
 
   beforeEach(() => {
@@ -73,8 +73,8 @@ describe("Vector Store Performance Tests", () => {
     mockFetch.mockClear();
 
     service = createOpenAIVectorStoreService({
-      apiKey: "sk-test-key",
-      defaultVectorStoreId: "vs_test_store",
+      apiKey: 'sk-test-key',
+      defaultVectorStoreId: 'vs_test_store',
     });
   });
 
@@ -82,14 +82,14 @@ describe("Vector Store Performance Tests", () => {
     vi.clearAllMocks();
   });
 
-  describe("Search Performance", () => {
+  describe('Search Performance', () => {
     beforeEach(() => {
       // Mock successful vector store validation with complete schema
       const mockVectorStore = {
-        id: "vs_test_store",
-        object: "vector_store",
+        id: 'vs_test_store',
+        object: 'vector_store',
         created_at: Date.now(),
-        name: "Test Store",
+        name: 'Test Store',
         usage_bytes: 0,
         file_counts: {
           in_progress: 0,
@@ -98,7 +98,7 @@ describe("Vector Store Performance Tests", () => {
           cancelled: 0,
           total: 1,
         },
-        status: "completed",
+        status: 'completed',
         expires_after: null,
         expires_at: null,
         last_active_at: null,
@@ -111,18 +111,18 @@ describe("Vector Store Performance Tests", () => {
       });
     });
 
-    it("should complete simple searches within acceptable time", async () => {
+    it('should complete simple searches within acceptable time', async () => {
       const mockResponse = {
-        id: "response_123",
-        status: "completed",
+        id: 'response_123',
+        status: 'completed',
         output: [
           {
-            type: "file_search_call",
-            status: "completed",
+            type: 'file_search_call',
+            status: 'completed',
             results: [
               {
-                file_id: "file_1",
-                text: "Test content",
+                file_id: 'file_1',
+                text: 'Test content',
                 score: 0.9,
               },
             ],
@@ -132,12 +132,12 @@ describe("Vector Store Performance Tests", () => {
 
       mockOpenAI.responses.create.mockResolvedValueOnce(mockResponse);
       mockOpenAI.files.retrieve.mockResolvedValueOnce({
-        id: "file_1",
-        filename: "test.txt",
+        id: 'file_1',
+        filename: 'test.txt',
       });
 
       const startTime = Date.now();
-      const request: SearchRequest = { query: "test query" };
+      const request: SearchRequest = { query: 'test query' };
       const result = await service.searchFiles(request);
       const endTime = Date.now();
 
@@ -146,7 +146,7 @@ describe("Vector Store Performance Tests", () => {
       expect(result.executionTime).toBeGreaterThan(0);
     });
 
-    it("should handle large result sets efficiently", async () => {
+    it('should handle large result sets efficiently', async () => {
       const largeResults = Array.from({ length: 100 }, (_, i) => ({
         file_id: `file_${i}`,
         text: `Content ${i}`,
@@ -154,12 +154,12 @@ describe("Vector Store Performance Tests", () => {
       }));
 
       const mockResponse = {
-        id: "response_large",
-        status: "completed",
+        id: 'response_large',
+        status: 'completed',
         output: [
           {
-            type: "file_search_call",
-            status: "completed",
+            type: 'file_search_call',
+            status: 'completed',
             results: largeResults,
           },
         ],
@@ -175,7 +175,7 @@ describe("Vector Store Performance Tests", () => {
         });
       });
 
-      const request: SearchRequest = { query: "test", maxResults: 50 };
+      const request: SearchRequest = { query: 'test', maxResults: 50 };
       const result = await service.searchFiles(request);
 
       expect(result.success).toBe(true);
@@ -183,18 +183,18 @@ describe("Vector Store Performance Tests", () => {
       expect(result.executionTime).toBeLessThan(10_000); // Should handle large sets efficiently
     });
 
-    it("should perform well with concurrent searches", async () => {
+    it('should perform well with concurrent searches', async () => {
       const mockResponse = {
-        id: "response_concurrent",
-        status: "completed",
+        id: 'response_concurrent',
+        status: 'completed',
         output: [
           {
-            type: "file_search_call",
-            status: "completed",
+            type: 'file_search_call',
+            status: 'completed',
             results: [
               {
-                file_id: "file_1",
-                text: "Test content",
+                file_id: 'file_1',
+                text: 'Test content',
                 score: 0.9,
               },
             ],
@@ -204,8 +204,8 @@ describe("Vector Store Performance Tests", () => {
 
       mockOpenAI.responses.create.mockResolvedValue(mockResponse);
       mockOpenAI.files.retrieve.mockResolvedValue({
-        id: "file_1",
-        filename: "test.txt",
+        id: 'file_1',
+        filename: 'test.txt',
       });
 
       const requests = Array.from({ length: 10 }, (_, i) =>
@@ -220,18 +220,18 @@ describe("Vector Store Performance Tests", () => {
       expect(endTime - startTime).toBeLessThan(15_000); // All should complete within 15 seconds
     });
 
-    it("should optimize search performance with caching", async () => {
+    it('should optimize search performance with caching', async () => {
       const mockResponse = {
-        id: "response_cached",
-        status: "completed",
+        id: 'response_cached',
+        status: 'completed',
         output: [
           {
-            type: "file_search_call",
-            status: "completed",
+            type: 'file_search_call',
+            status: 'completed',
             results: [
               {
-                file_id: "file_1",
-                text: "Cached content",
+                file_id: 'file_1',
+                text: 'Cached content',
                 score: 0.95,
               },
             ],
@@ -241,11 +241,11 @@ describe("Vector Store Performance Tests", () => {
 
       mockOpenAI.responses.create.mockResolvedValue(mockResponse);
       mockOpenAI.files.retrieve.mockResolvedValue({
-        id: "file_1",
-        filename: "cached.txt",
+        id: 'file_1',
+        filename: 'cached.txt',
       });
 
-      const request: SearchRequest = { query: "same query" };
+      const request: SearchRequest = { query: 'same query' };
 
       // First search
       const firstStart = Date.now();
@@ -267,14 +267,14 @@ describe("Vector Store Performance Tests", () => {
     });
   });
 
-  describe("Upload Performance", () => {
+  describe('Upload Performance', () => {
     beforeEach(() => {
       // Mock successful vector store validation
       const mockVectorStore = {
-        id: "vs_test_store",
-        object: "vector_store",
+        id: 'vs_test_store',
+        object: 'vector_store',
         created_at: Date.now(),
-        name: "Test Store",
+        name: 'Test Store',
         usage_bytes: 0,
         file_counts: {
           in_progress: 0,
@@ -283,7 +283,7 @@ describe("Vector Store Performance Tests", () => {
           cancelled: 0,
           total: 1,
         },
-        status: "completed",
+        status: 'completed',
         expires_after: null,
         expires_at: null,
         last_active_at: null,
@@ -296,25 +296,25 @@ describe("Vector Store Performance Tests", () => {
       });
     });
 
-    it("should handle small file uploads efficiently", async () => {
-      const smallFile = new File(["small content"], "small.txt", {
-        type: "text/plain",
+    it('should handle small file uploads efficiently', async () => {
+      const smallFile = new File(['small content'], 'small.txt', {
+        type: 'text/plain',
       });
 
       mockOpenAI.files.create.mockResolvedValueOnce({
-        id: "file_small",
-        filename: "small.txt",
+        id: 'file_small',
+        filename: 'small.txt',
       });
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: () =>
           Promise.resolve({
-            id: "file_small",
-            object: "vector_store.file",
+            id: 'file_small',
+            object: 'vector_store.file',
             created_at: Date.now(),
-            vector_store_id: "vs_test_store",
-            status: "completed",
+            vector_store_id: 'vs_test_store',
+            status: 'completed',
             last_error: null,
           }),
       });
@@ -323,30 +323,30 @@ describe("Vector Store Performance Tests", () => {
       const result = await service.uploadFile({ file: smallFile });
       const endTime = Date.now();
 
-      expect(result.id).toBe("file_small");
+      expect(result.id).toBe('file_small');
       expect(endTime - startTime).toBeLessThan(3000); // Should complete within 3 seconds
     });
 
-    it("should handle medium file uploads within reasonable time", async () => {
-      const mediumContent = "x".repeat(100_000); // 100KB
-      const mediumFile = new File([mediumContent], "medium.txt", {
-        type: "text/plain",
+    it('should handle medium file uploads within reasonable time', async () => {
+      const mediumContent = 'x'.repeat(100_000); // 100KB
+      const mediumFile = new File([mediumContent], 'medium.txt', {
+        type: 'text/plain',
       });
 
       mockOpenAI.files.create.mockResolvedValueOnce({
-        id: "file_medium",
-        filename: "medium.txt",
+        id: 'file_medium',
+        filename: 'medium.txt',
       });
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: () =>
           Promise.resolve({
-            id: "file_medium",
-            object: "vector_store.file",
+            id: 'file_medium',
+            object: 'vector_store.file',
             created_at: Date.now(),
-            vector_store_id: "vs_test_store",
-            status: "completed",
+            vector_store_id: 'vs_test_store',
+            status: 'completed',
             last_error: null,
           }),
       });
@@ -355,15 +355,15 @@ describe("Vector Store Performance Tests", () => {
       const result = await service.uploadFile({ file: mediumFile });
       const endTime = Date.now();
 
-      expect(result.id).toBe("file_medium");
+      expect(result.id).toBe('file_medium');
       expect(endTime - startTime).toBeLessThan(10_000); // Should complete within 10 seconds
     });
 
-    it("should handle concurrent uploads efficiently", async () => {
+    it('should handle concurrent uploads efficiently', async () => {
       const files = Array.from(
         { length: 5 },
         (_, i) =>
-          new File([`content ${i}`], `file_${i}.txt`, { type: "text/plain" }),
+          new File([`content ${i}`], `file_${i}.txt`, { type: 'text/plain' }),
       );
 
       files.forEach((_, i) => {
@@ -377,10 +377,10 @@ describe("Vector Store Performance Tests", () => {
           json: () =>
             Promise.resolve({
               id: `file_${i}`,
-              object: "vector_store.file",
+              object: 'vector_store.file',
               created_at: Date.now(),
-              vector_store_id: "vs_test_store",
-              status: "completed",
+              vector_store_id: 'vs_test_store',
+              status: 'completed',
               last_error: null,
             }),
         });
@@ -397,14 +397,14 @@ describe("Vector Store Performance Tests", () => {
     });
   });
 
-  describe("Memory Management", () => {
+  describe('Memory Management', () => {
     beforeEach(() => {
       // Mock successful vector store validation
       const mockVectorStore = {
-        id: "vs_test_store",
-        object: "vector_store",
+        id: 'vs_test_store',
+        object: 'vector_store',
         created_at: Date.now(),
-        name: "Test Store",
+        name: 'Test Store',
         usage_bytes: 0,
         file_counts: {
           in_progress: 0,
@@ -413,7 +413,7 @@ describe("Vector Store Performance Tests", () => {
           cancelled: 0,
           total: 1,
         },
-        status: "completed",
+        status: 'completed',
         expires_after: null,
         expires_at: null,
         last_active_at: null,
@@ -426,18 +426,18 @@ describe("Vector Store Performance Tests", () => {
       });
     });
 
-    it("should not accumulate memory during repeated operations", async () => {
+    it('should not accumulate memory during repeated operations', async () => {
       const mockResponse = {
-        id: "response_memory",
-        status: "completed",
+        id: 'response_memory',
+        status: 'completed',
         output: [
           {
-            type: "file_search_call",
-            status: "completed",
+            type: 'file_search_call',
+            status: 'completed',
             results: [
               {
-                file_id: "file_1",
-                text: "Memory test content",
+                file_id: 'file_1',
+                text: 'Memory test content',
                 score: 0.9,
               },
             ],
@@ -447,8 +447,8 @@ describe("Vector Store Performance Tests", () => {
 
       mockOpenAI.responses.create.mockResolvedValue(mockResponse);
       mockOpenAI.files.retrieve.mockResolvedValue({
-        id: "file_1",
-        filename: "memory.txt",
+        id: 'file_1',
+        filename: 'memory.txt',
       });
 
       // Simulate repeated operations
@@ -461,15 +461,15 @@ describe("Vector Store Performance Tests", () => {
       expect(true).toBe(true);
     });
 
-    it("should handle large response payloads without memory leaks", async () => {
-      const largeContent = "x".repeat(10_000); // Large content blocks
+    it('should handle large response payloads without memory leaks', async () => {
+      const largeContent = 'x'.repeat(10_000); // Large content blocks
       const largeResponse = {
-        id: "response_large_memory",
-        status: "completed",
+        id: 'response_large_memory',
+        status: 'completed',
         output: [
           {
-            type: "file_search_call",
-            status: "completed",
+            type: 'file_search_call',
+            status: 'completed',
             results: Array.from({ length: 50 }, (_, i) => ({
               file_id: `file_${i}`,
               text: largeContent,
@@ -481,12 +481,12 @@ describe("Vector Store Performance Tests", () => {
 
       mockOpenAI.responses.create.mockResolvedValue(largeResponse);
       mockOpenAI.files.retrieve.mockResolvedValue({
-        id: "file_1",
-        filename: "large.txt",
+        id: 'file_1',
+        filename: 'large.txt',
       });
 
       const result = await service.searchFiles({
-        query: "large test",
+        query: 'large test',
         maxResults: 10,
       });
 
@@ -495,14 +495,14 @@ describe("Vector Store Performance Tests", () => {
     });
   });
 
-  describe("Retry Performance", () => {
-    it("should implement exponential backoff efficiently", async () => {
+  describe('Retry Performance', () => {
+    it('should implement exponential backoff efficiently', async () => {
       let attemptCount = 0;
 
       // Create a new service instance to avoid conflicts with spies
       const testService = createOpenAIVectorStoreService({
-        apiKey: "sk-test-key",
-        defaultVectorStoreId: "vs_test_store",
+        apiKey: 'sk-test-key',
+        defaultVectorStoreId: 'vs_test_store',
       });
 
       // Mock the searchFiles method directly
@@ -510,21 +510,21 @@ describe("Vector Store Performance Tests", () => {
         attemptCount++;
         if (attemptCount < 3) {
           // Throw exceptions to trigger retry delays
-          throw new Error("Temporary failure");
+          throw new Error('Temporary failure');
         }
         return Promise.resolve({
           success: true,
-          message: "Success",
+          message: 'Success',
           results: [],
           sources: [],
           totalResults: 0,
-          query: "test",
+          query: 'test',
           executionTime: 100,
         });
       });
 
       const startTime = Date.now();
-      const result = await testService.searchWithRetry({ query: "test" }, 3);
+      const result = await testService.searchWithRetry({ query: 'test' }, 3);
       const endTime = Date.now();
 
       expect(result.success).toBe(true);
@@ -535,25 +535,25 @@ describe("Vector Store Performance Tests", () => {
       expect(endTime - startTime).toBeLessThan(10_000); // But not too much
     });
 
-    it("should fail fast for non-retryable errors", async () => {
+    it('should fail fast for non-retryable errors', async () => {
       // Create a new service instance
       const testService = createOpenAIVectorStoreService({
-        apiKey: "sk-test-key",
-        defaultVectorStoreId: "vs_test_store",
+        apiKey: 'sk-test-key',
+        defaultVectorStoreId: 'vs_test_store',
       });
 
       testService.searchFiles = vi.fn().mockResolvedValue({
         success: false,
-        message: "No vector store ID provided",
+        message: 'No vector store ID provided',
         results: [],
         sources: [],
         totalResults: 0,
-        query: "test",
+        query: 'test',
         executionTime: 100,
       });
 
       const startTime = Date.now();
-      const result = await testService.searchWithRetry({ query: "test" }, 5);
+      const result = await testService.searchWithRetry({ query: 'test' }, 5);
       const endTime = Date.now();
 
       expect(result.success).toBe(false);
@@ -561,14 +561,14 @@ describe("Vector Store Performance Tests", () => {
     });
   });
 
-  describe("Scalability Tests", () => {
+  describe('Scalability Tests', () => {
     beforeEach(() => {
       // Mock successful vector store validation
       const mockVectorStore = {
-        id: "vs_test_store",
-        object: "vector_store",
+        id: 'vs_test_store',
+        object: 'vector_store',
         created_at: Date.now(),
-        name: "Test Store",
+        name: 'Test Store',
         usage_bytes: 0,
         file_counts: {
           in_progress: 0,
@@ -577,7 +577,7 @@ describe("Vector Store Performance Tests", () => {
           cancelled: 0,
           total: 1,
         },
-        status: "completed",
+        status: 'completed',
         expires_after: null,
         expires_at: null,
         last_active_at: null,
@@ -590,25 +590,25 @@ describe("Vector Store Performance Tests", () => {
       });
     });
 
-    it("should handle increasing query complexity gracefully", async () => {
+    it('should handle increasing query complexity gracefully', async () => {
       const queries = [
-        "simple",
-        "more complex query with multiple terms",
-        "very complex query with many technical terms and specific requirements for detailed analysis",
-        "extremely complex and comprehensive query requiring extensive processing and analysis of multiple interconnected concepts with various technical specifications and detailed requirements",
+        'simple',
+        'more complex query with multiple terms',
+        'very complex query with many technical terms and specific requirements for detailed analysis',
+        'extremely complex and comprehensive query requiring extensive processing and analysis of multiple interconnected concepts with various technical specifications and detailed requirements',
       ];
 
       const mockResponse = {
-        id: "response_scalability",
-        status: "completed",
+        id: 'response_scalability',
+        status: 'completed',
         output: [
           {
-            type: "file_search_call",
-            status: "completed",
+            type: 'file_search_call',
+            status: 'completed',
             results: [
               {
-                file_id: "file_1",
-                text: "Scalability test content",
+                file_id: 'file_1',
+                text: 'Scalability test content',
                 score: 0.9,
               },
             ],
@@ -618,8 +618,8 @@ describe("Vector Store Performance Tests", () => {
 
       mockOpenAI.responses.create.mockResolvedValue(mockResponse);
       mockOpenAI.files.retrieve.mockResolvedValue({
-        id: "file_1",
-        filename: "scalability.txt",
+        id: 'file_1',
+        filename: 'scalability.txt',
       });
 
       const results = await Promise.all(
@@ -642,17 +642,17 @@ describe("Vector Store Performance Tests", () => {
       expect(maxDuration / minDuration).toBeLessThan(5); // Should not vary by more than 5x
     });
 
-    it("should maintain performance with varying result set sizes", async () => {
+    it('should maintain performance with varying result set sizes', async () => {
       const resultSizes = [1, 10, 25, 50];
 
       for (const size of resultSizes) {
         const mockResponse = {
           id: `response_${size}`,
-          status: "completed",
+          status: 'completed',
           output: [
             {
-              type: "file_search_call",
-              status: "completed",
+              type: 'file_search_call',
+              status: 'completed',
               results: Array.from({ length: size }, (_, i) => ({
                 file_id: `file_${i}`,
                 text: `Content ${i}`,
@@ -674,7 +674,7 @@ describe("Vector Store Performance Tests", () => {
 
         const startTime = Date.now();
         const result = await service.searchFiles({
-          query: "test",
+          query: 'test',
           maxResults: size,
         });
         const endTime = Date.now();
@@ -686,14 +686,14 @@ describe("Vector Store Performance Tests", () => {
     });
   });
 
-  describe("Resource Utilization", () => {
+  describe('Resource Utilization', () => {
     beforeEach(() => {
       // Mock successful vector store validation
       const mockVectorStore = {
-        id: "vs_test_store",
-        object: "vector_store",
+        id: 'vs_test_store',
+        object: 'vector_store',
         created_at: Date.now(),
-        name: "Test Store",
+        name: 'Test Store',
         usage_bytes: 0,
         file_counts: {
           in_progress: 0,
@@ -702,7 +702,7 @@ describe("Vector Store Performance Tests", () => {
           cancelled: 0,
           total: 1,
         },
-        status: "completed",
+        status: 'completed',
         expires_after: null,
         expires_at: null,
         last_active_at: null,
@@ -715,19 +715,19 @@ describe("Vector Store Performance Tests", () => {
       });
     });
 
-    it("should efficiently handle batch operations", async () => {
+    it('should efficiently handle batch operations', async () => {
       const batchSize = 20;
       const mockResponse = {
-        id: "response_batch",
-        status: "completed",
+        id: 'response_batch',
+        status: 'completed',
         output: [
           {
-            type: "file_search_call",
-            status: "completed",
+            type: 'file_search_call',
+            status: 'completed',
             results: [
               {
-                file_id: "file_batch",
-                text: "Batch content",
+                file_id: 'file_batch',
+                text: 'Batch content',
                 score: 0.9,
               },
             ],
@@ -737,8 +737,8 @@ describe("Vector Store Performance Tests", () => {
 
       mockOpenAI.responses.create.mockResolvedValue(mockResponse);
       mockOpenAI.files.retrieve.mockResolvedValue({
-        id: "file_batch",
-        filename: "batch.txt",
+        id: 'file_batch',
+        filename: 'batch.txt',
       });
 
       const batchRequests = Array.from({ length: batchSize }, (_, i) =>
@@ -757,9 +757,9 @@ describe("Vector Store Performance Tests", () => {
       expect(avgTimePerRequest).toBeLessThan(2000); // Each request should average < 2 seconds
     });
 
-    it("should handle connection pooling efficiently", async () => {
+    it('should handle connection pooling efficiently', async () => {
       // Simulate multiple rapid requests that would benefit from connection reuse
-      const rapidRequests = Array.from({ length: 15 }, (_, i) =>
+      const rapidRequests = Array.from({ length: 15 }, (_, _i) =>
         service.healthCheck(),
       );
 

@@ -1,12 +1,12 @@
-import { NextResponse } from "next/server";
-import { getAgentOrchestrator, getSystemHealth } from "@/lib/agents";
+import { NextResponse } from 'next/server';
+import { getAgentOrchestrator, getSystemHealth } from '@/lib/agents';
 import {
   checkProviderHealth,
   validateProviderConfig,
-} from "@/lib/ai/providers";
-import { checkEnvironment } from "@/lib/utils/env-check";
+} from '@/lib/ai/providers';
+import { checkEnvironment } from '@/lib/utils/env-check';
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic';
 export const maxDuration = 30;
 
 /**
@@ -29,9 +29,9 @@ export async function GET() {
       agentHealth = await getSystemHealth();
     } catch (error) {
       agentHealth = {
-        status: "error" as const,
+        status: 'error' as const,
         agents: {},
-        error: error instanceof Error ? error.message : "Unknown error",
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
 
@@ -41,30 +41,30 @@ export async function GET() {
       providerHealth = await checkProviderHealth();
     } catch (error) {
       providerHealth = {
-        status: "error" as const,
+        status: 'error' as const,
         availableModels: [],
         unavailableModels: [],
         providers: {},
-        error: error instanceof Error ? error.message : "Unknown error",
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
 
     // Determine overall system status
     const isEnvironmentHealthy = envStatus.isValid;
     const isProvidersHealthy =
-      providerStatus.isValid && providerHealth.status !== "error";
-    const isAgentsHealthy = agentHealth.status === "healthy";
+      providerStatus.isValid && providerHealth.status !== 'error';
+    const isAgentsHealthy = agentHealth.status === 'healthy';
 
-    let overallStatus: "healthy" | "degraded" | "error";
+    let overallStatus: 'healthy' | 'degraded' | 'error';
     if (isEnvironmentHealthy && isProvidersHealthy && isAgentsHealthy) {
-      overallStatus = "healthy";
+      overallStatus = 'healthy';
     } else if (
-      (isProvidersHealthy && agentHealth.status === "degraded") ||
-      (!isProvidersHealthy && providerHealth.status === "degraded")
+      (isProvidersHealthy && agentHealth.status === 'degraded') ||
+      (!isProvidersHealthy && providerHealth.status === 'degraded')
     ) {
-      overallStatus = "degraded";
+      overallStatus = 'degraded';
     } else {
-      overallStatus = "error";
+      overallStatus = 'error';
     }
 
     const response = {
@@ -72,12 +72,12 @@ export async function GET() {
       timestamp: new Date().toISOString(),
       responseTime: Date.now() - startTime,
       environment: {
-        status: envStatus.isValid ? "healthy" : "error",
+        status: envStatus.isValid ? 'healthy' : 'error',
         errors: envStatus.errors,
         warnings: envStatus.warnings,
       },
       providers: {
-        status: providerStatus.isValid ? "healthy" : "error",
+        status: providerStatus.isValid ? 'healthy' : 'error',
         availableProviders: providerStatus.availableProviders,
         errors: providerStatus.errors,
         warnings: providerStatus.warnings,
@@ -88,44 +88,43 @@ export async function GET() {
         streaming: true,
         reasoning: providerHealth.availableModels.some(
           (model: string) =>
-            model.includes("o1-") ||
-            model.includes("o3-") ||
-            model.includes("o4-"),
+            model.includes('o1-') ||
+            model.includes('o3-') ||
+            model.includes('o4-'),
         ),
         multimodal: providerHealth.availableModels.some(
           (model: string) =>
-            model.includes("gpt-4o") ||
-            model.includes("gemini") ||
-            model.includes("claude"),
+            model.includes('gpt-4o') ||
+            model.includes('gemini') ||
+            model.includes('claude'),
         ),
         vectorStore: true,
         tools: true,
       },
       version: {
         node: process.version,
-        nextjs: "15.3.0",
-        ai_sdk: "^3.0.0",
+        nextjs: '15.3.0',
+        ai_sdk: '^3.0.0',
       },
     };
 
     // Set appropriate HTTP status based on health
     const httpStatus =
-      overallStatus === "healthy"
+      overallStatus === 'healthy'
         ? 200
-        : overallStatus === "degraded"
+        : overallStatus === 'degraded'
           ? 206
           : 503;
 
     return NextResponse.json(response, { status: httpStatus });
   } catch (error) {
-    console.error("Health check failed:", error);
 
     return NextResponse.json(
       {
-        status: "error",
+        status: 'error',
         timestamp: new Date().toISOString(),
-        error: error instanceof Error ? error.message : "Health check failed",
-        message: "Unable to perform health check",
+        error: error instanceof Error ? error.message : 'Health check failed',
+        message: 'Unable to perform health check',
       },
       { status: 500 },
     );
@@ -141,7 +140,7 @@ export async function POST(request: Request) {
 
     if (!agentType) {
       return NextResponse.json(
-        { error: "agentType is required" },
+        { error: 'agentType is required' },
         { status: 400 },
       );
     }
@@ -149,10 +148,10 @@ export async function POST(request: Request) {
     const orchestrator = await getAgentOrchestrator();
 
     const testRequest = {
-      query: query || "Health check test",
+      query: query || 'Health check test',
       chatHistory: [],
       options: {
-        modelId: "openai-gpt-4.1-nano", // Use fast model for testing
+        modelId: 'openai-gpt-4.1-nano', // Use fast model for testing
         streaming: false,
         useTools: false,
       },
@@ -163,7 +162,7 @@ export async function POST(request: Request) {
     const responseTime = Date.now() - startTime;
 
     return NextResponse.json({
-      status: "success",
+      status: 'success',
       agentType,
       responseTime,
       response: {
@@ -175,8 +174,8 @@ export async function POST(request: Request) {
   } catch (error) {
     return NextResponse.json(
       {
-        status: "error",
-        error: error instanceof Error ? error.message : "Agent test failed",
+        status: 'error',
+        error: error instanceof Error ? error.message : 'Agent test failed',
       },
       { status: 500 },
     );

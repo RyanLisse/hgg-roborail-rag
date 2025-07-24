@@ -1,18 +1,18 @@
-import "server-only";
+import 'server-only';
 
-import { z } from "zod";
+import { z } from 'zod';
 
 // ====================================
 // FALLBACK CONFIGURATION
 // ====================================
 
 export enum FallbackMode {
-  FAIL_FAST = "FAIL_FAST", // Fail immediately without fallback
-  GRACEFUL = "GRACEFUL", // Try fallbacks gracefully
-  SILENT = "SILENT", // Return empty/default values
-  CACHED = "CACHED", // Return cached values if available
-  PARTIAL = "PARTIAL", // Return partial results
-  RETURN_EMPTY = "RETURN_EMPTY", // Return empty results when fallback fails
+  FAIL_FAST = 'FAIL_FAST', // Fail immediately without fallback
+  GRACEFUL = 'GRACEFUL', // Try fallbacks gracefully
+  SILENT = 'SILENT', // Return empty/default values
+  CACHED = 'CACHED', // Return cached values if available
+  PARTIAL = 'PARTIAL', // Return partial results
+  RETURN_EMPTY = 'RETURN_EMPTY', // Return empty results when fallback fails
 }
 
 export const FallbackConfig = z.object({
@@ -174,7 +174,6 @@ export class FallbackManager<T> {
     if (cacheKey && this.config.enableCaching) {
       const cached = this.cache.get<T>(cacheKey);
       if (cached) {
-        console.log(`📋 Using cached result for ${operation}`);
         return cached;
       }
     }
@@ -197,16 +196,13 @@ export class FallbackManager<T> {
         );
 
         if (!isAvailable) {
-          console.log(`⚠️ Provider ${provider.name} is not available`);
           results.push({
             provider: provider.name,
             result: null,
-            error: new Error("Provider not available"),
+            error: new Error('Provider not available'),
           });
           continue;
         }
-
-        console.log(`🔄 Trying provider ${provider.name} for ${operation}`);
 
         // Execute with timeout
         const result = await this.timeoutPromise(
@@ -216,9 +212,6 @@ export class FallbackManager<T> {
         );
 
         if (result !== null) {
-          console.log(
-            `✅ Provider ${provider.name} succeeded for ${operation}`,
-          );
 
           // Cache successful result
           if (cacheKey && this.config.enableCaching) {
@@ -230,7 +223,6 @@ export class FallbackManager<T> {
         }
       } catch (error) {
         const err = error instanceof Error ? error : new Error(String(error));
-        console.log(`❌ Provider ${provider.name} failed: ${err.message}`);
         lastError = err;
         results.push({ provider: provider.name, result: null, error: err });
       }
@@ -246,9 +238,6 @@ export class FallbackManager<T> {
     lastError: Error | null,
     cacheKey?: string,
   ): Promise<T> {
-    console.log(
-      `🔧 Applying fallback strategy: ${this.config.mode} for ${operation}`,
-    );
 
     switch (this.config.mode) {
       case FallbackMode.FAIL_FAST:
@@ -259,7 +248,6 @@ export class FallbackManager<T> {
           // Try to get any cached value, even if expired
           const cached = this.cache.get<T>(cacheKey);
           if (cached) {
-            console.log(`📋 Using stale cached result for ${operation}`);
             return cached;
           }
         }
@@ -272,7 +260,6 @@ export class FallbackManager<T> {
         if (this.config.enablePartialResults) {
           const partialResult = this.buildPartialResult(results);
           if (partialResult !== null) {
-            console.log(`🔍 Returning partial result for ${operation}`);
             return partialResult;
           }
         }
@@ -283,7 +270,6 @@ export class FallbackManager<T> {
 
       case FallbackMode.SILENT: {
         const defaultValue = this.getDefaultValue();
-        console.log(`🔇 Returning default value for ${operation}`);
         return defaultValue;
       }
 
@@ -293,7 +279,6 @@ export class FallbackManager<T> {
         if (cacheKey) {
           const cached = this.cache.get<T>(cacheKey);
           if (cached) {
-            console.log(`📋 Using cached fallback for ${operation}`);
             return cached;
           }
         }
@@ -302,7 +287,6 @@ export class FallbackManager<T> {
         if (this.config.enablePartialResults) {
           const partialResult = this.buildPartialResult(results);
           if (partialResult !== null) {
-            console.log(`🔍 Using partial result fallback for ${operation}`);
             return partialResult;
           }
         }
@@ -310,16 +294,12 @@ export class FallbackManager<T> {
         // Use provider fallback values
         for (const provider of this.providers) {
           if (provider.fallbackValue !== undefined) {
-            console.log(
-              `🎯 Using provider ${provider.name} fallback value for ${operation}`,
-            );
             return provider.fallbackValue;
           }
         }
 
         // Final fallback to default
         const defaultValue = this.getDefaultValue();
-        console.log(`🔇 Using final default fallback for ${operation}`);
         return defaultValue;
       }
     }
@@ -374,7 +354,7 @@ export class FallbackManager<T> {
 
     try {
       return await Promise.race([promise, timeoutPromise]);
-    } catch (error) {
+    } catch (_error) {
       return defaultValue;
     }
   }
@@ -401,7 +381,7 @@ export class FallbackManager<T> {
             healthy,
             available,
           };
-        } catch (error) {
+        } catch (_error) {
           return {
             name: provider.name,
             healthy: false,
@@ -440,11 +420,11 @@ export class FallbackManager<T> {
 
 export class GracefulDegradation {
   private static readonly degradationLevels = [
-    "full_service",
-    "reduced_functionality",
-    "basic_service",
-    "minimal_service",
-    "emergency_mode",
+    'full_service',
+    'reduced_functionality',
+    'basic_service',
+    'minimal_service',
+    'emergency_mode',
   ];
 
   private currentLevel = 0; // Start with full service
@@ -461,10 +441,6 @@ export class GracefulDegradation {
         GracefulDegradation.degradationLevels.length - 1,
       );
     }
-
-    console.log(
-      `⬇️ Service degraded to level ${this.currentLevel} (${this.getCurrentLevelName()}) due to: ${reason}`,
-    );
   }
 
   recover(steps = 1): void {
@@ -472,9 +448,6 @@ export class GracefulDegradation {
     this.currentLevel = Math.max(0, this.currentLevel - steps);
 
     if (this.currentLevel < previousLevel) {
-      console.log(
-        `⬆️ Service recovered to level ${this.currentLevel} (${this.getCurrentLevelName()})`,
-      );
 
       // Clear some degradation reasons on recovery
       if (this.currentLevel === 0) {
@@ -489,7 +462,7 @@ export class GracefulDegradation {
 
   getCurrentLevelName(): string {
     return (
-      GracefulDegradation.degradationLevels[this.currentLevel] || "unknown"
+      GracefulDegradation.degradationLevels[this.currentLevel] || 'unknown'
     );
   }
 
@@ -517,6 +490,5 @@ export class GracefulDegradation {
   reset(): void {
     this.currentLevel = 0;
     this.degradationReasons = [];
-    console.log("🔄 Service degradation reset to full service");
   }
 }

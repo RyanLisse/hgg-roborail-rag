@@ -1,28 +1,28 @@
-"use client";
+'use client';
 
-import { AlertCircle, FileText, Send, Settings, Upload, X } from "lucide-react";
-import { useSession } from "next-auth/react";
-import { useState } from "react";
+import { AlertCircle, FileText, Send, Settings, Upload, X } from 'lucide-react';
+import { useSession } from 'next-auth/react';
+import { useState } from 'react';
 import {
   DatabaseSelector,
   useDatabaseSelection,
-} from "@/components/database-selector";
-import { MessageFeedback } from "@/components/feedback-system";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Textarea } from "@/components/ui/textarea";
-import { useModelSelection } from "@/hooks/use-model-selection";
-import { useRAG } from "@/hooks/use-rag";
-import { cn } from "@/lib/utils";
+} from '@/components/database-selector';
+import { MessageFeedback } from '@/components/feedback-system';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Textarea } from '@/components/ui/textarea';
+import { useModelSelection } from '@/hooks/use-model-selection';
+import { useRAG } from '@/hooks/use-rag';
+import { cn } from '@/lib/utils';
 
 export function RAGChat() {
-  const [question, setQuestion] = useState("");
+  const [question, setQuestion] = useState('');
   const [chatHistory, setChatHistory] = useState<
     Array<{
-      role: "user" | "assistant";
+      role: 'user' | 'assistant';
       content: string;
       messageId?: string;
       runId?: string;
@@ -51,9 +51,9 @@ export function RAGChat() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!(question.trim() && selectedModel)) return;
+    if (!(question.trim() && selectedModel)) { return; }
 
-    const userMessage = { role: "user" as const, content: question };
+    const userMessage = { role: 'user' as const, content: question };
     const newHistory = [...chatHistory, userMessage];
     setChatHistory(newHistory);
 
@@ -64,7 +64,7 @@ export function RAGChat() {
         modelId: selectedModel.id,
         options: {
           vectorStoreSources: selectedSources,
-          useFileSearch: selectedSources.includes("openai"),
+          useFileSearch: selectedSources.includes('openai'),
           useWebSearch: false, // Can be made configurable
         },
       });
@@ -76,18 +76,17 @@ export function RAGChat() {
         setChatHistory((prev) => [
           ...prev,
           {
-            role: "assistant",
+            role: 'assistant',
             content: result.answer,
             messageId,
             runId: result.runId, // From RAG service LangSmith tracking
           },
         ]);
       }
-    } catch (err) {
-      console.error("Query failed:", err);
+    } catch (_err) {
     }
 
-    setQuestion("");
+    setQuestion('');
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -107,9 +106,9 @@ export function RAGChat() {
   };
 
   const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return "0 Bytes";
+    if (bytes === 0) { return '0 Bytes'; }
     const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return `${Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
   };
@@ -184,14 +183,14 @@ export function RAGChat() {
                           {doc.name}
                         </p>
                         <p className="text-muted-foreground text-xs">
-                          {formatFileSize(doc.size)} •{" "}
+                          {formatFileSize(doc.size)} •{' '}
                           {doc.uploadedAt.toLocaleDateString()}
                         </p>
                       </div>
                       <Badge
                         className="text-xs"
                         variant={
-                          doc.status === "processed" ? "default" : "secondary"
+                          doc.status === 'processed' ? 'default' : 'secondary'
                         }
                       >
                         {doc.status}
@@ -225,10 +224,10 @@ export function RAGChat() {
               {chatHistory.map((message, index) => (
                 <div
                   className={cn(
-                    "rounded-lg p-3",
-                    message.role === "user"
-                      ? "ml-8 bg-primary/10"
-                      : "mr-8 bg-muted",
+                    'rounded-lg p-3',
+                    message.role === 'user'
+                      ? 'ml-8 bg-primary/10'
+                      : 'mr-8 bg-muted',
                   )}
                   key={`message-${index}-${message.content.slice(0, 10)}`}
                 >
@@ -238,7 +237,7 @@ export function RAGChat() {
                   <div className="text-sm">{message.content}</div>
 
                   {/* Add feedback component for assistant messages */}
-                  {message.role === "assistant" &&
+                  {message.role === 'assistant' &&
                     message.messageId &&
                     message.runId &&
                     session?.user?.id && (
@@ -327,7 +326,7 @@ export function RAGChat() {
               </div>
               <p className="mt-1 text-muted-foreground text-sm">
                 {error.message ||
-                  "An error occurred while processing your request."}
+                  'An error occurred while processing your request.'}
               </p>
             </div>
           )}
@@ -338,7 +337,7 @@ export function RAGChat() {
               className="min-h-[60px] resize-none"
               onChange={(e) => setQuestion(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
+                if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
                   handleSubmit(e);
                 }
@@ -363,7 +362,7 @@ export function RAGChat() {
           )}
 
           {/* Vector Store Info */}
-          {selectedSources.includes("openai") && (
+          {selectedSources.includes('openai') && (
             <div className="rounded-lg border border-green-200 bg-green-50 p-3">
               <div className="flex items-center gap-2 font-medium text-green-800 text-sm">
                 <div className="size-2 rounded-full bg-green-600" />
@@ -384,12 +383,12 @@ export function RAGChat() {
               </div>
               <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
                 {[
-                  "How do I calibrate the RoboRail system?",
-                  "What are the safety procedures for RoboRail?",
-                  "What is the measurement accuracy of RoboRail?",
-                  "How do I troubleshoot RoboRail issues?",
-                  "What are the operating procedures for RoboRail?",
-                  "How do I maintain the RoboRail system?",
+                  'How do I calibrate the RoboRail system?',
+                  'What are the safety procedures for RoboRail?',
+                  'What is the measurement accuracy of RoboRail?',
+                  'How do I troubleshoot RoboRail issues?',
+                  'What are the operating procedures for RoboRail?',
+                  'How do I maintain the RoboRail system?',
                 ].map((exampleQuestion) => (
                   <Button
                     className="h-auto justify-start px-3 py-2 text-left text-xs"

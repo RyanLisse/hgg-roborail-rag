@@ -1,23 +1,23 @@
-"use client";
+'use client';
 
-import type { UseChatHelpers } from "@ai-sdk/react";
-import type { Message } from "ai";
+import type { UseChatHelpers } from '@ai-sdk/react';
+import type { Message } from 'ai';
 import {
   type Dispatch,
   type SetStateAction,
   useEffect,
   useRef,
   useState,
-} from "react";
-import { deleteTrailingMessages } from "@/app/(chat)/actions";
-import { Button } from "./ui/button";
-import { Textarea } from "./ui/textarea";
+} from 'react';
+import { deleteTrailingMessages } from '@/app/(chat)/actions';
+import { Button } from './ui/button';
+import { Textarea } from './ui/textarea';
 
 export type MessageEditorProps = {
   message: Message;
-  setMode: Dispatch<SetStateAction<"view" | "edit">>;
-  setMessages: UseChatHelpers["setMessages"];
-  reload: UseChatHelpers["reload"];
+  setMode: Dispatch<SetStateAction<'view' | 'edit'>>;
+  setMessages: UseChatHelpers['setMessages'];
+  reload: UseChatHelpers['reload'];
 };
 
 export function MessageEditor({
@@ -39,7 +39,7 @@ export function MessageEditor({
 
   const adjustHeight = () => {
     if (textareaRef.current) {
-      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = 'auto';
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight + 2}px`;
     }
   };
@@ -63,7 +63,7 @@ export function MessageEditor({
         <Button
           className="h-fit px-3 py-2"
           onClick={() => {
-            setMode("view");
+            setMode('view');
           }}
           variant="outline"
         >
@@ -96,12 +96,12 @@ export function MessageEditor({
               return messages;
             });
 
-            setMode("view");
+            setMode('view');
             reload();
           }}
           variant="default"
         >
-          {isSubmitting ? "Sending..." : "Send"}
+          {isSubmitting ? 'Sending...' : 'Send'}
         </Button>
       </div>
     </div>

@@ -3,17 +3,17 @@
  * Wrapper around the existing service-based implementation
  */
 
-import { BaseVectorStoreService } from "./core/base-service";
+import { BaseVectorStoreService } from './core/base-service';
 import {
   getUnifiedVectorStoreService,
   type UnifiedVectorStoreService,
-} from "./unified";
+} from './unified';
 
 export class UnifiedVectorStore extends BaseVectorStoreService {
   private service: Promise<UnifiedVectorStoreService>;
 
-  constructor(stores?: any[]) {
-    super("unified-vector-store");
+  constructor(_stores?: any[]) {
+    super('unified-vector-store');
     this.service = getUnifiedVectorStoreService();
   }
 
@@ -21,7 +21,7 @@ export class UnifiedVectorStore extends BaseVectorStoreService {
     const service = await this.service;
     return this.withRetry(
       () => service.searchAcrossSources({ query, ...options }),
-      "search",
+      'search',
     );
   }
 
@@ -35,7 +35,7 @@ export class UnifiedVectorStore extends BaseVectorStoreService {
     const service = await this.service;
     const sources = await service.getAvailableSources();
     if (sources.length === 0) {
-      throw new Error("No vector store sources available");
+      throw new Error('No vector store sources available');
     }
   }
 
@@ -43,15 +43,15 @@ export class UnifiedVectorStore extends BaseVectorStoreService {
     const service = await this.service;
     return this.withRetry(
       () => Promise.all(documents.map((doc) => service.addDocument(doc))),
-      "upload",
+      'upload',
     );
   }
 
   async delete(ids: string[]) {
     const service = await this.service;
     return this.withRetry(
-      () => Promise.all(ids.map((id) => service.deleteDocument(id, "unified"))),
-      "delete",
+      () => Promise.all(ids.map((id) => service.deleteDocument(id, 'unified'))),
+      'delete',
     );
   }
 
@@ -62,13 +62,13 @@ export class UnifiedVectorStore extends BaseVectorStoreService {
       return {
         message:
           sources.length > 0
-            ? "Unified service is healthy"
-            : "No sources available",
+            ? 'Unified service is healthy'
+            : 'No sources available',
         isHealthy: sources.length > 0,
         responseTime: 0,
         lastChecked: new Date(),
       };
-    }, "healthCheck");
+    }, 'healthCheck');
   }
 
   async getStats() {
@@ -83,6 +83,6 @@ export class UnifiedVectorStore extends BaseVectorStoreService {
         lastUpdated: new Date(),
         sources: sourceStats,
       };
-    }, "getStats");
+    }, 'getStats');
   }
 }

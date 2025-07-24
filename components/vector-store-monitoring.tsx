@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import useSWR from "swr";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { fetcher } from "@/lib/utils";
+import { useState } from 'react';
+import useSWR from 'swr';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { fetcher } from '@/lib/utils';
 
 interface HealthStatus {
   provider: string;
@@ -51,9 +51,9 @@ interface DashboardData {
 }
 
 export function VectorStoreMonitoring() {
-  const [selectedTimeWindow, setSelectedTimeWindow] = useState("24h");
-  const [selectedProvider, setSelectedProvider] = useState<string | "all">(
-    "all",
+  const [selectedTimeWindow, setSelectedTimeWindow] = useState('24h');
+  const [_selectedProvider, _setSelectedProvider] = useState<string | 'all'>(
+    'all',
   );
 
   // Fetch dashboard data
@@ -64,7 +64,7 @@ export function VectorStoreMonitoring() {
   } = useSWR<{
     success: boolean;
     data: DashboardData;
-  }>("/api/vectorstore/monitoring?action=dashboard", fetcher, {
+  }>('/api/vectorstore/monitoring?action=dashboard', fetcher, {
     refreshInterval: 30_000, // Refresh every 30 seconds
   });
 
@@ -72,12 +72,12 @@ export function VectorStoreMonitoring() {
   const { data: healthData, error: healthError } = useSWR<{
     success: boolean;
     data: Record<string, HealthStatus>;
-  }>("/api/vectorstore/monitoring?action=health&provider=all", fetcher, {
+  }>('/api/vectorstore/monitoring?action=health&provider=all', fetcher, {
     refreshInterval: 60_000, // Refresh every minute
   });
 
   const formatLatency = (latency: number) => {
-    if (latency < 1000) return `${Math.round(latency)}ms`;
+    if (latency < 1000) { return `${Math.round(latency)}ms`; }
     return `${(latency / 1000).toFixed(1)}s`;
   };
 
@@ -86,22 +86,22 @@ export function VectorStoreMonitoring() {
   };
 
   const getHealthBadgeVariant = (isHealthy: boolean) => {
-    return isHealthy ? "default" : "destructive";
+    return isHealthy ? 'default' : 'destructive';
   };
 
   const getPerformanceBadgeVariant = (successRate: number) => {
-    if (successRate >= 0.95) return "default";
-    if (successRate >= 0.9) return "secondary";
-    return "destructive";
+    if (successRate >= 0.95) { return 'default'; }
+    if (successRate >= 0.9) { return 'secondary'; }
+    return 'destructive';
   };
 
   const testSearch = async (provider: string) => {
     try {
-      const response = await fetch("/api/vectorstore/monitoring", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/vectorstore/monitoring', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          action: "test_search",
+          action: 'test_search',
           provider,
           latency: Math.random() * 2000 + 500,
           success: Math.random() > 0.1, // 90% success rate
@@ -111,8 +111,7 @@ export function VectorStoreMonitoring() {
       if (response.ok) {
         mutateDashboard();
       }
-    } catch (error) {
-      console.error("Failed to test search:", error);
+    } catch (_error) {
     }
   };
 
@@ -182,7 +181,7 @@ export function VectorStoreMonitoring() {
               <div className="mb-2 flex items-center justify-between">
                 <h3 className="font-medium capitalize">{provider}</h3>
                 <Badge variant={getHealthBadgeVariant(status.isHealthy)}>
-                  {status.isHealthy ? "Healthy" : "Unhealthy"}
+                  {status.isHealthy ? 'Healthy' : 'Unhealthy'}
                 </Badge>
               </div>
               {status.latency && (
@@ -202,7 +201,7 @@ export function VectorStoreMonitoring() {
               )}
               <div className="mt-3 flex items-center justify-between">
                 <p className="text-gray-500 text-xs">
-                  Last checked:{" "}
+                  Last checked:{' '}
                   {new Date(status.lastChecked).toLocaleTimeString()}
                 </p>
                 <Button
@@ -257,7 +256,7 @@ export function VectorStoreMonitoring() {
                 <div className="flex justify-between">
                   <span className="text-gray-600">Error Rate:</span>
                   <span
-                    className={`font-medium ${metrics.errorRate > 0.05 ? "text-red-600" : ""}`}
+                    className={`font-medium ${metrics.errorRate > 0.05 ? 'text-red-600' : ''}`}
                   >
                     {formatSuccessRate(metrics.errorRate)}
                   </span>
@@ -352,7 +351,7 @@ export function VectorStoreMonitoring() {
         </div>
         <Separator className="my-4" />
         <p className="text-gray-500 text-xs">
-          Last updated:{" "}
+          Last updated:{' '}
           {new Date(dashboardData.data.timestamp).toLocaleString()}
         </p>
       </Card>

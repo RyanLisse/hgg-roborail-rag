@@ -1,41 +1,41 @@
-"use client";
+'use client';
 
-import { useChat } from "@ai-sdk/react";
-import type { Attachment, UIMessage } from "ai";
-import { useSearchParams } from "next/navigation";
-import type { Session } from "next-auth";
-import { useEffect, useState } from "react";
-import useSWR, { useSWRConfig } from "swr";
-import { unstable_serialize } from "swr/infinite";
-import { ChatHeader } from "@/components/chat-header";
+import { useChat } from '@ai-sdk/react';
+import type { Attachment, UIMessage } from 'ai';
+import { useSearchParams } from 'next/navigation';
+import type { Session } from 'next-auth';
+import { useEffect, useState } from 'react';
+import useSWR, { useSWRConfig } from 'swr';
+import { unstable_serialize } from 'swr/infinite';
+import { ChatHeader } from '@/components/chat-header';
 import {
   DatabaseSelector,
   useDatabaseSelection,
-} from "@/components/database-selector";
-import type { VisibilityType } from "@/components/visibility-selector";
-import { useArtifactSelector } from "@/hooks/use-artifact";
-import { useAutoResume } from "@/hooks/use-auto-resume";
-import { useChatVisibility } from "@/hooks/use-chat-visibility";
-import type { Vote } from "@/lib/db/schema";
-import { ChatSDKError } from "@/lib/errors";
-import { fetcher, fetchWithErrorHandlers, generateUUID } from "@/lib/utils";
-import { Artifact } from "./artifact";
-import { Messages } from "./messages";
-import { MultimodalInput } from "./multimodal-input";
-import { getChatHistoryPaginationKey } from "./sidebar-history";
-import { toast } from "./toast";
+} from '@/components/database-selector';
+import type { VisibilityType } from '@/components/visibility-selector';
+import { useArtifactSelector } from '@/hooks/use-artifact';
+import { useAutoResume } from '@/hooks/use-auto-resume';
+import { useChatVisibility } from '@/hooks/use-chat-visibility';
+import type { Vote } from '@/lib/db/schema';
+import { ChatSDKError } from '@/lib/errors';
+import { fetcher, fetchWithErrorHandlers, generateUUID } from '@/lib/utils';
+import { Artifact } from './artifact';
+import { Messages } from './messages';
+import { MultimodalInput } from './multimodal-input';
+import { getChatHistoryPaginationKey } from './sidebar-history';
+import { toast } from './toast';
 
 export function Chat({
   id,
   initialMessages,
   initialChatModel,
-  initialVisibilityType = "private",
+  initialVisibilityType = 'private',
   isReadonly,
   session,
   autoResume,
 }: {
   id: string;
-  initialMessages: Array<UIMessage>;
+  initialMessages: UIMessage[];
   initialChatModel: string;
   initialVisibilityType?: VisibilityType;
   isReadonly: boolean;
@@ -45,10 +45,10 @@ export function Chat({
   const { mutate } = useSWRConfig();
 
   const searchParams = useSearchParams();
-  const query = searchParams.get("query");
+  const query = searchParams.get('query');
 
   const [hasAppendedQuery, setHasAppendedQuery] = useState(false);
-  const [attachments, setAttachments] = useState<Array<Attachment>>([]);
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
   const isArtifactVisible = useArtifactSelector((state) => state.isVisible);
 
   // Database selection for vector stores
@@ -99,14 +99,14 @@ export function Chat({
     onError: (error) => {
       if (error instanceof ChatSDKError) {
         toast({
-          type: "error",
+          type: 'error',
           description: error.message,
         });
       }
     },
   });
 
-  const { data: votes } = useSWR<Array<Vote>>(
+  const { data: votes } = useSWR<Vote[]>(
     messages.length >= 2 ? `/api/vote?chatId=${id}` : null,
     fetcher,
   );
@@ -114,12 +114,12 @@ export function Chat({
   useEffect(() => {
     if (query && !hasAppendedQuery) {
       append({
-        role: "user",
+        role: 'user',
         content: query,
       });
 
       setHasAppendedQuery(true);
-      window.history.replaceState({}, "", `/chat/${id}`);
+      window.history.replaceState({}, '', `/chat/${id}`);
     }
   }, [query, append, hasAppendedQuery, id]);
 

@@ -19,7 +19,7 @@ export {
   ServiceTokens,
   SimpleDIContainer,
   setContainer,
-} from "./container";
+} from './container';
 
 // Re-export service management
 export {
@@ -27,11 +27,11 @@ export {
   getService,
   hasService,
   initializeServices,
-} from "./services";
+} from './services';
 
-import { getContainer, ServiceTokens } from "./container";
+import { getContainer, ServiceTokens } from './container';
 // Import for direct use
-import { initializeServices } from "./services";
+import { initializeServices } from './services';
 
 /**
  * Initialize the DI system
@@ -40,8 +40,6 @@ import { initializeServices } from "./services";
 export function initializeDI(): void {
   // Initialize all services
   initializeServices();
-
-  console.log("✅ Dependency injection system initialized");
 }
 
 /**

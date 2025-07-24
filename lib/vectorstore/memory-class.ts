@@ -2,13 +2,13 @@
  * Memory Vector Store class for DI container
  */
 
-import { BaseVectorStoreService } from "./core/base-service";
+import { BaseVectorStoreService } from './core/base-service';
 
 export class MemoryVectorStore extends BaseVectorStoreService {
   private documents: Map<string, any> = new Map();
 
   constructor() {
-    super("memory-vector-store");
+    super('memory-vector-store');
   }
 
   protected async searchImplementation(request: any): Promise<any[]> {
@@ -37,11 +37,11 @@ export class MemoryVectorStore extends BaseVectorStoreService {
           content: doc.content,
           metadata: doc.metadata,
           similarity: 0.8, // Mock similarity score
-          source: "memory" as const,
+          source: 'memory' as const,
         }));
 
       return results;
-    }, "search");
+    }, 'search');
   }
 
   async upload(documents: any[]) {
@@ -64,7 +64,7 @@ export class MemoryVectorStore extends BaseVectorStoreService {
         uploadedIds,
         count: uploadedIds.length,
       };
-    }, "upload");
+    }, 'upload');
   }
 
   async delete(ids: string[]) {
@@ -83,18 +83,18 @@ export class MemoryVectorStore extends BaseVectorStoreService {
         deletedIds,
         count: deletedIds.length,
       };
-    }, "delete");
+    }, 'delete');
   }
 
   async healthCheck() {
     return this.withRetry(
       async () => ({
-        message: "Memory store is healthy",
+        message: 'Memory store is healthy',
         isHealthy: true,
         responseTime: 0,
         lastChecked: new Date(),
       }),
-      "healthCheck",
+      'healthCheck',
     );
   }
 
@@ -116,7 +116,7 @@ export class MemoryVectorStore extends BaseVectorStoreService {
               ).createdAt
             : null,
       }),
-      "getStats",
+      'getStats',
     );
   }
 }

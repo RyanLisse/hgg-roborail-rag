@@ -1,20 +1,20 @@
-import type { UseChatHelpers } from "@ai-sdk/react";
-import type { UIMessage } from "ai";
-import equal from "fast-deep-equal";
-import { motion } from "framer-motion";
-import { memo } from "react";
-import { useMessages } from "@/hooks/use-messages";
-import type { Vote } from "@/lib/db/schema";
-import { Greeting } from "./greeting";
-import { PreviewMessage, ThinkingMessage } from "./message";
+import type { UseChatHelpers } from '@ai-sdk/react';
+import type { UIMessage } from 'ai';
+import equal from 'fast-deep-equal';
+import { motion } from 'framer-motion';
+import { memo } from 'react';
+import { useMessages } from '@/hooks/use-messages';
+import type { Vote } from '@/lib/db/schema';
+import { Greeting } from './greeting';
+import { PreviewMessage, ThinkingMessage } from './message';
 
 interface MessagesProps {
   chatId: string;
-  status: UseChatHelpers["status"];
-  votes: Array<Vote> | undefined;
-  messages: Array<UIMessage>;
-  setMessages: UseChatHelpers["setMessages"];
-  reload: UseChatHelpers["reload"];
+  status: UseChatHelpers['status'];
+  votes: Vote[] | undefined;
+  messages: UIMessage[];
+  setMessages: UseChatHelpers['setMessages'];
+  reload: UseChatHelpers['reload'];
   isReadonly: boolean;
   isArtifactVisible: boolean;
 }
@@ -49,7 +49,7 @@ function PureMessages({
       {messages.map((message, index) => (
         <PreviewMessage
           chatId={chatId}
-          isLoading={status === "streaming" && messages.length - 1 === index}
+          isLoading={status === 'streaming' && messages.length - 1 === index}
           isReadonly={isReadonly}
           key={message.id}
           message={message}
@@ -66,9 +66,9 @@ function PureMessages({
         />
       ))}
 
-      {status === "submitted" &&
+      {status === 'submitted' &&
         messages.length > 0 &&
-        messages[messages.length - 1].role === "user" && <ThinkingMessage />}
+        messages.at(-1)?.role === 'user' && <ThinkingMessage />}
 
       <motion.div
         className="min-h-[24px] min-w-[24px] shrink-0"
@@ -81,13 +81,13 @@ function PureMessages({
 }
 
 export const Messages = memo(PureMessages, (prevProps, nextProps) => {
-  if (prevProps.isArtifactVisible && nextProps.isArtifactVisible) return true;
+  if (prevProps.isArtifactVisible && nextProps.isArtifactVisible) { return true; }
 
-  if (prevProps.status !== nextProps.status) return false;
-  if (prevProps.status && nextProps.status) return false;
-  if (prevProps.messages.length !== nextProps.messages.length) return false;
-  if (!equal(prevProps.messages, nextProps.messages)) return false;
-  if (!equal(prevProps.votes, nextProps.votes)) return false;
+  if (prevProps.status !== nextProps.status) { return false; }
+  if (prevProps.status && nextProps.status) { return false; }
+  if (prevProps.messages.length !== nextProps.messages.length) { return false; }
+  if (!equal(prevProps.messages, nextProps.messages)) { return false; }
+  if (!equal(prevProps.votes, nextProps.votes)) { return false; }
 
   return true;
 });

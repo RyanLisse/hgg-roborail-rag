@@ -4,19 +4,19 @@
  * Supports both synchronous and lazy-loaded (asynchronous) service registration
  */
 
-import { getDb } from "../db/queries";
+import { getDb } from '../db/queries';
 import {
   getContainer,
   registerScoped,
   registerSingleton,
   ServiceTokens,
-} from "./container";
+} from './container';
 
 /**
  * Environment flag to enable/disable lazy loading in DI
  */
 export const DI_LAZY_LOADING_ENABLED =
-  process.env.ENABLE_CODE_SPLITTING !== "false";
+  process.env.ENABLE_CODE_SPLITTING !== 'false';
 
 /**
  * Async service factory type
@@ -39,26 +39,25 @@ export function initializeServices(): void {
  * Initialize services with synchronous imports (original behavior)
  */
 function initializeSyncServices(): void {
-  const { OpenAIVectorStore } = require("../vectorstore/openai-class");
-  const { NeonVectorStore } = require("../vectorstore/neon-class");
-  const { MemoryVectorStore } = require("../vectorstore/memory-class");
-  const { UnifiedVectorStore } = require("../vectorstore/unified-class");
-  const { AgentOrchestrator } = require("../agents/orchestrator");
-  const { SmartAgentRouter } = require("../agents/router");
-  const { QAAgent } = require("../agents/qa-agent");
-  const { RewriteAgent } = require("../agents/rewrite-agent");
-  const { PlannerAgent } = require("../agents/planner-agent");
-  const { ResearchAgent } = require("../agents/research-agent");
-  const { VectorStoreMonitoring } = require("../vectorstore/core/monitoring");
+  const { OpenAIVectorStore } = require('../vectorstore/openai-class');
+  const { NeonVectorStore } = require('../vectorstore/neon-class');
+  const { MemoryVectorStore } = require('../vectorstore/memory-class');
+  const { UnifiedVectorStore } = require('../vectorstore/unified-class');
+  const { AgentOrchestrator } = require('../agents/orchestrator');
+  const { SmartAgentRouter } = require('../agents/router');
+  const { QAAgent } = require('../agents/qa-agent');
+  const { RewriteAgent } = require('../agents/rewrite-agent');
+  const { PlannerAgent } = require('../agents/planner-agent');
+  const { ResearchAgent } = require('../agents/research-agent');
+  const { VectorStoreMonitoring } = require('../vectorstore/core/monitoring');
 
-  const container = getContainer();
+  const _container = getContainer();
 
   // Database Services (with test mode support)
   registerSingleton(ServiceTokens.DATABASE_CLIENT, () => {
     const isTestMode =
-      process.env.NODE_ENV === "test" || process.env.PLAYWRIGHT === "true";
+      process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT === 'true';
     if (isTestMode) {
-      console.log("Test mode: Using mock database client");
       return null;
     }
     return getDb();
@@ -93,17 +92,17 @@ function initializeSyncServices(): void {
 
   // Cache Services (lazy loaded to avoid circular dependencies)
   registerSingleton(ServiceTokens.CACHE_BACKEND, async () => {
-    const { getCache } = require("../cache");
+    const { getCache } = require('../cache');
     return await getCache();
   });
 
-  registerSingleton(ServiceTokens.SMART_CACHE, async (container) => {
-    const { getSmartCache } = require("../cache");
+  registerSingleton(ServiceTokens.SMART_CACHE, async (_container) => {
+    const { getSmartCache } = require('../cache');
     return await getSmartCache();
   });
 
   registerSingleton(ServiceTokens.VECTOR_STORE_CACHE, () => {
-    const { getVectorStoreCache } = require("../cache/vector-cache");
+    const { getVectorStoreCache } = require('../cache/vector-cache');
     return getVectorStoreCache();
   });
 
@@ -144,12 +143,12 @@ function initializeSyncServices(): void {
 
   registerScoped(ServiceTokens.AGENT_ORCHESTRATOR, (container) => {
     const router = container.resolve(ServiceTokens.AGENT_ROUTER);
-    const vectorStore = container.resolve(ServiceTokens.UNIFIED_VECTOR_STORE);
+    const _vectorStore = container.resolve(ServiceTokens.UNIFIED_VECTOR_STORE);
 
     return new AgentOrchestrator({
       router,
       vectorStoreConfig: {
-        defaultSources: ["memory", "neon", "openai"],
+        defaultSources: ['memory', 'neon', 'openai'],
         searchThreshold: 0.3,
         maxResults: 10,
       },
@@ -158,20 +157,16 @@ function initializeSyncServices(): void {
 
   // Stream Context Service
   registerSingleton(ServiceTokens.STREAM_CONTEXT, () => {
-    const { createResumableStreamContext } = require("resumable-stream");
-    const { after } = require("next/server");
+    const { createResumableStreamContext } = require('resumable-stream');
+    const { after } = require('next/server');
 
     try {
       return createResumableStreamContext({
         waitUntil: after,
       });
     } catch (error: any) {
-      if (error.message.includes("REDIS_URL")) {
-        console.log(
-          " > Resumable streams are disabled due to missing REDIS_URL",
-        );
+      if (error.message.includes('REDIS_URL')) {
       } else {
-        console.error(error);
       }
       return null;
     }
@@ -180,7 +175,7 @@ function initializeSyncServices(): void {
   // Configuration
   registerSingleton(ServiceTokens.CONFIG, () => ({
     vectorStore: {
-      defaultSources: ["memory", "neon", "openai"],
+      defaultSources: ['memory', 'neon', 'openai'],
       searchThreshold: 0.3,
       maxResults: 10,
     },
@@ -195,14 +190,13 @@ function initializeSyncServices(): void {
  * Initialize services with lazy loading (async imports)
  */
 function initializeLazyServices(): void {
-  const container = getContainer();
+  const _container = getContainer();
 
   // Database Services (these are lightweight, keep sync, with test mode support)
   registerSingleton(ServiceTokens.DATABASE_CLIENT, () => {
     const isTestMode =
-      process.env.NODE_ENV === "test" || process.env.PLAYWRIGHT === "true";
+      process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT === 'true';
     if (isTestMode) {
-      console.log("Test mode: Using mock database client");
       return null;
     }
     return getDb();
@@ -210,20 +204,16 @@ function initializeLazyServices(): void {
 
   // Stream Context Service (lightweight, keep sync)
   registerSingleton(ServiceTokens.STREAM_CONTEXT, () => {
-    const { createResumableStreamContext } = require("resumable-stream");
-    const { after } = require("next/server");
+    const { createResumableStreamContext } = require('resumable-stream');
+    const { after } = require('next/server');
 
     try {
       return createResumableStreamContext({
         waitUntil: after,
       });
     } catch (error: any) {
-      if (error.message.includes("REDIS_URL")) {
-        console.log(
-          " > Resumable streams are disabled due to missing REDIS_URL",
-        );
+      if (error.message.includes('REDIS_URL')) {
       } else {
-        console.error(error);
       }
       return null;
     }
@@ -232,7 +222,7 @@ function initializeLazyServices(): void {
   // Configuration (lightweight, keep sync)
   registerSingleton(ServiceTokens.CONFIG, () => ({
     vectorStore: {
-      defaultSources: ["memory", "neon", "openai"],
+      defaultSources: ['memory', 'neon', 'openai'],
       searchThreshold: 0.3,
       maxResults: 10,
     },
@@ -244,22 +234,22 @@ function initializeLazyServices(): void {
 
   // Vector Store Services with lazy loading
   registerSingleton(ServiceTokens.OPENAI_VECTOR_STORE, async () => {
-    const { OpenAIVectorStore } = await import("../vectorstore/openai-class");
+    const { OpenAIVectorStore } = await import('../vectorstore/openai-class');
     return new OpenAIVectorStore();
   });
 
   registerSingleton(ServiceTokens.NEON_VECTOR_STORE, async () => {
-    const { NeonVectorStore } = await import("../vectorstore/neon-class");
+    const { NeonVectorStore } = await import('../vectorstore/neon-class');
     return new NeonVectorStore();
   });
 
   registerSingleton(ServiceTokens.MEMORY_VECTOR_STORE, async () => {
-    const { MemoryVectorStore } = await import("../vectorstore/memory-class");
+    const { MemoryVectorStore } = await import('../vectorstore/memory-class');
     return new MemoryVectorStore();
   });
 
   registerSingleton(ServiceTokens.UNIFIED_VECTOR_STORE, async (container) => {
-    const { UnifiedVectorStore } = await import("../vectorstore/unified-class");
+    const { UnifiedVectorStore } = await import('../vectorstore/unified-class');
     const openai = await container.resolve(ServiceTokens.OPENAI_VECTOR_STORE);
     const neon = await container.resolve(ServiceTokens.NEON_VECTOR_STORE);
     const memory = await container.resolve(ServiceTokens.MEMORY_VECTOR_STORE);
@@ -269,43 +259,43 @@ function initializeLazyServices(): void {
   // Monitoring Services with lazy loading
   registerSingleton(ServiceTokens.VECTOR_STORE_MONITORING, async () => {
     const { PerformanceMonitor } = await import(
-      "../vectorstore/core/monitoring"
+      '../vectorstore/core/monitoring'
     );
     return PerformanceMonitor;
   });
 
   // Agent Services with lazy loading
   registerScoped(ServiceTokens.QA_AGENT, async () => {
-    const { QAAgent } = await import("../agents/qa-agent");
+    const { QAAgent } = await import('../agents/qa-agent');
     return new QAAgent();
   });
 
   registerScoped(ServiceTokens.REWRITE_AGENT, async () => {
-    const { RewriteAgent } = await import("../agents/rewrite-agent");
+    const { RewriteAgent } = await import('../agents/rewrite-agent');
     return new RewriteAgent();
   });
 
   registerScoped(ServiceTokens.PLANNER_AGENT, async () => {
-    const { PlannerAgent } = await import("../agents/planner-agent");
+    const { PlannerAgent } = await import('../agents/planner-agent');
     return new PlannerAgent();
   });
 
   registerScoped(ServiceTokens.RESEARCH_AGENT, async () => {
-    const { ResearchAgent } = await import("../agents/research-agent");
+    const { ResearchAgent } = await import('../agents/research-agent');
     return new ResearchAgent();
   });
 
   registerScoped(ServiceTokens.AGENT_ROUTER, async () => {
-    const { SmartAgentRouter } = await import("../agents/router");
+    const { SmartAgentRouter } = await import('../agents/router');
     return new SmartAgentRouter();
   });
 
   registerScoped(ServiceTokens.AGENT_ORCHESTRATOR, async () => {
-    const { AgentOrchestrator } = await import("../agents/orchestrator");
+    const { AgentOrchestrator } = await import('../agents/orchestrator');
 
     return new AgentOrchestrator({
       vectorStoreConfig: {
-        defaultSources: ["memory", "neon", "openai"],
+        defaultSources: ['memory', 'neon', 'openai'],
         searchThreshold: 0.3,
         maxResults: 10,
       },
@@ -314,17 +304,17 @@ function initializeLazyServices(): void {
 
   // Cache Services (lazy loaded to avoid circular dependencies)
   registerSingleton(ServiceTokens.CACHE_BACKEND, async () => {
-    const { getCache } = await import("../cache");
+    const { getCache } = await import('../cache');
     return await getCache();
   });
 
-  registerSingleton(ServiceTokens.SMART_CACHE, async (container) => {
-    const { getSmartCache } = await import("../cache");
+  registerSingleton(ServiceTokens.SMART_CACHE, async (_container) => {
+    const { getSmartCache } = await import('../cache');
     return await getSmartCache();
   });
 
   registerSingleton(ServiceTokens.VECTOR_STORE_CACHE, async () => {
-    const { getVectorStoreCache } = await import("../cache/vector-cache");
+    const { getVectorStoreCache } = await import('../cache/vector-cache');
     return getVectorStoreCache();
   });
 }

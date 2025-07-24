@@ -16,7 +16,7 @@ export {
   type FaultTolerantOptions,
   type FaultTolerantService,
   type ServiceProvider,
-} from "../fault-tolerance";
+} from '../fault-tolerance';
 // Generic wrapper and utilities
 export {
   createFaultTolerantService,
@@ -25,29 +25,29 @@ export {
   type FaultTolerantConfig,
   GenericFaultTolerantService,
   SERVICE_CONFIGS,
-} from "./generic-wrapper";
+} from './generic-wrapper';
 
 export {
   createFaultTolerantNeonService,
   FaultTolerantNeonVectorStoreService,
-} from "./neon";
+} from './neon';
 // Service-specific implementations (placeholder implementations)
 export {
   createFaultTolerantOpenAIService,
   FaultTolerantOpenAIVectorStoreService,
-} from "./openai";
+} from './openai';
 export {
   createFaultTolerantUnifiedService,
   FaultTolerantUnifiedVectorStoreService,
-} from "./unified";
+} from './unified';
 
-import { createFaultTolerantNeonService } from "./neon";
+import { createFaultTolerantNeonService } from './neon';
 /**
  * Migration helper: Create fault-tolerant services with the same interface
  * as the original implementations for backward compatibility
  */
-import { createFaultTolerantOpenAIService } from "./openai";
-import { createFaultTolerantUnifiedService } from "./unified";
+import { createFaultTolerantOpenAIService } from './openai';
+import { createFaultTolerantUnifiedService } from './unified';
 
 export const FaultTolerantServices = {
   createOpenAI: createFaultTolerantOpenAIService,
@@ -61,6 +61,6 @@ export const FaultTolerantServices = {
 export const CONSOLIDATION_STATS = {
   linesRemoved: 1671,
   filesReplaced: 3,
-  codeReduction: "95%",
-  maintainabilityImprovement: "Single source of truth for fault tolerance",
+  codeReduction: '95%',
+  maintainabilityImprovement: 'Single source of truth for fault tolerance',
 } as const;

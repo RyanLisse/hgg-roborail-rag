@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import AlertCircle from "lucide-react/dist/esm/icons/alert-circle";
-import MessageSquare from "lucide-react/dist/esm/icons/message-square";
-import ThumbsDown from "lucide-react/dist/esm/icons/thumbs-down";
-import ThumbsUp from "lucide-react/dist/esm/icons/thumbs-up";
-import React, { useState } from "react";
+import AlertCircle from 'lucide-react/dist/esm/icons/alert-circle';
+import MessageSquare from 'lucide-react/dist/esm/icons/message-square';
+import ThumbsDown from 'lucide-react/dist/esm/icons/thumbs-down';
+import ThumbsUp from 'lucide-react/dist/esm/icons/thumbs-up';
+import React, { useState } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,12 +14,12 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { useFeedback } from "@/hooks/use-feedback";
-import { cn } from "@/lib/utils";
+} from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { useFeedback } from '@/hooks/use-feedback';
+import { cn } from '@/lib/utils';
 
 interface MessageFeedbackProps {
   messageId: string;
@@ -44,7 +44,7 @@ export function MessageFeedback({
     error,
   } = useFeedback(messageId, userId);
 
-  const handleVote = async (vote: "up" | "down") => {
+  const handleVote = async (vote: 'up' | 'down') => {
     if (existingFeedback) {
       if (existingFeedback.vote === vote) {
         // Same vote clicked - show comment dialog
@@ -68,7 +68,7 @@ export function MessageFeedback({
   };
 
   const handleCommentSubmit = async (data: {
-    vote: "up" | "down";
+    vote: 'up' | 'down';
     comment: string;
   }) => {
     if (existingFeedback) {
@@ -85,18 +85,18 @@ export function MessageFeedback({
   };
 
   return (
-    <div className={cn("flex items-center gap-2", className)}>
+    <div className={cn('flex items-center gap-2', className)}>
       {/* Voting Buttons */}
       <div className="flex items-center gap-1">
         <Button
           aria-label="Thumbs up"
           className={cn(
-            "h-8 w-8 p-0",
-            existingFeedback?.vote === "up" &&
-              "bg-green-100 text-green-700 hover:bg-green-200",
+            'h-8 w-8 p-0',
+            existingFeedback?.vote === 'up' &&
+              'bg-green-100 text-green-700 hover:bg-green-200',
           )}
           disabled={isSubmitting}
-          onClick={() => handleVote("up")}
+          onClick={() => handleVote('up')}
           size="sm"
           variant="ghost"
         >
@@ -106,12 +106,12 @@ export function MessageFeedback({
         <Button
           aria-label="Thumbs down"
           className={cn(
-            "h-8 w-8 p-0",
-            existingFeedback?.vote === "down" &&
-              "bg-red-100 text-red-700 hover:bg-red-200",
+            'h-8 w-8 p-0',
+            existingFeedback?.vote === 'down' &&
+              'bg-red-100 text-red-700 hover:bg-red-200',
           )}
           disabled={isSubmitting}
-          onClick={() => handleVote("down")}
+          onClick={() => handleVote('down')}
           size="sm"
           variant="ghost"
         >
@@ -130,7 +130,7 @@ export function MessageFeedback({
           variant="ghost"
         >
           <MessageSquare className="mr-1" size={14} />
-          {existingFeedback.comment ? "Edit" : "Comment"}
+          {existingFeedback.comment ? 'Edit' : 'Comment'}
         </Button>
       )}
 
@@ -152,8 +152,8 @@ export function MessageFeedback({
 
       {/* Comment Dialog */}
       <FeedbackDialog
-        initialComment={existingFeedback?.comment || ""}
-        initialVote={existingFeedback?.vote || "up"}
+        initialComment={existingFeedback?.comment || ''}
+        initialVote={existingFeedback?.vote || 'up'}
         isOpen={showCommentDialog}
         onClose={() => setShowCommentDialog(false)}
         onSubmit={handleCommentSubmit}
@@ -165,8 +165,8 @@ export function MessageFeedback({
 interface FeedbackDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: { vote: "up" | "down"; comment: string }) => void;
-  initialVote: "up" | "down";
+  onSubmit: (data: { vote: 'up' | 'down'; comment: string }) => void;
+  initialVote: 'up' | 'down';
   initialComment: string;
 }
 
@@ -177,7 +177,7 @@ export function FeedbackDialog({
   initialVote,
   initialComment,
 }: FeedbackDialogProps) {
-  const [vote, setVote] = useState<"up" | "down">(initialVote);
+  const [vote, setVote] = useState<'up' | 'down'>(initialVote);
   const [comment, setComment] = useState(initialComment);
 
   const hasChanges = vote !== initialVote || comment !== initialComment;
@@ -213,11 +213,11 @@ export function FeedbackDialog({
               <Button
                 aria-label="Thumbs up"
                 className={cn(
-                  "flex items-center gap-2",
-                  vote === "up" &&
-                    "border-green-300 bg-green-100 text-green-700",
+                  'flex items-center gap-2',
+                  vote === 'up' &&
+                    'border-green-300 bg-green-100 text-green-700',
                 )}
-                onClick={() => setVote("up")}
+                onClick={() => setVote('up')}
                 size="sm"
                 type="button"
                 variant="outline"
@@ -228,10 +228,10 @@ export function FeedbackDialog({
               <Button
                 aria-label="Thumbs down"
                 className={cn(
-                  "flex items-center gap-2",
-                  vote === "down" && "border-red-300 bg-red-100 text-red-700",
+                  'flex items-center gap-2',
+                  vote === 'down' && 'border-red-300 bg-red-100 text-red-700',
                 )}
-                onClick={() => setVote("down")}
+                onClick={() => setVote('down')}
                 size="sm"
                 type="button"
                 variant="outline"
@@ -284,7 +284,7 @@ export function FeedbackStats({ runId, className }: FeedbackStatsProps) {
   return (
     <div
       className={cn(
-        "flex items-center gap-2 text-muted-foreground text-xs",
+        'flex items-center gap-2 text-muted-foreground text-xs',
         className,
       )}
     >

@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useSession } from "next-auth/react";
-import { useCallback } from "react";
-import { type ChatModel, getDefaultModel } from "@/lib/ai/models";
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useSession } from 'next-auth/react';
+import { useCallback } from 'react';
+import { type ChatModel, getDefaultModel } from '@/lib/ai/models';
 
-const MODEL_SELECTION_KEY = "model-selection";
+const MODEL_SELECTION_KEY = 'model-selection';
 
 export function useModelSelection() {
   const { data: session } = useSession();
@@ -13,15 +13,15 @@ export function useModelSelection() {
 
   // Get the selected model
   const { data: selectedModel, isLoading } = useQuery<ChatModel>({
-    queryKey: [MODEL_SELECTION_KEY, session?.user?.id || "guest"],
+    queryKey: [MODEL_SELECTION_KEY, session?.user?.id || 'guest'],
     queryFn: async () => {
-      if (typeof window === "undefined") return getDefaultModel();
+      if (typeof window === 'undefined') { return getDefaultModel(); }
 
-      const savedModelId = localStorage.getItem("selected-model-id");
-      if (!savedModelId) return getDefaultModel();
+      const savedModelId = localStorage.getItem('selected-model-id');
+      if (!savedModelId) { return getDefaultModel(); }
 
       // We'll implement getModelById in the next step
-      const model = (await import("@/lib/ai/models")).getModelById(
+      const model = (await import('@/lib/ai/models')).getModelById(
         savedModelId,
       );
       return model || getDefaultModel();
@@ -32,15 +32,15 @@ export function useModelSelection() {
   // Mutation to update the selected model
   const { mutate: selectModel } = useMutation({
     mutationFn: async (model: ChatModel) => {
-      if (typeof window !== "undefined") {
-        localStorage.setItem("selected-model-id", model.id);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('selected-model-id', model.id);
       }
       return model;
     },
     onSuccess: (model) => {
       // Update the query data to avoid a refetch
       queryClient.setQueryData(
-        [MODEL_SELECTION_KEY, session?.user?.id || "guest"],
+        [MODEL_SELECTION_KEY, session?.user?.id || 'guest'],
         model,
       );
     },
@@ -48,9 +48,9 @@ export function useModelSelection() {
 
   // Get available models for the current user
   const { data: availableModels = [] } = useQuery<ChatModel[]>({
-    queryKey: ["available-models", session?.user?.type],
+    queryKey: ['available-models', session?.user?.type],
     queryFn: async () => {
-      const { chatModels } = await import("@/lib/ai/models");
+      const { chatModels } = await import('@/lib/ai/models');
 
       // If no session or user type, show all models for development
       if (!session?.user?.type) {
@@ -59,7 +59,7 @@ export function useModelSelection() {
 
       try {
         const { entitlementsByUserType } = await import(
-          "@/lib/ai/entitlements"
+          '@/lib/ai/entitlements'
         );
         const userEntitlements = entitlementsByUserType[session.user.type];
 
@@ -72,8 +72,7 @@ export function useModelSelection() {
         return chatModels.filter((model) =>
           availableChatModelIds.includes(model.id),
         );
-      } catch (error) {
-        console.warn("Failed to load entitlements, showing all models:", error);
+      } catch (_error) {
         return chatModels;
       }
     },
@@ -82,9 +81,9 @@ export function useModelSelection() {
 
   // Get models grouped by provider
   const modelsByProvider = useQuery({
-    queryKey: ["models-by-provider", availableModels],
+    queryKey: ['models-by-provider', availableModels],
     queryFn: () => {
-      if (!availableModels) return {};
+      if (!availableModels) { return {}; }
 
       return availableModels.reduce<Record<string, ChatModel[]>>(
         (acc, model) => {

@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 // Base configuration for all vector store services
 export const BaseServiceConfig = z.object({
@@ -12,7 +12,7 @@ export type BaseServiceConfig = z.infer<typeof BaseServiceConfig>;
 
 // Base search request schema
 export const BaseSearchRequest = z.object({
-  query: z.string().min(1, "Query cannot be empty"),
+  query: z.string().min(1, 'Query cannot be empty'),
   maxResults: z.number().min(1).max(100).default(10),
   metadata: z.record(z.any()).optional(),
   threshold: z.number().min(0).max(1).default(0.3),
@@ -53,12 +53,12 @@ export type HealthCheckResult = z.infer<typeof HealthCheckResult>;
 
 // Error classification
 export enum ErrorType {
-  NETWORK = "network",
-  AUTHENTICATION = "authentication",
-  VALIDATION = "validation",
-  RATE_LIMIT = "rate_limit",
-  SERVICE_UNAVAILABLE = "service_unavailable",
-  UNKNOWN = "unknown",
+  NETWORK = 'network',
+  AUTHENTICATION = 'authentication',
+  VALIDATION = 'validation',
+  RATE_LIMIT = 'rate_limit',
+  SERVICE_UNAVAILABLE = 'service_unavailable',
+  UNKNOWN = 'unknown',
 }
 
 export interface ClassifiedError {
@@ -71,10 +71,10 @@ export interface ClassifiedError {
 
 // Service status
 export enum ServiceStatus {
-  ENABLED = "enabled",
-  DISABLED = "disabled",
-  ERROR = "error",
-  INITIALIZING = "initializing",
+  ENABLED = 'enabled',
+  DISABLED = 'disabled',
+  ERROR = 'error',
+  INITIALIZING = 'initializing',
 }
 
 // Monitoring metrics
@@ -115,10 +115,10 @@ export interface ServiceFactory<TConfig, TService> {
 
 // Vector store types for optimized search
 export enum VectorStoreType {
-  OPENAI = "openai",
-  NEON = "neon",
-  UNIFIED = "unified",
-  MEMORY = "memory",
+  OPENAI = 'openai',
+  NEON = 'neon',
+  UNIFIED = 'unified',
+  MEMORY = 'memory',
 }
 
 // Enhanced search request

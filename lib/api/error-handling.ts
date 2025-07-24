@@ -11,14 +11,14 @@
  * - Improves maintainability and debugging
  */
 
-import "server-only";
+import 'server-only';
 
-import type { NextRequest } from "next/server";
-import { z } from "zod";
-import { auth } from "@/app/(auth)/auth";
-import { entitlementsByUserType } from "@/lib/ai/entitlements";
-import { getMessageCountByUserId } from "@/lib/db/queries";
-import { ChatSDKError } from "@/lib/errors";
+import type { NextRequest } from 'next/server';
+import { z } from 'zod';
+import { auth } from '@/app/(auth)/auth';
+import { entitlementsByUserType } from '@/lib/ai/entitlements';
+import { getMessageCountByUserId } from '@/lib/db/queries';
+import { ChatSDKError } from '@/lib/errors';
 
 /**
  * Standard API error response format
@@ -70,7 +70,7 @@ function createErrorResponse(
 
   return new Response(JSON.stringify(errorResponse), {
     status,
-    headers: { "Content-Type": "application/json" },
+    headers: { 'Content-Type': 'application/json' },
   });
 }
 
@@ -96,7 +96,7 @@ export function withApiErrorHandling<T = any>(
       if (requireAuth) {
         session = await auth();
         if (!session?.user) {
-          return new ChatSDKError("unauthorized:chat").toResponse();
+          return new ChatSDKError('unauthorized:chat').toResponse();
         }
       }
 
@@ -109,16 +109,16 @@ export function withApiErrorHandling<T = any>(
 
         const userType = session.user.type;
         if (messageCount > entitlementsByUserType[userType].maxMessagesPerDay) {
-          return new ChatSDKError("rate_limit:chat").toResponse();
+          return new ChatSDKError('rate_limit:chat').toResponse();
         }
       }
 
       // Handle request body validation if schema provided
       if (
         requestSchema &&
-        (request.method === "POST" ||
-          request.method === "PUT" ||
-          request.method === "PATCH")
+        (request.method === 'POST' ||
+          request.method === 'PUT' ||
+          request.method === 'PATCH')
       ) {
         try {
           const json = await request.json();
@@ -126,8 +126,8 @@ export function withApiErrorHandling<T = any>(
         } catch (error) {
           if (error instanceof z.ZodError) {
             return createErrorResponse(
-              "bad_request:validation",
-              "Invalid request parameters",
+              'bad_request:validation',
+              'Invalid request parameters',
               400,
               error.errors,
             );
@@ -143,19 +143,12 @@ export function withApiErrorHandling<T = any>(
         validatedBody,
       });
     } catch (error) {
-      // Log the error for debugging
-      console.error("API route error:", {
-        url: request.url,
-        method: request.method,
-        error: error instanceof Error ? error.message : error,
-        stack: error instanceof Error ? error.stack : undefined,
-      });
 
       // Handle Zod validation errors
       if (error instanceof z.ZodError) {
         return createErrorResponse(
-          "bad_request:validation",
-          "Invalid request parameters",
+          'bad_request:validation',
+          'Invalid request parameters',
           400,
           error.errors,
         );
@@ -168,8 +161,8 @@ export function withApiErrorHandling<T = any>(
 
       // Handle generic errors
       return createErrorResponse(
-        "internal_server_error:generic",
-        "An unexpected error occurred while processing your request",
+        'internal_server_error:generic',
+        'An unexpected error occurred while processing your request',
         500,
       );
     }
@@ -187,19 +180,17 @@ export function withStreamingApiErrorHandling<T = any>(
     try {
       return await handler(request, context);
     } catch (error) {
-      // For streaming endpoints, we need to handle errors within the stream
-      console.error("Streaming API error:", error);
 
       // Return a streaming error response
       const encoder = new TextEncoder();
       const stream = new ReadableStream({
         start(controller) {
           const errorData = JSON.stringify({
-            type: "error",
+            type: 'error',
             error:
               error instanceof Error
                 ? error.message
-                : "An error occurred while processing your request",
+                : 'An error occurred while processing your request',
             timestamp: new Date().toISOString(),
           });
           controller.enqueue(encoder.encode(`data: ${errorData}\n\n`));
@@ -209,9 +200,9 @@ export function withStreamingApiErrorHandling<T = any>(
 
       return new Response(stream, {
         headers: {
-          "Content-Type": "text/event-stream",
-          "Cache-Control": "no-cache",
-          Connection: "keep-alive",
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          Connection: 'keep-alive',
         },
       });
     }
@@ -229,25 +220,25 @@ export const ApiResponses = {
   noContent: () => new Response(null, { status: 204 }),
 
   badRequest: (message: string, details?: any) =>
-    createErrorResponse("bad_request:generic", message, 400, details),
+    createErrorResponse('bad_request:generic', message, 400, details),
 
-  unauthorized: (message = "Authentication required") =>
-    createErrorResponse("unauthorized:generic", message, 401),
+  unauthorized: (message = 'Authentication required') =>
+    createErrorResponse('unauthorized:generic', message, 401),
 
-  forbidden: (message = "Access denied") =>
-    createErrorResponse("forbidden:generic", message, 403),
+  forbidden: (message = 'Access denied') =>
+    createErrorResponse('forbidden:generic', message, 403),
 
-  notFound: (message = "Resource not found") =>
-    createErrorResponse("not_found:generic", message, 404),
+  notFound: (message = 'Resource not found') =>
+    createErrorResponse('not_found:generic', message, 404),
 
   conflict: (message: string, details?: any) =>
-    createErrorResponse("conflict:generic", message, 409, details),
+    createErrorResponse('conflict:generic', message, 409, details),
 
-  tooManyRequests: (message = "Rate limit exceeded") =>
-    createErrorResponse("rate_limit:generic", message, 429),
+  tooManyRequests: (message = 'Rate limit exceeded') =>
+    createErrorResponse('rate_limit:generic', message, 429),
 
-  internalError: (message = "Internal server error") =>
-    createErrorResponse("internal_server_error:generic", message, 500),
+  internalError: (message = 'Internal server error') =>
+    createErrorResponse('internal_server_error:generic', message, 500),
 } as const;
 
 /**

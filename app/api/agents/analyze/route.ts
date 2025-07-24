@@ -1,22 +1,22 @@
-import { z } from "zod";
-import { auth } from "@/app/(auth)/auth";
+import { z } from 'zod';
+import { auth } from '@/app/(auth)/auth';
 import {
   analyzeComplexity,
   classifyIntent,
   getRoutingDecision,
-} from "@/lib/agents";
-import { entitlementsByUserType } from "@/lib/ai/entitlements";
-import { getMessageCountByUserId } from "@/lib/db/queries";
-import { ChatSDKError } from "@/lib/errors";
+} from '@/lib/agents';
+import { entitlementsByUserType } from '@/lib/ai/entitlements';
+import { getMessageCountByUserId } from '@/lib/db/queries';
+import { ChatSDKError } from '@/lib/errors';
 
 export const maxDuration = 30;
 
 const requestSchema = z.object({
-  query: z.string().min(1, "Query is required"),
+  query: z.string().min(1, 'Query is required'),
   sources: z
-    .array(z.enum(["openai", "neon", "memory"]))
+    .array(z.enum(['openai', 'neon', 'memory']))
     .optional()
-    .default(["memory"]),
+    .default(['memory']),
   includeComplexity: z.boolean().optional().default(true),
   includeIntent: z.boolean().optional().default(true),
 });
@@ -26,7 +26,7 @@ export async function POST(request: Request) {
     const session = await auth();
 
     if (!session?.user) {
-      return new ChatSDKError("unauthorized:chat").toResponse();
+      return new ChatSDKError('unauthorized:chat').toResponse();
     }
 
     const userType = session.user.type;
@@ -38,7 +38,7 @@ export async function POST(request: Request) {
     });
 
     if (messageCount > entitlementsByUserType[userType].maxMessagesPerDay) {
-      return new ChatSDKError("rate_limit:chat").toResponse();
+      return new ChatSDKError('rate_limit:chat').toResponse();
     }
 
     // Parse and validate request body
@@ -51,7 +51,7 @@ export async function POST(request: Request) {
       getRoutingDecision(query, {
         sources,
         maxResults: 10,
-        complexity: "moderate",
+        complexity: 'moderate',
         domainKeywords: [],
         requiresCitations: true,
       }),
@@ -67,18 +67,17 @@ export async function POST(request: Request) {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error("Agent analysis error:", error);
 
     if (error instanceof z.ZodError) {
       return new Response(
         JSON.stringify({
-          code: "bad_request:validation",
-          message: "Invalid request parameters",
+          code: 'bad_request:validation',
+          message: 'Invalid request parameters',
           details: error.errors,
         }),
         {
           status: 400,
-          headers: { "Content-Type": "application/json" },
+          headers: { 'Content-Type': 'application/json' },
         },
       );
     }
@@ -89,12 +88,12 @@ export async function POST(request: Request) {
 
     return new Response(
       JSON.stringify({
-        code: "internal_server_error:agent",
-        message: "An unexpected error occurred while analyzing your query",
+        code: 'internal_server_error:agent',
+        message: 'An unexpected error occurred while analyzing your query',
       }),
       {
         status: 500,
-        headers: { "Content-Type": "application/json" },
+        headers: { 'Content-Type': 'application/json' },
       },
     );
   }

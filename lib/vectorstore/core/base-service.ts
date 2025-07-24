@@ -3,7 +3,7 @@ import {
   classifyError,
   logError,
   shouldRetryError,
-} from "./errors";
+} from './errors';
 import type {
   BaseServiceConfig,
   ClassifiedError,
@@ -11,11 +11,11 @@ import type {
   ServiceMetrics,
   ServiceStatus,
   VectorStoreService,
-} from "./types";
+} from './types';
 import {
   BaseServiceConfig as BaseConfigSchema,
   ServiceStatus as ServiceStatusEnum,
-} from "./types";
+} from './types';
 
 /**
  * Abstract base class for all vector store services
@@ -41,7 +41,7 @@ export abstract class BaseVectorStoreService<
       this.config = config;
     } else {
       // In test environments, services are typically disabled by default for safety
-      const isTestEnv = process.env.NODE_ENV === "test";
+      const isTestEnv = process.env.NODE_ENV === 'test';
       const defaultConfig = BaseConfigSchema.parse({
         isEnabled: !isTestEnv, // Disabled in test by default, enabled otherwise
       });
@@ -87,18 +87,18 @@ export abstract class BaseVectorStoreService<
     try {
       const results = await this.withRetry(
         () => this.searchImplementation(request),
-        "search",
+        'search',
       );
       success = true;
       return results;
     } catch (err) {
       error = classifyError(err as Error);
-      logError(this._serviceName, "search", error, {
+      logError(this._serviceName, 'search', error, {
         request,
       });
       throw err;
     } finally {
-      this.recordMetric("search", success, Date.now() - startTime, error);
+      this.recordMetric('search', success, Date.now() - startTime, error);
     }
   }
 
@@ -135,7 +135,7 @@ export abstract class BaseVectorStoreService<
       return result;
     } catch (err) {
       const error = classifyError(err as Error);
-      logError(this._serviceName, "healthCheck", error);
+      logError(this._serviceName, 'healthCheck', error);
 
       const result: HealthCheckResult = {
         isHealthy: false,
@@ -177,7 +177,7 @@ export abstract class BaseVectorStoreService<
    */
   protected async withRetry<T>(
     operation: () => Promise<T>,
-    operationName: string,
+    _operationName: string,
   ): Promise<T> {
     let lastError: Error | undefined;
 
@@ -200,15 +200,11 @@ export abstract class BaseVectorStoreService<
           this.config.retryDelay,
         );
 
-        console.warn(
-          `🔄 ${this._serviceName} ${operationName} attempt ${attempt + 1}/${this.config.maxRetries + 1} failed, retrying in ${delay}ms...`,
-        );
-
         await this.sleep(delay);
       }
     }
 
-    throw lastError || new Error("Operation failed after retries");
+    throw lastError || new Error('Operation failed after retries');
   }
 
   /**
@@ -243,19 +239,13 @@ export abstract class BaseVectorStoreService<
   protected static validateApiKey(
     apiKey: string | undefined,
     expectedPrefix: string,
-    serviceName: string,
+    _serviceName: string,
   ): boolean {
     if (!apiKey) {
-      console.warn(
-        `⚠️  ${serviceName}: No API key provided - service will be disabled`,
-      );
       return false;
     }
 
     if (!apiKey.startsWith(expectedPrefix)) {
-      console.warn(
-        `⚠️  ${serviceName}: API key should start with '${expectedPrefix}' - service may not work properly`,
-      );
       return false;
     }
 
@@ -267,12 +257,9 @@ export abstract class BaseVectorStoreService<
    */
   protected static validateUrl(
     url: string | undefined,
-    serviceName: string,
+    _serviceName: string,
   ): boolean {
     if (!url) {
-      console.warn(
-        `⚠️  ${serviceName}: No URL provided - service will be disabled`,
-      );
       return false;
     }
 
@@ -280,9 +267,6 @@ export abstract class BaseVectorStoreService<
       new URL(url);
       return true;
     } catch {
-      console.warn(
-        `⚠️  ${serviceName}: Invalid URL format - service will be disabled`,
-      );
       return false;
     }
   }

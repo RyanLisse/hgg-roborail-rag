@@ -1,35 +1,35 @@
-import "server-only";
+import 'server-only';
 
-import { z } from "zod";
+import { z } from 'zod';
 import {
   getVectorStoreMonitoringService,
   withPerformanceMonitoring,
-} from "./monitoring";
-import { getNeonVectorStoreService, type NeonVectorStoreService } from "./neon";
+} from './monitoring';
+import { getNeonVectorStoreService, type NeonVectorStoreService } from './neon';
 import {
   getOpenAIVectorStoreService,
   type OpenAIVectorStoreService,
-} from "./openai";
+} from './openai';
 import {
   type HybridSearchRequest,
   RelevanceScoringEngine,
   type RelevanceWeights,
   type RerankingRequest,
   type UserFeedback,
-} from "./relevance-scoring";
+} from './relevance-scoring';
 import {
   DocumentRerankingEngine,
   type FusionScore,
   LearningToRankEngine,
   type RerankingResult,
-} from "./reranking";
-import { getFaultTolerantUnifiedVectorStoreService } from "./unified-fault-tolerant";
+} from './reranking';
+import { getFaultTolerantUnifiedVectorStoreService } from './unified-fault-tolerant';
 
 // Re-export types for use by other modules
-export type { RelevanceWeights, UserFeedback } from "./relevance-scoring";
+export type { RelevanceWeights, UserFeedback } from './relevance-scoring';
 
 // Unified schemas
-export const VectorStoreType = z.enum(["openai", "neon", "memory", "unified"]);
+export const VectorStoreType = z.enum(['openai', 'neon', 'memory', 'unified']);
 
 export const UnifiedDocument = z.object({
   id: z.string(),
@@ -43,7 +43,7 @@ export const UnifiedDocument = z.object({
 // Basic search request for backward compatibility
 export const BasicSearchRequest = z.object({
   query: z.string().min(1),
-  sources: z.array(VectorStoreType).default(["openai", "neon", "memory"]),
+  sources: z.array(VectorStoreType).default(['openai', 'neon', 'memory']),
   maxResults: z.number().min(1).max(100).default(10),
   threshold: z.number().min(0).max(1).default(0.3),
   metadata: z.record(z.any()).optional(),
@@ -51,25 +51,25 @@ export const BasicSearchRequest = z.object({
     .object({
       type: z
         .enum([
-          "technical",
-          "conceptual",
-          "procedural",
-          "troubleshooting",
-          "configuration",
-          "api",
-          "integration",
-          "best_practices",
-          "examples",
-          "reference",
-          "multi_turn",
-          "contextual",
+          'technical',
+          'conceptual',
+          'procedural',
+          'troubleshooting',
+          'configuration',
+          'api',
+          'integration',
+          'best_practices',
+          'examples',
+          'reference',
+          'multi_turn',
+          'contextual',
         ])
         .optional(),
       domain: z.string().optional(),
       conversationHistory: z
         .array(
           z.object({
-            role: z.enum(["user", "assistant"]),
+            role: z.enum(['user', 'assistant']),
             content: z.string(),
             timestamp: z.number(),
           }),
@@ -77,9 +77,9 @@ export const BasicSearchRequest = z.object({
         .optional(),
       previousQueries: z.array(z.string()).optional(),
       userIntent: z.string().optional(),
-      complexity: z.enum(["basic", "intermediate", "advanced"]).optional(),
+      complexity: z.enum(['basic', 'intermediate', 'advanced']).optional(),
       searchDepth: z
-        .enum(["shallow", "comprehensive", "exhaustive"])
+        .enum(['shallow', 'comprehensive', 'exhaustive'])
         .optional(),
     })
     .optional(),
@@ -165,7 +165,7 @@ export const DocumentUploadRequest = z.object({
   content: z.string().min(1),
   metadata: z.record(z.any()).optional(),
   file: z.instanceof(File).optional(),
-  targetSources: z.array(VectorStoreType).default(["memory"]),
+  targetSources: z.array(VectorStoreType).default(['memory']),
 });
 
 // Types
@@ -247,7 +247,7 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
       for (const source of validatedRequest.targetSources) {
         try {
           switch (source) {
-            case "openai":
+            case 'openai':
               if (openaiService.isEnabled && validatedRequest.file) {
                 const vectorStoreFile = await openaiService.uploadFile({
                   file: validatedRequest.file,
@@ -259,14 +259,14 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
                     id: vectorStoreFile.id,
                     content: validatedRequest.content,
                     metadata: validatedRequest.metadata,
-                    source: "openai",
+                    source: 'openai',
                     createdAt: new Date(vectorStoreFile.created_at * 1000),
                   }),
                 );
               }
               break;
 
-            case "neon":
+            case 'neon':
               if (neonService.isEnabled) {
                 const neonDoc = await neonService.addDocument({
                   content: validatedRequest.content,
@@ -278,7 +278,7 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
                     id: neonDoc.id,
                     content: neonDoc.content,
                     metadata: neonDoc.metadata,
-                    source: "neon",
+                    source: 'neon',
                     createdAt: neonDoc.createdAt,
                     updatedAt: neonDoc.updatedAt,
                   }),
@@ -286,21 +286,20 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
               }
               break;
 
-            case "memory":
+            case 'memory':
               // Memory storage is handled by the existing RAG service
               results.push(
                 UnifiedDocument.parse({
                   id: crypto.randomUUID(),
                   content: validatedRequest.content,
                   metadata: validatedRequest.metadata,
-                  source: "memory",
+                  source: 'memory',
                   createdAt: new Date(),
                 }),
               );
               break;
           }
-        } catch (error) {
-          console.warn(`Failed to add document to ${source}:`, error);
+        } catch (_error) {
         }
       }
 
@@ -313,7 +312,7 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
     ): Promise<UnifiedDocument | null> {
       try {
         switch (source) {
-          case "openai":
+          case 'openai':
             if (openaiService.isEnabled) {
               // OpenAI doesn't have a direct file content retrieval API
               // This would need to be implemented differently
@@ -321,7 +320,7 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
             }
             break;
 
-          case "neon":
+          case 'neon':
             if (neonService.isEnabled) {
               const neonDoc = await neonService.getDocument(id);
               if (neonDoc) {
@@ -329,7 +328,7 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
                   id: neonDoc.id,
                   content: neonDoc.content,
                   metadata: neonDoc.metadata,
-                  source: "neon",
+                  source: 'neon',
                   createdAt: neonDoc.createdAt,
                   updatedAt: neonDoc.updatedAt,
                 });
@@ -337,12 +336,11 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
             }
             break;
 
-          case "memory":
+          case 'memory':
             // Memory retrieval would be handled by existing RAG service
             return null;
         }
-      } catch (error) {
-        console.error(`Failed to get document ${id} from ${source}:`, error);
+      } catch (_error) {
       }
 
       return null;
@@ -354,32 +352,31 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
     ): Promise<boolean> {
       try {
         switch (source) {
-          case "openai":
+          case 'openai':
             if (openaiService.isEnabled) {
               return await openaiService.deleteFile(id);
             }
             break;
 
-          case "neon":
+          case 'neon':
             if (neonService.isEnabled) {
               return await neonService.deleteDocument(id);
             }
             break;
 
-          case "memory":
+          case 'memory':
             // Memory deletion would be handled by existing RAG service
             return true;
         }
-      } catch (error) {
-        console.error(`Failed to delete document ${id} from ${source}:`, error);
+      } catch (_error) {
       }
 
       return false;
     },
 
     searchAcrossSources: withPerformanceMonitoring(
-      "unified",
-      "searchAcrossSources",
+      'unified',
+      'searchAcrossSources',
       async function (
         this: any,
         request: BasicSearchRequest,
@@ -390,16 +387,13 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
         const startTime = Date.now();
 
         try {
-          console.log(
-            `🔍 Unified search across ${validatedRequest.sources.join(", ")} with optimization: ${validatedRequest.optimizePrompts}`,
-          );
 
           // Search in parallel across all requested sources with optimization context
           const searchPromises = validatedRequest.sources.map(
             async (source) => {
               try {
                 switch (source) {
-                  case "openai":
+                  case 'openai':
                     if (openaiService.isEnabled) {
                       return await this.searchOpenAI(
                         validatedRequest.query,
@@ -414,7 +408,7 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
                     }
                     break;
 
-                  case "neon":
+                  case 'neon':
                     if (neonService.isEnabled) {
                       return await this.searchNeon(
                         validatedRequest.query,
@@ -428,13 +422,12 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
                     }
                     break;
 
-                  case "memory":
+                  case 'memory':
                     // Memory search would be handled by existing RAG service with context
                     return [];
                 }
               } catch (error) {
-                console.warn(`Failed to search ${source}:`, error);
-                monitoringService.recordSearchError("unified", error as Error, {
+                monitoringService.recordSearchError('unified', error as Error, {
                   query: validatedRequest.query,
                   failedSource: source,
                   optimizationUsed: validatedRequest.optimizePrompts,
@@ -460,7 +453,7 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
           const executionTime = Date.now() - startTime;
 
           // Record unified search metrics with optimization info
-          monitoringService.recordSearchLatency("unified", executionTime, {
+          monitoringService.recordSearchLatency('unified', executionTime, {
             query: validatedRequest.query,
             resultsCount: finalResults.length,
             sourcesSearched: validatedRequest.sources,
@@ -469,18 +462,14 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
             queryType: validatedRequest.queryContext?.type,
             domain: validatedRequest.queryContext?.domain,
           });
-          monitoringService.recordSearchSuccess("unified", {
+          monitoringService.recordSearchSuccess('unified', {
             query: validatedRequest.query,
             resultsCount: finalResults.length,
             promptOptimizationUsed: validatedRequest.optimizePrompts,
           });
-
-          console.log(
-            `✅ Unified search completed: ${finalResults.length} results from ${allResults.length} total`,
-          );
           return finalResults;
         } catch (error) {
-          monitoringService.recordSearchError("unified", error as Error, {
+          monitoringService.recordSearchError('unified', error as Error, {
             query: validatedRequest.query,
             sources: validatedRequest.sources,
             optimizationUsed: validatedRequest.optimizePrompts,
@@ -497,7 +486,7 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
       optimizePrompts = true,
       promptConfig?: any,
     ): Promise<UnifiedSearchResult[]> {
-      if (!openaiService.isEnabled) return [];
+      if (!openaiService.isEnabled) { return []; }
 
       try {
         const searchResponse = await openaiService.searchFiles({
@@ -511,7 +500,6 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
         });
 
         if (!searchResponse.success) {
-          console.warn("OpenAI search failed:", searchResponse.message);
           return [];
         }
 
@@ -521,16 +509,15 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
               id: result.id,
               content: result.content,
               metadata: result.metadata || {},
-              source: "openai",
+              source: 'openai',
               createdAt: result.metadata?.responseId ? new Date() : undefined,
             }),
             similarity: result.similarity,
             distance: 1 - result.similarity, // Convert similarity to distance
-            source: "openai",
+            source: 'openai',
           }),
         );
-      } catch (error) {
-        console.error("Failed to search OpenAI vector store:", error);
+      } catch (_error) {
         return [];
       }
     },
@@ -541,7 +528,7 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
       threshold = 0.3,
       queryContext?: any,
     ): Promise<UnifiedSearchResult[]> {
-      if (!neonService.isEnabled) return [];
+      if (!neonService.isEnabled) { return []; }
 
       try {
         // For now, Neon search doesn't use prompt optimization but gets the context
@@ -564,17 +551,16 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
               id: result.document.id,
               content: result.document.content,
               metadata: result.document.metadata,
-              source: "neon",
+              source: 'neon',
               createdAt: result.document.createdAt,
               updatedAt: result.document.updatedAt,
             }),
             similarity: result.similarity,
             distance: result.distance,
-            source: "neon",
+            source: 'neon',
           }),
         );
-      } catch (error) {
-        console.error("Failed to search Neon vector store:", error);
+      } catch (_error) {
         return [];
       }
     },
@@ -584,14 +570,14 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
 
       // Prioritize OpenAI vector store for RoboRail documentation
       if (openaiService.isEnabled) {
-        sources.push("openai");
+        sources.push('openai');
       }
 
       // Add memory as fallback
-      sources.push("memory");
+      sources.push('memory');
 
       if (neonService.isEnabled) {
-        sources.push("neon");
+        sources.push('neon');
       }
 
       return sources;
@@ -616,8 +602,7 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
           const files = await openaiService.listFiles();
           stats.openai.count = files.length;
         }
-      } catch (error) {
-        console.warn("Failed to get OpenAI file count:", error);
+      } catch (_error) {
       }
 
       return stats;
@@ -631,9 +616,6 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
       const validatedRequest = UnifiedSearchRequest.parse(request);
 
       try {
-        console.log(
-          `🚀 Enhanced search starting with relevance scoring: ${validatedRequest.enableRelevanceScoring}`,
-        );
 
         // Step 1: Perform basic search across sources
         const searchStartTime = Date.now();
@@ -645,7 +627,7 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
         let diversificationApplied = false;
         let hybridSearchUsed = false;
         let rerankingTime = 0;
-        let scoringStrategy = "basic_similarity";
+        let scoringStrategy = 'basic_similarity';
 
         // Step 2: Apply relevance scoring and reranking if enabled
         if (
@@ -738,13 +720,6 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
 
         const totalTime = Date.now() - startTime;
 
-        console.log(
-          `✅ Enhanced search completed: ${finalResults.length} results in ${totalTime}ms`,
-        );
-        console.log(
-          `🎯 Scoring strategy: ${scoringStrategy}, Reranked: ${rerankingApplied}`,
-        );
-
         return EnhancedSearchResponse.parse({
           results: finalResults,
           totalResults: finalResults.length,
@@ -761,7 +736,6 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
           },
         });
       } catch (error) {
-        console.error("Enhanced search failed:", error);
 
         // Fallback to basic search
         const basicResults = await this.searchAcrossSources(validatedRequest);
@@ -775,13 +749,13 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
           rerankingApplied: false,
           diversificationApplied: false,
           hybridSearchUsed: false,
-          scoringStrategy: "fallback_basic",
+          scoringStrategy: 'fallback_basic',
           performance: {
             searchTime: totalTime,
             totalTime,
           },
           debugInfo: {
-            error: error instanceof Error ? error.message : "Unknown error",
+            error: error instanceof Error ? error.message : 'Unknown error',
             fallbackUsed: true,
           },
         });
@@ -801,12 +775,6 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
     // Record user feedback for learning
     async recordUserFeedback(feedback: UserFeedback): Promise<void> {
       RelevanceScoringEngine.recordUserFeedback(feedback);
-
-      // Also record for learning-to-rank if available
-      // In production, you'd save this to a database
-      console.log(
-        `📝 User feedback recorded for document ${feedback.documentId}: ${feedback.rating}/5`,
-      );
     },
 
     // Get user-specific relevance preferences
@@ -819,16 +787,14 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
       userId: string,
       weights: Partial<RelevanceWeights>,
     ): Promise<void> {
-      const currentPrefs = await this.getUserPreferences(userId);
+      const _currentPrefs = await this.getUserPreferences(userId);
       const adjustments = { ...weights };
 
       DocumentRerankingEngine.updateUserPreferences(userId, {
-        queryType: "general", // Could be inferred from context
+        queryType: 'general', // Could be inferred from context
         preferredFactors: Object.keys(weights),
         adjustments,
       });
-
-      console.log(`🎛️ Updated preferences for user ${userId}:`, weights);
     },
 
     // Get relevance scoring metrics
@@ -859,7 +825,7 @@ let unifiedVectorStoreService: UnifiedVectorStoreService | null = null;
 export async function getUnifiedVectorStoreService(): Promise<UnifiedVectorStoreService> {
   if (!unifiedVectorStoreService) {
     // Use fault-tolerant version by default for production resilience
-    if (process.env.USE_FAULT_TOLERANT !== "false") {
+    if (process.env.USE_FAULT_TOLERANT !== 'false') {
       unifiedVectorStoreService =
         await getFaultTolerantUnifiedVectorStoreService();
     } else {

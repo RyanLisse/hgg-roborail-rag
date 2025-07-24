@@ -97,8 +97,7 @@ export class MemoryCacheBackend implements CacheBackend {
       this.accessOrder.set(key, this.currentAccessTime);
 
       return true;
-    } catch (error) {
-      console.error('Memory cache set error:', error);
+    } catch (_error) {
       return false;
     }
   }
@@ -150,8 +149,7 @@ export class MemoryCacheBackend implements CacheBackend {
         await this.set(entry.key, entry.value, entry.ttl);
       }
       return true;
-    } catch (error) {
-      console.error('Memory cache mset error:', error);
+    } catch (_error) {
       return false;
     }
   }
@@ -181,8 +179,7 @@ export class MemoryCacheBackend implements CacheBackend {
       await this.delete(testKey);
 
       return retrieved !== null;
-    } catch (error) {
-      console.error('Memory cache health check failed:', error);
+    } catch (_error) {
       return false;
     }
   }
@@ -203,7 +200,6 @@ export class MemoryCacheBackend implements CacheBackend {
     }
 
     if (cleaned > 0) {
-      console.log(`Memory cache cleaned up ${cleaned} expired entries`);
     }
   }
 
@@ -211,7 +207,7 @@ export class MemoryCacheBackend implements CacheBackend {
    * Evict least recently used entries
    */
   private async evictLRU(): Promise<void> {
-    if (this.accessOrder.size === 0) return;
+    if (this.accessOrder.size === 0) { return; }
 
     // Find the entry with the oldest access time
     let oldestKey: string | null = null;
@@ -235,7 +231,7 @@ export class MemoryCacheBackend implements CacheBackend {
    * Evict oldest entries by creation time
    */
   private async evictOldest(): Promise<void> {
-    if (this.cache.size === 0) return;
+    if (this.cache.size === 0) { return; }
 
     // Find entries to evict (oldest 10% of cache)
     const entriesToEvict = Math.max(1, Math.floor(this.cache.size * 0.1));
@@ -271,7 +267,7 @@ export class MemoryCacheBackend implements CacheBackend {
    * Estimate size of a value in bytes
    */
   private estimateValueSize(value: any): number {
-    if (value === null || value === undefined) return 0;
+    if (value === null || value === undefined) { return 0; }
 
     if (typeof value === 'string') {
       return value.length * 2;

@@ -1,23 +1,23 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from '@playwright/test';
 
 /**
  * MCP Tools Integration Test for Complete Chat Flow
  * Tests the full chat experience using browser automation
  */
 
-test.describe("Complete Chat Flow with MCP Tools", () => {
+test.describe('Complete Chat Flow with MCP Tools', () => {
   test.beforeEach(async ({ page }) => {
     // Start local dev server if needed
-    await page.goto("http://localhost:3000");
-    await page.waitForLoadState("networkidle");
+    await page.goto('http://localhost:3000');
+    await page.waitForLoadState('networkidle');
   });
 
-  test("should handle complete chat workflow with reasoning models", async ({
+  test('should handle complete chat workflow with reasoning models', async ({
     page,
   }) => {
     // Test new chat creation
     await page.click('[data-testid="new-chat-button"]');
-    await expect(page.locator("h1")).toContainText("New Chat");
+    await expect(page.locator('h1')).toContainText('New Chat');
 
     // Test reasoning model selection
     await page.click('[data-testid="model-selector"]');
@@ -26,7 +26,7 @@ test.describe("Complete Chat Flow with MCP Tools", () => {
     // Send a complex reasoning query
     const userInput = page.locator('[data-testid="chat-input"]');
     await userInput.fill(
-      "Solve this step by step: If a train travels 120 miles in 2 hours, and then 180 miles in 3 hours, what is the average speed for the entire journey?",
+      'Solve this step by step: If a train travels 120 miles in 2 hours, and then 180 miles in 3 hours, what is the average speed for the entire journey?',
     );
 
     await page.click('[data-testid="send-button"]');
@@ -54,25 +54,25 @@ test.describe("Complete Chat Flow with MCP Tools", () => {
     const assistantMessage = page
       .locator('[data-testid="assistant-message"]')
       .last();
-    await expect(assistantMessage).toContainText("60 mph");
+    await expect(assistantMessage).toContainText('60 mph');
   });
 
-  test("should test multi-agent routing and capabilities", async ({ page }) => {
+  test('should test multi-agent routing and capabilities', async ({ page }) => {
     // Test QA Agent
-    await page.goto("http://localhost:3000");
+    await page.goto('http://localhost:3000');
     await page.click('[data-testid="new-chat-button"]');
 
     const userInput = page.locator('[data-testid="chat-input"]');
-    await userInput.fill("What is the capital of France?");
+    await userInput.fill('What is the capital of France?');
     await page.click('[data-testid="send-button"]');
 
     await page.waitForSelector('[data-testid="assistant-message"]');
     const qaResponse = page.locator('[data-testid="assistant-message"]').last();
-    await expect(qaResponse).toContainText("Paris");
+    await expect(qaResponse).toContainText('Paris');
 
     // Test Research Agent with complex query
     await userInput.fill(
-      "Compare the economic impact of renewable energy vs fossil fuels in developing countries",
+      'Compare the economic impact of renewable energy vs fossil fuels in developing countries',
     );
     await page.click('[data-testid="send-button"]');
 
@@ -100,13 +100,13 @@ test.describe("Complete Chat Flow with MCP Tools", () => {
     );
   });
 
-  test("should test vector store integration and RAG", async ({ page }) => {
+  test('should test vector store integration and RAG', async ({ page }) => {
     // Navigate to document upload
-    await page.goto("http://localhost:3000");
+    await page.goto('http://localhost:3000');
     await page.click('[data-testid="documents-tab"]');
 
     // Test document upload
-    const fileInput = page.locator('input[type="file"]');
+    const _fileInput = page.locator('input[type="file"]');
 
     // Create a test document
     const testContent = `
@@ -118,8 +118,8 @@ test.describe("Complete Chat Flow with MCP Tools", () => {
     `;
 
     await page.evaluate((content) => {
-      const file = new File([content], "ai-guidelines.txt", {
-        type: "text/plain",
+      const file = new File([content], 'ai-guidelines.txt', {
+        type: 'text/plain',
       });
       const dt = new DataTransfer();
       dt.items.add(file);
@@ -135,7 +135,7 @@ test.describe("Complete Chat Flow with MCP Tools", () => {
 
     const userInput = page.locator('[data-testid="chat-input"]');
     await userInput.fill(
-      "What are the AI safety guidelines for rate limiting?",
+      'What are the AI safety guidelines for rate limiting?',
     );
     await page.click('[data-testid="send-button"]');
 
@@ -149,8 +149,8 @@ test.describe("Complete Chat Flow with MCP Tools", () => {
     await expect(page.locator('[data-testid="source-citation"]')).toBeVisible();
   });
 
-  test("should test streaming and real-time features", async ({ page }) => {
-    await page.goto("http://localhost:3000");
+  test('should test streaming and real-time features', async ({ page }) => {
+    await page.goto('http://localhost:3000');
     await page.click('[data-testid="new-chat-button"]');
 
     // Enable streaming indicators
@@ -160,7 +160,7 @@ test.describe("Complete Chat Flow with MCP Tools", () => {
 
     const userInput = page.locator('[data-testid="chat-input"]');
     await userInput.fill(
-      "Write a detailed explanation of quantum computing principles",
+      'Write a detailed explanation of quantum computing principles',
     );
     await page.click('[data-testid="send-button"]');
 
@@ -199,8 +199,8 @@ test.describe("Complete Chat Flow with MCP Tools", () => {
     await expect(messageContent).toContainText(/quantum/i);
   });
 
-  test("should test error handling and fallbacks", async ({ page }) => {
-    await page.goto("http://localhost:3000");
+  test('should test error handling and fallbacks', async ({ page }) => {
+    await page.goto('http://localhost:3000');
     await page.click('[data-testid="new-chat-button"]');
 
     // Test with invalid model selection
@@ -208,7 +208,7 @@ test.describe("Complete Chat Flow with MCP Tools", () => {
     await page.click('[data-testid="model-invalid-test"]', { force: true });
 
     const userInput = page.locator('[data-testid="chat-input"]');
-    await userInput.fill("Test message with invalid model");
+    await userInput.fill('Test message with invalid model');
     await page.click('[data-testid="send-button"]');
 
     // Should fallback to default model
@@ -231,10 +231,10 @@ test.describe("Complete Chat Flow with MCP Tools", () => {
     ).toBeVisible();
   });
 
-  test("should test agent orchestration health checks", async ({ page }) => {
+  test('should test agent orchestration health checks', async ({ page }) => {
     // Access health check endpoint
     const response = await page.request.get(
-      "http://localhost:3000/api/health/agents",
+      'http://localhost:3000/api/health/agents',
     );
     expect(response.ok()).toBeTruthy();
 
@@ -243,10 +243,10 @@ test.describe("Complete Chat Flow with MCP Tools", () => {
     expect(healthData.agents).toBeDefined();
 
     // Verify all agents are available
-    const agents = ["qa", "research", "rewrite", "planner"];
+    const agents = ['qa', 'research', 'rewrite', 'planner'];
     for (const agent of agents) {
       expect(healthData.agents[agent]).toBeDefined();
-      expect(healthData.agents[agent].status).toBe("available");
+      expect(healthData.agents[agent].status).toBe('available');
     }
   });
 });

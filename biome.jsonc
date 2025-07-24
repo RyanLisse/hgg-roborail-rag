@@ -9,14 +9,14 @@
       "node_modules",
       ".next",
       "public",
-      ".vercel",
-    ],
+      ".vercel"
+    ]
   },
   "vcs": {
     "enabled": true,
     "clientKind": "git",
     "defaultBranch": "main",
-    "useIgnoreFile": true,
+    "useIgnoreFile": true
   },
   "formatter": {
     "enabled": true,
@@ -25,7 +25,7 @@
     "indentWidth": 2,
     "lineEnding": "lf",
     "lineWidth": 80,
-    "attributePosition": "auto",
+    "attributePosition": "auto"
   },
   "linter": {
     "enabled": true,
@@ -38,8 +38,8 @@
           "level": "warn",
           "options": {
             "ignoreNonDom": false,
-            "allowInvalidRoles": ["none", "text"],
-          },
+            "allowInvalidRoles": ["none", "text"]
+          }
         },
         "useSemanticElements": "off",
         "noSvgWithoutTitle": "off",
@@ -47,22 +47,22 @@
         "noAutofocus": "off",
         "useFocusableInteractive": "off",
         "useAriaPropsForRole": "off",
-        "useKeyWithClickEvents": "off",
+        "useKeyWithClickEvents": "off"
       },
       "complexity": {
         "noUselessStringConcat": "warn",
         "noForEach": "off",
         "noUselessSwitchCase": "off",
         "noUselessThisAlias": "off",
-        "noBannedTypes": "off",
+        "noBannedTypes": "off"
       },
       "correctness": {
         "noUnusedImports": "warn",
         "useJsxKeyInIterable": "off",
-        "useExhaustiveDependencies": "off",
+        "useExhaustiveDependencies": "off"
       },
       "security": {
-        "noDangerouslySetInnerHtml": "off",
+        "noDangerouslySetInnerHtml": "off"
       },
       "style": {
         "useFragmentSyntax": "warn",
@@ -70,13 +70,13 @@
         "useDefaultParameterLast": "warn",
         "useExponentiationOperator": "off",
         "noUnusedTemplateLiteral": "off",
-        "noUselessElse": "off",
+        "noUselessElse": "off"
       },
       "suspicious": {
-        "noExplicitAny": "off",
+        "noExplicitAny": "off"
       },
-      "nursery": {},
-    },
+      "nursery": {}
+    }
   },
   "javascript": {
     "jsxRuntime": "reactClassic",
@@ -89,26 +89,26 @@
       "bracketSpacing": true,
       "bracketSameLine": false,
       "quoteStyle": "single",
-      "attributePosition": "auto",
-    },
+      "attributePosition": "auto"
+    }
   },
   "json": {
     "formatter": {
       "enabled": true,
-      "trailingCommas": "none",
+      "trailingCommas": "none"
     },
     "parser": {
       "allowComments": true,
-      "allowTrailingCommas": false,
-    },
+      "allowTrailingCommas": false
+    }
   },
   "css": {
     "formatter": {
-      "enabled": false,
+      "enabled": false
     },
     "linter": {
-      "enabled": false,
-    },
+      "enabled": false
+    }
   },
   "overrides": [
     {
@@ -116,11 +116,11 @@
       "linter": {
         "rules": {
           "correctness": {
-            "noEmptyPattern": "off",
-          },
-        },
-      },
-    },
+            "noEmptyPattern": "off"
+          }
+        }
+      }
+    }
   ],
-  "extends": ["ultracite"],
+  "extends": ["ultracite"]
 }

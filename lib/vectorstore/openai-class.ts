@@ -2,17 +2,17 @@
  * OpenAI Vector Store class for DI container
  */
 
-import { BaseVectorStoreService } from "./core/base-service";
+import { BaseVectorStoreService } from './core/base-service';
 import {
   getOpenAIVectorStoreService,
   type OpenAIVectorStoreService,
-} from "./openai";
+} from './openai';
 
 export class OpenAIVectorStore extends BaseVectorStoreService {
   private service: Promise<OpenAIVectorStoreService>;
 
   constructor() {
-    super("openai-vector-store");
+    super('openai-vector-store');
     this.service = getOpenAIVectorStoreService();
   }
 
@@ -20,7 +20,7 @@ export class OpenAIVectorStore extends BaseVectorStoreService {
     const service = await this.service;
     const response = await this.withRetry(
       () => service.searchFiles({ query, ...options }),
-      "search",
+      'search',
     );
     return response.results || [];
   }
@@ -35,7 +35,7 @@ export class OpenAIVectorStore extends BaseVectorStoreService {
     const service = await this.service;
     const result = await service.healthCheck();
     if (!result.isHealthy) {
-      throw new Error(result.error || "OpenAI service unhealthy");
+      throw new Error(result.error || 'OpenAI service unhealthy');
     }
   }
 
@@ -43,7 +43,7 @@ export class OpenAIVectorStore extends BaseVectorStoreService {
     const service = await this.service;
     return this.withRetry(
       () => Promise.all(documents.map((doc) => service.uploadFile(doc))),
-      "upload",
+      'upload',
     );
   }
 
@@ -51,7 +51,7 @@ export class OpenAIVectorStore extends BaseVectorStoreService {
     const service = await this.service;
     return this.withRetry(
       () => Promise.all(ids.map((id) => service.deleteFile(id))),
-      "delete",
+      'delete',
     );
   }
 
@@ -59,12 +59,12 @@ export class OpenAIVectorStore extends BaseVectorStoreService {
     const service = await this.service;
     const result = await this.withRetry(
       () => service.healthCheck(),
-      "healthCheck",
+      'healthCheck',
     );
     return {
       message: result.isHealthy
-        ? "OpenAI service is healthy"
-        : result.error || "Service unhealthy",
+        ? 'OpenAI service is healthy'
+        : result.error || 'Service unhealthy',
       isHealthy: result.isHealthy,
       responseTime: 0,
       lastChecked: new Date(),
@@ -73,7 +73,7 @@ export class OpenAIVectorStore extends BaseVectorStoreService {
 
   async getStats() {
     const service = await this.service;
-    const files = await this.withRetry(() => service.listFiles(), "getStats");
+    const files = await this.withRetry(() => service.listFiles(), 'getStats');
     return {
       documentsCount: files.length,
       lastUpdated: new Date(),

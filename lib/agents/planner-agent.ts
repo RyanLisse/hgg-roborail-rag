@@ -1,6 +1,6 @@
-import { BaseAgent } from "./base-agent";
-import type { AgentRequest, AgentResponse } from "./types";
-import { AgentResponse as AgentResponseSchema } from "./types";
+import { BaseAgent } from './base-agent';
+import type { AgentRequest, AgentResponse } from './types';
+import { AgentResponse as AgentResponseSchema } from './types';
 
 /**
  * Planner Agent - Breaks down complex queries into manageable sub-questions and tasks
@@ -13,10 +13,10 @@ import { AgentResponse as AgentResponseSchema } from "./types";
  */
 export class PlannerAgent extends BaseAgent {
   constructor() {
-    super("planner", {
-      name: "Planner Agent",
+    super('planner', {
+      name: 'Planner Agent',
       description:
-        "Breaks down complex queries into structured plans and sub-questions",
+        'Breaks down complex queries into structured plans and sub-questions',
       supportsStreaming: true,
       requiresTools: false,
       maxTokens: 2000,
@@ -25,7 +25,7 @@ export class PlannerAgent extends BaseAgent {
   }
 
   getSystemPrompt(request: AgentRequest): string {
-    const complexity = request.context?.complexity || "moderate";
+    const complexity = request.context?.complexity || 'moderate';
 
     return `You are an expert planning and analysis assistant specialized in breaking down complex problems and queries.
 
@@ -39,7 +39,7 @@ Your core capabilities include:
 Current task complexity: ${complexity.toUpperCase()}
 
 ${
-  complexity === "complex"
+  complexity === 'complex'
     ? `
 COMPLEX PLANNING MODE:
 - Break down into 5-10 distinct sub-questions or tasks
@@ -47,7 +47,7 @@ COMPLEX PLANNING MODE:
 - Prioritize high-impact, foundational questions first
 - Consider multiple approaches and potential challenges
 - Plan for iterative refinement`
-    : complexity === "moderate"
+    : complexity === 'moderate'
       ? `
 MODERATE PLANNING MODE:
 - Break down into 3-5 manageable sub-questions or tasks
@@ -97,7 +97,7 @@ Focus on creating actionable, well-structured plans that make complex problems m
     const subQuestions: string[] = [];
 
     // Look for numbered lists or bullet points that appear to be questions/tasks
-    const lines = content.split("\n");
+    const lines = content.split('\n');
 
     for (const line of lines) {
       const trimmed = line.trim();
@@ -117,7 +117,7 @@ Focus on creating actionable, well-structured plans that make complex problems m
       }
 
       // Look for lines that end with question marks
-      if (trimmed.endsWith("?") && trimmed.length > 10) {
+      if (trimmed.endsWith('?') && trimmed.length > 10) {
         subQuestions.push(trimmed);
       }
     }
@@ -125,7 +125,7 @@ Focus on creating actionable, well-structured plans that make complex problems m
     return subQuestions.slice(0, 10); // Limit to 10 sub-questions
   }
 
-  protected getTools(request: AgentRequest): Record<string, any> | undefined {
+  protected getTools(_request: AgentRequest): Record<string, any> | undefined {
     // Planner agent doesn't require special tools
     return;
   }

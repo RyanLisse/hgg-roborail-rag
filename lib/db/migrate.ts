@@ -18,18 +18,12 @@ const runMigrate = async () => {
   const connection = postgres(postgresUrl, { max: 1 });
   const db = drizzle(connection);
 
-  console.log('⏳ Running migrations...');
-
-  const start = Date.now();
+  const _start = Date.now();
   await migrate(db, { migrationsFolder: './lib/db/migrations' });
-  const end = Date.now();
-
-  console.log('✅ Migrations completed in', end - start, 'ms');
+  const _end = Date.now();
   process.exit(0);
 };
 
-runMigrate().catch((err) => {
-  console.error('❌ Migration failed');
-  console.error(err);
+runMigrate().catch((_err) => {
   process.exit(1);
 });

@@ -1,4 +1,4 @@
-import { expect, type Page } from "@playwright/test";
+import { expect, type Page } from '@playwright/test';
 
 /**
  * Test utility functions for improved reliability and performance
@@ -12,11 +12,11 @@ export async function waitForElementWithRetry(
   selector: string,
   options: {
     timeout?: number;
-    state?: "visible" | "hidden" | "attached" | "detached";
+    state?: 'visible' | 'hidden' | 'attached' | 'detached';
     retries?: number;
   } = {},
 ) {
-  const { timeout = 15_000, state = "visible", retries = 2 } = options;
+  const { timeout = 15_000, state = 'visible', retries = 2 } = options;
 
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
@@ -24,14 +24,10 @@ export async function waitForElementWithRetry(
       return;
     } catch (error) {
       if (attempt === retries) {
-        console.error(
-          `Failed to find element "${selector}" after ${retries + 1} attempts`,
-        );
+        // Failed to find element after all retries
         throw error;
       }
-      console.warn(
-        `Attempt ${attempt + 1} failed for selector "${selector}", retrying...`,
-      );
+      // Retry attempt failed, continuing...
       await page.waitForTimeout(1000);
     }
   }
@@ -44,7 +40,7 @@ export async function waitForPageReady(page: Page, timeout = 30_000) {
   try {
     await Promise.race([
       // Wait for network to be idle
-      page.waitForLoadState("networkidle", { timeout }),
+      page.waitForLoadState('networkidle', { timeout }),
 
       // Or wait for main app elements
       Promise.all([
@@ -58,14 +54,14 @@ export async function waitForPageReady(page: Page, timeout = 30_000) {
 
       // Timeout fallback
       new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Page ready timeout")), timeout),
+        setTimeout(() => reject(new Error('Page ready timeout')), timeout),
       ),
     ]);
 
     // Additional small wait for React hydration
     await page.waitForTimeout(500);
-  } catch (error) {
-    console.warn("Page ready check failed, continuing...", error);
+  } catch (_error) {
+    // Page ready check failed, continuing...
   }
 }
 
@@ -86,7 +82,7 @@ export async function sendMessageWithRetry(
         timeout: 10_000,
       });
 
-      const input = page.getByTestId("multimodal-input");
+      const input = page.getByTestId('multimodal-input');
       await input.click();
       await input.fill(message);
 
@@ -95,11 +91,11 @@ export async function sendMessageWithRetry(
         () =>
           !document
             .querySelector('[data-testid="send-button"]')
-            ?.hasAttribute("disabled"),
+            ?.hasAttribute('disabled'),
         { timeout: 5000 },
       );
 
-      const sendButton = page.getByTestId("send-button");
+      const sendButton = page.getByTestId('send-button');
       await sendButton.click();
 
       if (waitForResponse) {
@@ -107,13 +103,13 @@ export async function sendMessageWithRetry(
         await Promise.race([
           page
             .waitForResponse(
-              (response) => response.url().includes("/api/chat"),
+              (response) => response.url().includes('/api/chat'),
               { timeout: 45_000 },
             )
             .then((res) => res.finished()),
 
           // Or wait for new message to appear
-          page.waitForSelector(".message-content:last-child", {
+          page.waitForSelector('.message-content:last-child', {
             timeout: 30_000,
           }),
         ]);
@@ -126,7 +122,7 @@ export async function sendMessageWithRetry(
           `Failed to send message after ${maxRetries + 1} attempts: ${error}`,
         );
       }
-      console.warn(`Message send attempt ${attempt + 1} failed, retrying...`);
+      // Message send attempt failed, retrying...
       await page.waitForTimeout(2000);
     }
   }
@@ -147,10 +143,10 @@ export async function waitForChatResponse(
 
   try {
     // Wait for new message content
-    await page.waitForSelector(".message-content:last-child", { timeout });
+    await page.waitForSelector('.message-content:last-child', { timeout });
 
     if (expectText) {
-      const lastMessage = page.locator(".message-content").last();
+      const lastMessage = page.locator('.message-content').last();
       await expect(lastMessage).toContainText(expectText, { timeout: 10_000 });
     }
 
@@ -158,7 +154,7 @@ export async function waitForChatResponse(
     await page.waitForTimeout(300);
   } catch (error) {
     if (skipIfNoResponse) {
-      console.warn("Chat response timeout - continuing test...");
+      // Chat response timeout - continuing test...
       return;
     }
     throw error;
@@ -179,7 +175,7 @@ export async function uploadFileWithRetry(
     try {
       // Try different upload methods
       const fileInput = page.locator('input[type="file"]');
-      const attachButton = page.getByTestId("attachments-button");
+      const attachButton = page.getByTestId('attachments-button');
 
       // Click attachment button if visible
       if (await attachButton.isVisible({ timeout: 2000 })) {
@@ -203,7 +199,7 @@ export async function uploadFileWithRetry(
           `File upload failed after ${retries + 1} attempts: ${error}`,
         );
       }
-      console.warn(`Upload attempt ${attempt + 1} failed, retrying...`);
+      // Upload attempt failed, retrying...
       await page.waitForTimeout(1000);
     }
   }
@@ -216,20 +212,20 @@ export async function verifyAppState(page: Page) {
   try {
     // Check for error pages or broken states
     const errorIndicators = [
-      "Application error",
-      "500",
-      "404",
-      "Something went wrong",
-      "Internal Server Error",
+      'Application error',
+      '500',
+      '404',
+      'Something went wrong',
+      'Internal Server Error',
     ];
 
-    const pageText = await page.textContent("body");
+    const pageText = await page.textContent('body');
     const hasError = errorIndicators.some((indicator) =>
       pageText?.includes(indicator),
     );
 
     if (hasError) {
-      throw new Error("App is in error state");
+      throw new Error('App is in error state');
     }
 
     // Verify core elements are present
@@ -238,8 +234,8 @@ export async function verifyAppState(page: Page) {
     });
 
     return true;
-  } catch (error) {
-    console.error("App state verification failed:", error);
+  } catch (_error) {
+    // App state verification failed
     return false;
   }
 }
@@ -258,7 +254,7 @@ export function createPerformanceMonitor() {
     end(label: string) {
       if (timings[label]) {
         const duration = Date.now() - timings[label];
-        console.log(`⏱️ ${label}: ${duration}ms`);
+        // Timing: ${label}: ${duration}ms
         delete timings[label];
         return duration;
       }
@@ -266,7 +262,7 @@ export function createPerformanceMonitor() {
     },
 
     log() {
-      console.log("Active timings:", Object.keys(timings));
+      // Active timings logged
     },
   };
 }

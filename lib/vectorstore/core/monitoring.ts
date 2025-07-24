@@ -1,4 +1,4 @@
-import type { ServiceMetrics, VectorStoreService } from "./types";
+import type { ServiceMetrics, VectorStoreService } from './types';
 
 /**
  * Performance monitoring state
@@ -16,14 +16,14 @@ export function wrapMethodWithMonitoring<T extends any[], R>(
   return async (...args: T): Promise<R> => {
     const startTime = Date.now();
     let success = false;
-    let error: Error | undefined;
+    let _error: Error | undefined;
 
     try {
       const result = await fn(...args);
       success = true;
       return result;
     } catch (err) {
-      error = err as Error;
+      _error = err as Error;
       throw err;
     } finally {
       const duration = Date.now() - startTime;
@@ -40,10 +40,6 @@ export function wrapMethodWithMonitoring<T extends any[], R>(
 
       // Log performance if it's unusually slow
       if (duration > 5000) {
-        console.warn(`⚠️  Slow ${serviceName}.${methodName}: ${duration}ms`, {
-          args: args.length > 0 ? args[0] : undefined,
-          error: error?.message,
-        });
       }
     }
   };
@@ -54,13 +50,13 @@ export function wrapMethodWithMonitoring<T extends any[], R>(
  */
 export function wrapServiceWithMonitoring<T extends VectorStoreService>(
   service: T,
-  monitoredMethods: (keyof T)[] = ["search", "healthCheck"],
+  monitoredMethods: (keyof T)[] = ['search', 'healthCheck'],
 ): T {
   const wrappedService = { ...service };
 
   for (const methodName of monitoredMethods) {
     const originalMethod = service[methodName];
-    if (typeof originalMethod === "function") {
+    if (typeof originalMethod === 'function') {
       (wrappedService as any)[methodName] = wrapMethodWithMonitoring(
         service.serviceName,
         String(methodName),
@@ -81,7 +77,7 @@ function recordMetric(serviceName: string, metric: ServiceMetrics): void {
   }
 
   const serviceMetrics = metrics.get(serviceName);
-  if (!serviceMetrics) return;
+  if (!serviceMetrics) { return; }
   serviceMetrics.push(metric);
 
   // Keep only last 1000 metrics per service
@@ -167,7 +163,7 @@ export function getPerformanceSummary(
   );
   const fastestOperation = sortedByDuration[0] || null;
   const slowestOperation =
-    sortedByDuration[sortedByDuration.length - 1] || null;
+    sortedByDuration.at(-1) || null;
 
   return {
     totalRequests,
@@ -188,24 +184,10 @@ export function logPerformanceSummary(
 ): void {
   const summary = getPerformanceSummary(serviceName, timeWindow);
 
-  console.log(`📊 Performance Summary for ${serviceName}:`);
-  console.log(`   Total Requests: ${summary.totalRequests}`);
-  console.log(`   Success Rate: ${summary.successRate.toFixed(1)}%`);
-  console.log(`   Error Rate: ${summary.errorRate.toFixed(1)}%`);
-  console.log(
-    `   Average Response Time: ${summary.averageResponseTime.toFixed(0)}ms`,
-  );
-
   if (summary.fastestOperation) {
-    console.log(
-      `   Fastest: ${summary.fastestOperation.duration}ms (${summary.fastestOperation.operationName})`,
-    );
   }
 
   if (summary.slowestOperation) {
-    console.log(
-      `   Slowest: ${summary.slowestOperation.duration}ms (${summary.slowestOperation.operationName})`,
-    );
   }
 }
 

@@ -1,6 +1,6 @@
-import { BaseAgent } from "./base-agent";
-import type { AgentRequest, AgentResponse } from "./types";
-import { AgentResponse as AgentResponseSchema } from "./types";
+import { BaseAgent } from './base-agent';
+import type { AgentRequest, AgentResponse } from './types';
+import { AgentResponse as AgentResponseSchema } from './types';
 
 /**
  * Research Agent - Deep research using enhanced search with comprehensive citations
@@ -13,10 +13,10 @@ import { AgentResponse as AgentResponseSchema } from "./types";
  */
 export class ResearchAgent extends BaseAgent {
   constructor() {
-    super("research", {
-      name: "Research Agent",
+    super('research', {
+      name: 'Research Agent',
       description:
-        "Conducts comprehensive research with enhanced search and detailed citations",
+        'Conducts comprehensive research with enhanced search and detailed citations',
       supportsStreaming: true,
       requiresTools: true,
       maxTokens: 3000,
@@ -40,11 +40,11 @@ Your research methodology includes:
 ${
   domainKeywords.length > 0
     ? `
-DOMAIN FOCUS: ${domainKeywords.join(", ")}
+DOMAIN FOCUS: ${domainKeywords.join(', ')}
 - Pay special attention to domain-specific terminology and concepts
 - Consider field-specific perspectives and methodologies
 - Look for authoritative sources within this domain`
-    : ""
+    : ''
 }
 
 Research Standards:
@@ -63,7 +63,7 @@ CITATION REQUIREMENTS:
 - Use consistent citation format throughout
 - Distinguish between primary and secondary sources
 - Note the confidence level for different pieces of information`
-    : ""
+    : ''
 }
 
 Research Structure:
@@ -89,10 +89,10 @@ Focus on providing thorough, well-researched responses that advance understandin
       ...request,
       context: {
         ...request.context,
-        sources: request.context?.sources || ["memory"],
+        sources: request.context?.sources || ['memory'],
         requiresCitations: true,
         maxResults: Math.max(request.context?.maxResults || 5, 8), // Research needs more sources
-        complexity: request.context?.complexity || "complex",
+        complexity: request.context?.complexity || 'complex',
         domainKeywords: request.context?.domainKeywords || [],
       },
     };
@@ -148,7 +148,7 @@ Focus on providing thorough, well-researched responses that advance understandin
     return Array.from(new Set(citations)).slice(0, 20); // Limit to 20 citations
   }
 
-  protected getTools(request: AgentRequest): Record<string, any> | undefined {
+  protected getTools(_request: AgentRequest): Record<string, any> | undefined {
     // Research agent could use enhanced search tools if available
     // This would be expanded to include web search, academic databases, etc.
     return {

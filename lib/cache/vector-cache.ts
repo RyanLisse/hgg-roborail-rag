@@ -20,16 +20,12 @@ export class VectorStoreCache {
    * Initialize cache (lazy loading)
    */
   private async getCache(): Promise<SmartCache | null> {
-    if (!this.enabled) return null;
+    if (!this.enabled) { return null; }
 
     if (!this.cache) {
       try {
         this.cache = await getSmartCache();
-      } catch (error) {
-        console.warn(
-          'Failed to initialize cache, continuing without caching:',
-          error,
-        );
+      } catch (_error) {
         this.enabled = false;
         return null;
       }
@@ -58,25 +54,14 @@ export class VectorStoreCache {
         options,
       );
       if (cached !== null) {
-        console.log(
-          `🎯 Cache HIT: Vector search for "${query.substring(0, 50)}..."`,
-        );
         return cached;
       }
     }
-
-    // Execute the search function
-    console.log(
-      `🔍 Cache MISS: Executing vector search for "${query.substring(0, 50)}..."`,
-    );
     const result = await searchFn();
 
     // Cache the result if cache is available
     if (cache && result) {
       await cache.cacheVectorSearch(query, sources, options, result, ttl);
-      console.log(
-        `💾 Cached vector search result for "${query.substring(0, 50)}..."`,
-      );
     }
 
     return result;
@@ -97,25 +82,14 @@ export class VectorStoreCache {
       // Try to get from cache first
       const cached = await cache.getCachedAgentRouting<T>(query, context);
       if (cached !== null) {
-        console.log(
-          `🎯 Cache HIT: Agent routing for "${query.substring(0, 50)}..."`,
-        );
         return cached;
       }
     }
-
-    // Execute the routing function
-    console.log(
-      `🤖 Cache MISS: Executing agent routing for "${query.substring(0, 50)}..."`,
-    );
     const result = await routingFn();
 
     // Cache the result if cache is available
     if (cache && result) {
       await cache.cacheAgentRouting(query, context, result, ttl);
-      console.log(
-        `💾 Cached agent routing result for "${query.substring(0, 50)}..."`,
-      );
     }
 
     return result;
@@ -141,25 +115,14 @@ export class VectorStoreCache {
         context,
       );
       if (cached !== null) {
-        console.log(
-          `🎯 Cache HIT: ${agentType} agent response for "${query.substring(0, 50)}..."`,
-        );
         return cached;
       }
     }
-
-    // Execute the agent processing function
-    console.log(
-      `🤖 Cache MISS: Executing ${agentType} agent for "${query.substring(0, 50)}..."`,
-    );
     const result = await processFn();
 
     // Cache the result if cache is available
     if (cache && result) {
       await cache.cacheAgentResponse(agentType, query, context, result, ttl);
-      console.log(
-        `💾 Cached ${agentType} agent response for "${query.substring(0, 50)}..."`,
-      );
     }
 
     return result;
@@ -180,23 +143,14 @@ export class VectorStoreCache {
       // Try to get from cache first
       const cached = await cache.getCachedDocumentEmbedding(content, model);
       if (cached !== null) {
-        console.log(
-          `🎯 Cache HIT: Document embedding for ${model} (${content.length} chars)`,
-        );
         return cached;
       }
     }
-
-    // Execute the embedding function
-    console.log(
-      `🔢 Cache MISS: Generating embedding for ${model} (${content.length} chars)`,
-    );
     const result = await embeddingFn();
 
     // Cache the result if cache is available
     if (cache && result) {
       await cache.cacheDocumentEmbedding(content, model, result, ttl);
-      console.log(`💾 Cached embedding for ${model} (${content.length} chars)`);
     }
 
     return result;
@@ -217,21 +171,14 @@ export class VectorStoreCache {
       // Try to get from cache first
       const cached = await cache.getCachedHealthCheck(service, endpoint);
       if (cached !== null) {
-        console.log(`🎯 Cache HIT: Health check for ${service}:${endpoint}`);
         return cached;
       }
     }
-
-    // Execute the health check function
-    console.log(
-      `🏥 Cache MISS: Executing health check for ${service}:${endpoint}`,
-    );
     const result = await healthCheckFn();
 
     // Cache the result if cache is available
     if (cache && result) {
       await cache.cacheHealthCheck(service, endpoint, result, ttl);
-      console.log(`💾 Cached health check for ${service}:${endpoint}`);
     }
 
     return result;
@@ -242,12 +189,9 @@ export class VectorStoreCache {
    */
   async invalidatePattern(pattern: string): Promise<number> {
     const cache = await this.getCache();
-    if (!cache) return 0;
+    if (!cache) { return 0; }
 
     const deleted = await cache.invalidatePattern(pattern);
-    console.log(
-      `🗑️ Invalidated ${deleted} cache entries matching pattern: ${pattern}`,
-    );
     return deleted;
   }
 
@@ -309,9 +253,6 @@ export class VectorStoreCache {
   async warmup(
     commonQueries: Array<{ query: string; sources: string[]; options?: any }>,
   ) {
-    console.log(
-      `🔥 Warming up cache with ${commonQueries.length} common queries...`,
-    );
 
     for (const { query, sources, options } of commonQueries) {
       try {
@@ -322,12 +263,9 @@ export class VectorStoreCache {
           sources,
           options || {},
         );
-      } catch (error) {
-        console.warn(`Failed to warm up cache for query: ${query}`, error);
+      } catch (_error) {
       }
     }
-
-    console.log('✅ Cache warmup completed');
   }
 }
 
@@ -354,8 +292,8 @@ export function withVectorCache<T extends any[], R>(
   ttl?: number,
 ) {
   return (
-    target: any,
-    propertyName: string,
+    _target: any,
+    _propertyName: string,
     descriptor: PropertyDescriptor,
   ) => {
     const method = descriptor.value;
@@ -385,8 +323,8 @@ export function withAgentCache<T extends any[], R>(
   ttl?: number,
 ) {
   return (
-    target: any,
-    propertyName: string,
+    _target: any,
+    _propertyName: string,
     descriptor: PropertyDescriptor,
   ) => {
     const method = descriptor.value;

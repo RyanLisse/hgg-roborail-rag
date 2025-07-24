@@ -1,67 +1,67 @@
-import { tool } from "ai";
-import { z } from "zod";
+import { tool } from 'ai';
+import { z } from 'zod';
 import {
   getUnifiedVectorStoreService,
   type VectorStoreType,
-} from "@/lib/vectorstore/unified";
+} from '@/lib/vectorstore/unified';
 
 export const searchDocuments = (
-  sources: VectorStoreType[] = ["memory"],
+  sources: VectorStoreType[] = ['memory'],
   conversationHistory?: Array<{
-    role: "user" | "assistant";
+    role: 'user' | 'assistant';
     content: string;
     timestamp: number;
   }>,
 ) =>
   tool({
     description:
-      "Search through uploaded documents and knowledge base using advanced vector similarity with prompt optimization for RoboRail technical documentation",
+      'Search through uploaded documents and knowledge base using advanced vector similarity with prompt optimization for RoboRail technical documentation',
     parameters: z.object({
-      query: z.string().describe("The search query to find relevant documents"),
+      query: z.string().describe('The search query to find relevant documents'),
       limit: z
         .number()
         .optional()
-        .describe("Maximum number of results to return (default: 5)"),
+        .describe('Maximum number of results to return (default: 5)'),
       queryType: z
         .enum([
-          "technical",
-          "conceptual",
-          "procedural",
-          "troubleshooting",
-          "configuration",
-          "api",
-          "integration",
-          "best_practices",
-          "examples",
-          "reference",
+          'technical',
+          'conceptual',
+          'procedural',
+          'troubleshooting',
+          'configuration',
+          'api',
+          'integration',
+          'best_practices',
+          'examples',
+          'reference',
         ])
         .optional()
-        .describe("Type of query for optimization"),
+        .describe('Type of query for optimization'),
       domain: z
         .string()
         .optional()
-        .describe("Domain context (e.g., roborail, automation, integration)"),
+        .describe('Domain context (e.g., roborail, automation, integration)'),
       complexity: z
-        .enum(["basic", "intermediate", "advanced"])
+        .enum(['basic', 'intermediate', 'advanced'])
         .optional()
-        .describe("Query complexity level"),
+        .describe('Query complexity level'),
       searchDepth: z
-        .enum(["shallow", "comprehensive", "exhaustive"])
+        .enum(['shallow', 'comprehensive', 'exhaustive'])
         .optional()
-        .describe("Search depth level"),
+        .describe('Search depth level'),
       optimizePrompts: z
         .boolean()
         .optional()
         .default(true)
-        .describe("Enable prompt optimization for better results"),
+        .describe('Enable prompt optimization for better results'),
     }),
     execute: async ({
       query,
       limit = 5,
       queryType,
-      domain = "roborail",
+      domain = 'roborail',
       complexity,
-      searchDepth = "comprehensive",
+      searchDepth = 'comprehensive',
       optimizePrompts = true,
     }) => {
       try {
@@ -99,15 +99,15 @@ export const searchDocuments = (
           return {
             success: false,
             message: optimizePrompts
-              ? `No relevant documents found for your ${queryType || "general"} query about ${domain}. Try using different keywords or simplifying your query.`
-              : "No relevant documents found for your query.",
+              ? `No relevant documents found for your ${queryType || 'general'} query about ${domain}. Try using different keywords or simplifying your query.`
+              : 'No relevant documents found for your query.',
             results: [],
             queryOptimization: optimizePrompts
               ? {
                   originalQuery: query,
-                  queryType: queryType || "conceptual",
+                  queryType: queryType || 'conceptual',
                   domain,
-                  complexity: complexity || "intermediate",
+                  complexity: complexity || 'intermediate',
                   optimizationApplied: true,
                 }
               : undefined,
@@ -117,7 +117,7 @@ export const searchDocuments = (
         return {
           success: true,
           message: optimizePrompts
-            ? `Found ${results.length} relevant ${queryType || "general"} document(s) for ${domain} domain`
+            ? `Found ${results.length} relevant ${queryType || 'general'} document(s) for ${domain} domain`
             : `Found ${results.length} relevant document(s)`,
           results: results.map((result) => ({
             content: result.document.content,
@@ -127,7 +127,7 @@ export const searchDocuments = (
               ...result.document.metadata,
               queryOptimization: optimizePrompts
                 ? {
-                    queryType: queryType || "conceptual",
+                    queryType: queryType || 'conceptual',
                     domain,
                     relevanceScore: result.similarity,
                   }
@@ -137,9 +137,9 @@ export const searchDocuments = (
           queryOptimization: optimizePrompts
             ? {
                 originalQuery: query,
-                queryType: queryType || "conceptual",
+                queryType: queryType || 'conceptual',
                 domain,
-                complexity: complexity || "intermediate",
+                complexity: complexity || 'intermediate',
                 resultsFound: results.length,
                 averageSimilarity:
                   results.reduce((sum, r) => sum + r.similarity, 0) /
@@ -149,13 +149,12 @@ export const searchDocuments = (
             : undefined,
         };
       } catch (error) {
-        console.error("Error searching documents with optimization:", error);
         return {
           success: false,
           message:
-            "Error occurred while searching documents. Please try again with a simpler query.",
+            'Error occurred while searching documents. Please try again with a simpler query.',
           results: [],
-          error: error instanceof Error ? error.message : "Unknown error",
+          error: error instanceof Error ? error.message : 'Unknown error',
         };
       }
     },
