@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "next dev --turbo",
     "build": "next build",
+    "build:railway": "pnpm db:migrate && next build",
     "start": "next start",
     "lint": "next lint && biome lint",
     "lint:fix": "next lint --fix && biome lint --write --unsafe",
