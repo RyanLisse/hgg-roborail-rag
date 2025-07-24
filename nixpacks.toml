@@ -1,0 +1,17 @@
+# Nixpacks configuration for Railway deployment
+
+[phases.setup]
+nixPkgs = ["nodejs_18", "pnpm"]
+
+[phases.install]
+cmds = ["pnpm install --frozen-lockfile"]
+
+[phases.build]
+cmds = ["pnpm build:railway"]
+
+[start]
+cmd = "pnpm start"
+
+[variables]
+NODE_ENV = "production"
+NEXT_TELEMETRY_DISABLED = "1"
