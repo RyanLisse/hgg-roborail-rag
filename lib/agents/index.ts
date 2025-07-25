@@ -17,6 +17,14 @@ export type {
   VectorStoreType,
 } from './types';
 
+// Re-export agent classes for testing (these will be tree-shaken in production)
+export { QAAgent } from './qa-agent';
+export { RewriteAgent } from './rewrite-agent';
+export { PlannerAgent } from './planner-agent';
+export { ResearchAgent } from './research-agent';
+export { SmartAgentRouter } from './router';
+export { AgentOrchestrator } from './orchestrator';
+
 import { ServiceTokens } from '../di/container';
 import { createRequestScope, hasService } from '../di/services';
 // Import only types and DI utilities (lightweight imports)
@@ -45,8 +53,8 @@ export const AGENT_CODE_SPLITTING_ENABLED =
  */
 export async function createQAAgent() {
   if (!AGENT_CODE_SPLITTING_ENABLED) {
-    const { QAAgent } = require('./qa-agent');
-    return new QAAgent();
+    const { QAAgent: QAAgentClass } = require('./qa-agent');
+    return new QAAgentClass();
   }
 
   const { QAAgent } = await import('./qa-agent');
@@ -124,13 +132,13 @@ export async function createAgentOrchestrator(config?: Partial<AgentConfig>) {
 export async function createAgent(agentType: AgentType) {
   switch (agentType) {
     case 'qa':
-      return createQAAgent();
+      return await createQAAgent();
     case 'rewrite':
-      return createRewriteAgent();
+      return await createRewriteAgent();
     case 'planner':
-      return createPlannerAgent();
+      return await createPlannerAgent();
     case 'research':
-      return createResearchAgent();
+      return await createResearchAgent();
     default:
       throw new Error(`Unknown agent type: ${agentType}`);
   }
@@ -209,7 +217,7 @@ export function resetGlobalOrchestrator(): void {
  * Create a new agent orchestrator instance (already implemented above with lazy loading)
  * This is kept for backward compatibility
  */
-export async function createAgentOrchestratorLegacy(
+export function createAgentOrchestratorLegacy(
   config?: Partial<AgentConfig>,
 ) {
   return createAgentOrchestrator(config);

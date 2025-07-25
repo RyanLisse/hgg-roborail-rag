@@ -896,6 +896,9 @@ export class PromptOptimizationEngine {
     _config: Partial<PromptConfig>,
   ): string {
     const template = PROMPT_TEMPLATES[queryType];
+    if (!(template && template.contextual)) {
+      throw new Error(`Invalid query type: ${queryType}`);
+    }
     let prompt = template.contextual.replace('{query}', query);
 
     // Add domain context

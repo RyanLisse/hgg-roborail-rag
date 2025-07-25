@@ -116,7 +116,8 @@ Intent:`;
       if (intent.includes('analy')) { return 'analysis'; }
 
       return 'question_answering'; // Default fallback
-    } catch (_error) {
+    } catch (error) {
+      console.warn('Intent classification failed, defaulting to question_answering:', error);
       return 'question_answering';
     }
   }
@@ -300,7 +301,8 @@ Intent:`;
         | 'neon'
         | 'memory'
       )[];
-    } catch (_error) {
+    } catch (error) {
+      console.warn('Failed to get available sources, using defaults:', error);
       return ['openai', 'memory']; // Fallback sources
     }
   }

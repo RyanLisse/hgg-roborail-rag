@@ -273,10 +273,12 @@ export function createOpenAIVectorStoreService(
 
   // Validate API key format
   if (apiKey && !apiKey.startsWith('sk-')) {
+    console.warn('OpenAI API key appears to be invalid (should start with "sk-")');
   }
 
   // Validate vector store ID format
   if (defaultVectorStoreId && !defaultVectorStoreId.startsWith('vs_')) {
+    console.warn('OpenAI vector store ID appears to be invalid (should start with "vs_")');
   }
 
   if (!validatedConfig.isEnabled) {

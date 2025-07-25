@@ -10,6 +10,21 @@ import { z } from 'zod';
 import { GOOGLE_GENERATIVE_AI_API_KEY, OPENAI_API_KEY } from '../env';
 import { chatModels, getModelById } from './models';
 
+// Check if we're in test mode
+const isTestMode = process.env.NODE_ENV === 'test' || 
+  process.env.PLAYWRIGHT === 'true' ||
+  process.env.OPENAI_API_KEY?.startsWith('sk-test-');
+
+// Lazy load mock providers in test mode
+let mockProviders: any = null;
+if (isTestMode) {
+  try {
+    mockProviders = require('./providers.mock');
+  } catch (_error) {
+    // Mock providers not available
+  }
+}
+
 // Provider instances
 export const aiProviders = {
   openai,
@@ -21,6 +36,11 @@ const providerSchema = z.enum(['openai', 'google']);
 
 // Get model instance by model ID
 export function getModelInstance(modelId: string) {
+    // Use mock providers in test mode
+    if (isTestMode && mockProviders) {
+      return mockProviders.getModelInstance(modelId);
+    }
+
     const model = getModelById(modelId);
     if (!model) {
       throw new Error(`Model with ID ${modelId} not found`);
@@ -36,6 +56,10 @@ export function getModelInstance(modelId: string) {
 
 // Get embedding model instance
 export function getEmbeddingModelInstance(_modelId: string) {
+  // Use mock providers in test mode
+  if (isTestMode && mockProviders) {
+    return mockProviders.getEmbeddingModelInstance(_modelId);
+  }
   // For now, use OpenAI text-embedding-3-small for all embeddings
   return openai.embedding('text-embedding-3-small');
 }
@@ -178,9 +202,11 @@ function getFallbackModel(originalModelId: string): string | null {
 }
 
 // Enhanced provider with comprehensive model support and error handling
-export const myProvider = customProvider({
-  languageModels: createAllLanguageModels(),
-});
+export const myProvider = isTestMode && mockProviders 
+  ? mockProviders.myProvider 
+  : customProvider({
+      languageModels: createAllLanguageModels(),
+    });
 
 // Provider health check
 export async function checkProviderHealth(): Promise<{
