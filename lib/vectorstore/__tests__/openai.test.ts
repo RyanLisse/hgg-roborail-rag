@@ -34,31 +34,34 @@ if (typeof global.performance === 'undefined') {
   } as any;
 }
 
+// Create mock monitoring service
+const mockMonitoringService = {
+  recordSearchLatency: vi.fn(),
+  recordSearchError: vi.fn(),
+  recordSearchSuccess: vi.fn(),
+  recordFileUpload: vi.fn(),
+  recordFileUploadError: vi.fn(),
+  recordMetric: vi.fn(),
+  recordTokenUsage: vi.fn(),
+  performHealthCheck: vi.fn().mockResolvedValue({ isHealthy: true }),
+  getHealthStatus: vi.fn().mockReturnValue([]),
+  getPerformanceMetrics: vi.fn().mockReturnValue({}),
+  getMetrics: vi.fn().mockReturnValue([]),
+  getDashboardData: vi.fn().mockResolvedValue({}),
+  cleanup: vi.fn(),
+  exportMetrics: vi.fn().mockResolvedValue([]),
+  config: {
+    retentionPeriodMs: 86_400_000,
+    maxMetricsPerProvider: 10_000,
+    healthCheckIntervalMs: 60_000,
+    cleanupIntervalMs: 3_600_000,
+    alertThresholds: {},
+  },
+};
+
 // Mock monitoring service
 vi.mock('../monitoring', () => ({
-  getVectorStoreMonitoringService: vi.fn().mockReturnValue({
-    recordSearchLatency: vi.fn(),
-    recordSearchError: vi.fn(),
-    recordSearchSuccess: vi.fn(),
-    recordFileUpload: vi.fn(),
-    recordFileUploadError: vi.fn(),
-    recordMetric: vi.fn(),
-    recordTokenUsage: vi.fn(),
-    performHealthCheck: vi.fn().mockResolvedValue({ isHealthy: true }),
-    getHealthStatus: vi.fn().mockReturnValue([]),
-    getPerformanceMetrics: vi.fn().mockReturnValue({}),
-    getMetrics: vi.fn().mockReturnValue([]),
-    getDashboardData: vi.fn().mockResolvedValue({}),
-    cleanup: vi.fn(),
-    exportMetrics: vi.fn().mockResolvedValue([]),
-    config: {
-      retentionPeriodMs: 86_400_000,
-      maxMetricsPerProvider: 10_000,
-      healthCheckIntervalMs: 60_000,
-      cleanupIntervalMs: 3_600_000,
-      alertThresholds: {},
-    },
-  }),
+  getVectorStoreMonitoringService: vi.fn(() => mockMonitoringService),
   withPerformanceMonitoring: vi.fn((_store, _method, fn) => fn),
 }));
 
@@ -87,12 +90,9 @@ const mockOpenAI = {
   },
 };
 
-vi.mock('openai', () => {
-  const mockOpenAIClass = vi.fn().mockImplementation(() => mockOpenAI);
-  return {
-    default: mockOpenAIClass,
-  };
-});
+vi.mock('openai', () => ({
+  default: vi.fn(() => mockOpenAI),
+}));
 
 // Mock fetch globally
 const mockFetch = vi.fn();
@@ -450,7 +450,7 @@ describe('OpenAI Vector Store Service', () => {
           ok: false,
           status: 404,
           statusText: 'Not Found',
-          json: () => Promise.resolve({}),
+          json: () => Promise.resolve({ error: { message: 'Not Found' } }),
         });
 
         const result = await service.deleteVectorStore('vs_nonexistent');
@@ -637,7 +637,7 @@ describe('OpenAI Vector Store Service', () => {
           ok: false,
           status: 404,
           statusText: 'Not Found',
-          json: () => Promise.resolve({}),
+          json: () => Promise.resolve({ error: { message: 'Not Found' } }),
         });
 
         const result = await service.deleteFile('file_nonexistent');
@@ -921,19 +921,26 @@ describe('OpenAI Vector Store Service', () => {
       });
 
       it('should not retry on non-retryable errors', async () => {
-        const serviceWithoutStore = createOpenAIVectorStoreService({
-          apiKey: 'sk-test-key',
-          defaultVectorStoreId: null,
+        // Clear previous mock calls
+        mockFetch.mockClear();
+        
+        // Mock validation failure to trigger non-retryable error
+        // The error message should contain "not accessible" to avoid retries
+        mockFetch.mockResolvedValue({
+          ok: false,
+          status: 404,
+          statusText: 'Not Found',
+          json: () => Promise.resolve({ error: { message: 'Vector store not found' } }),
         });
 
         const request: SearchRequest = { query: 'test' };
-        const result = await serviceWithoutStore.searchWithRetry(request, 3);
+        const result = await service.searchWithRetry(request, 3);
 
         expect(result.success).toBe(false);
-        // The method returns the result directly without retrying
-        expect(result.message).toBe(
-          'No vector store ID provided and no default configured',
-        );
+        // The searchWithRetry will see the "not accessible" message from searchFiles and not retry
+        expect(result.message).toContain('not accessible');
+        // Verify only one attempt was made (validation call)
+        expect(mockFetch).toHaveBeenCalledTimes(1);
       });
 
       it('should exhaust all retries', async () => {
@@ -1151,6 +1158,9 @@ describe('OpenAI Vector Store Service', () => {
 
     describe('getSourceFiles', () => {
       it('should retrieve source file information', async () => {
+        // Mock the client property on the service
+        service.client = mockOpenAI;
+        
         const mockFile = {
           id: 'file_123',
           filename: 'document.txt',

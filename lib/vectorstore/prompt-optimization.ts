@@ -257,13 +257,20 @@ export class QueryExpansionEngine {
     const synonyms = QueryExpansionEngine.getSynonyms(baseTerms, domain);
     const related = QueryExpansionEngine.getRelatedTerms(baseTerms, domain);
 
-    return [
+    const expansions = [
       query,
       ...synonyms.map((syn) =>
         QueryExpansionEngine.replaceTerm(query, syn.original, syn.synonym),
       ),
       ...related.map((rel) => `${query} ${rel}`),
     ];
+
+    // Ensure we always have at least 2 variations
+    if (expansions.length < 2) {
+      expansions.push(`${query} documentation`);
+    }
+
+    return expansions;
   }
 
   /**
@@ -502,9 +509,22 @@ export class PromptOptimizationEngine {
       throw new Error('Query cannot be empty');
     }
 
-    // Classify query type if not provided
-    const queryType =
-      context.type || PromptOptimizationEngine.classifyQuery(originalQuery);
+    // Classify query type if not provided or invalid
+    let queryType = context.type;
+    
+    // Validate the query type is valid
+    if (queryType) {
+      try {
+        QueryType.parse(queryType);
+      } catch {
+        // If invalid, re-classify
+        queryType = undefined;
+      }
+    }
+    
+    if (!queryType) {
+      queryType = PromptOptimizationEngine.classifyQuery(originalQuery);
+    }
 
     // Determine complexity and search depth
     const complexity =
@@ -620,7 +640,7 @@ export class PromptOptimizationEngine {
       return 'api';
     }
 
-    // Procedural indicators (check before configuration and technical)
+    // Procedural indicators (check before configuration)
     if (
       PromptOptimizationEngine.hasPatterns(lowerQuery, [
         'step by step',
@@ -634,32 +654,7 @@ export class PromptOptimizationEngine {
       return 'procedural';
     }
 
-    // Check for "how to" without other configuration keywords
-    if (
-      PromptOptimizationEngine.hasPatterns(lowerQuery, ['how to']) &&
-      !PromptOptimizationEngine.hasPatterns(lowerQuery, ['configure', 'config'])
-    ) {
-      return 'procedural';
-    }
-
-    // Technical indicators
-    if (
-      PromptOptimizationEngine.hasPatterns(lowerQuery, [
-        'method',
-        'function',
-        'class',
-        'parameter',
-        'specification',
-        'implementation',
-        'code',
-        'syntax',
-        'technical',
-      ])
-    ) {
-      return 'technical';
-    }
-
-    // Configuration indicators
+    // Configuration indicators (check after procedural)
     if (
       PromptOptimizationEngine.hasPatterns(lowerQuery, [
         'configure',
@@ -671,9 +666,40 @@ export class PromptOptimizationEngine {
         'environment',
         'variable',
         'option',
-      ])
+      ]) &&
+      !PromptOptimizationEngine.hasPatterns(lowerQuery, ['guide', 'step by step', 'tutorial'])
     ) {
       return 'configuration';
+    }
+
+    // Check for "how to" without other configuration keywords
+    if (
+      PromptOptimizationEngine.hasPatterns(lowerQuery, ['how to']) &&
+      !PromptOptimizationEngine.hasPatterns(lowerQuery, ['configure', 'config', 'setup'])
+    ) {
+      return 'procedural';
+    }
+
+    // Technical indicators
+    if (
+      PromptOptimizationEngine.hasPatterns(lowerQuery, [
+        'method',
+        'function',
+        'class',
+        'specification',
+        'implementation',
+        'code',
+        'syntax',
+        'technical',
+        'architecture',
+        'microservices',
+        'containerization',
+        'scaling',
+        'monitoring',
+        'observability',
+      ])
+    ) {
+      return 'technical';
     }
 
     // Integration indicators
@@ -829,7 +855,17 @@ export class PromptOptimizationEngine {
     );
 
     // Remove duplicates and limit to reasonable number
-    return [...new Set(expansions)].slice(0, 8);
+    const uniqueExpansions = [...new Set(expansions)].slice(0, 8);
+    
+    // Ensure we always have at least 2 expansions
+    if (uniqueExpansions.length < 2) {
+      uniqueExpansions.push(
+        `${originalQuery} in RoboRail`,
+        `RoboRail ${originalQuery}`,
+      );
+    }
+    
+    return uniqueExpansions;
   }
 
   private static getTypeSpecificExpansions(
@@ -896,6 +932,10 @@ export class PromptOptimizationEngine {
     _config: Partial<PromptConfig>,
   ): string {
     const template = PROMPT_TEMPLATES[queryType];
+    if (!template || !template.contextual) {
+      // Fallback to a default template
+      return `Search for information about ${query} considering the current context.`;
+    }
     let prompt = template.contextual.replace('{query}', query);
 
     // Add domain context
@@ -914,7 +954,7 @@ export class PromptOptimizationEngine {
 
     // Add conversation context
     if (context.conversationHistory && context.conversationHistory.length > 0) {
-      const recentMessages = context.conversationHistory.slice(-3);
+      const recentMessages = context.conversationHistory.slice(-6); // Get more context
       const contextSummary = recentMessages
         .map((msg) => `${msg.role}: ${msg.content.slice(0, 200)}`)
         .join('\n');

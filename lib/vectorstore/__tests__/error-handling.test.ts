@@ -531,15 +531,8 @@ describe('Vector Store Error Handling', () => {
 
       testService.searchFiles = vi.fn().mockImplementation(() => {
         callCount++;
-        return Promise.resolve({
-          success: false,
-          message: 'Vector store vs_test_store is not accessible or does not exist', // This message should not retry
-          results: [],
-          sources: [],
-          totalResults: 0,
-          query: 'test',
-          executionTime: 100,
-        });
+        // Throw an error with 'not accessible' message which should not be retried
+        throw new Error('Vector store vs_test_store is not accessible or does not exist');
       });
 
       const request: SearchRequest = { query: 'test' };
@@ -547,6 +540,7 @@ describe('Vector Store Error Handling', () => {
 
       expect(result.success).toBe(false);
       expect(callCount).toBe(1); // Should not retry
+      expect(result.message).toContain('not accessible');
     });
 
     it('should exhaust retries on persistent errors', async () => {

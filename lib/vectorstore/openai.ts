@@ -457,7 +457,11 @@ export function createOpenAIVectorStoreService(
         );
 
         if (!response.ok) {
-          const _errorData = await response.json().catch(() => ({}));
+          const errorData = await response.json().catch(() => ({}));
+          console.error(
+            `Failed to delete vector store: HTTP ${response.status}`,
+            errorData,
+          );
           return false;
         }
 
@@ -585,7 +589,11 @@ export function createOpenAIVectorStoreService(
         );
 
         if (!response.ok) {
-          const _errorData = await response.json().catch(() => ({}));
+          const errorData = await response.json().catch(() => ({}));
+          console.error(
+            `Failed to delete file: HTTP ${response.status}`,
+            errorData,
+          );
           return false;
         }
 
@@ -837,8 +845,17 @@ export function createOpenAIVectorStoreService(
             return result;
           }
 
-          // If search failed but didn't throw, treat as error for retry
+          // If search failed but didn't throw, check if it's a non-retryable error
           lastError = new Error(result.message);
+          
+          // Check if this is a non-retryable error
+          if (
+            result.message.includes('No vector store ID') ||
+            result.message.includes('not accessible') ||
+            result.message.includes('disabled')
+          ) {
+            return result; // Return immediately without retrying
+          }
         } catch (error) {
           lastError = error instanceof Error ? error : new Error(String(error));
 
