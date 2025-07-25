@@ -94,15 +94,66 @@ vi.mock('ai', async () => {
 
 // Mock AI SDK providers
 vi.mock('@ai-sdk/openai', () => ({
-  openai: vi.fn().mockImplementation(() => vi.fn()),
+  openai: Object.assign(
+    vi.fn().mockImplementation((modelId: string) => ({
+      specificationVersion: 'v1',
+      provider: 'openai',
+      modelId,
+      defaultObjectGenerationMode: 'json',
+      supportsImageUrls: true,
+      doGenerate: vi.fn(),
+      doStream: vi.fn(),
+    })),
+    {
+      textEmbeddingModel: vi.fn().mockImplementation(() => ({
+        specificationVersion: 'v1',
+        provider: 'openai',
+        modelId: 'text-embedding-3-small',
+        maxEmbeddingDimensions: 1536,
+        doEmbed: async ({ values }: { values: string[] }) => ({
+          embeddings: values.map(() =>
+            Array.from({ length: 1536 }, () => Math.random()),
+          ),
+        }),
+      })),
+      responses: vi.fn().mockImplementation((modelId: string) => ({
+        specificationVersion: 'v1',
+        provider: 'openai',
+        modelId,
+        defaultObjectGenerationMode: 'json',
+        supportsImageUrls: true,
+        doGenerate: vi.fn(),
+        doStream: vi.fn(),
+      })),
+      tools: {
+        webSearchPreview: vi.fn().mockImplementation(() => ({})),
+      },
+    }
+  ),
 }));
 
 vi.mock('@ai-sdk/anthropic', () => ({
-  anthropic: vi.fn().mockImplementation(() => vi.fn()),
+  anthropic: vi.fn().mockImplementation((modelId: string) => ({
+    specificationVersion: 'v1',
+    provider: 'anthropic',
+    modelId,
+    defaultObjectGenerationMode: 'json',
+    supportsImageUrls: true,
+    doGenerate: vi.fn(),
+    doStream: vi.fn(),
+  })),
 }));
 
 vi.mock('@ai-sdk/google', () => ({
-  google: vi.fn().mockImplementation(() => vi.fn()),
+  google: vi.fn().mockImplementation((modelId: string) => ({
+    specificationVersion: 'v1',
+    provider: 'google',
+    modelId,
+    defaultObjectGenerationMode: 'json',
+    supportsImageUrls: true,
+    doGenerate: vi.fn(),
+    doStream: vi.fn(),
+  })),
 }));
 
 vi.mock('@ai-sdk/cohere', () => ({
@@ -111,4 +162,29 @@ vi.mock('@ai-sdk/cohere', () => ({
 
 vi.mock('@ai-sdk/groq', () => ({
   groq: vi.fn().mockImplementation(() => vi.fn()),
+}));
+
+// Mock OpenAI client
+vi.mock('openai', () => ({
+  default: vi.fn().mockImplementation(() => ({
+    beta: {
+      vectorStores: {
+        create: vi.fn().mockResolvedValue({ id: 'vs_test' }),
+        retrieve: vi.fn().mockResolvedValue({ id: 'vs_test', status: 'ready' }),
+        update: vi.fn().mockResolvedValue({ id: 'vs_test' }),
+        del: vi.fn().mockResolvedValue({}),
+        fileBatches: {
+          uploadAndPoll: vi.fn().mockResolvedValue({}),
+        },
+        files: {
+          list: vi.fn().mockResolvedValue({ data: [] }),
+          del: vi.fn().mockResolvedValue({}),
+        },
+      },
+    },
+    files: {
+      create: vi.fn().mockResolvedValue({ id: 'file_test' }),
+      del: vi.fn().mockResolvedValue({}),
+    },
+  })),
 }));

@@ -175,6 +175,9 @@ describe('RAG Service', () => {
         question: 'What is Next.js?',
         chatHistory: [],
         modelId: 'openai-gpt-4.1',
+        options: {
+          vectorStoreSources: ['memory'],
+        },
       };
 
       const response = await generateRAGResponse(ragService, query);
@@ -247,6 +250,7 @@ describe('RAG Service', () => {
           chunkSize: 1000,
           chunkOverlap: 200,
           maxRetrievalLimit: 10,
+          embeddingDimensions: 1536,
         },
       };
 

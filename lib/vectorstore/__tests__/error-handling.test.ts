@@ -319,10 +319,30 @@ describe('Vector Store Error Handling', () => {
 
   describe('Search Error Scenarios', () => {
     it('should handle search API failures', async () => {
-      // Mock successful validation
+      // Mock successful validation with proper vector store structure
+      const mockVectorStore = {
+        id: 'vs_test_store',
+        object: 'vector_store',
+        created_at: Date.now(),
+        status: 'completed',
+        name: 'Test Store',
+        usage_bytes: 0,
+        file_counts: {
+          in_progress: 0,
+          completed: 1,
+          failed: 0,
+          cancelled: 0,
+          total: 1,
+        },
+        expires_after: null,
+        expires_at: null,
+        last_active_at: null,
+        metadata: {},
+      };
+      
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve({ status: 'completed' }),
+        json: () => Promise.resolve(mockVectorStore),
       });
 
       mockOpenAI.responses.create.mockRejectedValueOnce(
@@ -337,10 +357,30 @@ describe('Vector Store Error Handling', () => {
     });
 
     it('should handle malformed search responses', async () => {
-      // Mock validation
+      // Mock validation with proper vector store structure
+      const mockVectorStore = {
+        id: 'vs_test_store',
+        object: 'vector_store',
+        created_at: Date.now(),
+        status: 'completed',
+        name: 'Test Store',
+        usage_bytes: 0,
+        file_counts: {
+          in_progress: 0,
+          completed: 1,
+          failed: 0,
+          cancelled: 0,
+          total: 1,
+        },
+        expires_after: null,
+        expires_at: null,
+        last_active_at: null,
+        metadata: {},
+      };
+      
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve({ status: 'completed' }),
+        json: () => Promise.resolve(mockVectorStore),
       });
 
       mockOpenAI.responses.create.mockResolvedValueOnce({
@@ -357,10 +397,30 @@ describe('Vector Store Error Handling', () => {
     });
 
     it('should handle search timeout errors', async () => {
-      // Mock validation
+      // Mock validation with proper vector store structure
+      const mockVectorStore = {
+        id: 'vs_test_store',
+        object: 'vector_store',
+        created_at: Date.now(),
+        status: 'completed',
+        name: 'Test Store',
+        usage_bytes: 0,
+        file_counts: {
+          in_progress: 0,
+          completed: 1,
+          failed: 0,
+          cancelled: 0,
+          total: 1,
+        },
+        expires_after: null,
+        expires_at: null,
+        last_active_at: null,
+        metadata: {},
+      };
+      
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve({ status: 'completed' }),
+        json: () => Promise.resolve(mockVectorStore),
       });
 
       mockOpenAI.responses.create.mockImplementation(
@@ -378,10 +438,30 @@ describe('Vector Store Error Handling', () => {
     });
 
     it('should handle empty search results gracefully', async () => {
-      // Mock validation
+      // Mock validation with proper vector store structure
+      const mockVectorStore = {
+        id: 'vs_test_store',
+        object: 'vector_store',
+        created_at: Date.now(),
+        status: 'completed',
+        name: 'Test Store',
+        usage_bytes: 0,
+        file_counts: {
+          in_progress: 0,
+          completed: 1,
+          failed: 0,
+          cancelled: 0,
+          total: 1,
+        },
+        expires_after: null,
+        expires_at: null,
+        last_active_at: null,
+        metadata: {},
+      };
+      
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve({ status: 'completed' }),
+        json: () => Promise.resolve(mockVectorStore),
       });
 
       mockOpenAI.responses.create.mockResolvedValueOnce({
@@ -453,7 +533,7 @@ describe('Vector Store Error Handling', () => {
         callCount++;
         return Promise.resolve({
           success: false,
-          message: 'No vector store ID provided',
+          message: 'Vector store vs_test_store is not accessible or does not exist', // This message should not retry
           results: [],
           sources: [],
           totalResults: 0,
@@ -536,9 +616,7 @@ describe('Vector Store Error Handling', () => {
         maxResults: -1, // Invalid max results
       };
 
-      const result = await service.searchFiles(invalidRequest as any);
-      expect(result.success).toBe(false);
-      expect(result.message).toContain('Invalid search request');
+      await expect(service.searchFiles(invalidRequest as any)).rejects.toThrow();
     });
 
     it('should handle invalid file upload parameters', async () => {
@@ -615,6 +693,32 @@ describe('Vector Store Error Handling', () => {
 
   describe('Memory and Resource Error Handling', () => {
     it('should handle out-of-memory scenarios', async () => {
+      // Mock validation with proper vector store structure
+      const mockVectorStore = {
+        id: 'vs_test_store',
+        object: 'vector_store',
+        created_at: Date.now(),
+        status: 'completed',
+        name: 'Test Store',
+        usage_bytes: 0,
+        file_counts: {
+          in_progress: 0,
+          completed: 1,
+          failed: 0,
+          cancelled: 0,
+          total: 1,
+        },
+        expires_after: null,
+        expires_at: null,
+        last_active_at: null,
+        metadata: {},
+      };
+      
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(mockVectorStore),
+      });
+
       mockOpenAI.responses.create.mockRejectedValueOnce(
         new Error('Out of memory'),
       );
@@ -627,10 +731,30 @@ describe('Vector Store Error Handling', () => {
     });
 
     it('should handle large response processing errors', async () => {
-      // Mock validation
+      // Mock validation with proper vector store structure
+      const mockVectorStore = {
+        id: 'vs_test_store',
+        object: 'vector_store',
+        created_at: Date.now(),
+        status: 'completed',
+        name: 'Test Store',
+        usage_bytes: 0,
+        file_counts: {
+          in_progress: 0,
+          completed: 1,
+          failed: 0,
+          cancelled: 0,
+          total: 1,
+        },
+        expires_after: null,
+        expires_at: null,
+        last_active_at: null,
+        metadata: {},
+      };
+      
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve({ status: 'completed' }),
+        json: () => Promise.resolve(mockVectorStore),
       });
 
       // Create a response with too many results

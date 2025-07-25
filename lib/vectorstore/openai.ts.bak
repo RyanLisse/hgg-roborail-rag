@@ -462,8 +462,7 @@ export function createOpenAIVectorStoreService(
         }
 
         return true;
-      } catch (error) {
-        console.error('Failed to delete vector store:', error);
+      } catch (_error) {
         return false;
       }
     },
@@ -554,8 +553,7 @@ export function createOpenAIVectorStoreService(
             }),
           ) || []
         );
-      } catch (error) {
-        console.error('Failed to list files:', error);
+      } catch (_error) {
         // Return empty array instead of throwing to prevent blocking the UI
         return [];
       }
@@ -590,8 +588,7 @@ export function createOpenAIVectorStoreService(
         }
 
         return true;
-      } catch (error) {
-        console.error('Failed to delete file:', error);
+      } catch (_error) {
         return false;
       }
     },
@@ -668,7 +665,7 @@ export function createOpenAIVectorStoreService(
               if (optimizedQuery) {
                 searchPrompt = optimizedQuery.optimizedQuery;
               }
-            } catch (error) {
+            } catch (_error) {
             }
           } else {
             // Use simplified search prompt for faster response
@@ -887,8 +884,7 @@ export function createOpenAIVectorStoreService(
             name: file.filename || `File ${file.id}`,
             url: undefined, // OpenAI files don't have public URLs
           });
-        } catch (error) {
-          console.error('Failed to retrieve file information:', error);
+        } catch (_error) {
           // Add placeholder for failed file retrieval
           sources.push({
             id: fileId,
@@ -1021,8 +1017,7 @@ export function createOpenAIVectorStoreService(
           vectorStore.status === 'completed' ||
           vectorStore.status === 'in_progress'
         );
-      } catch (error) {
-        console.error('Failed to validate vector store:', error);
+      } catch (_error) {
         return false;
       }
     },

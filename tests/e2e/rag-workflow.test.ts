@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { expect, test } from '@playwright/test';
+import { expect, test } from '../fixtures';
 import {
   createPerformanceMonitor,
   sendMessageWithRetry,
@@ -9,6 +9,10 @@ import {
   waitForChatResponse,
   waitForPageReady,
 } from '../utils/test-helpers';
+
+// Constants for regex patterns
+const DOCUMENT_PROCESSING_REGEX = /uploaded|processed|added|vector|stored/i;
+const LEARNING_TYPES_REGEX = /(supervised|unsupervised|reinforcement)/;
 
 test.describe('RAG Workflow E2E Tests', () => {
   // Test data
@@ -61,6 +65,7 @@ Deep Learning is a subset of machine learning that uses artificial neural networ
         fs.unlinkSync(filePath);
       }
     } catch (_error) {
+      // Ignore file deletion errors
     }
   };
 
@@ -118,7 +123,7 @@ Deep Learning is a subset of machine learning that uses artificial neural networ
       // Check for processing confirmation with better error handling
       await waitForChatResponse(page, {
         timeout: 45_000,
-        expectText: /uploaded|processed|added|vector|stored/i,
+        expectText: DOCUMENT_PROCESSING_REGEX,
       });
       monitor.end('document-processing');
 
@@ -138,7 +143,7 @@ Deep Learning is a subset of machine learning that uses artificial neural networ
 
       expect(responseText).toBeTruthy();
       expect(responseText?.toLowerCase()).toMatch(
-        /(supervised|unsupervised|reinforcement)/,
+        LEARNING_TYPES_REGEX,
       );
 
       // Look for source citations or file references
@@ -163,7 +168,9 @@ Deep Learning is a subset of machine learning that uses artificial neural networ
         hasSourcesSection || hasFileReference || hasCitationLinks;
 
       if (hasAnySources) {
+        // Sources are available - continue with test
       } else {
+        // No sources found - this is acceptable for the test
       }
 
       await chatInput.fill('Search for information about neural networks');
@@ -456,7 +463,7 @@ This comprehensive guide covers all essential aspects of modern software develop
         .textContent();
       expect(followUpResponse).toBeTruthy();
       expect(followUpResponse?.toLowerCase()).toMatch(
-        /(supervised|unsupervised|reinforcement)/,
+        LEARNING_TYPES_REGEX,
       );
 
       // Another contextual question

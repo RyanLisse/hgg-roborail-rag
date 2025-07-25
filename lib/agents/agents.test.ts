@@ -14,11 +14,28 @@ import {
 } from './index';
 import type { AgentRequest } from './types';
 
+// Constants
+const HEALTH_STATUS_REGEX = /healthy|degraded|unhealthy/;
+
 // Mock the AI providers
 vi.mock('../ai/providers', () => ({
   getModelInstance: vi.fn(() => ({
     // Mock model instance
     generate: vi.fn(),
+  })),
+  validateProviderConfig: vi.fn(() => ({
+    isValid: true,
+    errors: [],
+    warnings: [],
+    configuredProviders: ['openai', 'anthropic'],
+  })),
+  checkProviderHealth: vi.fn(() => Promise.resolve({
+    healthy: true,
+    status: 'All providers operational',
+    providers: {
+      openai: { status: 'healthy', latency: 150 },
+      anthropic: { status: 'healthy', latency: 200 },
+    },
   })),
 }));
 
@@ -49,7 +66,7 @@ vi.mock('ai', () => ({
   ),
   streamText: vi.fn(() => {
     const stream = {
-      async *[Symbol.asyncIterator]() {
+      *[Symbol.asyncIterator]() {
         yield 'Mock ';
         yield 'streaming ';
         yield 'response';
@@ -360,7 +377,7 @@ describe('Agent System', () => {
     it('should provide health check functionality', async () => {
       const health = await orchestrator.healthCheck();
 
-      expect(health.status).toMatch(/healthy|degraded|unhealthy/);
+      expect(health.status).toMatch(HEALTH_STATUS_REGEX);
       expect(health.agents).toBeDefined();
       expect(Object.keys(health.agents)).toContain('qa');
       expect(Object.keys(health.agents)).toContain('rewrite');

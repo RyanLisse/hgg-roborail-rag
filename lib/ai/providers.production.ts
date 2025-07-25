@@ -37,7 +37,7 @@ export function getModelInstance(modelId: string) {
 // Get embedding model instance
 export function getEmbeddingModelInstance(_modelId: string) {
   // For now, use OpenAI text-embedding-3-small for all embeddings
-  return openai.embedding('text-embedding-3-small');
+  return openai.textEmbeddingModel('text-embedding-3-small');
 }
 
 // Enhanced language model factory with reasoning support

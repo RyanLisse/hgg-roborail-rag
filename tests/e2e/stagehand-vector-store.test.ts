@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { Stagehand } from '@browserbasehq/stagehand';
-import { expect, test } from '@playwright/test';
+import { expect, test } from '../fixtures';
 
 test.describe('Vector Store with Stagehand AI', () => {
   let stagehand: Stagehand;
@@ -24,6 +24,7 @@ test.describe('Vector Store with Stagehand AI', () => {
         fs.unlinkSync(filePath);
       }
     } catch (_error) {
+      // Ignore file deletion errors  
     }
   };
 
