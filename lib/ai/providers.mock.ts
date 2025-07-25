@@ -1,17 +1,17 @@
 import type {
-  LanguageModel,
+  LanguageModelV1,
   EmbeddingModel,
 } from 'ai';
 import { chatModels, getModelById } from './models';
 
 // Mock language model for testing
-export class MockLanguageModel implements LanguageModel<any> {
+export class MockLanguageModel implements LanguageModelV1 {
   readonly specificationVersion = 'v1' as const;
   readonly modelId: string;
   readonly provider: string;
   readonly defaultObjectGenerationMode = 'tool' as const;
   readonly supportsImageUrls = true;
-  readonly supportsUrl = false;
+  readonly supportsUrl = (url: URL) => false;
 
   constructor(modelId: string) {
     this.modelId = modelId;
@@ -153,13 +153,13 @@ export function isReasoningModel(modelId: string): boolean {
 }
 
 // Enhanced language model creation for testing
-function createDynamicLanguageModel(modelId: string): LanguageModel {
+function createDynamicLanguageModel(modelId: string): LanguageModelV1 {
   return new MockLanguageModel(modelId);
 }
 
 // Create all language models for testing
-function createAllLanguageModels(): Record<string, LanguageModel> {
-  const models: Record<string, LanguageModel> = {};
+function createAllLanguageModels(): Record<string, LanguageModelV1> {
+  const models: Record<string, LanguageModelV1> = {};
   
   // Primary models with fallbacks
   const primaryModels = {
@@ -191,7 +191,7 @@ export const myProvider = {
   languageModels: createAllLanguageModels(),
   
   // Add a method to get a specific model
-  languageModel(modelId?: string): LanguageModel {
+  languageModel(modelId?: string): LanguageModelV1 {
     const models = this.languageModels;
     const selectedModelId = modelId || 'chat-model';
     
