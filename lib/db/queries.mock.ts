@@ -20,12 +20,12 @@ export function resetMocks() {
 }
 
 // Mock implementations
-export function getUser(email: string): Promise<User[]> {
+export async function getUser(email: string): Promise<User[]> {
   const user = Array.from(mockUsers.values()).find((u) => u.email === email);
   return user ? [user] : [];
 }
 
-export function createUser(email: string, password: string) {
+export async function createUser(email: string, password: string) {
   const id = `user-${mockUserCounter++}`;
   const user: User = {
     id,
@@ -36,7 +36,7 @@ export function createUser(email: string, password: string) {
   return { insertId: id };
 }
 
-export function createGuestUser() {
+export async function createGuestUser() {
   const id = `guest-${mockUserCounter++}`;
   const email = `guest-${Date.now()}`;
   const user: User = {
@@ -48,7 +48,7 @@ export function createGuestUser() {
   return [{ id, email }];
 }
 
-export function ensureUserExists(userId: string) {
+export async function ensureUserExists(userId: string) {
   if (!mockUsers.has(userId)) {
     const user: User = {
       id: userId,
@@ -60,7 +60,7 @@ export function ensureUserExists(userId: string) {
   return mockUsers.get(userId);
 }
 
-export function saveChat({
+export async function saveChat({
   id,
   userId,
   title,
@@ -80,11 +80,11 @@ export function saveChat({
   return chat;
 }
 
-export function getChatById({ id }: { id: string }) {
+export async function getChatById({ id }: { id: string }) {
   return mockChats.get(id) || null;
 }
 
-export function saveMessages({ messages }: { messages: DBMessage[] }) {
+export async function saveMessages({ messages }: { messages: DBMessage[] }) {
   for (const message of messages) {
     const chatMessages = mockMessages.get(message.chatId) || [];
     chatMessages.push(message);
@@ -92,11 +92,11 @@ export function saveMessages({ messages }: { messages: DBMessage[] }) {
   }
 }
 
-export function getMessagesByChatId({ id }: { id: string }) {
+export async function getMessagesByChatId({ id }: { id: string }) {
   return mockMessages.get(id) || [];
 }
 
-export function getMessageCountByUserId(userId: string) {
+export async function getMessageCountByUserId(userId: string) {
   let count = 0;
   for (const [chatId, messages] of mockMessages.entries()) {
     const chat = mockChats.get(chatId);
@@ -108,16 +108,16 @@ export function getMessageCountByUserId(userId: string) {
 }
 
 // Other mock functions for completeness
-export function deleteChatById({ id }: { id: string }) {
+export async function deleteChatById({ id }: { id: string }) {
   mockChats.delete(id);
   mockMessages.delete(id);
 }
 
-export function createStreamId() {
+export async function createStreamId() {
   return `stream-${Date.now()}`;
 }
 
-export function getStreamIdsByChatId({ id }: { id: string }) {
+export async function getStreamIdsByChatId({ id }: { id: string }) {
   return [`stream-${id}`];
 }
 

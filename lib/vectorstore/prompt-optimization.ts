@@ -503,7 +503,7 @@ export class PromptOptimizationEngine {
   /**
    * Optimize query and generate enhanced prompts
    */
-  static optimizeQuery(
+  static async optimizeQuery(
     originalQuery: string,
     context: QueryContext,
     config: Partial<PromptConfig> = {},
