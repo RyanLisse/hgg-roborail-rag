@@ -304,9 +304,15 @@ function PureMultimodalInput({
 export const MultimodalInput = memo(
   PureMultimodalInput,
   (prevProps, nextProps) => {
-    if (prevProps.input !== nextProps.input) { return false; }
-    if (prevProps.status !== nextProps.status) { return false; }
-    if (!equal(prevProps.attachments, nextProps.attachments)) { return false; }
+    if (prevProps.input !== nextProps.input) {
+      return false;
+    }
+    if (prevProps.status !== nextProps.status) {
+      return false;
+    }
+    if (!equal(prevProps.attachments, nextProps.attachments)) {
+      return false;
+    }
 
     return true;
   },
@@ -389,6 +395,8 @@ const SendButton = memo(PureSendButton, (prevProps, nextProps) => {
   if (prevProps.uploadQueue.length !== nextProps.uploadQueue.length) {
     return false;
   }
-  if (prevProps.input !== nextProps.input) { return false; }
+  if (prevProps.input !== nextProps.input) {
+    return false;
+  }
   return true;
 });

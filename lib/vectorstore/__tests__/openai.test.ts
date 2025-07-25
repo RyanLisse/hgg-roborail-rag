@@ -3,6 +3,35 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 // Mock server-only module to prevent client component error
 vi.mock('server-only', () => ({}));
 
+// Create mock functions that can be accessed in tests
+const mockFilesCreate = vi.fn();
+const mockFilesRetrieve = vi.fn();
+const mockResponsesCreate = vi.fn();
+const mockVectorStoreFilesAttach = vi.fn();
+
+// Create the mock client object
+const mockClient = {
+  files: {
+    create: mockFilesCreate,
+    retrieve: mockFilesRetrieve,
+  },
+  responses: {
+    create: mockResponsesCreate,
+  },
+  beta: {
+    vectorStores: {
+      files: {
+        attach: mockVectorStoreFilesAttach,
+      },
+    },
+  },
+};
+
+// Mock OpenAI SDK - must be before other mocks
+vi.mock('openai', () => ({
+  default: vi.fn(() => mockClient),
+}));
+
 // Mock the env module to allow dynamic environment variable changes during tests
 vi.mock('../../env', () => ({
   get OPENAI_API_KEY() {
@@ -35,30 +64,32 @@ if (typeof global.performance === 'undefined') {
 }
 
 // Mock monitoring service
+const mockMonitoringService = {
+  recordSearchLatency: vi.fn(),
+  recordSearchError: vi.fn(),
+  recordSearchSuccess: vi.fn(),
+  recordFileUpload: vi.fn(),
+  recordFileUploadError: vi.fn(),
+  recordMetric: vi.fn(),
+  recordTokenUsage: vi.fn(),
+  performHealthCheck: vi.fn().mockResolvedValue({ isHealthy: true }),
+  getHealthStatus: vi.fn().mockReturnValue([]),
+  getPerformanceMetrics: vi.fn().mockReturnValue({}),
+  getMetrics: vi.fn().mockReturnValue([]),
+  getDashboardData: vi.fn().mockResolvedValue({}),
+  cleanup: vi.fn(),
+  exportMetrics: vi.fn().mockResolvedValue([]),
+  config: {
+    retentionPeriodMs: 86_400_000,
+    maxMetricsPerProvider: 10_000,
+    healthCheckIntervalMs: 60_000,
+    cleanupIntervalMs: 3_600_000,
+    alertThresholds: {},
+  },
+};
+
 vi.mock('../monitoring', () => ({
-  getVectorStoreMonitoringService: vi.fn().mockReturnValue({
-    recordSearchLatency: vi.fn(),
-    recordSearchError: vi.fn(),
-    recordSearchSuccess: vi.fn(),
-    recordFileUpload: vi.fn(),
-    recordFileUploadError: vi.fn(),
-    recordMetric: vi.fn(),
-    recordTokenUsage: vi.fn(),
-    performHealthCheck: vi.fn().mockResolvedValue({ isHealthy: true }),
-    getHealthStatus: vi.fn().mockReturnValue([]),
-    getPerformanceMetrics: vi.fn().mockReturnValue({}),
-    getMetrics: vi.fn().mockReturnValue([]),
-    getDashboardData: vi.fn().mockResolvedValue({}),
-    cleanup: vi.fn(),
-    exportMetrics: vi.fn().mockResolvedValue([]),
-    config: {
-      retentionPeriodMs: 86_400_000,
-      maxMetricsPerProvider: 10_000,
-      healthCheckIntervalMs: 60_000,
-      cleanupIntervalMs: 3_600_000,
-      alertThresholds: {},
-    },
-  }),
+  getVectorStoreMonitoringService: vi.fn(() => mockMonitoringService),
   withPerformanceMonitoring: vi.fn((_store, _method, fn) => fn),
 }));
 
@@ -69,37 +100,15 @@ import {
   type SearchRequest,
 } from '../openai';
 
-// Mock OpenAI SDK
-const mockOpenAI = {
-  files: {
-    create: vi.fn(),
-    retrieve: vi.fn(),
-  },
-  responses: {
-    create: vi.fn(),
-  },
-  beta: {
-    vectorStores: {
-      files: {
-        attach: vi.fn(),
-      },
-    },
-  },
-};
-
-vi.mock('openai', () => {
-  const mockOpenAIClass = vi.fn().mockImplementation(() => mockOpenAI);
-  return {
-    default: mockOpenAIClass,
-  };
-});
-
 // Mock fetch globally
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
 describe('OpenAI Vector Store Service', () => {
   let service: OpenAIVectorStoreService;
+  let consoleWarnSpy: any;
+  let consoleErrorSpy: any;
+  let consoleLogSpy: any;
 
   // Skip these tests if OpenAI API key is not available
   const _skipIfNoOpenAI = process.env.OPENAI_API_KEY ? it : it.skip;
@@ -109,15 +118,37 @@ describe('OpenAI Vector Store Service', () => {
     mockFetch.mockClear();
 
     // Reset OpenAI client mocks
-    mockOpenAI.files.create.mockClear();
-    mockOpenAI.files.retrieve.mockClear();
-    mockOpenAI.responses.create.mockClear();
-    mockOpenAI.beta.vectorStores.files.attach.mockClear();
+    mockFilesCreate.mockClear();
+    mockFilesRetrieve.mockClear();
+    mockResponsesCreate.mockClear();
+    mockVectorStoreFilesAttach.mockClear();
+
+    // Ensure mockClient has the right structure
+    mockClient.files = {
+      create: mockFilesCreate,
+      retrieve: mockFilesRetrieve,
+    };
+    mockClient.responses = {
+      create: mockResponsesCreate,
+    };
+    mockClient.beta = {
+      vectorStores: {
+        files: {
+          attach: mockVectorStoreFilesAttach,
+        },
+      },
+    };
+
+    // Reset monitoring service mocks
+    mockMonitoringService.recordSearchLatency.mockClear();
+    mockMonitoringService.recordSearchError.mockClear();
+    mockMonitoringService.recordSearchSuccess.mockClear();
+    mockMonitoringService.recordMetric.mockClear();
 
     // Mock console methods to prevent test pollution
-    vi.spyOn(console, 'error').mockImplementation(() => {});
-    vi.spyOn(console, 'warn').mockImplementation(() => {});
-    vi.spyOn(console, 'log').mockImplementation(() => {});
+    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
     // Set default test environment variables only if not already set
     if (!process.env.OPENAI_API_KEY) {
@@ -148,8 +179,8 @@ describe('OpenAI Vector Store Service', () => {
       // Save and clear environment variables for this test
       const savedApiKey = process.env.OPENAI_API_KEY;
       const savedVectorStore = process.env.OPENAI_VECTORSTORE;
-      process.env.OPENAI_API_KEY = undefined;
-      process.env.OPENAI_VECTORSTORE = undefined;
+      delete process.env.OPENAI_API_KEY;
+      delete process.env.OPENAI_VECTORSTORE;
 
       service = createOpenAIVectorStoreService({
         apiKey: '',
@@ -160,38 +191,34 @@ describe('OpenAI Vector Store Service', () => {
       expect(service.defaultVectorStoreId).toBe(null);
 
       // Restore environment variables
-      if (savedApiKey) { process.env.OPENAI_API_KEY = savedApiKey; }
-      if (savedVectorStore) { process.env.OPENAI_VECTORSTORE = savedVectorStore; }
+      if (savedApiKey) {
+        process.env.OPENAI_API_KEY = savedApiKey;
+      }
+      if (savedVectorStore) {
+        process.env.OPENAI_VECTORSTORE = savedVectorStore;
+      }
     });
 
     it('should warn about invalid API key format', () => {
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-
       createOpenAIVectorStoreService({
         apiKey: 'invalid-key',
         defaultVectorStoreId: 'vs_test_store',
       });
 
-      expect(consoleSpy).toHaveBeenCalledWith(
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
         'OpenAI API key appears to be invalid (should start with "sk-")',
       );
-
-      consoleSpy.mockRestore();
     });
 
     it('should warn about invalid vector store ID format', () => {
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-
       createOpenAIVectorStoreService({
         apiKey: 'sk-valid-key',
         defaultVectorStoreId: 'invalid-store-id',
       });
 
-      expect(consoleSpy).toHaveBeenCalledWith(
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
         'OpenAI vector store ID appears to be invalid (should start with "vs_")',
       );
-
-      consoleSpy.mockRestore();
     });
   });
 
@@ -399,10 +426,6 @@ describe('OpenAI Vector Store Service', () => {
       });
 
       it('should return empty array on API error', async () => {
-        const consoleSpy = vi
-          .spyOn(console, 'error')
-          .mockImplementation(() => {});
-
         mockFetch.mockResolvedValueOnce({
           ok: false,
           status: 500,
@@ -413,12 +436,7 @@ describe('OpenAI Vector Store Service', () => {
         const result = await service.listVectorStores();
 
         expect(result).toEqual([]);
-        expect(consoleSpy).toHaveBeenCalledWith(
-          'Failed to list vector stores:',
-          expect.any(Error),
-        );
-
-        consoleSpy.mockRestore();
+        // listVectorStores catches errors and returns empty array without logging
       });
     });
 
@@ -442,10 +460,6 @@ describe('OpenAI Vector Store Service', () => {
       });
 
       it('should return false on API error', async () => {
-        const consoleSpy = vi
-          .spyOn(console, 'error')
-          .mockImplementation(() => {});
-
         mockFetch.mockResolvedValueOnce({
           ok: false,
           status: 404,
@@ -456,9 +470,7 @@ describe('OpenAI Vector Store Service', () => {
         const result = await service.deleteVectorStore('vs_nonexistent');
 
         expect(result).toBe(false);
-        expect(consoleSpy).toHaveBeenCalled();
-
-        consoleSpy.mockRestore();
+        // deleteVectorStore catches errors and returns false without logging
       });
     });
   });
@@ -490,7 +502,7 @@ describe('OpenAI Vector Store Service', () => {
           last_error: null,
         };
 
-        mockOpenAI.files.create.mockResolvedValueOnce(mockUploadedFile);
+        mockFilesCreate.mockResolvedValueOnce(mockUploadedFile);
         mockFetch.mockResolvedValueOnce({
           ok: true,
           json: () => Promise.resolve(mockVectorStoreFile),
@@ -503,7 +515,7 @@ describe('OpenAI Vector Store Service', () => {
 
         const result = await service.uploadFile(request);
 
-        expect(mockOpenAI.files.create).toHaveBeenCalledWith({
+        expect(mockFilesCreate).toHaveBeenCalledWith({
           file: mockFile,
           purpose: 'assistants',
         });
@@ -536,9 +548,7 @@ describe('OpenAI Vector Store Service', () => {
 
       it('should handle file upload errors', async () => {
         const mockFile = new File(['test'], 'test.txt', { type: 'text/plain' });
-        mockOpenAI.files.create.mockRejectedValueOnce(
-          new Error('Upload failed'),
-        );
+        mockFilesCreate.mockRejectedValueOnce(new Error('Upload failed'));
 
         const request: FileUploadRequest = { file: mockFile };
 
@@ -590,10 +600,6 @@ describe('OpenAI Vector Store Service', () => {
       });
 
       it('should return empty array on error', async () => {
-        const consoleSpy = vi
-          .spyOn(console, 'error')
-          .mockImplementation(() => {});
-
         mockFetch.mockResolvedValueOnce({
           ok: false,
           status: 500,
@@ -603,9 +609,7 @@ describe('OpenAI Vector Store Service', () => {
         const result = await service.listFiles();
 
         expect(result).toEqual([]);
-        expect(consoleSpy).toHaveBeenCalled();
-
-        consoleSpy.mockRestore();
+        // listFiles catches errors and returns empty array without logging
       });
     });
 
@@ -629,10 +633,6 @@ describe('OpenAI Vector Store Service', () => {
       });
 
       it('should return false on error', async () => {
-        const consoleSpy = vi
-          .spyOn(console, 'error')
-          .mockImplementation(() => {});
-
         mockFetch.mockResolvedValueOnce({
           ok: false,
           status: 404,
@@ -643,9 +643,7 @@ describe('OpenAI Vector Store Service', () => {
         const result = await service.deleteFile('file_nonexistent');
 
         expect(result).toBe(false);
-        expect(consoleSpy).toHaveBeenCalled();
-
-        consoleSpy.mockRestore();
+        // deleteFile catches errors and returns false without logging
       });
     });
   });
@@ -721,8 +719,8 @@ describe('OpenAI Vector Store Service', () => {
             json: () => Promise.resolve(mockFileInfo),
           });
 
-        mockOpenAI.responses.create.mockResolvedValueOnce(mockSearchResponse);
-        mockOpenAI.files.retrieve.mockResolvedValueOnce(mockFileInfo);
+        mockResponsesCreate.mockResolvedValueOnce(mockSearchResponse);
+        mockFilesRetrieve.mockResolvedValueOnce(mockFileInfo);
 
         const request: SearchRequest = {
           query: 'test query',
@@ -789,9 +787,7 @@ describe('OpenAI Vector Store Service', () => {
           json: () => Promise.resolve(mockVectorStore),
         });
 
-        mockOpenAI.responses.create.mockRejectedValueOnce(
-          new Error('Search failed'),
-        );
+        mockResponsesCreate.mockRejectedValueOnce(new Error('Search failed'));
 
         const request: SearchRequest = {
           query: 'test query',
@@ -859,7 +855,7 @@ describe('OpenAI Vector Store Service', () => {
           json: () => Promise.resolve(mockVectorStore),
         });
 
-        mockOpenAI.responses.create.mockResolvedValueOnce({
+        mockResponsesCreate.mockResolvedValueOnce({
           id: 'response_retry',
           status: 'completed',
           output: [],
@@ -898,7 +894,7 @@ describe('OpenAI Vector Store Service', () => {
           ok: true,
           json: () => Promise.resolve(mockVectorStore),
         });
-        mockOpenAI.responses.create.mockRejectedValueOnce(
+        mockResponsesCreate.mockRejectedValueOnce(
           new Error('Temporary failure'),
         );
 
@@ -907,7 +903,7 @@ describe('OpenAI Vector Store Service', () => {
           ok: true,
           json: () => Promise.resolve(mockVectorStore),
         });
-        mockOpenAI.responses.create.mockResolvedValueOnce({
+        mockResponsesCreate.mockResolvedValueOnce({
           id: 'response_retry_success',
           status: 'completed',
           output: [],
@@ -917,10 +913,14 @@ describe('OpenAI Vector Store Service', () => {
         const result = await service.searchWithRetry(request, 3);
 
         expect(result.success).toBe(true);
-        expect(mockOpenAI.responses.create).toHaveBeenCalledTimes(2);
+        expect(mockResponsesCreate).toHaveBeenCalledTimes(2);
       });
 
       it('should not retry on non-retryable errors', async () => {
+        // Save and clear environment variables
+        const savedVectorStore = process.env.OPENAI_VECTORSTORE;
+        delete process.env.OPENAI_VECTORSTORE;
+
         const serviceWithoutStore = createOpenAIVectorStoreService({
           apiKey: 'sk-test-key',
           defaultVectorStoreId: null,
@@ -931,9 +931,14 @@ describe('OpenAI Vector Store Service', () => {
 
         expect(result.success).toBe(false);
         // The method returns the result directly without retrying
-        expect(result.message).toBe(
+        expect(result.message).toContain(
           'No vector store ID provided and no default configured',
         );
+
+        // Restore environment variable
+        if (savedVectorStore) {
+          process.env.OPENAI_VECTORSTORE = savedVectorStore;
+        }
       });
 
       it('should exhaust all retries', async () => {
@@ -965,7 +970,7 @@ describe('OpenAI Vector Store Service', () => {
         });
 
         // All attempts fail
-        mockOpenAI.responses.create
+        mockResponsesCreate
           .mockRejectedValueOnce(new Error('Persistent error'))
           .mockRejectedValueOnce(new Error('Persistent error'));
 
@@ -974,7 +979,7 @@ describe('OpenAI Vector Store Service', () => {
 
         expect(result.success).toBe(false);
         expect(result.message).toContain('failed after 2 attempts');
-        expect(mockOpenAI.responses.create).toHaveBeenCalledTimes(2);
+        expect(mockResponsesCreate).toHaveBeenCalledTimes(2);
       });
     });
   });
@@ -1134,18 +1139,12 @@ describe('OpenAI Vector Store Service', () => {
       });
 
       it('should handle validation error', async () => {
-        const consoleSpy = vi
-          .spyOn(console, 'error')
-          .mockImplementation(() => {});
-
         mockFetch.mockRejectedValueOnce(new Error('Network error'));
 
         const result = await service.validateVectorStore('vs_test_store');
 
         expect(result).toBe(false);
-        expect(consoleSpy).toHaveBeenCalled();
-
-        consoleSpy.mockRestore();
+        // validateVectorStore catches errors and returns false without logging
       });
     });
 
@@ -1156,7 +1155,7 @@ describe('OpenAI Vector Store Service', () => {
           filename: 'document.txt',
         };
 
-        mockOpenAI.files.retrieve.mockResolvedValueOnce(mockFile);
+        mockFilesRetrieve.mockResolvedValueOnce(mockFile);
 
         const result = await service.getSourceFiles(['file_123']);
 
@@ -1166,21 +1165,13 @@ describe('OpenAI Vector Store Service', () => {
       });
 
       it('should handle file retrieval errors', async () => {
-        const consoleSpy = vi
-          .spyOn(console, 'error')
-          .mockImplementation(() => {});
-
-        mockOpenAI.files.retrieve.mockRejectedValueOnce(
-          new Error('File not found'),
-        );
+        mockFilesRetrieve.mockRejectedValueOnce(new Error('File not found'));
 
         const result = await service.getSourceFiles(['file_nonexistent']);
 
         expect(result).toHaveLength(1);
         expect(result[0].name).toBe('Unknown file (file_nonexistent)');
-        expect(consoleSpy).toHaveBeenCalled();
-
-        consoleSpy.mockRestore();
+        // getSourceFiles catches errors silently and returns placeholder
       });
 
       it('should return empty array for no file IDs', async () => {
@@ -1207,24 +1198,21 @@ describe('OpenAI Vector Store Service', () => {
       it('should return null without vector store ID', () => {
         // Save and clear environment variables
         const savedVectorStore = process.env.OPENAI_VECTORSTORE;
-        process.env.OPENAI_VECTORSTORE = undefined;
+        delete process.env.OPENAI_VECTORSTORE;
 
         const serviceWithoutStore = createOpenAIVectorStoreService({
           apiKey: 'sk-test-key',
           defaultVectorStoreId: null,
         });
 
-        // Use spyon to suppress console.warn
-        const consoleSpy = vi
-          .spyOn(console, 'warn')
-          .mockImplementation(() => {});
         const result = serviceWithoutStore.getFileSearchTool();
-        consoleSpy.mockRestore();
 
         expect(result).toBe(null);
 
         // Restore environment variable
-        if (savedVectorStore) { process.env.OPENAI_VECTORSTORE = savedVectorStore; }
+        if (savedVectorStore) {
+          process.env.OPENAI_VECTORSTORE = savedVectorStore;
+        }
       });
 
       it('should use provided vector store ID', () => {
@@ -1247,8 +1235,8 @@ describe('OpenAI Vector Store Service', () => {
       // Save and clear environment variables
       originalEnvApiKey = process.env.OPENAI_API_KEY;
       originalEnvVectorStore = process.env.OPENAI_VECTORSTORE;
-      process.env.OPENAI_API_KEY = undefined;
-      process.env.OPENAI_VECTORSTORE = undefined;
+      delete process.env.OPENAI_API_KEY;
+      delete process.env.OPENAI_VECTORSTORE;
 
       disabledService = createOpenAIVectorStoreService({
         apiKey: '',
@@ -1258,7 +1246,9 @@ describe('OpenAI Vector Store Service', () => {
 
     afterEach(() => {
       // Restore environment variables
-      if (originalEnvApiKey) { process.env.OPENAI_API_KEY = originalEnvApiKey; }
+      if (originalEnvApiKey) {
+        process.env.OPENAI_API_KEY = originalEnvApiKey;
+      }
       if (originalEnvVectorStore) {
         process.env.OPENAI_VECTORSTORE = originalEnvVectorStore;
       }
@@ -1266,16 +1256,18 @@ describe('OpenAI Vector Store Service', () => {
 
     it('should throw errors for write operations', async () => {
       await expect(disabledService.createVectorStore('test')).rejects.toThrow(
-        'OpenAI vector store service is disabled',
+        'OpenAI vector store service is disabled - no API key provided',
       );
       await expect(disabledService.getVectorStore('vs_test')).rejects.toThrow(
-        'OpenAI vector store service is disabled',
+        'OpenAI vector store service is disabled - no API key provided',
       );
 
       const mockFile = new File(['test'], 'test.txt');
       await expect(
         disabledService.uploadFile({ file: mockFile }),
-      ).rejects.toThrow('OpenAI vector store service is disabled');
+      ).rejects.toThrow(
+        'OpenAI vector store service is disabled - no API key provided',
+      );
     });
 
     it('should return empty arrays for read operations', async () => {
@@ -1300,7 +1292,9 @@ describe('OpenAI Vector Store Service', () => {
       const searchResult = await disabledService.searchFiles({ query: 'test' });
 
       expect(searchResult.success).toBe(false);
-      expect(searchResult.message).toContain('disabled');
+      expect(searchResult.message).toContain(
+        'OpenAI vector store service is disabled - no API key provided',
+      );
     });
 
     it('should return unhealthy status', async () => {

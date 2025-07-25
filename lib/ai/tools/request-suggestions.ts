@@ -25,13 +25,16 @@ export const requestSuggestions = ({
     execute: async ({ documentId }) => {
       const document = await getDocumentById({ id: documentId });
 
-      if (!(document?.content)) {
+      if (!document?.content) {
         return {
           error: 'Document not found',
         };
       }
 
-      const suggestions: Omit<Suggestion, 'userId' | 'createdAt' | 'documentCreatedAt'>[] = [];
+      const suggestions: Omit<
+        Suggestion,
+        'userId' | 'createdAt' | 'documentCreatedAt'
+      >[] = [];
 
       const { elementStream } = streamObject({
         model: myProvider.languageModel('artifact-model'),

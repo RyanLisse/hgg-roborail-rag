@@ -166,7 +166,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(response);
   } catch (error) {
-
     const errorResponse = {
       error: 'Enhanced search failed',
       message: error instanceof Error ? error.message : 'Unknown error',

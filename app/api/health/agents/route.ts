@@ -118,7 +118,6 @@ export async function GET() {
 
     return NextResponse.json(response, { status: httpStatus });
   } catch (error) {
-
     return NextResponse.json(
       {
         status: 'error',

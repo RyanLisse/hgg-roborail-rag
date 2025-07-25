@@ -77,7 +77,9 @@ function recordMetric(serviceName: string, metric: ServiceMetrics): void {
   }
 
   const serviceMetrics = metrics.get(serviceName);
-  if (!serviceMetrics) { return; }
+  if (!serviceMetrics) {
+    return;
+  }
   serviceMetrics.push(metric);
 
   // Keep only last 1000 metrics per service
@@ -162,8 +164,7 @@ export function getPerformanceSummary(
     (a, b) => a.duration - b.duration,
   );
   const fastestOperation = sortedByDuration[0] || null;
-  const slowestOperation =
-    sortedByDuration.at(-1) || null;
+  const slowestOperation = sortedByDuration.at(-1) || null;
 
   return {
     totalRequests,

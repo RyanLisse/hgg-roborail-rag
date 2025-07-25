@@ -127,8 +127,7 @@ export function useFeedback(messageId: string, userId: string) {
 
             await submitUserFeedback(langSmithService, langSmithFeedback);
           }
-        } catch (_langSmithError) {
-        }
+        } catch (_langSmithError) {}
 
         return result;
       },

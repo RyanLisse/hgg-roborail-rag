@@ -6,24 +6,23 @@
 
 // MCP Chat Flow Test Functions
 export async function runCompleteTest() {
-    // Test 1: Basic Chat Functionality
-    await testBasicChatFlow();
+  // Test 1: Basic Chat Functionality
+  await testBasicChatFlow();
 
-    // Test 2: Reasoning Models
-    await testReasoningModels();
+  // Test 2: Reasoning Models
+  await testReasoningModels();
 
-    // Test 3: Multi-Agent Routing
-    await testMultiAgentRouting();
+  // Test 3: Multi-Agent Routing
+  await testMultiAgentRouting();
 
-    // Test 4: Vector Store Integration
-    await testVectorStoreIntegration();
+  // Test 4: Vector Store Integration
+  await testVectorStoreIntegration();
 
-    // Test 5: Streaming Features
-    await testStreamingFeatures();
+  // Test 5: Streaming Features
+  await testStreamingFeatures();
 }
 
 async function testBasicChatFlow() {
-
   // Test Instructions for MCP Stagehand:
   // 1. Navigate to localhost:3000
   // 2. Click "New Chat" button
@@ -57,7 +56,6 @@ async function testBasicChatFlow() {
 }
 
 async function testReasoningModels() {
-
   // Test Instructions for MCP:
   // 1. Select reasoning model (o3-mini or o1)
   // 2. Send complex reasoning query
@@ -91,7 +89,6 @@ async function testReasoningModels() {
 }
 
 async function testMultiAgentRouting() {
-
   // Test different types of queries to trigger different agents:
   // - QA Agent: Direct factual questions
   // - Research Agent: Complex analysis queries
@@ -131,7 +128,6 @@ async function testMultiAgentRouting() {
 }
 
 async function testVectorStoreIntegration() {
-
   // Test RAG (Retrieval Augmented Generation):
   // 1. Upload a test document
   // 2. Ask questions about the document content
@@ -167,7 +163,6 @@ async function testVectorStoreIntegration() {
 }
 
 async function testStreamingFeatures() {
-
   // Test real-time streaming:
   // 1. Send a query that generates a long response
   // 2. Verify streaming indicators appear

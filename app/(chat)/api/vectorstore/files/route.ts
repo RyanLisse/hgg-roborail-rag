@@ -75,8 +75,7 @@ export async function GET(request: NextRequest) {
             vectorStoreId: file.vector_store_id,
           })),
         );
-      } catch (_error) {
-      }
+      } catch (_error) {}
     }
 
     return NextResponse.json({

@@ -321,7 +321,6 @@ export async function POST(request: Request) {
     // Return the stream directly - resumableStream functionality removed for now
     return new Response(stream);
   } catch (error) {
-
     if (error instanceof ChatSDKError) {
       return error.toResponse();
     }

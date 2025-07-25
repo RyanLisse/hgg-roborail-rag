@@ -440,9 +440,7 @@ describe('ContextWindowManager', () => {
       );
 
       expect(optimized.length).toBeGreaterThan(0);
-      expect(optimized.at(-1).content).toContain(
-        'Recent response',
-      );
+      expect(optimized.at(-1).content).toContain('Recent response');
     });
   });
 });

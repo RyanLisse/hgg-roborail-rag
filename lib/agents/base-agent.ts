@@ -186,7 +186,6 @@ export abstract class BaseAgent implements Agent {
         streamingSupported: this.capability.supportsStreaming,
       });
     } catch (error) {
-
       return AgentResponseSchema.parse({
         content: this.getErrorMessage(error),
         agent: this.type,
@@ -287,7 +286,6 @@ export abstract class BaseAgent implements Agent {
         streamingSupported: true,
       });
     } catch (error) {
-
       const errorMessage = this.getErrorMessage(error);
       yield errorMessage;
 

@@ -51,7 +51,9 @@ export function RAGChat() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!(question.trim() && selectedModel)) { return; }
+    if (!(question.trim() && selectedModel)) {
+      return;
+    }
 
     const userMessage = { role: 'user' as const, content: question };
     const newHistory = [...chatHistory, userMessage];
@@ -83,8 +85,7 @@ export function RAGChat() {
           },
         ]);
       }
-    } catch (_err) {
-    }
+    } catch (_err) {}
 
     setQuestion('');
   };
@@ -106,7 +107,9 @@ export function RAGChat() {
   };
 
   const formatFileSize = (bytes: number) => {
-    if (bytes === 0) { return '0 Bytes'; }
+    if (bytes === 0) {
+      return '0 Bytes';
+    }
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));

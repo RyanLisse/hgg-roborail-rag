@@ -2,6 +2,13 @@ import 'server-only';
 
 // Re-export base classes for type definitions (lightweight)
 export { BaseAgent } from './base-agent';
+export { AgentOrchestrator } from './orchestrator';
+export { PlannerAgent } from './planner-agent';
+// Re-export agent classes for testing (these will be tree-shaken in production)
+export { QAAgent } from './qa-agent';
+export { ResearchAgent } from './research-agent';
+export { RewriteAgent } from './rewrite-agent';
+export { SmartAgentRouter } from './router';
 // Core types and interfaces
 export type {
   Agent,
@@ -45,8 +52,8 @@ export const AGENT_CODE_SPLITTING_ENABLED =
  */
 export async function createQAAgent() {
   if (!AGENT_CODE_SPLITTING_ENABLED) {
-    const { QAAgent } = require('./qa-agent');
-    return new QAAgent();
+    const { QAAgent: QAAgentClass } = require('./qa-agent');
+    return new QAAgentClass();
   }
 
   const { QAAgent } = await import('./qa-agent');
@@ -124,13 +131,13 @@ export async function createAgentOrchestrator(config?: Partial<AgentConfig>) {
 export async function createAgent(agentType: AgentType) {
   switch (agentType) {
     case 'qa':
-      return createQAAgent();
+      return await createQAAgent();
     case 'rewrite':
-      return createRewriteAgent();
+      return await createRewriteAgent();
     case 'planner':
-      return createPlannerAgent();
+      return await createPlannerAgent();
     case 'research':
-      return createResearchAgent();
+      return await createResearchAgent();
     default:
       throw new Error(`Unknown agent type: ${agentType}`);
   }
@@ -209,9 +216,7 @@ export function resetGlobalOrchestrator(): void {
  * Create a new agent orchestrator instance (already implemented above with lazy loading)
  * This is kept for backward compatibility
  */
-export async function createAgentOrchestratorLegacy(
-  config?: Partial<AgentConfig>,
-) {
+export function createAgentOrchestratorLegacy(config?: Partial<AgentConfig>) {
   return createAgentOrchestrator(config);
 }
 

@@ -103,7 +103,7 @@ export class ChatSDKError extends Error {
     const { message, cause, statusCode } = this;
 
     if (visibility === 'log') {
-
+      console.error({ code, message, cause });
       return Response.json(
         { code: '', message: 'Something went wrong. Please try again later.' },
         { status: statusCode },

@@ -15,10 +15,14 @@ export function useModelSelection() {
   const { data: selectedModel, isLoading } = useQuery<ChatModel>({
     queryKey: [MODEL_SELECTION_KEY, session?.user?.id || 'guest'],
     queryFn: async () => {
-      if (typeof window === 'undefined') { return getDefaultModel(); }
+      if (typeof window === 'undefined') {
+        return getDefaultModel();
+      }
 
       const savedModelId = localStorage.getItem('selected-model-id');
-      if (!savedModelId) { return getDefaultModel(); }
+      if (!savedModelId) {
+        return getDefaultModel();
+      }
 
       // We'll implement getModelById in the next step
       const model = (await import('@/lib/ai/models')).getModelById(
@@ -83,7 +87,9 @@ export function useModelSelection() {
   const modelsByProvider = useQuery({
     queryKey: ['models-by-provider', availableModels],
     queryFn: () => {
-      if (!availableModels) { return {}; }
+      if (!availableModels) {
+        return {};
+      }
 
       return availableModels.reduce<Record<string, ChatModel[]>>(
         (acc, model) => {

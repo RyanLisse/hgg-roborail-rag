@@ -273,10 +273,16 @@ export function createOpenAIVectorStoreService(
 
   // Validate API key format
   if (apiKey && !apiKey.startsWith('sk-')) {
+    console.warn(
+      'OpenAI API key appears to be invalid (should start with "sk-")',
+    );
   }
 
   // Validate vector store ID format
   if (defaultVectorStoreId && !defaultVectorStoreId.startsWith('vs_')) {
+    console.warn(
+      'OpenAI vector store ID appears to be invalid (should start with "vs_")',
+    );
   }
 
   if (!validatedConfig.isEnabled) {
@@ -357,58 +363,55 @@ export function createOpenAIVectorStoreService(
       name: string,
       metadata?: Record<string, string>,
     ): Promise<VectorStore> {
-        const response = await fetch(
-          'https://api.openai.com/v1/vector_stores',
-          {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${validatedConfig.apiKey}`,
-              'Content-Type': 'application/json',
-              'OpenAI-Beta': 'assistants=v2',
-            },
-            body: JSON.stringify({
-              name,
-              metadata: metadata || {},
-              expires_after: {
-                anchor: 'last_active_at',
-                days: 365,
-              },
-            }),
+      const response = await fetch('https://api.openai.com/v1/vector_stores', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${validatedConfig.apiKey}`,
+          'Content-Type': 'application/json',
+          'OpenAI-Beta': 'assistants=v2',
+        },
+        body: JSON.stringify({
+          name,
+          metadata: metadata || {},
+          expires_after: {
+            anchor: 'last_active_at',
+            days: 365,
           },
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          `HTTP ${response.status}: ${errorData.error?.message || response.statusText}`,
         );
+      }
 
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(
-            `HTTP ${response.status}: ${errorData.error?.message || response.statusText}`,
-          );
-        }
-
-        const data = await response.json();
-        return VectorStore.parse(data);
+      const data = await response.json();
+      return VectorStore.parse(data);
     },
 
     async getVectorStore(vectorStoreId: string): Promise<VectorStore> {
-        const response = await fetch(
-          `https://api.openai.com/v1/vector_stores/${vectorStoreId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${validatedConfig.apiKey}`,
-              'Content-Type': 'application/json',
-              'OpenAI-Beta': 'assistants=v2',
-            },
+      const response = await fetch(
+        `https://api.openai.com/v1/vector_stores/${vectorStoreId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${validatedConfig.apiKey}`,
+            'Content-Type': 'application/json',
+            'OpenAI-Beta': 'assistants=v2',
           },
+        },
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          `HTTP ${response.status}: ${errorData.error?.message || response.statusText}`,
         );
+      }
 
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(
-            `HTTP ${response.status}: ${errorData.error?.message || response.statusText}`,
-          );
-        }
-
-        const data = await response.json();
-        return VectorStore.parse(data);
+      const data = await response.json();
+      return VectorStore.parse(data);
     },
 
     async listVectorStores(): Promise<VectorStore[]> {
@@ -477,37 +480,37 @@ export function createOpenAIVectorStoreService(
           'No vector store ID provided and no default configured',
         );
       }
-        // First upload the file
-        const uploadedFile = await client.files.create({
-          file: validatedRequest.file,
-          purpose: 'assistants',
-        });
+      // First upload the file
+      const uploadedFile = await client.files.create({
+        file: validatedRequest.file,
+        purpose: 'assistants',
+      });
 
-        // Add file to vector store using direct API call
-        const response = await fetch(
-          `https://api.openai.com/v1/vector_stores/${targetVectorStoreId}/files`,
-          {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${validatedConfig.apiKey}`,
-              'Content-Type': 'application/json',
-              'OpenAI-Beta': 'assistants=v2',
-            },
-            body: JSON.stringify({
-              file_id: uploadedFile.id,
-            }),
+      // Add file to vector store using direct API call
+      const response = await fetch(
+        `https://api.openai.com/v1/vector_stores/${targetVectorStoreId}/files`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${validatedConfig.apiKey}`,
+            'Content-Type': 'application/json',
+            'OpenAI-Beta': 'assistants=v2',
           },
+          body: JSON.stringify({
+            file_id: uploadedFile.id,
+          }),
+        },
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          `HTTP ${response.status}: ${errorData.error?.message || response.statusText}`,
         );
+      }
 
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(
-            `HTTP ${response.status}: ${errorData.error?.message || response.statusText}`,
-          );
-        }
-
-        const vectorStoreFile = await response.json();
-        return VectorStoreFile.parse(vectorStoreFile);
+      const vectorStoreFile = await response.json();
+      return VectorStoreFile.parse(vectorStoreFile);
     },
 
     async listFiles(vectorStoreId?: string): Promise<VectorStoreFile[]> {
@@ -619,7 +622,6 @@ export function createOpenAIVectorStoreService(
         }
 
         try {
-
           // Validate vector store exists
           const isValid =
             await service.validateVectorStore(targetVectorStoreId);
@@ -662,8 +664,7 @@ export function createOpenAIVectorStoreService(
               if (optimizedQuery) {
                 searchPrompt = optimizedQuery.optimizedQuery;
               }
-            } catch (_error) {
-            }
+            } catch (_error) {}
           } else {
             // Use simplified search prompt for faster response
             searchPrompt = `Find relevant information about: ${validatedRequest.query}`;
@@ -699,7 +700,6 @@ export function createOpenAIVectorStoreService(
                 output.status === 'completed' &&
                 output.results
               ) {
-
                 // Process each search result (limit to maxResults)
                 const limitedResults = output.results.slice(
                   0,
@@ -869,7 +869,9 @@ export function createOpenAIVectorStoreService(
     async getSourceFiles(
       fileIds: string[],
     ): Promise<Array<{ id: string; name: string; url?: string }>> {
-      if (!fileIds.length) { return []; }
+      if (!fileIds.length) {
+        return [];
+      }
 
       const sources: Array<{ id: string; name: string; url?: string }> = [];
 

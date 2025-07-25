@@ -70,58 +70,58 @@ export class OpenAIResponsesService {
     }
 
     const { model, input, vectorStoreIds, maxResults = 20 } = config;
-      // Get vector store IDs from config or default service
-      let targetVectorStoreIds = vectorStoreIds;
-      if (!targetVectorStoreIds || targetVectorStoreIds.length === 0) {
-        const vectorService = await getOpenAIVectorStoreService();
-        if (vectorService.isEnabled && vectorService.defaultVectorStoreId) {
-          targetVectorStoreIds = [vectorService.defaultVectorStoreId];
-        } else {
-          throw new Error(
-            'No vector store IDs provided and no default configured',
-          );
-        }
+    // Get vector store IDs from config or default service
+    let targetVectorStoreIds = vectorStoreIds;
+    if (!targetVectorStoreIds || targetVectorStoreIds.length === 0) {
+      const vectorService = await getOpenAIVectorStoreService();
+      if (vectorService.isEnabled && vectorService.defaultVectorStoreId) {
+        targetVectorStoreIds = [vectorService.defaultVectorStoreId];
+      } else {
+        throw new Error(
+          'No vector store IDs provided and no default configured',
+        );
       }
+    }
 
-      // Use OpenAI Responses API with file search
-      const response = await this.client.responses.create({
-        model,
-        input,
-        tools: [
-          {
-            type: 'file_search',
-            vector_store_ids: targetVectorStoreIds,
-            max_num_results: maxResults,
-          },
-        ],
-        include: ['file_search_call.results'],
-      });
+    // Use OpenAI Responses API with file search
+    const response = await this.client.responses.create({
+      model,
+      input,
+      tools: [
+        {
+          type: 'file_search',
+          vector_store_ids: targetVectorStoreIds,
+          max_num_results: maxResults,
+        },
+      ],
+      include: ['file_search_call.results'],
+    });
 
-      const responseData = response as any;
+    const responseData = response as any;
 
-      // Extract content and annotations
-      const content = responseData.output?.[0]?.content || '';
-      const annotations = responseData.output?.[0]?.annotations || [];
+    // Extract content and annotations
+    const content = responseData.output?.[0]?.content || '';
+    const annotations = responseData.output?.[0]?.annotations || [];
 
-      // Extract unique source files from annotations
-      const sourceFileIds = new Set<string>();
-      annotations.forEach((annotation: any) => {
-        if (annotation.file_citation?.file_id) {
-          sourceFileIds.add(annotation.file_citation.file_id);
-        }
-        if (annotation.file_path?.file_id) {
-          sourceFileIds.add(annotation.file_path.file_id);
-        }
-      });
+    // Extract unique source files from annotations
+    const sourceFileIds = new Set<string>();
+    annotations.forEach((annotation: any) => {
+      if (annotation.file_citation?.file_id) {
+        sourceFileIds.add(annotation.file_citation.file_id);
+      }
+      if (annotation.file_path?.file_id) {
+        sourceFileIds.add(annotation.file_path.file_id);
+      }
+    });
 
-      // Fetch file information for sources
-      const sources = await this.getSourceFiles(Array.from(sourceFileIds));
+    // Fetch file information for sources
+    const sources = await this.getSourceFiles(Array.from(sourceFileIds));
 
-      return {
-        content: this.processContentWithCitations(content, annotations),
-        annotations,
-        sources,
-      };
+    return {
+      content: this.processContentWithCitations(content, annotations),
+      annotations,
+      sources,
+    };
   }
 
   /**
@@ -131,7 +131,9 @@ export class OpenAIResponsesService {
     content: string,
     annotations: SourceAnnotation[],
   ): string {
-    if (!annotations.length) { return content; }
+    if (!annotations.length) {
+      return content;
+    }
 
     let processedContent = content;
     const citationMap = new Map<string, number>();
@@ -169,7 +171,9 @@ export class OpenAIResponsesService {
    * Fetch file information for source citations
    */
   private async getSourceFiles(fileIds: string[]): Promise<SourceFile[]> {
-    if (!fileIds.length) { return []; }
+    if (!fileIds.length) {
+      return [];
+    }
 
     const sources: SourceFile[] = [];
 
@@ -198,7 +202,9 @@ export class OpenAIResponsesService {
    * Format citations for display
    */
   static formatCitations(sources: SourceFile[]): string {
-    if (!sources.length) { return ''; }
+    if (!sources.length) {
+      return '';
+    }
 
     const citations = sources.map((source, index) => {
       return `[${index + 1}] ${source.name}`;

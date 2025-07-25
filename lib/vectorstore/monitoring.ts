@@ -203,8 +203,12 @@ class MetricsStore {
     for (const [key, metrics] of this.metrics.entries()) {
       const [keyProvider, keyMetricType] = key.split('_');
 
-      if (provider && keyProvider !== provider) { continue; }
-      if (metricType && keyMetricType !== metricType) { continue; }
+      if (provider && keyProvider !== provider) {
+        continue;
+      }
+      if (metricType && keyMetricType !== metricType) {
+        continue;
+      }
 
       const filteredMetrics = metrics.filter((m) => m.timestamp >= cutoff);
       allMetrics.push(...filteredMetrics);
@@ -274,12 +278,20 @@ class MetricsStore {
   }
 
   private checkAlerts(metric: MetricEvent): void {
-    if (!this.config.alertingEnabled) { return; }
+    if (!this.config.alertingEnabled) {
+      return;
+    }
 
     for (const alert of this.alerts.values()) {
-      if (!alert.isActive) { continue; }
-      if (alert.provider && alert.provider !== metric.provider) { continue; }
-      if (alert.metricType !== metric.metricType) { continue; }
+      if (!alert.isActive) {
+        continue;
+      }
+      if (alert.provider && alert.provider !== metric.provider) {
+        continue;
+      }
+      if (alert.metricType !== metric.metricType) {
+        continue;
+      }
 
       const shouldTrigger = this.evaluateAlert(alert, metric);
       if (shouldTrigger) {
@@ -318,8 +330,9 @@ class MetricsStore {
 
   private parseTimeWindow(timeWindow: string): number {
     const match = timeWindow.match(/^(\d+)([smhd])$/);
-    if (!match) { return 24 * 60 * 60 * 1000; // Default to 24 hours
-}
+    if (!match) {
+      return 24 * 60 * 60 * 1000; // Default to 24 hours
+    }
 
     const [, value, unit] = match;
     const num = Number.parseInt(value, 10);
@@ -406,7 +419,9 @@ export function withPerformanceMonitoring<T extends any[], R>(
 
 // Error categorization
 function categorizeError(error: any): ErrorCategory {
-  if (!error) { return 'unknown_error'; }
+  if (!error) {
+    return 'unknown_error';
+  }
 
   const message = error.message?.toLowerCase() || '';
   const code = error.code?.toLowerCase() || '';
@@ -677,8 +692,7 @@ export function startHealthCheckScheduler(
     for (const provider of providers) {
       try {
         await service.performHealthCheck(provider);
-      } catch (_error) {
-      }
+      } catch (_error) {}
     }
   }, service.config.healthCheckIntervalMs);
 

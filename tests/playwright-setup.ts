@@ -24,8 +24,7 @@ async function globalSetup(_config: FullConfig) {
         setTimeout(() => reject(new Error('Port cleanup timeout')), 5000),
       ),
     ]);
-  } catch (_error) {
-  }
+  } catch (_error) {}
 
   // Reduced delay - ports release faster than expected
   await new Promise((resolve) => setTimeout(resolve, 1000));

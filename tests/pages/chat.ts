@@ -1,7 +1,32 @@
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type { Page } from '@playwright/test';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Constants for regex patterns
+const CHAT_ID_REGEX = /\/chat\/[0-9a-f-]+/;
+
 export class Chat {
-  constructor(private page: Page) {}
+  private page: Page;
+
+  constructor(page: Page) {
+    this.page = page;
+  }
+
+  // UI element getters
+  get sendButton() {
+    return this.page.getByTestId('send-button');
+  }
+
+  get stopButton() {
+    return this.page.getByTestId('stop-button');
+  }
+
+  get scrollToBottomButton() {
+    return this.page.getByTestId('scroll-to-bottom');
+  }
 
   // Basic navigation and setup
   async goto() {
@@ -110,7 +135,20 @@ export class Chat {
 
   async getRecentAssistantMessage() {
     const content = await this.getLastAssistantMessage();
-    return { content };
+    const messageElements = await this.page
+      .getByTestId('message-assistant')
+      .all();
+    const lastMessage = messageElements.at(-1);
+
+    return {
+      content,
+      upvote: async () => {
+        await lastMessage?.getByTestId('message-upvote').click();
+      },
+      downvote: async () => {
+        await lastMessage?.getByTestId('message-downvote').click();
+      },
+    };
   }
 
   async hasChatIdInUrl() {
@@ -143,7 +181,9 @@ export class Chat {
         .waitForSelector('[data-testid="send-button"]:not([disabled])', {
           timeout: 10_000,
         })
-        .catch(() => {});
+        .catch(() => {
+          // Ignore timeout errors when waiting for send button
+        });
     }
   }
 
@@ -353,15 +393,120 @@ export class Chat {
 
   async hasNewChatUrl() {
     const url = this.getCurrentUrl();
-    return (
-      url === 'http://localhost:3000/' ||
-      url.includes('http://localhost:3000/#')
-    );
+    const baseURL = process.env.PORT
+      ? `http://localhost:${process.env.PORT}`
+      : 'http://localhost:3001';
+    return url === `${baseURL}/` || url.includes(`${baseURL}/#`);
   }
 
   async hasChatId() {
     const url = this.getCurrentUrl();
-    return /\/chat\/[0-9a-f-]+/.test(url);
+    return CHAT_ID_REGEX.test(url);
+  }
+
+  // Missing methods for tests
+  async getRecentUserMessage() {
+    const userMessage = await this.getLastUserMessage();
+    const messageElements = await this.page.getByTestId('message-user').all();
+    const lastMessage = messageElements.at(-1);
+
+    // Check for attachments
+    const attachments =
+      (await lastMessage?.locator('[data-testid="attachment"]').all()) || [];
+
+    return {
+      content: userMessage,
+      attachments,
+      edit: async (newContent: string) => {
+        // Click edit button on the message
+        await lastMessage?.getByTestId('message-edit').click();
+        // Fill new content
+        const editInput = await this.page.getByTestId('message-edit-input');
+        await editInput.fill(newContent);
+        // Submit the edit
+        await this.page.getByTestId('message-edit-submit').click();
+      },
+    };
+  }
+
+  async isElementVisible(testId: string) {
+    await this.page.waitForSelector(`[data-testid="${testId}"]`, {
+      state: 'visible',
+      timeout: 5000,
+    });
+  }
+
+  async isElementNotVisible(testId: string) {
+    await this.page.waitForSelector(`[data-testid="${testId}"]`, {
+      state: 'hidden',
+      timeout: 5000,
+    });
+  }
+
+  async addImageAttachment() {
+    const filePath = path.join(__dirname, '../fixtures/test-image.png');
+    await this.uploadFile(filePath);
+  }
+
+  async isVoteComplete() {
+    // Wait for vote API call to complete
+    try {
+      await this.page.waitForResponse(
+        (response) =>
+          response.url().includes('/api/vote') && response.status() === 200,
+        { timeout: 5000 },
+      );
+    } catch {
+      // Fallback: just wait a bit
+      await this.page.waitForTimeout(1000);
+    }
+  }
+
+  async sendMultipleMessages(
+    count: number,
+    messageGenerator: (i: number) => string,
+  ) {
+    for (let i = 0; i < count; i++) {
+      await this.sendUserMessage(messageGenerator(i));
+      await this.isGenerationComplete();
+    }
+  }
+
+  async waitForScrollToBottom() {
+    await this.page.waitForFunction(
+      () => {
+        const container = document.querySelector('.overflow-y-scroll');
+        if (!container) return false;
+        return (
+          Math.abs(
+            container.scrollHeight -
+              container.scrollTop -
+              container.clientHeight,
+          ) < 10
+        );
+      },
+      { timeout: 5000 },
+    );
+  }
+
+  async scrollToTop() {
+    const scrollContainer = this.page.locator('.overflow-y-scroll');
+    await scrollContainer.evaluate((el) => {
+      el.scrollTop = 0;
+    });
+  }
+
+  async upvote() {
+    await this.upvoteLastMessage();
+  }
+
+  async downvote() {
+    await this.downvoteLastMessage();
+  }
+
+  async expectToastToContain(text: string) {
+    const { expect } = await import('../fixtures');
+    await expect(this.page.getByTestId('toast')).toContainText(text);
   }
 }
 

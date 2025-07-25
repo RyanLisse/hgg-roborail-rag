@@ -112,8 +112,7 @@ export class FaultTolerantUnifiedVectorStoreService
   private async initializeAsync() {
     try {
       this.neonService = await getFaultTolerantNeonVectorStoreService();
-    } catch (_error) {
-    }
+    } catch (_error) {}
   }
 
   // ====================================
@@ -347,7 +346,9 @@ export class FaultTolerantUnifiedVectorStoreService
     query: string,
     maxResults = 10,
   ): Promise<UnifiedSearchResult[]> {
-    if (!this.openaiService.isEnabled) { return []; }
+    if (!this.openaiService.isEnabled) {
+      return [];
+    }
 
     try {
       const searchResponse = await this.openaiService.searchFiles({
@@ -386,7 +387,9 @@ export class FaultTolerantUnifiedVectorStoreService
     maxResults = 10,
     threshold = 0.3,
   ): Promise<UnifiedSearchResult[]> {
-    if (!this.neonService?.isEnabled) { return []; }
+    if (!this.neonService?.isEnabled) {
+      return [];
+    }
 
     try {
       const results = await this.neonService.searchSimilar({
@@ -431,8 +434,7 @@ export class FaultTolerantUnifiedVectorStoreService
             if (health.isHealthy) {
               sources.push('openai');
             }
-          } catch (_error) {
-          }
+          } catch (_error) {}
         }
 
         // Always include memory as fallback
@@ -445,8 +447,7 @@ export class FaultTolerantUnifiedVectorStoreService
             if (health.isHealthy) {
               sources.push('neon');
             }
-          } catch (_error) {
-          }
+          } catch (_error) {}
         }
 
         return sources;
@@ -479,8 +480,7 @@ export class FaultTolerantUnifiedVectorStoreService
             const files = await this.openaiService.listFiles();
             stats.openai.count = files.length;
           }
-        } catch (_error) {
-        }
+        } catch (_error) {}
 
         // Note: Neon count would require a database query which might be expensive
         // Could be added as an optional operation
@@ -633,7 +633,9 @@ export class FaultTolerantUnifiedVectorStoreService
         return this.neonService?.isEnabled;
       },
       execute: async (request: UnifiedSearchRequest) => {
-        if (!this.neonService) { return []; }
+        if (!this.neonService) {
+          return [];
+        }
         return await this.searchNeon(
           request.query,
           request.maxResults,

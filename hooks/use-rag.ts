@@ -138,11 +138,15 @@ function validateFileSize(file: File, maxSizeMB = 10): void {
 const STORAGE_KEY = 'rag-documents';
 
 function getStoredDocuments(): StoredDocument[] {
-  if (typeof window === 'undefined') { return []; }
+  if (typeof window === 'undefined') {
+    return [];
+  }
 
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
-    if (!stored) { return []; }
+    if (!stored) {
+      return [];
+    }
 
     const parsed = JSON.parse(stored);
     return parsed.map((doc: any) => ({
@@ -155,12 +159,13 @@ function getStoredDocuments(): StoredDocument[] {
 }
 
 function saveDocuments(documents: StoredDocument[]): void {
-  if (typeof window === 'undefined') { return; }
+  if (typeof window === 'undefined') {
+    return;
+  }
 
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(documents));
-  } catch (_error) {
-  }
+  } catch (_error) {}
 }
 
 // API service functions
@@ -168,7 +173,9 @@ async function fetchRemoteFiles(
   source?: VectorStoreType,
 ): Promise<FilesResponse> {
   const params = new URLSearchParams();
-  if (source) { params.set('source', source); }
+  if (source) {
+    params.set('source', source);
+  }
 
   const response = await fetch(`/api/vectorstore/files?${params.toString()}`);
   if (!response.ok) {

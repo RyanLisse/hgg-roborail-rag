@@ -267,7 +267,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       data: response,
     });
   } catch (error) {
-
     return NextResponse.json(
       {
         success: false,
@@ -365,7 +364,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       },
     });
   } catch (error) {
-
     return NextResponse.json(
       {
         success: false,

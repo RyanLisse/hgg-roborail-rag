@@ -23,8 +23,7 @@ test.describe('Vector Store with Stagehand AI', () => {
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
       }
-    } catch (_error) {
-    }
+    } catch (_error) {}
   };
 
   test.beforeEach(async () => {

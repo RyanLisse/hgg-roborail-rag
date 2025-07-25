@@ -143,7 +143,6 @@ export function withApiErrorHandling<T = any>(
         validatedBody,
       });
     } catch (error) {
-
       // Handle Zod validation errors
       if (error instanceof z.ZodError) {
         return createErrorResponse(
@@ -180,7 +179,6 @@ export function withStreamingApiErrorHandling<T = any>(
     try {
       return await handler(request, context);
     } catch (error) {
-
       // Return a streaming error response
       const encoder = new TextEncoder();
       const stream = new ReadableStream({

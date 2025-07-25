@@ -41,7 +41,6 @@ export async function GET(_request: Request) {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-
     if (error instanceof ChatSDKError) {
       return error.toResponse();
     }

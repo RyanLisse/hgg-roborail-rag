@@ -24,8 +24,7 @@ async function globalTeardown(_config: FullConfig) {
         execAsync(cmd, { timeout: 3000 }).catch(() => {}),
       ),
     );
-  } catch (_error) {
-  }
+  } catch (_error) {}
 
   // Clean up environment
   process.env.PLAYWRIGHT_SETUP = undefined;

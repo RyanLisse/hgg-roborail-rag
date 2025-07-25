@@ -147,8 +147,7 @@ export async function POST(request: NextRequest) {
           { status: 400 },
         );
       }
-      interactions.forEach((_interaction: any, _index: number) => {
-      });
+      interactions.forEach((_interaction: any, _index: number) => {});
 
       return NextResponse.json({
         success: true,

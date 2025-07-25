@@ -62,7 +62,6 @@ export class SmartAgentRouter implements AgentRouter {
         estimatedComplexity: complexity.level,
       });
     } catch (_error) {
-
       // Fallback to QA agent on any error
       return AgentRoutingDecisionSchema.parse({
         selectedAgent: 'qa',
@@ -104,19 +103,31 @@ Intent:`;
       if (intent.includes('question') || intent.includes('factual')) {
         return 'question_answering';
       }
-      if (intent.includes('summar')) { return 'summarization'; }
+      if (intent.includes('summar')) {
+        return 'summarization';
+      }
       if (intent.includes('rewrit') || intent.includes('rephras')) {
         return 'rewriting';
       }
-      if (intent.includes('plan')) { return 'planning'; }
+      if (intent.includes('plan')) {
+        return 'planning';
+      }
       if (intent.includes('research') || intent.includes('investigat')) {
         return 'research';
       }
-      if (intent.includes('compar')) { return 'comparison'; }
-      if (intent.includes('analy')) { return 'analysis'; }
+      if (intent.includes('compar')) {
+        return 'comparison';
+      }
+      if (intent.includes('analy')) {
+        return 'analysis';
+      }
 
       return 'question_answering'; // Default fallback
-    } catch (_error) {
+    } catch (error) {
+      console.warn(
+        'Intent classification failed, defaulting to question_answering:',
+        error,
+      );
       return 'question_answering';
     }
   }
@@ -142,9 +153,13 @@ Intent:`;
 
     // Determine complexity level
     let level: 'simple' | 'moderate' | 'complex';
-    if (score <= 0.3) { level = 'simple'; }
-    else if (score <= 0.6) { level = 'moderate'; }
-    else { level = 'complex'; }
+    if (score <= 0.3) {
+      level = 'simple';
+    } else if (score <= 0.6) {
+      level = 'moderate';
+    } else {
+      level = 'complex';
+    }
 
     return QueryComplexitySchema.parse({
       level,
@@ -300,7 +315,8 @@ Intent:`;
         | 'neon'
         | 'memory'
       )[];
-    } catch (_error) {
+    } catch (error) {
+      console.warn('Failed to get available sources, using defaults:', error);
       return ['openai', 'memory']; // Fallback sources
     }
   }

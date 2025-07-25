@@ -74,7 +74,9 @@ function PureSuggestedActions({ chatId, append }: SuggestedActionsProps) {
 export const SuggestedActions = memo(
   PureSuggestedActions,
   (prevProps, nextProps) => {
-    if (prevProps.chatId !== nextProps.chatId) { return false; }
+    if (prevProps.chatId !== nextProps.chatId) {
+      return false;
+    }
 
     return true;
   },

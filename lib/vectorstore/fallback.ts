@@ -212,7 +212,6 @@ export class FallbackManager<T> {
         );
 
         if (result !== null) {
-
           // Cache successful result
           if (cacheKey && this.config.enableCaching) {
             this.cache.set(cacheKey, result);
@@ -238,7 +237,6 @@ export class FallbackManager<T> {
     lastError: Error | null,
     cacheKey?: string,
   ): Promise<T> {
-
     switch (this.config.mode) {
       case FallbackMode.FAIL_FAST:
         throw lastError || new Error(`All providers failed for ${operation}`);
@@ -448,7 +446,6 @@ export class GracefulDegradation {
     this.currentLevel = Math.max(0, this.currentLevel - steps);
 
     if (this.currentLevel < previousLevel) {
-
       // Clear some degradation reasons on recovery
       if (this.currentLevel === 0) {
         this.degradationReasons = [];

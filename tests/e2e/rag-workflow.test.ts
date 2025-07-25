@@ -60,8 +60,7 @@ Deep Learning is a subset of machine learning that uses artificial neural networ
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
       }
-    } catch (_error) {
-    }
+    } catch (_error) {}
   };
 
   test.beforeEach(async ({ page }) => {
@@ -556,7 +555,6 @@ This comprehensive guide covers all essential aspects of modern software develop
       const hasFeedback = (await feedbackButtons.count()) > 0;
 
       if (hasFeedback) {
-
         // Test feedback interaction
         const thumbsUp = page.locator('button:has-text("👍")').first();
         if (await thumbsUp.isVisible()) {

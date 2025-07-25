@@ -272,7 +272,9 @@ export class QueryExpansionEngine {
   static generateDomainVariations(query: string, domain: string): string[] {
     const domainConfig =
       ROBORAIL_DOMAIN_PROMPTS[domain as keyof typeof ROBORAIL_DOMAIN_PROMPTS];
-    if (!domainConfig) { return [query]; }
+    if (!domainConfig) {
+      return [query];
+    }
 
     const variations = [
       query,
@@ -313,8 +315,7 @@ export class QueryExpansionEngine {
 
     // Add previous queries context
     if (context.previousQueries && context.previousQueries.length > 0) {
-      const lastQuery =
-        context.previousQueries.at(-1);
+      const lastQuery = context.previousQueries.at(-1);
       variations.push(`${query} building on ${lastQuery}`);
     }
 
@@ -877,7 +878,9 @@ export class PromptOptimizationEngine {
     complexity: string,
   ): string {
     const template = PROMPT_TEMPLATES[queryType];
-    if (!template) { return originalQuery; }
+    if (!template) {
+      return originalQuery;
+    }
 
     // Use expanded template for complex queries
     const promptTemplate =
@@ -896,6 +899,9 @@ export class PromptOptimizationEngine {
     _config: Partial<PromptConfig>,
   ): string {
     const template = PROMPT_TEMPLATES[queryType];
+    if (!(template && template.contextual)) {
+      throw new Error(`Invalid query type: ${queryType}`);
+    }
     let prompt = template.contextual.replace('{query}', query);
 
     // Add domain context
@@ -986,17 +992,25 @@ export class PromptOptimizationEngine {
 
     // Query length and specificity
     const queryLength = query.split(' ').length;
-    if (queryLength > 5) { score += 0.2; }
-    if (queryLength > 10) { score += 0.1; }
+    if (queryLength > 5) {
+      score += 0.2;
+    }
+    if (queryLength > 10) {
+      score += 0.1;
+    }
 
     // Domain specificity
-    if (context.domain) { score += 0.15; }
+    if (context.domain) {
+      score += 0.15;
+    }
 
     // Context availability
     if (context.conversationHistory && context.conversationHistory.length > 0) {
       score += 0.1;
     }
-    if (context.userIntent) { score += 0.05; }
+    if (context.userIntent) {
+      score += 0.05;
+    }
 
     // Query type confidence
     const confidenceBoost: Record<QueryType, number> = {
@@ -1102,7 +1116,9 @@ export class ContextWindowManager {
     _currentQuery: string,
     maxTokens = 2000,
   ): Array<{ role: string; content: string; timestamp: number }> {
-    if (!history.length) { return []; }
+    if (!history.length) {
+      return [];
+    }
 
     let currentTokens = 0;
     const optimizedHistory: Array<{
@@ -1243,7 +1259,9 @@ export class PromptOptimizationMetrics {
   static getAggregatedMetrics(): any {
     const allMetrics = Array.from(PromptOptimizationMetrics.metrics.values());
 
-    if (allMetrics.length === 0) { return null; }
+    if (allMetrics.length === 0) {
+      return null;
+    }
 
     return {
       totalQueries: allMetrics.length,

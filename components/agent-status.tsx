@@ -35,7 +35,9 @@ export function AgentStatus({ className }: { className?: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const { routing, metadata } = useAgentInfo();
 
-  if (!routing) { return null; }
+  if (!routing) {
+    return null;
+  }
 
   const confidencePercentage = Math.round(routing.confidence * 100);
 

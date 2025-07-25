@@ -365,7 +365,9 @@ export class FaultTolerantNeonVectorStoreService {
       priority: 1,
       isAvailable: async () => {
         try {
-          if (!this.baseService.isEnabled) { return false; }
+          if (!this.baseService.isEnabled) {
+            return false;
+          }
           await this.baseService.db.execute({ sql: 'SELECT 1' } as any);
           return true;
         } catch {
@@ -443,8 +445,7 @@ export async function getFaultTolerantNeonVectorStoreService(): Promise<FaultTol
     if (baseService.isEnabled && !isTestMode) {
       try {
         await faultTolerantNeonService.initializeExtensions();
-      } catch (_error) {
-      }
+      } catch (_error) {}
     } else if (isTestMode) {
     }
   }

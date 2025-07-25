@@ -77,7 +77,9 @@ export function VectorStoreMonitoring() {
   });
 
   const formatLatency = (latency: number) => {
-    if (latency < 1000) { return `${Math.round(latency)}ms`; }
+    if (latency < 1000) {
+      return `${Math.round(latency)}ms`;
+    }
     return `${(latency / 1000).toFixed(1)}s`;
   };
 
@@ -90,8 +92,12 @@ export function VectorStoreMonitoring() {
   };
 
   const getPerformanceBadgeVariant = (successRate: number) => {
-    if (successRate >= 0.95) { return 'default'; }
-    if (successRate >= 0.9) { return 'secondary'; }
+    if (successRate >= 0.95) {
+      return 'default';
+    }
+    if (successRate >= 0.9) {
+      return 'secondary';
+    }
     return 'destructive';
   };
 
@@ -111,8 +117,7 @@ export function VectorStoreMonitoring() {
       if (response.ok) {
         mutateDashboard();
       }
-    } catch (_error) {
-    }
+    } catch (_error) {}
   };
 
   if (dashboardError || healthError) {
