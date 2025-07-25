@@ -39,7 +39,6 @@ async function getVectorStoreFiles() {
       const filesData = await filesResponse.json();
 
       for (const file of filesData.data) {
-
         if (file.last_error) {
         }
 
@@ -59,14 +58,12 @@ async function getVectorStoreFiles() {
           if (fileResponse.ok) {
             const _fileDetails = await fileResponse.json();
           }
-        } catch (_error) {
-        }
+        } catch (_error) {}
       }
     } else {
       const _error = await filesResponse.text();
     }
-  } catch (_error) {
-  }
+  } catch (_error) {}
 }
 
 getVectorStoreFiles().catch(console.error);

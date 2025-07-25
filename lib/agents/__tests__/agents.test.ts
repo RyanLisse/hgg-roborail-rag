@@ -29,11 +29,13 @@ vi.mock('../ai/providers', () => ({
     warnings: [],
     availableProviders: ['openai', 'anthropic'],
   })),
-  checkProviderHealth: vi.fn(() => Promise.resolve({
-    status: 'healthy',
-    latency: 100,
-    errors: [],
-  })),
+  checkProviderHealth: vi.fn(() =>
+    Promise.resolve({
+      status: 'healthy',
+      latency: 100,
+      errors: [],
+    }),
+  ),
 }));
 
 // Mock the vector store

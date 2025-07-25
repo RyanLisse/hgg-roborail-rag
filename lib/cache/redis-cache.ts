@@ -49,7 +49,9 @@ export class RedisCacheBackend implements DistributedCacheBackend {
         url: this.config.url,
         socket: {
           reconnectStrategy: (retries) => {
-            if (retries > this.maxRetries) { return false; }
+            if (retries > this.maxRetries) {
+              return false;
+            }
             this.stats.reconnects++;
             return Math.min(retries * this.retryDelayMs, 5000);
           },
@@ -89,8 +91,7 @@ export class RedisCacheBackend implements DistributedCacheBackend {
 
       this.isConnected = false;
       this.subscriptions.clear();
-    } catch (_error) {
-    }
+    } catch (_error) {}
   }
 
   private getKey(key: string): string {
@@ -343,25 +344,24 @@ export class RedisCacheBackend implements DistributedCacheBackend {
     if (!this.subscriber) {
       throw new Error('Redis subscriber not available');
     }
-      // Track handlers for this channel
-      if (!this.subscriptions.has(channel)) {
-        this.subscriptions.set(channel, new Set());
+    // Track handlers for this channel
+    if (!this.subscriptions.has(channel)) {
+      this.subscriptions.set(channel, new Set());
 
-        // Subscribe to Redis channel
-        await this.subscriber.subscribe(channel, (message: string) => {
-          try {
-            const parsedMessage = JSON.parse(message);
-            const handlers = this.subscriptions.get(channel);
+      // Subscribe to Redis channel
+      await this.subscriber.subscribe(channel, (message: string) => {
+        try {
+          const parsedMessage = JSON.parse(message);
+          const handlers = this.subscriptions.get(channel);
 
-            if (handlers) {
-              handlers.forEach((h) => h(parsedMessage));
-            }
-          } catch (_error) {
+          if (handlers) {
+            handlers.forEach((h) => h(parsedMessage));
           }
-        });
-      }
+        } catch (_error) {}
+      });
+    }
 
-      this.subscriptions.get(channel)?.add(handler);
+    this.subscriptions.get(channel)?.add(handler);
   }
 
   async unsubscribe(channel: string): Promise<void> {
@@ -372,8 +372,7 @@ export class RedisCacheBackend implements DistributedCacheBackend {
     try {
       await this.subscriber.unsubscribe(channel);
       this.subscriptions.delete(channel);
-    } catch (_error) {
-    }
+    } catch (_error) {}
   }
 
   async invalidatePattern(pattern: string): Promise<number> {

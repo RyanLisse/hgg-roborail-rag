@@ -85,7 +85,9 @@ export function parseCitationsFromContent(
  * Format citations for markdown display
  */
 export function formatCitationsMarkdown(citations: ParsedCitation[]): string {
-  if (!citations.length) { return ''; }
+  if (!citations.length) {
+    return '';
+  }
 
   const formattedCitations = citations.map((citation) => {
     let formatted = `**[${citation.number}]** ${citation.fileName}`;
@@ -104,7 +106,9 @@ export function formatCitationsMarkdown(citations: ParsedCitation[]): string {
  * Format citations for plain text display
  */
 export function formatCitationsText(citations: ParsedCitation[]): string {
-  if (!citations.length) { return ''; }
+  if (!citations.length) {
+    return '';
+  }
 
   const formattedCitations = citations.map((citation) => {
     let formatted = `[${citation.number}] ${citation.fileName}`;
@@ -199,7 +203,9 @@ export function validateCitations(citations: ParsedCitation[]): {
  * Create citation footnotes for the end of content
  */
 export function createCitationFootnotes(citations: ParsedCitation[]): string {
-  if (!citations.length) { return ''; }
+  if (!citations.length) {
+    return '';
+  }
 
   const footnotes = citations.map((citation) => {
     let footnote = `<div id="citation-${citation.id}" class="citation-footnote">

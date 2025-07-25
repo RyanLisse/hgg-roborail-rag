@@ -27,7 +27,7 @@ const mockClient = {
   },
 };
 
-// Mock OpenAI SDK - must be before other mocks  
+// Mock OpenAI SDK - must be before other mocks
 vi.mock('openai', () => ({
   default: vi.fn(() => mockClient),
 }));
@@ -100,7 +100,6 @@ import {
   type SearchRequest,
 } from '../openai';
 
-
 // Mock fetch globally
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
@@ -123,7 +122,7 @@ describe('OpenAI Vector Store Service', () => {
     mockFilesRetrieve.mockClear();
     mockResponsesCreate.mockClear();
     mockVectorStoreFilesAttach.mockClear();
-    
+
     // Ensure mockClient has the right structure
     mockClient.files = {
       create: mockFilesCreate,
@@ -192,8 +191,12 @@ describe('OpenAI Vector Store Service', () => {
       expect(service.defaultVectorStoreId).toBe(null);
 
       // Restore environment variables
-      if (savedApiKey) { process.env.OPENAI_API_KEY = savedApiKey; }
-      if (savedVectorStore) { process.env.OPENAI_VECTORSTORE = savedVectorStore; }
+      if (savedApiKey) {
+        process.env.OPENAI_API_KEY = savedApiKey;
+      }
+      if (savedVectorStore) {
+        process.env.OPENAI_VECTORSTORE = savedVectorStore;
+      }
     });
 
     it('should warn about invalid API key format', () => {
@@ -545,9 +548,7 @@ describe('OpenAI Vector Store Service', () => {
 
       it('should handle file upload errors', async () => {
         const mockFile = new File(['test'], 'test.txt', { type: 'text/plain' });
-        mockFilesCreate.mockRejectedValueOnce(
-          new Error('Upload failed'),
-        );
+        mockFilesCreate.mockRejectedValueOnce(new Error('Upload failed'));
 
         const request: FileUploadRequest = { file: mockFile };
 
@@ -786,9 +787,7 @@ describe('OpenAI Vector Store Service', () => {
           json: () => Promise.resolve(mockVectorStore),
         });
 
-        mockResponsesCreate.mockRejectedValueOnce(
-          new Error('Search failed'),
-        );
+        mockResponsesCreate.mockRejectedValueOnce(new Error('Search failed'));
 
         const request: SearchRequest = {
           query: 'test query',
@@ -937,7 +936,9 @@ describe('OpenAI Vector Store Service', () => {
         );
 
         // Restore environment variable
-        if (savedVectorStore) { process.env.OPENAI_VECTORSTORE = savedVectorStore; }
+        if (savedVectorStore) {
+          process.env.OPENAI_VECTORSTORE = savedVectorStore;
+        }
       });
 
       it('should exhaust all retries', async () => {
@@ -1164,9 +1165,7 @@ describe('OpenAI Vector Store Service', () => {
       });
 
       it('should handle file retrieval errors', async () => {
-        mockFilesRetrieve.mockRejectedValueOnce(
-          new Error('File not found'),
-        );
+        mockFilesRetrieve.mockRejectedValueOnce(new Error('File not found'));
 
         const result = await service.getSourceFiles(['file_nonexistent']);
 
@@ -1211,7 +1210,9 @@ describe('OpenAI Vector Store Service', () => {
         expect(result).toBe(null);
 
         // Restore environment variable
-        if (savedVectorStore) { process.env.OPENAI_VECTORSTORE = savedVectorStore; }
+        if (savedVectorStore) {
+          process.env.OPENAI_VECTORSTORE = savedVectorStore;
+        }
       });
 
       it('should use provided vector store ID', () => {
@@ -1245,7 +1246,9 @@ describe('OpenAI Vector Store Service', () => {
 
     afterEach(() => {
       // Restore environment variables
-      if (originalEnvApiKey) { process.env.OPENAI_API_KEY = originalEnvApiKey; }
+      if (originalEnvApiKey) {
+        process.env.OPENAI_API_KEY = originalEnvApiKey;
+      }
       if (originalEnvVectorStore) {
         process.env.OPENAI_VECTORSTORE = originalEnvVectorStore;
       }
@@ -1262,7 +1265,9 @@ describe('OpenAI Vector Store Service', () => {
       const mockFile = new File(['test'], 'test.txt');
       await expect(
         disabledService.uploadFile({ file: mockFile }),
-      ).rejects.toThrow('OpenAI vector store service is disabled - no API key provided');
+      ).rejects.toThrow(
+        'OpenAI vector store service is disabled - no API key provided',
+      );
     });
 
     it('should return empty arrays for read operations', async () => {
@@ -1287,7 +1292,9 @@ describe('OpenAI Vector Store Service', () => {
       const searchResult = await disabledService.searchFiles({ query: 'test' });
 
       expect(searchResult.success).toBe(false);
-      expect(searchResult.message).toContain('OpenAI vector store service is disabled - no API key provided');
+      expect(searchResult.message).toContain(
+        'OpenAI vector store service is disabled - no API key provided',
+      );
     });
 
     it('should return unhealthy status', async () => {

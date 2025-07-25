@@ -342,7 +342,10 @@ export class ErrorClassifier {
     return rateLimitPatterns.some((pattern) => message.includes(pattern));
   }
 
-  private static isAuthenticationError(_error: Error, message: string): boolean {
+  private static isAuthenticationError(
+    _error: Error,
+    message: string,
+  ): boolean {
     const authPatterns = [
       'unauthorized',
       'authentication failed',
@@ -441,7 +444,9 @@ export class RetryMechanism {
         try {
           const result = await Promise.race([operation(), timeoutPromise]);
           // Clear timeout on success
-          if (timeoutId) { clearTimeout(timeoutId); }
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+          }
 
           if (attempt > 0) {
           }
@@ -449,7 +454,9 @@ export class RetryMechanism {
           return result;
         } catch (error) {
           // Clear timeout on error before rethrowing
-          if (timeoutId) { clearTimeout(timeoutId); }
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+          }
           throw error;
         }
       } catch (error) {

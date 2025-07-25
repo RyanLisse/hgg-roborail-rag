@@ -263,7 +263,7 @@ describe('Vector Store Performance Tests', () => {
       // While OpenAI doesn't cache, our service should at least not degrade
       const firstDuration = firstEnd - firstStart;
       const secondDuration = secondEnd - secondStart;
-      
+
       // If both are very fast (0ms), consider it a pass
       if (firstDuration === 0 && secondDuration === 0) {
         expect(true).toBe(true); // Both are instant, which is good

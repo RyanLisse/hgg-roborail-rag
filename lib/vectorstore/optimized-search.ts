@@ -163,7 +163,6 @@ class OptimizedVectorSearch {
     }
 
     try {
-
       // Create search methods for each enabled source
       const searchMethods: Array<() => Promise<any[]>> = [];
 
@@ -232,7 +231,6 @@ class OptimizedVectorSearch {
       this.cacheResult(cacheKey, response);
       return response;
     } catch (_error) {
-
       // Fallback to basic search without caching
       const totalTime = Date.now() - startTime;
       return {

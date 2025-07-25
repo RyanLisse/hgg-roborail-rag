@@ -24,7 +24,9 @@ test.describe
         request = request.redirectedFrom();
       }
 
-      const baseURL = process.env.PORT ? `http://localhost:${process.env.PORT}` : 'http://localhost:3001';
+      const baseURL = process.env.PORT
+        ? `http://localhost:${process.env.PORT}`
+        : 'http://localhost:3001';
       expect(chain).toEqual([
         `${baseURL}/`,
         `${baseURL}/api/auth/guest?redirectUrl=${encodeURIComponent(baseURL + '/')}`,
@@ -67,7 +69,9 @@ test.describe
         request = request.redirectedFrom();
       }
 
-      const baseURL = process.env.PORT ? `http://localhost:${process.env.PORT}` : 'http://localhost:3001';
+      const baseURL = process.env.PORT
+        ? `http://localhost:${process.env.PORT}`
+        : 'http://localhost:3001';
       expect(chain).toEqual([`${baseURL}/`]);
     });
 

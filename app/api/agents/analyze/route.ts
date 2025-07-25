@@ -67,7 +67,6 @@ export async function POST(request: Request) {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-
     if (error instanceof z.ZodError) {
       return new Response(
         JSON.stringify({

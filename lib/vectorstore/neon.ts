@@ -144,11 +144,11 @@ export function createNeonVectorStoreService(
     embeddingModel: validatedConfig.embeddingModel,
 
     async initializeExtensions(): Promise<void> {
-        // Enable pgvector extension
-        await this.db.execute(sql`CREATE EXTENSION IF NOT EXISTS vector;`);
+      // Enable pgvector extension
+      await this.db.execute(sql`CREATE EXTENSION IF NOT EXISTS vector;`);
 
-        // Create index for faster similarity search
-        await this.db.execute(sql`
+      // Create index for faster similarity search
+      await this.db.execute(sql`
           CREATE INDEX IF NOT EXISTS vector_documents_embedding_idx 
           ON vector_documents 
           USING ivfflat (embedding vector_cosine_ops) 
@@ -199,24 +199,24 @@ export function createNeonVectorStoreService(
 
     async addDocument(document: NeonDocumentInsert): Promise<NeonDocument> {
       const validatedDocument = NeonDocumentInsert.parse(document);
-        // Generate embedding if not provided
-        const embedding =
-          validatedDocument.embedding ||
-          (await this.generateEmbedding(validatedDocument.content));
+      // Generate embedding if not provided
+      const embedding =
+        validatedDocument.embedding ||
+        (await this.generateEmbedding(validatedDocument.content));
 
-        const [insertedDocument] = await this.db
-          .insert(vectorDocuments)
-          .values({
-            content: validatedDocument.content,
-            metadata: validatedDocument.metadata || {},
-            embedding: embedding as any, // Type assertion for pgvector
-          })
-          .returning();
+      const [insertedDocument] = await this.db
+        .insert(vectorDocuments)
+        .values({
+          content: validatedDocument.content,
+          metadata: validatedDocument.metadata || {},
+          embedding: embedding as any, // Type assertion for pgvector
+        })
+        .returning();
 
-        return NeonDocument.parse({
-          ...insertedDocument,
-          embedding,
-        });
+      return NeonDocument.parse({
+        ...insertedDocument,
+        embedding,
+      });
     },
 
     async addDocuments(
@@ -225,65 +225,65 @@ export function createNeonVectorStoreService(
       const validatedDocuments = documents.map((doc) =>
         NeonDocumentInsert.parse(doc),
       );
-        // Generate embeddings for documents that don't have them
-        const documentsWithEmbeddings = await Promise.all(
-          validatedDocuments.map(async (doc) => ({
-            ...doc,
-            embedding:
-              doc.embedding || (await this.generateEmbedding(doc.content)),
+      // Generate embeddings for documents that don't have them
+      const documentsWithEmbeddings = await Promise.all(
+        validatedDocuments.map(async (doc) => ({
+          ...doc,
+          embedding:
+            doc.embedding || (await this.generateEmbedding(doc.content)),
+        })),
+      );
+
+      const insertedDocuments = await this.db
+        .insert(vectorDocuments)
+        .values(
+          documentsWithEmbeddings.map((doc) => ({
+            content: doc.content,
+            metadata: doc.metadata || {},
+            embedding: doc.embedding as any,
           })),
-        );
+        )
+        .returning();
 
-        const insertedDocuments = await this.db
-          .insert(vectorDocuments)
-          .values(
-            documentsWithEmbeddings.map((doc) => ({
-              content: doc.content,
-              metadata: doc.metadata || {},
-              embedding: doc.embedding as any,
-            })),
-          )
-          .returning();
-
-        return insertedDocuments.map((doc, index) =>
-          NeonDocument.parse({
-            ...doc,
-            embedding: documentsWithEmbeddings[index].embedding,
-          }),
-        );
+      return insertedDocuments.map((doc, index) =>
+        NeonDocument.parse({
+          ...doc,
+          embedding: documentsWithEmbeddings[index].embedding,
+        }),
+      );
     },
 
     async getDocument(id: string): Promise<NeonDocument | null> {
-        const [document] = await this.db
-          .select()
-          .from(vectorDocuments)
-          .where(sql`${vectorDocuments.id} = ${id}`)
-          .limit(1);
+      const [document] = await this.db
+        .select()
+        .from(vectorDocuments)
+        .where(sql`${vectorDocuments.id} = ${id}`)
+        .limit(1);
 
-        return document ? NeonDocument.parse(document) : null;
+      return document ? NeonDocument.parse(document) : null;
     },
 
     async updateDocument(
       id: string,
       document: Partial<NeonDocumentInsert>,
     ): Promise<NeonDocument> {
-        const updateData: any = {
-          ...document,
-          updatedAt: new Date(),
-        };
+      const updateData: any = {
+        ...document,
+        updatedAt: new Date(),
+      };
 
-        // Generate new embedding if content changed
-        if (document.content && !document.embedding) {
-          updateData.embedding = await this.generateEmbedding(document.content);
-        }
+      // Generate new embedding if content changed
+      if (document.content && !document.embedding) {
+        updateData.embedding = await this.generateEmbedding(document.content);
+      }
 
-        const [updatedDocument] = await this.db
-          .update(vectorDocuments)
-          .set(updateData)
-          .where(sql`${vectorDocuments.id} = ${id}`)
-          .returning();
+      const [updatedDocument] = await this.db
+        .update(vectorDocuments)
+        .set(updateData)
+        .where(sql`${vectorDocuments.id} = ${id}`)
+        .returning();
 
-        return NeonDocument.parse(updatedDocument);
+      return NeonDocument.parse(updatedDocument);
     },
 
     async deleteDocument(id: string): Promise<boolean> {
@@ -349,31 +349,31 @@ export function createNeonVectorStoreService(
       maxResults = 10,
       threshold = 0.3,
     ): Promise<NeonSearchResult[]> {
-        const similarity = sql<number>`1 - (${vectorDocuments.embedding} <=> ${JSON.stringify(embedding)})`;
+      const similarity = sql<number>`1 - (${vectorDocuments.embedding} <=> ${JSON.stringify(embedding)})`;
 
-        const results = await this.db
-          .select({
-            id: vectorDocuments.id,
-            content: vectorDocuments.content,
-            metadata: vectorDocuments.metadata,
-            embedding: vectorDocuments.embedding,
-            createdAt: vectorDocuments.createdAt,
-            updatedAt: vectorDocuments.updatedAt,
-            similarity,
-          })
-          .from(vectorDocuments)
-          .where(gt(similarity, threshold))
-          .orderBy(desc(similarity))
-          .limit(maxResults);
+      const results = await this.db
+        .select({
+          id: vectorDocuments.id,
+          content: vectorDocuments.content,
+          metadata: vectorDocuments.metadata,
+          embedding: vectorDocuments.embedding,
+          createdAt: vectorDocuments.createdAt,
+          updatedAt: vectorDocuments.updatedAt,
+          similarity,
+        })
+        .from(vectorDocuments)
+        .where(gt(similarity, threshold))
+        .orderBy(desc(similarity))
+        .limit(maxResults);
 
-        return results.map((result) => {
-          const { similarity, ...document } = result;
-          return NeonSearchResult.parse({
-            document: NeonDocument.parse(document),
-            similarity: similarity || 0,
-            distance: 1 - (similarity || 0),
-          });
+      return results.map((result) => {
+        const { similarity, ...document } = result;
+        return NeonSearchResult.parse({
+          document: NeonDocument.parse(document),
+          similarity: similarity || 0,
+          distance: 1 - (similarity || 0),
         });
+      });
     },
   };
 }
@@ -391,8 +391,7 @@ export async function getNeonVectorStoreService(): Promise<NeonVectorStoreServic
     if (neonVectorStoreService.isEnabled && !isTestMode) {
       try {
         await neonVectorStoreService.initializeExtensions();
-      } catch (_error) {
-      }
+      } catch (_error) {}
     } else if (isTestMode) {
     }
   }

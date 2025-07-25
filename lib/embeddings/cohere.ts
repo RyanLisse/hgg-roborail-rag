@@ -89,15 +89,15 @@ export async function embedText(
   }
 
   const validatedRequest = TextEmbeddingRequest.parse(request);
-    const response = await service.client.v2.embed({
-      texts: validatedRequest.texts,
-      model: validatedRequest.model,
-      inputType: validatedRequest.inputType,
-      embeddingTypes: ['float'],
-      truncate: validatedRequest.truncate,
-    });
+  const response = await service.client.v2.embed({
+    texts: validatedRequest.texts,
+    model: validatedRequest.model,
+    inputType: validatedRequest.inputType,
+    embeddingTypes: ['float'],
+    truncate: validatedRequest.truncate,
+  });
 
-    return response.embeddings.float || [];
+  return response.embeddings.float || [];
 }
 
 // Embed images using Cohere
@@ -110,33 +110,32 @@ export async function embedImage(
   }
 
   const validatedRequest = ImageEmbeddingRequest.parse(request);
-    // Process images to base64 format
-    const processedImages = await Promise.all(
-      validatedRequest.images.map(async (image) => {
-        if (image.startsWith('data:')) {
-          // Already base64 encoded
-          return image;
-        }
+  // Process images to base64 format
+  const processedImages = await Promise.all(
+    validatedRequest.images.map(async (image) => {
+      if (image.startsWith('data:')) {
+        // Already base64 encoded
+        return image;
+      }
 
-        // Fetch image and convert to base64
-        const response = await fetch(image);
-        const buffer = await response.arrayBuffer();
-        const base64 = Buffer.from(buffer).toString('base64');
-        const contentType =
-          response.headers.get('content-type') || 'image/jpeg';
-        return `data:${contentType};base64,${base64}`;
-      }),
-    );
+      // Fetch image and convert to base64
+      const response = await fetch(image);
+      const buffer = await response.arrayBuffer();
+      const base64 = Buffer.from(buffer).toString('base64');
+      const contentType = response.headers.get('content-type') || 'image/jpeg';
+      return `data:${contentType};base64,${base64}`;
+    }),
+  );
 
-    const response = await service.client.v2.embed({
-      model: validatedRequest.model,
-      inputType: 'image',
-      embeddingTypes: ['float'],
-      images: processedImages,
-      truncate: validatedRequest.truncate,
-    });
+  const response = await service.client.v2.embed({
+    model: validatedRequest.model,
+    inputType: 'image',
+    embeddingTypes: ['float'],
+    images: processedImages,
+    truncate: validatedRequest.truncate,
+  });
 
-    return response.embeddings.float || [];
+  return response.embeddings.float || [];
 }
 
 // Embed mixed documents (text and images)
@@ -261,7 +260,9 @@ export function getCohereEmbeddingService(): CohereEmbeddingService {
 
 // Calculate cosine similarity between embeddings
 export function cosineSimilarity(a: number[], b: number[]): number {
-  if (a.length !== b.length) { return 0; }
+  if (a.length !== b.length) {
+    return 0;
+  }
 
   let dotProduct = 0;
   let normA = 0;
@@ -273,7 +274,9 @@ export function cosineSimilarity(a: number[], b: number[]): number {
     normB += b[i] * b[i];
   }
 
-  if (normA === 0 || normB === 0) { return 0; }
+  if (normA === 0 || normB === 0) {
+    return 0;
+  }
 
   return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
 }

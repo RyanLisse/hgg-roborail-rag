@@ -2,6 +2,13 @@ import 'server-only';
 
 // Re-export base classes for type definitions (lightweight)
 export { BaseAgent } from './base-agent';
+export { AgentOrchestrator } from './orchestrator';
+export { PlannerAgent } from './planner-agent';
+// Re-export agent classes for testing (these will be tree-shaken in production)
+export { QAAgent } from './qa-agent';
+export { ResearchAgent } from './research-agent';
+export { RewriteAgent } from './rewrite-agent';
+export { SmartAgentRouter } from './router';
 // Core types and interfaces
 export type {
   Agent,
@@ -16,14 +23,6 @@ export type {
   UserIntent,
   VectorStoreType,
 } from './types';
-
-// Re-export agent classes for testing (these will be tree-shaken in production)
-export { QAAgent } from './qa-agent';
-export { RewriteAgent } from './rewrite-agent';
-export { PlannerAgent } from './planner-agent';
-export { ResearchAgent } from './research-agent';
-export { SmartAgentRouter } from './router';
-export { AgentOrchestrator } from './orchestrator';
 
 import { ServiceTokens } from '../di/container';
 import { createRequestScope, hasService } from '../di/services';
@@ -217,9 +216,7 @@ export function resetGlobalOrchestrator(): void {
  * Create a new agent orchestrator instance (already implemented above with lazy loading)
  * This is kept for backward compatibility
  */
-export function createAgentOrchestratorLegacy(
-  config?: Partial<AgentConfig>,
-) {
+export function createAgentOrchestratorLegacy(config?: Partial<AgentConfig>) {
   return createAgentOrchestrator(config);
 }
 

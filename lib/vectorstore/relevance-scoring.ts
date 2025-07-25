@@ -244,7 +244,6 @@ export class RelevanceScoringEngine {
         improvements,
       };
     } catch (_error) {
-
       // Fallback to original documents with basic scoring
       const fallbackDocuments = documents.map((doc, index) => ({
         id: doc.id,

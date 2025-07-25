@@ -176,7 +176,9 @@ describe('Vector Store Error Handling', () => {
       const result = await service.searchFiles(request);
 
       expect(result.success).toBe(false);
-      expect(result.message).toBe('Vector store vs_test_store is not accessible or does not exist');
+      expect(result.message).toBe(
+        'Vector store vs_test_store is not accessible or does not exist',
+      );
     });
 
     it('should handle 500 Internal Server Error', async () => {
@@ -333,7 +335,9 @@ describe('Vector Store Error Handling', () => {
       const result = await service.searchFiles(request);
 
       expect(result.success).toBe(false);
-      expect(result.message).toBe('Vector store vs_test_store is not accessible or does not exist');
+      expect(result.message).toBe(
+        'Vector store vs_test_store is not accessible or does not exist',
+      );
     });
 
     it('should handle malformed search responses', async () => {
@@ -354,7 +358,9 @@ describe('Vector Store Error Handling', () => {
 
       expect(result.success).toBe(false);
       expect(result.results).toEqual([]);
-      expect(result.message).toBe('Vector store vs_test_store is not accessible or does not exist');
+      expect(result.message).toBe(
+        'Vector store vs_test_store is not accessible or does not exist',
+      );
     });
 
     it('should handle search timeout errors', async () => {
@@ -375,7 +381,9 @@ describe('Vector Store Error Handling', () => {
       const result = await service.searchFiles(request);
 
       expect(result.success).toBe(false);
-      expect(result.message).toBe('Vector store vs_test_store is not accessible or does not exist');
+      expect(result.message).toBe(
+        'Vector store vs_test_store is not accessible or does not exist',
+      );
     });
 
     it('should handle empty search results gracefully', async () => {
@@ -396,7 +404,9 @@ describe('Vector Store Error Handling', () => {
 
       expect(result.success).toBe(false);
       expect(result.results).toEqual([]);
-      expect(result.message).toBe('Vector store vs_test_store is not accessible or does not exist');
+      expect(result.message).toBe(
+        'Vector store vs_test_store is not accessible or does not exist',
+      );
     });
   });
 
@@ -537,7 +547,9 @@ describe('Vector Store Error Handling', () => {
         maxResults: -1, // Invalid max results
       };
 
-      await expect(service.searchFiles(invalidRequest as any)).rejects.toThrow();
+      await expect(
+        service.searchFiles(invalidRequest as any),
+      ).rejects.toThrow();
     });
 
     it('should handle invalid file upload parameters', async () => {
@@ -622,7 +634,9 @@ describe('Vector Store Error Handling', () => {
       const result = await service.searchFiles(request);
 
       expect(result.success).toBe(false);
-      expect(result.message).toBe('Vector store vs_test_store is not accessible or does not exist');
+      expect(result.message).toBe(
+        'Vector store vs_test_store is not accessible or does not exist',
+      );
     });
 
     it('should handle large response processing errors', async () => {

@@ -299,8 +299,7 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
               );
               break;
           }
-        } catch (_error) {
-        }
+        } catch (_error) {}
       }
 
       return results;
@@ -340,8 +339,7 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
             // Memory retrieval would be handled by existing RAG service
             return null;
         }
-      } catch (_error) {
-      }
+      } catch (_error) {}
 
       return null;
     },
@@ -368,8 +366,7 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
             // Memory deletion would be handled by existing RAG service
             return true;
         }
-      } catch (_error) {
-      }
+      } catch (_error) {}
 
       return false;
     },
@@ -387,7 +384,6 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
         const startTime = Date.now();
 
         try {
-
           // Search in parallel across all requested sources with optimization context
           const searchPromises = validatedRequest.sources.map(
             async (source) => {
@@ -486,7 +482,9 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
       optimizePrompts = true,
       promptConfig?: any,
     ): Promise<UnifiedSearchResult[]> {
-      if (!openaiService.isEnabled) { return []; }
+      if (!openaiService.isEnabled) {
+        return [];
+      }
 
       try {
         const searchResponse = await openaiService.searchFiles({
@@ -528,7 +526,9 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
       threshold = 0.3,
       queryContext?: any,
     ): Promise<UnifiedSearchResult[]> {
-      if (!neonService.isEnabled) { return []; }
+      if (!neonService.isEnabled) {
+        return [];
+      }
 
       try {
         // For now, Neon search doesn't use prompt optimization but gets the context
@@ -602,8 +602,7 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
           const files = await openaiService.listFiles();
           stats.openai.count = files.length;
         }
-      } catch (_error) {
-      }
+      } catch (_error) {}
 
       return stats;
     },
@@ -616,7 +615,6 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
       const validatedRequest = UnifiedSearchRequest.parse(request);
 
       try {
-
         // Step 1: Perform basic search across sources
         const searchStartTime = Date.now();
         const basicResults = await this.searchAcrossSources(validatedRequest);
@@ -736,7 +734,6 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
           },
         });
       } catch (error) {
-
         // Fallback to basic search
         const basicResults = await this.searchAcrossSources(validatedRequest);
         const totalTime = Date.now() - startTime;

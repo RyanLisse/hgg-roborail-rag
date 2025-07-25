@@ -1,6 +1,6 @@
-import type { Page } from '@playwright/test';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import type { Page } from '@playwright/test';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -10,7 +10,7 @@ const CHAT_ID_REGEX = /\/chat\/[0-9a-f-]+/;
 
 export class Chat {
   private page: Page;
-  
+
   constructor(page: Page) {
     this.page = page;
   }
@@ -135,17 +135,19 @@ export class Chat {
 
   async getRecentAssistantMessage() {
     const content = await this.getLastAssistantMessage();
-    const messageElements = await this.page.getByTestId('message-assistant').all();
+    const messageElements = await this.page
+      .getByTestId('message-assistant')
+      .all();
     const lastMessage = messageElements.at(-1);
-    
-    return { 
+
+    return {
       content,
       upvote: async () => {
         await lastMessage?.getByTestId('message-upvote').click();
       },
       downvote: async () => {
         await lastMessage?.getByTestId('message-downvote').click();
-      }
+      },
     };
   }
 
@@ -391,11 +393,10 @@ export class Chat {
 
   async hasNewChatUrl() {
     const url = this.getCurrentUrl();
-    const baseURL = process.env.PORT ? `http://localhost:${process.env.PORT}` : 'http://localhost:3001';
-    return (
-      url === `${baseURL}/` ||
-      url.includes(`${baseURL}/#`)
-    );
+    const baseURL = process.env.PORT
+      ? `http://localhost:${process.env.PORT}`
+      : 'http://localhost:3001';
+    return url === `${baseURL}/` || url.includes(`${baseURL}/#`);
   }
 
   async hasChatId() {
@@ -408,10 +409,11 @@ export class Chat {
     const userMessage = await this.getLastUserMessage();
     const messageElements = await this.page.getByTestId('message-user').all();
     const lastMessage = messageElements.at(-1);
-    
+
     // Check for attachments
-    const attachments = await lastMessage?.locator('[data-testid="attachment"]').all() || [];
-    
+    const attachments =
+      (await lastMessage?.locator('[data-testid="attachment"]').all()) || [];
+
     return {
       content: userMessage,
       attachments,
@@ -423,21 +425,21 @@ export class Chat {
         await editInput.fill(newContent);
         // Submit the edit
         await this.page.getByTestId('message-edit-submit').click();
-      }
+      },
     };
   }
 
   async isElementVisible(testId: string) {
     await this.page.waitForSelector(`[data-testid="${testId}"]`, {
       state: 'visible',
-      timeout: 5000
+      timeout: 5000,
     });
   }
 
   async isElementNotVisible(testId: string) {
     await this.page.waitForSelector(`[data-testid="${testId}"]`, {
       state: 'hidden',
-      timeout: 5000
+      timeout: 5000,
     });
   }
 
@@ -450,8 +452,9 @@ export class Chat {
     // Wait for vote API call to complete
     try {
       await this.page.waitForResponse(
-        response => response.url().includes('/api/vote') && response.status() === 200,
-        { timeout: 5000 }
+        (response) =>
+          response.url().includes('/api/vote') && response.status() === 200,
+        { timeout: 5000 },
       );
     } catch {
       // Fallback: just wait a bit
@@ -459,7 +462,10 @@ export class Chat {
     }
   }
 
-  async sendMultipleMessages(count: number, messageGenerator: (i: number) => string) {
+  async sendMultipleMessages(
+    count: number,
+    messageGenerator: (i: number) => string,
+  ) {
     for (let i = 0; i < count; i++) {
       await this.sendUserMessage(messageGenerator(i));
       await this.isGenerationComplete();
@@ -471,9 +477,15 @@ export class Chat {
       () => {
         const container = document.querySelector('.overflow-y-scroll');
         if (!container) return false;
-        return Math.abs(container.scrollHeight - container.scrollTop - container.clientHeight) < 10;
+        return (
+          Math.abs(
+            container.scrollHeight -
+              container.scrollTop -
+              container.clientHeight,
+          ) < 10
+        );
       },
-      { timeout: 5000 }
+      { timeout: 5000 },
     );
   }
 

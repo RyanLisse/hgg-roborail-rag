@@ -90,7 +90,6 @@ export class AgentOrchestrator {
 
       // Try fallback if primary agent failed and we have a fallback
       if (response.errorDetails && routingDecision.fallbackAgent) {
-
         const fallbackResponse = await this.executeWithAgent(
           routingDecision.fallbackAgent,
           enhancedRequest,
@@ -115,7 +114,6 @@ export class AgentOrchestrator {
 
       return response;
     } catch (error) {
-
       // Return error response
       return {
         content:
@@ -219,7 +217,6 @@ export class AgentOrchestrator {
         }
       );
     } catch (error) {
-
       const errorMessage =
         'I encountered an error processing your request. Please try again.';
       yield errorMessage;

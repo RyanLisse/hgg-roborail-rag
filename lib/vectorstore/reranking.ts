@@ -183,7 +183,6 @@ export class DocumentRerankingEngine {
         debugInfo: config.debugMode ? debugInfo : undefined,
       });
     } catch (error) {
-
       // Fallback: return original order with basic scoring
       const fallbackDocuments = validatedRequest.documents
         .slice(0, validatedRequest.maxResults)
@@ -287,7 +286,6 @@ export class DocumentRerankingEngine {
 
         scoredDocuments.push(scoredDoc);
       } catch (_error) {
-
         // Add fallback scored document
         scoredDocuments.push(
           ScoredDocument.parse({
@@ -482,7 +480,9 @@ export class DocumentRerankingEngine {
     documents: ScoredDocument[],
     threshold: number,
   ): ScoredDocument[] {
-    if (documents.length <= 1) { return documents; }
+    if (documents.length <= 1) {
+      return documents;
+    }
 
     const diversifiedDocs: ScoredDocument[] = [documents[0]]; // Always include top result
 
@@ -508,7 +508,9 @@ export class DocumentRerankingEngine {
       }
 
       // Limit diversified results
-      if (diversifiedDocs.length >= 10) { break; }
+      if (diversifiedDocs.length >= 10) {
+        break;
+      }
     }
 
     return diversifiedDocs;
@@ -549,11 +551,17 @@ export class DocumentRerankingEngine {
           (now.getTime() - relevantDate.getTime()) / (1000 * 60 * 60 * 24);
 
         // Apply temporal decay: newer documents get a boost
-        if (ageInDays <= 7) { temporalBoost = 1.1; }
-        else if (ageInDays <= 30) { temporalBoost = 1.05; }
-        else if (ageInDays <= 90) { temporalBoost = 1.0; }
-        else if (ageInDays <= 365) { temporalBoost = 0.95; }
-        else { temporalBoost = 0.9; }
+        if (ageInDays <= 7) {
+          temporalBoost = 1.1;
+        } else if (ageInDays <= 30) {
+          temporalBoost = 1.05;
+        } else if (ageInDays <= 90) {
+          temporalBoost = 1.0;
+        } else if (ageInDays <= 365) {
+          temporalBoost = 0.95;
+        } else {
+          temporalBoost = 0.9;
+        }
       }
 
       const adjustedScore = Math.min(doc.relevanceScore * temporalBoost, 1.0);
@@ -772,14 +780,20 @@ export class LearningToRankEngine {
     }>,
   ): number {
     const interaction = interactions.find((i) => i.documentId === documentId);
-    if (!interaction) { return 0; }
+    if (!interaction) {
+      return 0;
+    }
 
     let label = 0;
-    if (interaction.clicked) { label += 0.5; }
-    if (interaction.timeSpent > 30) { label += 0.3; // Engaged reading
-}
-    if (interaction.rating) { label += (interaction.rating - 3) * 0.1; // Rating contribution
-}
+    if (interaction.clicked) {
+      label += 0.5;
+    }
+    if (interaction.timeSpent > 30) {
+      label += 0.3; // Engaged reading
+    }
+    if (interaction.rating) {
+      label += (interaction.rating - 3) * 0.1; // Rating contribution
+    }
 
     return Math.max(0, Math.min(1, label));
   }

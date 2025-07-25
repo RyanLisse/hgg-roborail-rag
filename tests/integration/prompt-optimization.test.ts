@@ -41,7 +41,9 @@ describe('Prompt Optimization Integration Tests', () => {
       expect(optimizedQuery.originalQuery).toBe(query);
       expect(optimizedQuery.optimizedQuery).not.toBe(query);
       // Query type might be classified differently based on content
-      expect(['configuration', 'procedural']).toContain(optimizedQuery.metadata.queryType);
+      expect(['configuration', 'procedural']).toContain(
+        optimizedQuery.metadata.queryType,
+      );
       expect(optimizedQuery.expandedQueries.length).toBeGreaterThanOrEqual(1);
       expect(optimizedQuery.contextualPrompt).toContain('automation');
       expect(optimizedQuery.contextualPrompt).toContain('webhook');
@@ -97,7 +99,9 @@ describe('Prompt Optimization Integration Tests', () => {
       );
 
       // Query type might be classified differently based on content
-      expect(['technical', 'conceptual']).toContain(optimizedQuery.metadata.queryType);
+      expect(['technical', 'conceptual']).toContain(
+        optimizedQuery.metadata.queryType,
+      );
       expect(optimizedQuery.metadata.complexity).toBe('advanced');
       expect(optimizedQuery.metadata.estimatedRelevance).toBeGreaterThan(0.6);
     });

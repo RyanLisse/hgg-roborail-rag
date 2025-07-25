@@ -20,7 +20,9 @@ export class VectorStoreCache {
    * Initialize cache (lazy loading)
    */
   private async getCache(): Promise<SmartCache | null> {
-    if (!this.enabled) { return null; }
+    if (!this.enabled) {
+      return null;
+    }
 
     if (!this.cache) {
       try {
@@ -189,7 +191,9 @@ export class VectorStoreCache {
    */
   async invalidatePattern(pattern: string): Promise<number> {
     const cache = await this.getCache();
-    if (!cache) { return 0; }
+    if (!cache) {
+      return 0;
+    }
 
     const deleted = await cache.invalidatePattern(pattern);
     return deleted;
@@ -253,7 +257,6 @@ export class VectorStoreCache {
   async warmup(
     commonQueries: Array<{ query: string; sources: string[]; options?: any }>,
   ) {
-
     for (const { query, sources, options } of commonQueries) {
       try {
         // Execute a dummy search to populate cache
@@ -263,8 +266,7 @@ export class VectorStoreCache {
           sources,
           options || {},
         );
-      } catch (_error) {
-      }
+      } catch (_error) {}
     }
   }
 }

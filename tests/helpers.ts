@@ -44,7 +44,9 @@ export async function createAuthenticatedContext({
   const email = `test-${name}@playwright.com`;
   const password = generateId(16);
 
-  const baseURL = process.env.PORT ? `http://localhost:${process.env.PORT}` : 'http://localhost:3001';
+  const baseURL = process.env.PORT
+    ? `http://localhost:${process.env.PORT}`
+    : 'http://localhost:3001';
   await page.goto(`${baseURL}/register`);
   await page.getByPlaceholder('user@acme.com').click();
   await page.getByPlaceholder('user@acme.com').fill(email);

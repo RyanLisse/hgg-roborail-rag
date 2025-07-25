@@ -11,13 +11,14 @@ vi.mock('../ai/providers', () => ({
     doEmbed: async ({ values }: { values: string[] }) => {
       const embeddings = values.map((value: string) => {
         const hash = value.split('').reduce((a, b) => {
-          a = ((a << 5) - a) + b.charCodeAt(0);
+          a = (a << 5) - a + b.charCodeAt(0);
           return a & a;
         }, 0);
-        
+
         // Generate 1536-dimensional embedding
-        return Array.from({ length: 1536 }, (_, i) => 
-          Math.sin(hash + i) * 0.5 + 0.5
+        return Array.from(
+          { length: 1536 },
+          (_, i) => Math.sin(hash + i) * 0.5 + 0.5,
         );
       });
 
@@ -308,9 +309,15 @@ describe('RAG Service', () => {
       expect(service.config.vectorStore).toEqual(config.vectorStore);
       expect(service.config.embeddingModel).toEqual(config.embeddingModel);
       expect(service.config.chatModel).toEqual(config.chatModel);
-      expect(service.config.options?.chunkSize).toEqual(config.options.chunkSize);
-      expect(service.config.options?.chunkOverlap).toEqual(config.options.chunkOverlap);
-      expect(service.config.options?.maxRetrievalLimit).toEqual(config.options.maxRetrievalLimit);
+      expect(service.config.options?.chunkSize).toEqual(
+        config.options.chunkSize,
+      );
+      expect(service.config.options?.chunkOverlap).toEqual(
+        config.options.chunkOverlap,
+      );
+      expect(service.config.options?.maxRetrievalLimit).toEqual(
+        config.options.maxRetrievalLimit,
+      );
     });
 
     it('should throw error for invalid configuration', () => {

@@ -716,12 +716,16 @@ export class DocumentChunkingService {
       if (testChunk.length <= config.chunkSize) {
         currentChunk = testChunk;
       } else {
-        if (currentChunk) { chunks.push(currentChunk); }
+        if (currentChunk) {
+          chunks.push(currentChunk);
+        }
         currentChunk = sentence;
       }
     }
 
-    if (currentChunk) { chunks.push(currentChunk); }
+    if (currentChunk) {
+      chunks.push(currentChunk);
+    }
     return chunks.length > 1
       ? chunks
       : sentences.length > 1
@@ -742,7 +746,9 @@ export class DocumentChunkingService {
       if (testChunk.length <= config.chunkSize) {
         currentChunk = testChunk;
       } else {
-        if (currentChunk) { chunks.push(currentChunk); }
+        if (currentChunk) {
+          chunks.push(currentChunk);
+        }
 
         // If single paragraph is too large, split it
         if (paragraph.length > config.chunkSize) {
@@ -754,7 +760,9 @@ export class DocumentChunkingService {
       }
     }
 
-    if (currentChunk) { chunks.push(currentChunk); }
+    if (currentChunk) {
+      chunks.push(currentChunk);
+    }
     return chunks;
   }
 
@@ -816,8 +824,12 @@ export class DocumentChunkingService {
             }
 
             if (!inString) {
-              if (char === '{') { braceCount++; }
-              if (char === '}') { braceCount--; }
+              if (char === '{') {
+                braceCount++;
+              }
+              if (char === '}') {
+                braceCount--;
+              }
 
               // Found the closing brace for the function
               if (
@@ -881,10 +893,18 @@ export class DocumentChunkingService {
     chunk: string,
     documentType?: string,
   ): ChunkMetadata['chunkType'] {
-    if (documentType === 'code') { return 'code'; }
-    if (chunk.match(/^#{1,6}\s/)) { return 'heading'; }
-    if (chunk.match(/^\s*[-*+]\s/)) { return 'list'; }
-    if (chunk.match(/\|.*\|/)) { return 'table'; }
+    if (documentType === 'code') {
+      return 'code';
+    }
+    if (chunk.match(/^#{1,6}\s/)) {
+      return 'heading';
+    }
+    if (chunk.match(/^\s*[-*+]\s/)) {
+      return 'list';
+    }
+    if (chunk.match(/\|.*\|/)) {
+      return 'table';
+    }
     // Check if chunk contains paragraph-like content (not just code or lists)
     if (
       chunk.match(/[a-zA-Z]{10,}/) &&

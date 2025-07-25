@@ -72,7 +72,6 @@ export class VectorStoreConfigFactory<TConfig extends BaseServiceConfig>
    * Create a disabled configuration with helpful message
    */
   createDisabled(_reason: string): TConfig {
-
     const baseConfig = {
       ...BaseConfigSchema.parse({}),
       isEnabled: false,

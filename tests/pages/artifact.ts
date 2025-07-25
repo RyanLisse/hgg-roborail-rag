@@ -35,7 +35,9 @@ export class ArtifactPage {
     await this.page.waitForFunction(
       () => {
         const artifact = document.querySelector('[data-testid="artifact"]');
-        if (!artifact) { return false; }
+        if (!artifact) {
+          return false;
+        }
 
         // Check if there are any loading indicators still active
         const loadingElements = artifact.querySelectorAll(

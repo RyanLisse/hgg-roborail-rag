@@ -1,7 +1,4 @@
-import type {
-  LanguageModelV1,
-  EmbeddingModel,
-} from 'ai';
+import type { EmbeddingModel, LanguageModelV1 } from 'ai';
 import { chatModels, getModelById } from './models';
 
 // Mock language model for testing
@@ -84,13 +81,14 @@ export class MockEmbeddingModel implements EmbeddingModel<any> {
     // Generate consistent fake embeddings based on input
     const embeddings = options.values.map((value: string) => {
       const hash = value.split('').reduce((a, b) => {
-        a = ((a << 5) - a) + b.charCodeAt(0);
+        a = (a << 5) - a + b.charCodeAt(0);
         return a & a;
       }, 0);
-      
+
       // Generate 1536-dimensional embedding (OpenAI's dimension)
-      return Array.from({ length: 1536 }, (_, i) => 
-        Math.sin(hash + i) * 0.5 + 0.5
+      return Array.from(
+        { length: 1536 },
+        (_, i) => Math.sin(hash + i) * 0.5 + 0.5,
       );
     });
 
@@ -112,9 +110,12 @@ export const aiProviders = {
   google: Object.assign((modelId: string) => new MockLanguageModel(modelId), {
     embedding: (modelId: string) => new MockEmbeddingModel(modelId),
   }),
-  anthropic: Object.assign((modelId: string) => new MockLanguageModel(modelId), {
-    embedding: (modelId: string) => new MockEmbeddingModel(modelId),
-  }),
+  anthropic: Object.assign(
+    (modelId: string) => new MockLanguageModel(modelId),
+    {
+      embedding: (modelId: string) => new MockEmbeddingModel(modelId),
+    },
+  ),
   cohere: Object.assign((modelId: string) => new MockLanguageModel(modelId), {
     embedding: (modelId: string) => new MockEmbeddingModel(modelId),
   }),
@@ -144,11 +145,18 @@ export function getEmbeddingModelInstance(modelId: string) {
 // Helper function to identify reasoning models
 export function isReasoningModel(modelId: string): boolean {
   const reasoningPatterns = [
-    'o1-', 'o1.', 'o3-', 'o3.', 'o4-', 'o4.',
-    'reasoning', 'think', 'step-by-step',
+    'o1-',
+    'o1.',
+    'o3-',
+    'o3.',
+    'o4-',
+    'o4.',
+    'reasoning',
+    'think',
+    'step-by-step',
   ];
   return reasoningPatterns.some((pattern) =>
-    modelId.toLowerCase().includes(pattern)
+    modelId.toLowerCase().includes(pattern),
   );
 }
 
@@ -160,7 +168,7 @@ function createDynamicLanguageModel(modelId: string): LanguageModelV1 {
 // Create all language models for testing
 function createAllLanguageModels(): Record<string, LanguageModelV1> {
   const models: Record<string, LanguageModelV1> = {};
-  
+
   // Primary models with fallbacks
   const primaryModels = {
     'chat-model': 'openai-gpt-4.1',
@@ -189,19 +197,19 @@ function createAllLanguageModels(): Record<string, LanguageModelV1> {
 // Main provider object for testing - compatible with customProvider
 export const myProvider = {
   languageModels: createAllLanguageModels(),
-  
+
   // Add a method to get a specific model
   languageModel(modelId?: string): LanguageModelV1 {
     const models = this.languageModels;
     const selectedModelId = modelId || 'chat-model';
-    
+
     if (models[selectedModelId]) {
       return models[selectedModelId];
     }
-    
+
     // Return default mock model
     return new MockLanguageModel(selectedModelId);
-  }
+  },
 };
 
 // Export additional utilities for compatibility

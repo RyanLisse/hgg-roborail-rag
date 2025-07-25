@@ -34,12 +34,12 @@ export class StagehandChatPage {
         'Stagehand is not available - missing Browserbase credentials',
       );
     }
-      await Promise.race([
-        this.stagehand?.init(),
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Stagehand init timeout')), 30_000),
-        ),
-      ]);
+    await Promise.race([
+      this.stagehand?.init(),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Stagehand init timeout')), 30_000),
+      ),
+    ]);
   }
 
   async createNewChat() {
@@ -256,7 +256,9 @@ export class StagehandChatPage {
     const start = Date.now();
 
     while (Date.now() - start < timeout) {
-      if (await this.isScrolledToBottom()) { return; }
+      if (await this.isScrolledToBottom()) {
+        return;
+      }
       await this.page.waitForTimeout(100);
     }
 

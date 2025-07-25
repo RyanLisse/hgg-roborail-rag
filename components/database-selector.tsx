@@ -251,8 +251,7 @@ export function useDatabaseSelection() {
         const data = await response.json();
         setSourceStats(data.sourceStats || sourceStats);
       }
-    } catch (_error) {
-    }
+    } catch (_error) {}
   };
 
   return {

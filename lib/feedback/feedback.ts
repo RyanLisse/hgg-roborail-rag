@@ -68,14 +68,14 @@ export function createFeedbackService(db: any): FeedbackService {
         createdAt: new Date(),
         updatedAt: new Date(),
       };
-        const { feedback: feedbackTable } = await import('@/lib/db/schema');
+      const { feedback: feedbackTable } = await import('@/lib/db/schema');
 
-        const [result] = await db
-          .insert(feedbackTable)
-          .values(feedbackData)
-          .returning();
+      const [result] = await db
+        .insert(feedbackTable)
+        .values(feedbackData)
+        .returning();
 
-        return result as StoredFeedback;
+      return result as StoredFeedback;
     },
 
     async getFeedbackByRunId(runId: string): Promise<StoredFeedback[]> {
@@ -113,18 +113,18 @@ export function createFeedbackService(db: any): FeedbackService {
       updates: FeedbackUpdate,
     ): Promise<StoredFeedback> {
       const validatedUpdates = FeedbackUpdate.parse(updates);
-        const { feedback: feedbackTable } = await import('@/lib/db/schema');
+      const { feedback: feedbackTable } = await import('@/lib/db/schema');
 
-        const [result] = await db
-          .update(feedbackTable)
-          .set({
-            ...validatedUpdates,
-            updatedAt: new Date(),
-          })
-          .where(eq(feedbackTable.id, id))
-          .returning();
+      const [result] = await db
+        .update(feedbackTable)
+        .set({
+          ...validatedUpdates,
+          updatedAt: new Date(),
+        })
+        .where(eq(feedbackTable.id, id))
+        .returning();
 
-        return result as StoredFeedback;
+      return result as StoredFeedback;
     },
 
     async deleteFeedback(id: string): Promise<boolean> {
@@ -175,21 +175,21 @@ export function createFeedbackService(db: any): FeedbackService {
       const validatedFeedbackList = feedbackList.map((f) =>
         MessageFeedback.parse(f),
       );
-        const { feedback: feedbackTable } = await import('@/lib/db/schema');
+      const { feedback: feedbackTable } = await import('@/lib/db/schema');
 
-        const feedbackData = validatedFeedbackList.map((feedback) => ({
-          id: nanoid(),
-          ...feedback,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        }));
+      const feedbackData = validatedFeedbackList.map((feedback) => ({
+        id: nanoid(),
+        ...feedback,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }));
 
-        const results = await db
-          .insert(feedbackTable)
-          .values(feedbackData)
-          .returning();
+      const results = await db
+        .insert(feedbackTable)
+        .values(feedbackData)
+        .returning();
 
-        return results as StoredFeedback[];
+      return results as StoredFeedback[];
     },
   };
 }

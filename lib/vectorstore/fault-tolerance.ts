@@ -199,7 +199,6 @@ export class FaultTolerantService<T> {
         this.shouldUseFallback(classifiedError)
       ) {
         try {
-
           // Use fallback manager to try alternative approaches
           const fallbackResult = await this.fallbackManager.execute(
             operationName,
@@ -374,8 +373,7 @@ export class FaultTolerantService<T> {
     this.healthCheckTimer = setInterval(async () => {
       try {
         await this.performPeriodicHealthCheck();
-      } catch (_error) {
-      }
+      } catch (_error) {}
     }, this.config.healthCheckIntervalMs);
   }
 

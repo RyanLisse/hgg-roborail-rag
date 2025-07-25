@@ -44,7 +44,9 @@ let db: any = null;
 let connectionAttempted = false;
 
 function initializeDatabase() {
-  if (connectionAttempted) { return db; }
+  if (connectionAttempted) {
+    return db;
+  }
 
   connectionAttempted = true;
 
@@ -320,11 +322,7 @@ export async function getChatById({ id }: { id: string }) {
   }
 }
 
-export async function saveMessages({
-  messages,
-}: {
-  messages: DBMessage[];
-}) {
+export async function saveMessages({ messages }: { messages: DBMessage[] }) {
   const database = initializeDatabase();
 
   // If database is not available (test mode), return mock result

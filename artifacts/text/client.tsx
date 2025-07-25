@@ -80,19 +80,19 @@ export const textArtifact = new Artifact<'text', TextArtifactMetadata>({
 
     return (
       <div className="flex flex-row px-4 py-8 md:p-20">
-          <Editor
-            content={content}
-            currentVersionIndex={currentVersionIndex}
-            isCurrentVersion={isCurrentVersion}
-            onSaveContent={onSaveContent}
-            status={status}
-            suggestions={metadata ? metadata.suggestions : []}
-          />
+        <Editor
+          content={content}
+          currentVersionIndex={currentVersionIndex}
+          isCurrentVersion={isCurrentVersion}
+          onSaveContent={onSaveContent}
+          status={status}
+          suggestions={metadata ? metadata.suggestions : []}
+        />
 
-          {metadata?.suggestions && metadata.suggestions.length > 0 ? (
-            <div className="h-dvh w-12 shrink-0 md:hidden" />
-          ) : null}
-        </div>
+        {metadata?.suggestions && metadata.suggestions.length > 0 ? (
+          <div className="h-dvh w-12 shrink-0 md:hidden" />
+        ) : null}
+      </div>
     );
   },
   actions: [

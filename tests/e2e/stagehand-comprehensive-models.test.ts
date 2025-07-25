@@ -252,7 +252,6 @@ test.describe('All Providers Comprehensive Test', () => {
       expectedKeyword,
     } of modelsToTest) {
       try {
-
         // Select model using Stagehand AI
         await stagehandChat.selectModelUsingAI(model);
 

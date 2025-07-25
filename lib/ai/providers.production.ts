@@ -11,7 +11,8 @@ import { GOOGLE_GENERATIVE_AI_API_KEY, OPENAI_API_KEY } from '../env';
 import { chatModels, getModelById } from './models';
 
 // Check if we're in test mode
-const isTestMode = process.env.NODE_ENV === 'test' || 
+const isTestMode =
+  process.env.NODE_ENV === 'test' ||
   process.env.PLAYWRIGHT === 'true' ||
   process.env.OPENAI_API_KEY?.startsWith('sk-test-');
 
@@ -36,22 +37,22 @@ const providerSchema = z.enum(['openai', 'google']);
 
 // Get model instance by model ID
 export function getModelInstance(modelId: string) {
-    // Use mock providers in test mode
-    if (isTestMode && mockProviders) {
-      return mockProviders.getModelInstance(modelId);
-    }
+  // Use mock providers in test mode
+  if (isTestMode && mockProviders) {
+    return mockProviders.getModelInstance(modelId);
+  }
 
-    const model = getModelById(modelId);
-    if (!model) {
-      throw new Error(`Model with ID ${modelId} not found`);
-    }
+  const model = getModelById(modelId);
+  if (!model) {
+    throw new Error(`Model with ID ${modelId} not found`);
+  }
 
-    const provider = aiProviders[model.provider];
-    if (!provider) {
-      throw new Error(`Provider ${model.provider} not configured`);
-    }
+  const provider = aiProviders[model.provider];
+  if (!provider) {
+    throw new Error(`Provider ${model.provider} not configured`);
+  }
 
-    return provider(model.modelId);
+  return provider(model.modelId);
 }
 
 // Get embedding model instance
@@ -125,14 +126,12 @@ function createAllLanguageModels(): Record<string, LanguageModel> {
     try {
       models[alias] = createDynamicLanguageModel(modelId);
     } catch (_error) {
-
       // Fallback to a working model
       const fallbackId = getFallbackModel(modelId);
       if (fallbackId) {
         try {
           models[alias] = createDynamicLanguageModel(fallbackId);
-        } catch (_fallbackError) {
-        }
+        } catch (_fallbackError) {}
       }
     }
   }
@@ -146,12 +145,10 @@ function createAllLanguageModels(): Record<string, LanguageModel> {
       if (availableProviders.includes(model.provider)) {
         try {
           models[model.id] = createDynamicLanguageModel(model.id);
-        } catch (_error) {
-        }
+        } catch (_error) {}
       }
     });
-  } catch (_error) {
-  }
+  } catch (_error) {}
 
   // Ensure we have at least one working model
   if (Object.keys(models).length === 0) {
@@ -166,8 +163,12 @@ function createAllLanguageModels(): Record<string, LanguageModel> {
 // Get available providers based on API keys
 function getAvailableProviders(): string[] {
   const providers = [];
-  if (OPENAI_API_KEY) { providers.push('openai'); }
-  if (GOOGLE_GENERATIVE_AI_API_KEY) { providers.push('google'); }
+  if (OPENAI_API_KEY) {
+    providers.push('openai');
+  }
+  if (GOOGLE_GENERATIVE_AI_API_KEY) {
+    providers.push('google');
+  }
   return providers;
 }
 
@@ -195,18 +196,23 @@ function getFallbackModel(originalModelId: string): string | null {
   }
 
   // Ultimate fallback: any working model
-  if (OPENAI_API_KEY) { return 'openai-gpt-4o-mini'; }
-  if (GOOGLE_GENERATIVE_AI_API_KEY) { return 'google-gemini-1.5-flash'; }
+  if (OPENAI_API_KEY) {
+    return 'openai-gpt-4o-mini';
+  }
+  if (GOOGLE_GENERATIVE_AI_API_KEY) {
+    return 'google-gemini-1.5-flash';
+  }
 
   return null;
 }
 
 // Enhanced provider with comprehensive model support and error handling
-export const myProvider = isTestMode && mockProviders 
-  ? mockProviders.myProvider 
-  : customProvider({
-      languageModels: createAllLanguageModels(),
-    });
+export const myProvider =
+  isTestMode && mockProviders
+    ? mockProviders.myProvider
+    : customProvider({
+        languageModels: createAllLanguageModels(),
+      });
 
 // Provider health check
 export async function checkProviderHealth(): Promise<{
@@ -233,8 +239,7 @@ export async function checkProviderHealth(): Promise<{
   try {
     const models = createAllLanguageModels();
     availableModels.push(...Object.keys(models));
-  } catch (_error) {
-  }
+  } catch (_error) {}
 
   const healthyProviders = Object.values(providers).filter(Boolean).length;
   const totalProviders = Object.keys(providers).length;

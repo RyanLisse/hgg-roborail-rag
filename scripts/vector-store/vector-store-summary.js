@@ -98,10 +98,7 @@ async function displayFileDetails(file, openaiKey) {
     if (fileResponse.ok) {
       const fileDetails = await fileResponse.json();
       log(`  📄 ${fileDetails.filename}`, 'green');
-      log(
-        `     Size: ${Math.round(fileDetails.bytes / 1024)} KB`,
-        'bright',
-      );
+      log(`     Size: ${Math.round(fileDetails.bytes / 1024)} KB`, 'bright');
       log(
         `     Status: ${file.status}`,
         file.status === 'completed' ? 'green' : 'yellow',
@@ -145,12 +142,15 @@ async function checkOpenAIVectorStore(openaiKey, vectorStoreId) {
       );
 
       // Get files - fetch all files in parallel
-      const filesData = await fetchOpenAIVectorStoreFiles(openaiKey, vectorStoreId);
+      const filesData = await fetchOpenAIVectorStoreFiles(
+        openaiKey,
+        vectorStoreId,
+      );
       log('\n📋 Files in Vector Store:', 'bright');
 
       // Process files in parallel
-      const filePromises = filesData.data.map(file => 
-        displayFileDetails(file, openaiKey)
+      const filePromises = filesData.data.map((file) =>
+        displayFileDetails(file, openaiKey),
       );
       await Promise.all(filePromises);
     }
@@ -201,10 +201,7 @@ async function checkPgvectorDatabase(postgresUrl) {
       `);
 
       const docCount = countResult[0]?.count || 0;
-      log(
-        `📊 Total documents: ${docCount}`,
-        docCount > 0 ? 'green' : 'yellow',
-      );
+      log(`📊 Total documents: ${docCount}`, docCount > 0 ? 'green' : 'yellow');
 
       if (docCount > 0) {
         // Get sample documents
@@ -267,10 +264,7 @@ function displaySummary() {
   section('5. SUMMARY & RECOMMENDATIONS');
 
   log('\n📋 Key Points:', 'bright');
-  log(
-    '• The app uses a multi-tier vector store architecture',
-    'green',
-  );
+  log('• The app uses a multi-tier vector store architecture', 'green');
   log('• OpenAI Vector Store for file-based search', 'green');
   log('• Neon/pgvector for custom embeddings', 'green');
   log('• Memory store as fallback', 'green');

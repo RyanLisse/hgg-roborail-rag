@@ -167,7 +167,9 @@ class MemoryVectorStore {
         const matchesFilter = Object.entries(filter).every(
           ([key, value]) => chunk.metadata[key] === value,
         );
-        if (!matchesFilter) { continue; }
+        if (!matchesFilter) {
+          continue;
+        }
       }
 
       const score = cosineSimilarity(queryEmbedding, chunk.embedding);
@@ -555,8 +557,7 @@ Instructions:
           const fileSearchTool =
             unifiedService.openaiService.getFileSearchTool();
           tools.file_search = fileSearchTool;
-        } catch (_error) {
-        }
+        } catch (_error) {}
       }
     }
 
@@ -671,7 +672,9 @@ Instructions:
 
 // Utility functions
 function cosineSimilarity(a: number[], b: number[]): number {
-  if (a.length !== b.length) { return 0; }
+  if (a.length !== b.length) {
+    return 0;
+  }
 
   let dotProduct = 0;
   let normA = 0;
@@ -683,7 +686,9 @@ function cosineSimilarity(a: number[], b: number[]): number {
     normB += b[i] * b[i];
   }
 
-  if (normA === 0 || normB === 0) { return 0; }
+  if (normA === 0 || normB === 0) {
+    return 0;
+  }
 
   return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
 }

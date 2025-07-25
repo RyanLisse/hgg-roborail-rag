@@ -28,7 +28,6 @@ export async function GET() {
       sourceStats,
     });
   } catch (_error) {
-
     // Return fallback response instead of 500 error
     return NextResponse.json({
       availableSources: ['memory'],

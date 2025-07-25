@@ -36,7 +36,6 @@ export const enhancedSearch = (sources: VectorStoreType[] = ['memory']) =>
       responseModel = 'gpt-4o-mini',
     }) => {
       try {
-
         const vectorStore = await getUnifiedVectorStoreService();
         const results: any[] = [];
         let sourcesWithCitations: any[] = [];

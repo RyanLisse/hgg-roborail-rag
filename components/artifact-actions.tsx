@@ -89,12 +89,18 @@ function PureArtifactActions({
 export const ArtifactActions = memo(
   PureArtifactActions,
   (prevProps, nextProps) => {
-    if (prevProps.artifact.status !== nextProps.artifact.status) { return false; }
+    if (prevProps.artifact.status !== nextProps.artifact.status) {
+      return false;
+    }
     if (prevProps.currentVersionIndex !== nextProps.currentVersionIndex) {
       return false;
     }
-    if (prevProps.isCurrentVersion !== nextProps.isCurrentVersion) { return false; }
-    if (prevProps.artifact.content !== nextProps.artifact.content) { return false; }
+    if (prevProps.isCurrentVersion !== nextProps.isCurrentVersion) {
+      return false;
+    }
+    if (prevProps.artifact.content !== nextProps.artifact.content) {
+      return false;
+    }
 
     return true;
   },

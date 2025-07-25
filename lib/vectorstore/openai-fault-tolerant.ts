@@ -345,7 +345,9 @@ export class FaultTolerantOpenAIVectorStoreService {
       priority: 1,
       isAvailable: async () => {
         try {
-          if (!this.baseService.isEnabled) { return false; }
+          if (!this.baseService.isEnabled) {
+            return false;
+          }
           const health = await this.baseService.healthCheck();
           return health.isHealthy;
         } catch {
