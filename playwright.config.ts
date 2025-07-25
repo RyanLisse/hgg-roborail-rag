@@ -65,10 +65,7 @@ export default defineConfig({
     actionTimeout: 30_000, // 30s for most actions
     navigationTimeout: 45_000, // 45s for navigation
     
-    /* Improved waiting strategies */
-    waitForLoadState: 'networkidle',
-    waitForNavigation: { waitUntil: 'networkidle' },
-    waitForSelector: { strict: false }
+    /* Improved waiting strategies - these are applied in test helpers */
   },
 
   /* Balanced timeouts for reliability */
@@ -137,9 +134,9 @@ export default defineConfig({
         },
         // Stagehand viewport
         viewport: { width: 1280, height: 720 },
-        // Extra timeout for Stagehand
-        timeout: 150_000,
       },
+      // Extra timeout for Stagehand
+      timeout: 150_000,
     },
     {
       name: 'routes',

@@ -2,6 +2,10 @@ import 'server-only';
 
 import { z } from 'zod';
 
+// Regex constants for linting compliance
+const WHITESPACE_REGEX = /\s+/;
+const SENTENCE_SPLIT_REGEX = /[.!?]+/;
+
 // Schema definitions for prompt optimization
 export const QueryType = z.enum([
   'technical',
@@ -332,7 +336,7 @@ export class QueryExpansionEngine {
     // Simple keyword extraction - in production, use more sophisticated NLP
     const terms = text
       .toLowerCase()
-      .split(/\s+/)
+      .split(WHITESPACE_REGEX)
       .filter(
         (term) => term.length > 3 && !QueryExpansionEngine.isStopWord(term),
       );
@@ -499,7 +503,7 @@ export class PromptOptimizationEngine {
   /**
    * Optimize query and generate enhanced prompts
    */
-  static async optimizeQuery(
+  static optimizeQuery(
     originalQuery: string,
     context: QueryContext,
     config: Partial<PromptConfig> = {},
@@ -518,11 +522,9 @@ export class PromptOptimizationEngine {
         QueryType.parse(queryType);
       } catch {
         // If invalid, re-classify
-        queryType = undefined;
+        queryType = PromptOptimizationEngine.classifyQuery(originalQuery);
       }
-    }
-    
-    if (!queryType) {
+    } else {
       queryType = PromptOptimizationEngine.classifyQuery(originalQuery);
     }
 
@@ -899,6 +901,9 @@ export class PromptOptimizationEngine {
           `${query} integration`,
         );
         break;
+      default:
+        // No specific expansions for other query types
+        break;
     }
 
     return expansions;
@@ -1003,6 +1008,9 @@ export class PromptOptimizationEngine {
       case 'integration':
         instructions +=
           ' Search for integration guides, connector documentation, and compatibility information.';
+        break;
+      default:
+        // No specific instructions for other query types
         break;
     }
 
@@ -1185,7 +1193,7 @@ export class ContextWindowManager {
     content: string,
     query: string,
   ): number {
-    const queryTerms = query.toLowerCase().split(/\s+/);
+    const queryTerms = query.toLowerCase().split(WHITESPACE_REGEX);
     const contentLower = content.toLowerCase();
 
     let matches = 0;
@@ -1204,9 +1212,9 @@ export class ContextWindowManager {
   private static summarizeDocument(content: string, query: string): string {
     // Extract key sentences related to the query
     const sentences = content
-      .split(/[.!?]+/)
+      .split(SENTENCE_SPLIT_REGEX)
       .filter((s) => s.trim().length > 0);
-    const queryTerms = query.toLowerCase().split(/\s+/);
+    const queryTerms = query.toLowerCase().split(WHITESPACE_REGEX);
 
     const relevantSentences = sentences
       .map((sentence) => ({
