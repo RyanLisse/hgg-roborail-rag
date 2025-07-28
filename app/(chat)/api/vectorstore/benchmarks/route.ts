@@ -178,7 +178,10 @@ async function handleProviderComparison(
   const queries = testData?.queries || DEFAULT_TEST_QUERIES;
   const iterations = config?.iterations || 5;
 
-  const testCases = queries.map((query) => ({ query, expectedResults: 5 }));
+  const testCases = queries.map((query: string) => ({
+    query,
+    expectedResults: 5,
+  }));
 
   return await benchmarkSuite.compareProviders({
     operation: "search",
@@ -277,7 +280,7 @@ async function handleCreateBaseline(
   const iterations = config?.iterations || 10;
 
   const testCases = [
-    ...queries.map((query) => ({ operation: "search", query })),
+    ...queries.map((query: string) => ({ operation: "search", query })),
     ...createTestFiles()
       .slice(0, 2)
       .map((file) => ({ operation: "upload", file })),

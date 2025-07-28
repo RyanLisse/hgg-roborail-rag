@@ -260,7 +260,7 @@ class LoadPatternGenerator {
         }
         return users.peak;
 
-      case "spike":
+      case "spike": {
         // Quick ramp up, then constant load
         const spikeRampTime = totalDuration * 0.1; // 10% of total time
         if (currentTime < spikeRampTime) {
@@ -270,11 +270,13 @@ class LoadPatternGenerator {
           );
         }
         return users.peak;
+      }
 
-      case "stress":
+      case "stress": {
         // Gradually increase load beyond peak
         const stressMultiplier = 1 + progress;
         return Math.floor(users.peak * stressMultiplier);
+      }
 
       case "soak":
         // Long duration constant load
@@ -288,8 +290,8 @@ class LoadPatternGenerator {
 
 // Resource monitoring during load tests
 class LoadTestResourceMonitor {
-  private cpuSamples: number[] = [];
-  private memorySamples: number[] = [];
+  private readonly cpuSamples: number[] = [];
+  private readonly memorySamples: number[] = [];
   private interval: NodeJS.Timeout | null = null;
 
   start(samplingInterval: number = 1000): void {
@@ -331,6 +333,7 @@ class LoadTestResourceMonitor {
 
   private collectSample(): void {
     // CPU usage approximation (Node.js doesn't provide direct CPU usage)
+    // Note: This is a placeholder implementation
     this.cpuSamples.push(Math.random() * 100);
 
     // Memory usage
@@ -345,8 +348,12 @@ class LoadTestResourceMonitor {
 
 // Main load testing engine
 export class LoadTestingEngine {
-  private monitoringService: ReturnType<typeof getVectorStoreMonitoringService>;
-  private benchmarkSuite: ReturnType<typeof createPerformanceBenchmarkSuite>;
+  private readonly monitoringService: ReturnType<
+    typeof getVectorStoreMonitoringService
+  >;
+  private readonly benchmarkSuite: ReturnType<
+    typeof createPerformanceBenchmarkSuite
+  >;
 
   constructor(benchmarkConfig?: BenchmarkConfig) {
     this.monitoringService = getVectorStoreMonitoringService();
@@ -360,6 +367,8 @@ export class LoadTestingEngine {
         providers: ["openai", "neon", "unified"],
         testDataSizes: ["small", "medium", "large"],
         memoryThresholdMB: 1000,
+        outputDirectory: "./benchmark-results",
+        reportFormat: "json",
       },
     );
   }
@@ -368,10 +377,12 @@ export class LoadTestingEngine {
     const startTime = new Date();
     const resourceMonitor = new LoadTestResourceMonitor();
     const virtualUsers: VirtualUser[] = [];
-    const requestsPerSecond: number[] = [];
-    const responseTimesOverTime: Array<{
-      timestamp: number;
-      avgResponseTime: number;
+    const allOperations: Array<{
+      startTime: number;
+      endTime: number;
+      success: boolean;
+      responseTime: number;
+      error?: string;
     }> = [];
 
     // Get vector store service
@@ -380,17 +391,6 @@ export class LoadTestingEngine {
     );
 
     resourceMonitor.start(1000);
-
-    let totalRequests = 0;
-    let successfulRequests = 0;
-    let failedRequests = 0;
-    const allOperations: Array<{
-      startTime: number;
-      endTime: number;
-      success: boolean;
-      responseTime: number;
-      error?: string;
-    }> = [];
 
     try {
       // Run load test based on pattern
@@ -402,129 +402,29 @@ export class LoadTestingEngine {
       );
 
       // Collect results from all virtual users
-      for (const user of virtualUsers) {
-        const userResults = user.getResults();
-        totalRequests += userResults.totalOperations;
-        successfulRequests += userResults.successfulOperations;
-        allOperations.push(...userResults.operations);
-      }
-
-      failedRequests = totalRequests - successfulRequests;
+      const { totalRequests, successfulRequests } = this.collectUserResults(
+        virtualUsers,
+        allOperations,
+      );
+      const failedRequests = totalRequests - successfulRequests;
 
       // Calculate metrics
-      const responseTimes = allOperations.map((op) => op.responseTime);
-      const sortedResponseTimes = [...responseTimes].sort((a, b) => a - b);
+      const metrics = this.calculateMetrics(
+        allOperations,
+        startTime,
+        successfulRequests,
+        totalRequests,
+        failedRequests,
+      );
 
-      const avgResponseTime =
-        responseTimes.length > 0
-          ? responseTimes.reduce((sum, time) => sum + time, 0) /
-            responseTimes.length
-          : 0;
-
-      const minResponseTime = sortedResponseTimes[0] || 0;
-      const maxResponseTime =
-        sortedResponseTimes[sortedResponseTimes.length - 1] || 0;
-      const p50ResponseTime =
-        sortedResponseTimes[Math.floor(sortedResponseTimes.length * 0.5)] || 0;
-      const p95ResponseTime =
-        sortedResponseTimes[Math.floor(sortedResponseTimes.length * 0.95)] || 0;
-      const p99ResponseTime =
-        sortedResponseTimes[Math.floor(sortedResponseTimes.length * 0.99)] || 0;
+      // Check threshold violations
+      const thresholdViolations = this.checkThresholdViolations(
+        scenario,
+        metrics,
+      );
 
       const endTime = new Date();
       const duration = endTime.getTime() - startTime.getTime();
-      const throughput =
-        duration > 0 ? (successfulRequests / duration) * 1000 : 0;
-      const errorRate = totalRequests > 0 ? failedRequests / totalRequests : 0;
-
-      // Generate time-series data
-      const timeWindow = 5000; // 5-second windows
-      for (let time = 0; time < duration; time += timeWindow) {
-        const windowStart = startTime.getTime() + time;
-        const windowEnd = windowStart + timeWindow;
-
-        const windowOperations = allOperations.filter(
-          (op) => op.startTime >= windowStart && op.startTime < windowEnd,
-        );
-
-        requestsPerSecond.push((windowOperations.length / timeWindow) * 1000);
-
-        const windowAvgResponseTime =
-          windowOperations.length > 0
-            ? windowOperations.reduce((sum, op) => sum + op.responseTime, 0) /
-              windowOperations.length
-            : 0;
-
-        responseTimesOverTime.push({
-          timestamp: windowStart,
-          avgResponseTime: windowAvgResponseTime,
-        });
-      }
-
-      // Count errors by type
-      const errorsByType: Record<string, number> = {};
-      allOperations.forEach((op) => {
-        if (op.error) {
-          errorsByType[op.error] = (errorsByType[op.error] || 0) + 1;
-        }
-      });
-
-      // Check threshold violations
-      const thresholdViolations: Array<{
-        metric: string;
-        threshold: number;
-        actual: number;
-        severity: "warning" | "critical";
-      }> = [];
-
-      if (avgResponseTime > scenario.thresholds.avgResponseTime) {
-        thresholdViolations.push({
-          metric: "avgResponseTime",
-          threshold: scenario.thresholds.avgResponseTime,
-          actual: avgResponseTime,
-          severity:
-            avgResponseTime > scenario.thresholds.avgResponseTime * 1.5
-              ? "critical"
-              : "warning",
-        });
-      }
-
-      if (p95ResponseTime > scenario.thresholds.p95ResponseTime) {
-        thresholdViolations.push({
-          metric: "p95ResponseTime",
-          threshold: scenario.thresholds.p95ResponseTime,
-          actual: p95ResponseTime,
-          severity:
-            p95ResponseTime > scenario.thresholds.p95ResponseTime * 1.5
-              ? "critical"
-              : "warning",
-        });
-      }
-
-      if (errorRate > scenario.thresholds.errorRate) {
-        thresholdViolations.push({
-          metric: "errorRate",
-          threshold: scenario.thresholds.errorRate,
-          actual: errorRate,
-          severity:
-            errorRate > scenario.thresholds.errorRate * 2
-              ? "critical"
-              : "warning",
-        });
-      }
-
-      if (throughput < scenario.thresholds.throughput) {
-        thresholdViolations.push({
-          metric: "throughput",
-          threshold: scenario.thresholds.throughput,
-          actual: throughput,
-          severity:
-            throughput < scenario.thresholds.throughput * 0.5
-              ? "critical"
-              : "warning",
-        });
-      }
-
       const resourceUsage = resourceMonitor.stop();
       const passed =
         thresholdViolations.filter((v) => v.severity === "critical").length ===
@@ -542,19 +442,7 @@ export class LoadTestingEngine {
         totalRequests,
         successfulRequests,
         failedRequests,
-        metrics: {
-          avgResponseTime,
-          minResponseTime,
-          maxResponseTime,
-          p50ResponseTime,
-          p95ResponseTime,
-          p99ResponseTime,
-          throughput,
-          errorRate,
-          requestsPerSecond,
-          responseTimesOverTime,
-          errorsByType,
-        },
+        metrics,
         thresholdViolations,
         resourceUsage,
         passed,
@@ -565,6 +453,191 @@ export class LoadTestingEngine {
       virtualUsers.forEach((user) => user.stop());
       resourceMonitor.stop();
     }
+  }
+
+  private collectUserResults(
+    virtualUsers: VirtualUser[],
+    allOperations: Array<any>,
+  ): { totalRequests: number; successfulRequests: number } {
+    let totalRequests = 0;
+    let successfulRequests = 0;
+
+    for (const user of virtualUsers) {
+      const userResults = user.getResults();
+      totalRequests += userResults.totalOperations;
+      successfulRequests += userResults.successfulOperations;
+      allOperations.push(...userResults.operations);
+    }
+
+    return { totalRequests, successfulRequests };
+  }
+
+  private calculateMetrics(
+    allOperations: Array<any>,
+    startTime: Date,
+    successfulRequests: number,
+    totalRequests: number,
+    failedRequests: number,
+  ): any {
+    const responseTimes = allOperations.map((op) => op.responseTime);
+    const sortedResponseTimes = [...responseTimes].sort((a, b) => a - b);
+
+    const avgResponseTime =
+      responseTimes.length > 0
+        ? responseTimes.reduce((sum, time) => sum + time, 0) /
+          responseTimes.length
+        : 0;
+
+    const minResponseTime = sortedResponseTimes[0] || 0;
+    const maxResponseTime =
+      sortedResponseTimes[sortedResponseTimes.length - 1] || 0;
+    const p50ResponseTime =
+      sortedResponseTimes[Math.floor(sortedResponseTimes.length * 0.5)] || 0;
+    const p95ResponseTime =
+      sortedResponseTimes[Math.floor(sortedResponseTimes.length * 0.95)] || 0;
+    const p99ResponseTime =
+      sortedResponseTimes[Math.floor(sortedResponseTimes.length * 0.99)] || 0;
+
+    const duration = Date.now() - startTime.getTime();
+    const throughput =
+      duration > 0 ? (successfulRequests / duration) * 1000 : 0;
+    const errorRate = totalRequests > 0 ? failedRequests / totalRequests : 0;
+
+    // Generate time-series data
+    const { requestsPerSecond, responseTimesOverTime } =
+      this.generateTimeSeriesData(allOperations, startTime, duration);
+
+    // Count errors by type
+    const errorsByType: Record<string, number> = {};
+    allOperations.forEach((op) => {
+      if (op.error) {
+        errorsByType[op.error] = (errorsByType[op.error] || 0) + 1;
+      }
+    });
+
+    return {
+      avgResponseTime,
+      minResponseTime,
+      maxResponseTime,
+      p50ResponseTime,
+      p95ResponseTime,
+      p99ResponseTime,
+      throughput,
+      errorRate,
+      requestsPerSecond,
+      responseTimesOverTime,
+      errorsByType,
+    };
+  }
+
+  private generateTimeSeriesData(
+    allOperations: Array<any>,
+    startTime: Date,
+    duration: number,
+  ): {
+    requestsPerSecond: number[];
+    responseTimesOverTime: Array<{
+      timestamp: number;
+      avgResponseTime: number;
+    }>;
+  } {
+    const requestsPerSecond: number[] = [];
+    const responseTimesOverTime: Array<{
+      timestamp: number;
+      avgResponseTime: number;
+    }> = [];
+
+    const timeWindow = 5000; // 5-second windows
+    for (let time = 0; time < duration; time += timeWindow) {
+      const windowStart = startTime.getTime() + time;
+      const windowEnd = windowStart + timeWindow;
+
+      const windowOperations = allOperations.filter(
+        (op) => op.startTime >= windowStart && op.startTime < windowEnd,
+      );
+
+      requestsPerSecond.push((windowOperations.length / timeWindow) * 1000);
+
+      const windowAvgResponseTime =
+        windowOperations.length > 0
+          ? windowOperations.reduce((sum, op) => sum + op.responseTime, 0) /
+            windowOperations.length
+          : 0;
+
+      responseTimesOverTime.push({
+        timestamp: windowStart,
+        avgResponseTime: windowAvgResponseTime,
+      });
+    }
+
+    return { requestsPerSecond, responseTimesOverTime };
+  }
+
+  private checkThresholdViolations(
+    scenario: LoadTestScenario,
+    metrics: any,
+  ): Array<{
+    metric: string;
+    threshold: number;
+    actual: number;
+    severity: "warning" | "critical";
+  }> {
+    const thresholdViolations: Array<{
+      metric: string;
+      threshold: number;
+      actual: number;
+      severity: "warning" | "critical";
+    }> = [];
+
+    if (metrics.avgResponseTime > scenario.thresholds.avgResponseTime) {
+      thresholdViolations.push({
+        metric: "avgResponseTime",
+        threshold: scenario.thresholds.avgResponseTime,
+        actual: metrics.avgResponseTime,
+        severity:
+          metrics.avgResponseTime > scenario.thresholds.avgResponseTime * 1.5
+            ? "critical"
+            : "warning",
+      });
+    }
+
+    if (metrics.p95ResponseTime > scenario.thresholds.p95ResponseTime) {
+      thresholdViolations.push({
+        metric: "p95ResponseTime",
+        threshold: scenario.thresholds.p95ResponseTime,
+        actual: metrics.p95ResponseTime,
+        severity:
+          metrics.p95ResponseTime > scenario.thresholds.p95ResponseTime * 1.5
+            ? "critical"
+            : "warning",
+      });
+    }
+
+    if (metrics.errorRate > scenario.thresholds.errorRate) {
+      thresholdViolations.push({
+        metric: "errorRate",
+        threshold: scenario.thresholds.errorRate,
+        actual: metrics.errorRate,
+        severity:
+          metrics.errorRate > scenario.thresholds.errorRate * 2
+            ? "critical"
+            : "warning",
+      });
+    }
+
+    if (metrics.throughput < scenario.thresholds.throughput) {
+      thresholdViolations.push({
+        metric: "throughput",
+        threshold: scenario.thresholds.throughput,
+        actual: metrics.throughput,
+        severity:
+          metrics.throughput < scenario.thresholds.throughput * 0.5
+            ? "critical"
+            : "warning",
+      });
+    }
+
+    return thresholdViolations;
   }
 
   private async executeLoadPattern(
