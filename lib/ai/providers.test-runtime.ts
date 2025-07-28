@@ -1,13 +1,13 @@
 // Test provider for E2E tests
 
-import type { CoreMessage } from 'ai';
 import {
+  type CoreMessage,
   customProvider,
   type LanguageModel,
   type LanguageModelV1CallOptions,
 } from 'ai';
 
-type LanguageModelV1FinishReason =
+type _LanguageModelV1FinishReason =
   | 'stop'
   | 'length'
   | 'content-filter'

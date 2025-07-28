@@ -8,7 +8,7 @@ import {
   type QueryContext,
   QueryExpansionEngine,
   ROBORAIL_DOMAIN_PROMPTS,
-} from './prompt-optimization';
+} from '../prompt-optimization';
 
 describe('PromptOptimizationEngine', () => {
   describe('classifyQuery', () => {

@@ -61,10 +61,11 @@ export function Chat({
   } = useDatabaseSelection();
 
   // Chat visibility management
-  const { visibilityType, setVisibilityType } = useChatVisibility({
-    chatId: id,
-    initialVisibilityType,
-  });
+  const { visibilityType, setVisibilityType: _setVisibilityType } =
+    useChatVisibility({
+      chatId: id,
+      initialVisibilityType,
+    });
 
   // Optimized useChat with memoized configuration
   const {

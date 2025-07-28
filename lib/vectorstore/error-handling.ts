@@ -417,7 +417,7 @@ export class ErrorClassifier {
 // ====================================
 
 export class RetryMechanism {
-  private config: RetryConfig;
+  private readonly config: RetryConfig;
 
   constructor(config?: Partial<RetryConfig>) {
     this.config = RetryConfig.parse(config || {});
@@ -432,33 +432,17 @@ export class RetryMechanism {
 
     while (attempt <= this.config.maxRetries) {
       try {
-        // Add timeout wrapper with cleanup
-        let timeoutId: NodeJS.Timeout | null = null;
+        // Create a timeout promise that will reject after the specified time
         const timeoutPromise = new Promise<never>((_, reject) => {
-          timeoutId = setTimeout(
-            () => reject(new Error('Operation timeout')),
-            this.config.timeoutMs,
-          );
+          setTimeout(() => {
+            reject(new Error('Operation timeout'));
+          }, this.config.timeoutMs);
         });
 
-        try {
-          const result = await Promise.race([operation(), timeoutPromise]);
-          // Clear timeout on success
-          if (timeoutId) {
-            clearTimeout(timeoutId);
-          }
+        // Race the operation against the timeout
+        const result = await Promise.race([operation(), timeoutPromise]);
 
-          if (attempt > 0) {
-          }
-
-          return result;
-        } catch (error) {
-          // Clear timeout on error before rethrowing
-          if (timeoutId) {
-            clearTimeout(timeoutId);
-          }
-          throw error;
-        }
+        return result;
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
         attempt++;
@@ -518,7 +502,7 @@ export class RetryMechanism {
 // ====================================
 
 export class CircuitBreaker {
-  private config: CircuitBreakerConfig;
+  private readonly config: CircuitBreakerConfig;
   private state: CircuitBreakerState = CircuitBreakerState.CLOSED;
   private failureCount = 0;
   private successCount = 0;
@@ -527,7 +511,7 @@ export class CircuitBreaker {
   private windowStartTime = Date.now();
 
   constructor(
-    private name: string,
+    private readonly name: string,
     config?: Partial<CircuitBreakerConfig>,
   ) {
     this.config = CircuitBreakerConfig.parse(config || {});
@@ -578,9 +562,10 @@ export class CircuitBreaker {
     this.failureCount++;
     this.lastFailureTime = Date.now();
 
-    if (this.state === CircuitBreakerState.HALF_OPEN) {
-      this.state = CircuitBreakerState.OPEN;
-    } else if (this.state === CircuitBreakerState.CLOSED && this.shouldTrip()) {
+    if (
+      this.state === CircuitBreakerState.HALF_OPEN ||
+      (this.state === CircuitBreakerState.CLOSED && this.shouldTrip())
+    ) {
       this.state = CircuitBreakerState.OPEN;
     }
   }

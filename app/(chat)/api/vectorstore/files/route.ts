@@ -27,6 +27,9 @@ export async function GET(request: NextRequest) {
 
     // If a specific source is requested, get files from that source
     if (source === 'openai') {
+      if (!vectorStoreService.openaiService) {
+        return NextResponse.json({ error: 'OpenAI service not available' }, { status: 503 });
+      }
       const files = await vectorStoreService.openaiService.listFiles(
         vectorStoreId || undefined,
       );
@@ -59,10 +62,17 @@ export async function GET(request: NextRequest) {
       vectorStoreService.getSourceStats(),
     ]);
 
-    const allFiles = [];
+    const allFiles: Array<{
+      id: string;
+      name: string;
+      status: string;
+      createdAt: Date;
+      source: 'openai' | 'neon' | 'memory';
+      vectorStoreId?: string;
+    }> = [];
 
     // Get files from OpenAI if available
-    if (availableSources.includes('openai')) {
+    if (availableSources.includes('openai') && vectorStoreService.openaiService) {
       try {
         const openaiFiles = await vectorStoreService.openaiService.listFiles();
         allFiles.push(
@@ -75,7 +85,9 @@ export async function GET(request: NextRequest) {
             vectorStoreId: file.vector_store_id,
           })),
         );
-      } catch (_error) {}
+      } catch (_error) {
+        // Failed to fetch OpenAI files - continuing with other sources
+      }
     }
 
     return NextResponse.json({
@@ -83,9 +95,13 @@ export async function GET(request: NextRequest) {
       availableSources,
       sourceStats,
     });
-  } catch (_error) {
+  } catch (error) {
+    // Failed to list files
     return NextResponse.json(
-      { error: 'Failed to list files' },
+      {
+        error: 'Failed to list files',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
       { status: 500 },
     );
   }

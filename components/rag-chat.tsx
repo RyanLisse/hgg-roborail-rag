@@ -37,7 +37,7 @@ export function RAGChat() {
     availableSources,
     sourceStats,
     isLoading: isLoadingSources,
-    refreshStats,
+    refreshStats: _refreshStats,
   } = useDatabaseSelection();
   const {
     query,

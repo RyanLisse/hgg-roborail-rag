@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useState } from 'react';
 import { z } from 'zod';
 
-type VectorStoreType = 'openai' | 'neon' | 'memory';
+type VectorStoreType = 'openai' | 'neon' | 'supabase' | 'memory';
 
 import { nanoid } from 'nanoid';
 
@@ -31,7 +31,7 @@ const StoredDocument = z.object({
   status: z.enum(['uploading', 'processing', 'processed', 'error']),
   content: z.string().optional(),
   error: z.string().optional(),
-  source: z.enum(['openai', 'neon', 'memory', 'local']).optional(),
+  source: z.enum(['openai', 'neon', 'supabase', 'memory', 'local']).optional(),
   vectorStoreId: z.string().optional(),
 });
 
@@ -40,13 +40,13 @@ const RemoteFile = z.object({
   name: z.string(),
   status: z.string(),
   createdAt: z.date(),
-  source: z.enum(['openai', 'neon', 'memory']),
+  source: z.enum(['openai', 'neon', 'supabase', 'memory']),
   vectorStoreId: z.string().optional(),
 });
 
 const FilesResponse = z.object({
   files: z.array(RemoteFile),
-  availableSources: z.array(z.enum(['openai', 'neon', 'memory'])).optional(),
+  availableSources: z.array(z.enum(['openai', 'neon', 'supabase', 'memory'])).optional(),
   sourceStats: z
     .record(
       z.object({

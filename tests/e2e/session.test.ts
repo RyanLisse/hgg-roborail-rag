@@ -29,7 +29,7 @@ test.describe
         : 'http://localhost:3001';
       expect(chain).toEqual([
         `${baseURL}/`,
-        `${baseURL}/api/auth/guest?redirectUrl=${encodeURIComponent(baseURL + '/')}`,
+        `${baseURL}/api/auth/guest?redirectUrl=${encodeURIComponent(`${baseURL}/`)}`,
         `${baseURL}/`,
       ]);
     });

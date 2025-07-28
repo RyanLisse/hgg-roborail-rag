@@ -150,7 +150,11 @@ export abstract class BaseAgent implements Agent {
       const tools = this.getTools(validatedRequest);
 
       // Generate response
-      const { text, usage, response } = await generateText({
+      const {
+        text,
+        usage,
+        response: _response,
+      } = await generateText({
         model: modelInstance,
         messages,
         maxTokens:
@@ -243,7 +247,7 @@ export abstract class BaseAgent implements Agent {
       const {
         textStream,
         usage: usagePromise,
-        response,
+        response: _response,
       } = await streamText({
         model: modelInstance,
         messages,

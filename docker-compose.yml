@@ -1,0 +1,157 @@
+# ==========================================
+# Docker Compose for Local Development
+# Complete stack with database and Redis
+# ==========================================
+
+version: '3.8'
+
+services:
+  # Next.js Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    ports:
+      - 3000:3000
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/roborail_dev
+      - REDIS_URL=redis://redis:6379
+      - NEXTAUTH_URL=http://localhost:3000
+      - AUTH_SECRET=development-secret-key-change-in-production
+      - NEXT_TELEMETRY_DISABLED=1
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - GOOGLE_GENERATIVE_AI_API_KEY=${GOOGLE_GENERATIVE_AI_API_KEY}
+      - COHERE_API_KEY=${COHERE_API_KEY}
+      - BLOB_READ_WRITE_TOKEN=${BLOB_READ_WRITE_TOKEN}
+      - LANGCHAIN_TRACING_V2=${LANGCHAIN_TRACING_V2}
+      - LANGCHAIN_API_KEY=${LANGCHAIN_API_KEY}
+      - LANGCHAIN_PROJECT=${LANGCHAIN_PROJECT}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      # Mount source code for development hot reload (comment out for production)
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    networks:
+      - roborail-network
+    restart: unless-stopped
+    healthcheck:
+      test: [CMD, node, healthcheck.js]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_DB=roborail_dev
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    networks:
+      - roborail-network
+    restart: unless-stopped
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U postgres -d roborail_dev]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    ports:
+      - 6379:6379
+    command: redis-server --appendonly yes --requirepass redispassword
+    volumes:
+      - redis_data:/data
+    networks:
+      - roborail-network
+    restart: unless-stopped
+    healthcheck:
+      test: [CMD, redis-cli, --raw, incr, ping]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 30s
+
+  # Development Tools (Optional)
+  adminer:
+    image: adminer:latest
+    ports:
+      - 8080:8080
+    environment:
+      - ADMINER_DEFAULT_SERVER=postgres
+    depends_on:
+      - postgres
+    networks:
+      - roborail-network
+    profiles:
+      - tools
+
+  # Redis Commander (Optional)
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    ports:
+      - 8081:8081
+    environment:
+      - REDIS_HOSTS=local:redis:6379:0:redispassword
+    depends_on:
+      - redis
+    networks:
+      - roborail-network
+    profiles:
+      - tools
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  roborail-network:
+    driver: bridge
+# ==========================================
+# Usage Commands:
+# ==========================================
+#
+# Start full stack:
+#   docker-compose up -d
+#
+# Start with development tools:
+#   docker-compose --profile tools up -d
+#
+# View logs:
+#   docker-compose logs -f app
+#
+# Stop services:
+#   docker-compose down
+#
+# Rebuild application:
+#   docker-compose up --build app
+#
+# Database migration:
+#   docker-compose exec app pnpm db:migrate
+#
+# Access database:
+#   docker-compose exec postgres psql -U postgres -d roborail_dev
+#
+# Clean up volumes:
+#   docker-compose down -v
+# ==========================================

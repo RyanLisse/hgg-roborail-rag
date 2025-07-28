@@ -66,9 +66,9 @@ export async function POST(request: Request) {
   const documents = await getDocumentsById({ id });
 
   if (documents.length > 0) {
-    const [document] = documents;
+    const [existingDocument] = documents;
 
-    if (document.userId !== session.user.id) {
+    if (existingDocument.userId !== session.user.id) {
       return new ChatSDKError('forbidden:document').toResponse();
     }
   }

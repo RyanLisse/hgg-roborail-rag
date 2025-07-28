@@ -55,3 +55,36 @@ SETUP.sh.backup
 agent-debug.json
 agent-execution.json
 .codex-workspace/
+
+# Claude Flow and coordination files
+.claude/
+.serena/
+.roo/
+.roomodes
+.mcp.json
+claude-flow.config.json
+.swarm/
+.hive-mind/
+memory/
+memories.json
+reflections.json
+coordination/
+*.db
+*.db-journal
+*.db-wal
+*.sqlite
+*.sqlite-journal
+*.sqlite-wal
+claude-flow
+claude-flow.bat
+claude-flow.ps1
+hive-mind-prompt-*.txt
+
+# Development artifacts and reports
+*VALIDATION_REPORT.md
+*TEST_REPORT.md
+*OPTIMIZATION.md
+citation-integration-test.js
+simple-integration-test.cjs
+test-db-connection.js
+test-file.js

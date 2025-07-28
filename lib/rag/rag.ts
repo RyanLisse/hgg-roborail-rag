@@ -58,7 +58,7 @@ export const RAGQuery = z.object({
       useWebSearch: z.boolean().default(false),
       previousResponseId: z.string().optional(),
       vectorStoreSources: z
-        .array(z.enum(['openai', 'neon', 'memory']))
+        .array(z.enum(['openai', 'neon', 'supabase', 'memory']))
         .default(['openai']),
       useFileSearch: z.boolean().default(true),
     })
@@ -555,7 +555,7 @@ Instructions:
         try {
           const unifiedService = await getUnifiedVectorStoreService();
           const fileSearchTool =
-            unifiedService.openaiService.getFileSearchTool();
+            unifiedService.openaiService?.getFileSearchTool();
           tools.file_search = fileSearchTool;
         } catch (_error) {}
       }

@@ -1,40 +1,50 @@
-import 'server-only';
+import "server-only";
 
-import { z } from 'zod';
+import { z } from "zod";
 import {
   getVectorStoreMonitoringService,
   withPerformanceMonitoring,
-} from './monitoring';
-import { getNeonVectorStoreService, type NeonVectorStoreService } from './neon';
+} from "./monitoring";
+import { getNeonVectorStoreService, type NeonVectorStoreService } from "./neon";
 import {
   getOpenAIVectorStoreService,
   type OpenAIVectorStoreService,
-} from './openai';
+} from "./openai";
+import {
+  getSupabaseVectorStoreService,
+  type SupabaseVectorStoreService,
+} from "./supabase";
 import {
   type HybridSearchRequest,
   RelevanceScoringEngine,
   type RelevanceWeights,
   type RerankingRequest,
   type UserFeedback,
-} from './relevance-scoring';
+} from "./relevance-scoring";
 import {
   DocumentRerankingEngine,
   type FusionScore,
   LearningToRankEngine,
   type RerankingResult,
-} from './reranking';
-import { getFaultTolerantUnifiedVectorStoreService } from './unified-fault-tolerant';
+} from "./reranking";
+import { getFaultTolerantUnifiedVectorStoreService } from "./unified-fault-tolerant";
 
 // Re-export types for use by other modules
-export type { RelevanceWeights, UserFeedback } from './relevance-scoring';
+export type { RelevanceWeights, UserFeedback } from "./relevance-scoring";
 
 // Unified schemas
-export const VectorStoreType = z.enum(['openai', 'neon', 'memory', 'unified']);
+export const VectorStoreType = z.enum([
+  "openai",
+  "neon",
+  "supabase",
+  "memory",
+  "unified",
+]);
 
 export const UnifiedDocument = z.object({
   id: z.string(),
   content: z.string(),
-  metadata: z.record(z.any()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
   source: VectorStoreType,
   createdAt: z.date().optional(),
   updatedAt: z.date().optional(),
@@ -43,33 +53,33 @@ export const UnifiedDocument = z.object({
 // Basic search request for backward compatibility
 export const BasicSearchRequest = z.object({
   query: z.string().min(1),
-  sources: z.array(VectorStoreType).default(['openai', 'neon', 'memory']),
+  sources: z.array(VectorStoreType).default(["openai", "neon", "memory"]),
   maxResults: z.number().min(1).max(100).default(10),
   threshold: z.number().min(0).max(1).default(0.3),
-  metadata: z.record(z.any()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
   queryContext: z
     .object({
       type: z
         .enum([
-          'technical',
-          'conceptual',
-          'procedural',
-          'troubleshooting',
-          'configuration',
-          'api',
-          'integration',
-          'best_practices',
-          'examples',
-          'reference',
-          'multi_turn',
-          'contextual',
+          "technical",
+          "conceptual",
+          "procedural",
+          "troubleshooting",
+          "configuration",
+          "api",
+          "integration",
+          "best_practices",
+          "examples",
+          "reference",
+          "multi_turn",
+          "contextual",
         ])
         .optional(),
       domain: z.string().optional(),
       conversationHistory: z
         .array(
           z.object({
-            role: z.enum(['user', 'assistant']),
+            role: z.enum(["user", "assistant"]),
             content: z.string(),
             timestamp: z.number(),
           }),
@@ -77,9 +87,9 @@ export const BasicSearchRequest = z.object({
         .optional(),
       previousQueries: z.array(z.string()).optional(),
       userIntent: z.string().optional(),
-      complexity: z.enum(['basic', 'intermediate', 'advanced']).optional(),
+      complexity: z.enum(["basic", "intermediate", "advanced"]).optional(),
       searchDepth: z
-        .enum(['shallow', 'comprehensive', 'exhaustive'])
+        .enum(["shallow", "comprehensive", "exhaustive"])
         .optional(),
     })
     .optional(),
@@ -158,14 +168,14 @@ export const EnhancedSearchResponse = z.object({
     rerankingTime: z.number().optional(),
     totalTime: z.number(),
   }),
-  debugInfo: z.record(z.any()).optional(),
+  debugInfo: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const DocumentUploadRequest = z.object({
   content: z.string().min(1),
-  metadata: z.record(z.any()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
   file: z.instanceof(File).optional(),
-  targetSources: z.array(VectorStoreType).default(['memory']),
+  targetSources: z.array(VectorStoreType).default(["memory"]),
 });
 
 // Types
@@ -178,8 +188,9 @@ export type EnhancedSearchResponse = z.infer<typeof EnhancedSearchResponse>;
 export type DocumentUploadRequest = z.infer<typeof DocumentUploadRequest>;
 
 export interface UnifiedVectorStoreService {
-  openaiService: OpenAIVectorStoreService | any;
-  neonService: NeonVectorStoreService | any;
+  openaiService: OpenAIVectorStoreService | null;
+  neonService: NeonVectorStoreService | null;
+  supabaseService: SupabaseVectorStoreService | null;
 
   // Document management
   addDocument: (request: DocumentUploadRequest) => Promise<UnifiedDocument[]>;
@@ -197,6 +208,10 @@ export interface UnifiedVectorStoreService {
     request: UnifiedSearchRequest,
   ) => Promise<EnhancedSearchResponse>;
   searchOpenAI: (
+    query: string,
+    maxResults?: number,
+  ) => Promise<UnifiedSearchResult[]>;
+  searchSupabase: (
     query: string,
     maxResults?: number,
   ) => Promise<UnifiedSearchResult[]>;
@@ -233,10 +248,12 @@ export interface UnifiedVectorStoreService {
 export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorStoreService> {
   const openaiService = await getOpenAIVectorStoreService();
   const neonService = await getNeonVectorStoreService();
+  const supabaseService = await getSupabaseVectorStoreService();
 
   const service: UnifiedVectorStoreService = {
     openaiService,
     neonService,
+    supabaseService,
 
     async addDocument(
       request: DocumentUploadRequest,
@@ -247,11 +264,13 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
       for (const source of validatedRequest.targetSources) {
         try {
           switch (source) {
-            case 'openai':
+            case "openai":
               if (openaiService.isEnabled && validatedRequest.file) {
                 const vectorStoreFile = await openaiService.uploadFile({
                   file: validatedRequest.file,
-                  metadata: validatedRequest.metadata,
+                  metadata: validatedRequest.metadata as
+                    | Record<string, string>
+                    | undefined,
                 });
 
                 results.push(
@@ -259,14 +278,14 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
                     id: vectorStoreFile.id,
                     content: validatedRequest.content,
                     metadata: validatedRequest.metadata,
-                    source: 'openai',
+                    source: "openai",
                     createdAt: new Date(vectorStoreFile.created_at * 1000),
                   }),
                 );
               }
               break;
 
-            case 'neon':
+            case "neon":
               if (neonService.isEnabled) {
                 const neonDoc = await neonService.addDocument({
                   content: validatedRequest.content,
@@ -278,7 +297,7 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
                     id: neonDoc.id,
                     content: neonDoc.content,
                     metadata: neonDoc.metadata,
-                    source: 'neon',
+                    source: "neon",
                     createdAt: neonDoc.createdAt,
                     updatedAt: neonDoc.updatedAt,
                   }),
@@ -286,14 +305,34 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
               }
               break;
 
-            case 'memory':
+            case "supabase":
+              if (supabaseService.isEnabled) {
+                const supabaseDoc = await supabaseService.addDocument({
+                  content: validatedRequest.content,
+                  metadata: validatedRequest.metadata,
+                });
+
+                results.push(
+                  UnifiedDocument.parse({
+                    id: supabaseDoc.id,
+                    content: supabaseDoc.content,
+                    metadata: supabaseDoc.metadata,
+                    source: "supabase",
+                    createdAt: supabaseDoc.createdAt,
+                    updatedAt: supabaseDoc.updatedAt,
+                  }),
+                );
+              }
+              break;
+
+            case "memory":
               // Memory storage is handled by the existing RAG service
               results.push(
                 UnifiedDocument.parse({
                   id: crypto.randomUUID(),
                   content: validatedRequest.content,
                   metadata: validatedRequest.metadata,
-                  source: 'memory',
+                  source: "memory",
                   createdAt: new Date(),
                 }),
               );
@@ -311,7 +350,7 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
     ): Promise<UnifiedDocument | null> {
       try {
         switch (source) {
-          case 'openai':
+          case "openai":
             if (openaiService.isEnabled) {
               // OpenAI doesn't have a direct file content retrieval API
               // This would need to be implemented differently
@@ -319,7 +358,7 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
             }
             break;
 
-          case 'neon':
+          case "neon":
             if (neonService.isEnabled) {
               const neonDoc = await neonService.getDocument(id);
               if (neonDoc) {
@@ -327,7 +366,7 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
                   id: neonDoc.id,
                   content: neonDoc.content,
                   metadata: neonDoc.metadata,
-                  source: 'neon',
+                  source: "neon",
                   createdAt: neonDoc.createdAt,
                   updatedAt: neonDoc.updatedAt,
                 });
@@ -335,7 +374,23 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
             }
             break;
 
-          case 'memory':
+          case "supabase":
+            if (supabaseService.isEnabled) {
+              const supabaseDoc = await supabaseService.getDocument(id);
+              if (supabaseDoc) {
+                return UnifiedDocument.parse({
+                  id: supabaseDoc.id,
+                  content: supabaseDoc.content,
+                  metadata: supabaseDoc.metadata,
+                  source: "supabase",
+                  createdAt: supabaseDoc.createdAt,
+                  updatedAt: supabaseDoc.updatedAt,
+                });
+              }
+            }
+            break;
+
+          case "memory":
             // Memory retrieval would be handled by existing RAG service
             return null;
         }
@@ -350,19 +405,25 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
     ): Promise<boolean> {
       try {
         switch (source) {
-          case 'openai':
+          case "openai":
             if (openaiService.isEnabled) {
               return await openaiService.deleteFile(id);
             }
             break;
 
-          case 'neon':
+          case "neon":
             if (neonService.isEnabled) {
               return await neonService.deleteDocument(id);
             }
             break;
 
-          case 'memory':
+          case "supabase":
+            if (supabaseService.isEnabled) {
+              return await supabaseService.deleteDocument(id);
+            }
+            break;
+
+          case "memory":
             // Memory deletion would be handled by existing RAG service
             return true;
         }
@@ -372,58 +433,86 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
     },
 
     searchAcrossSources: withPerformanceMonitoring(
-      'unified',
-      'searchAcrossSources',
+      "unified",
+      "searchAcrossSources",
       async function (
-        this: any,
+        this: UnifiedVectorStoreService,
         request: BasicSearchRequest,
       ): Promise<UnifiedSearchResult[]> {
         const monitoringService = getVectorStoreMonitoringService();
         const validatedRequest = BasicSearchRequest.parse(request);
-        const allResults: UnifiedSearchResult[] = [];
         const startTime = Date.now();
 
         try {
-          // Search in parallel across all requested sources with optimization context
+          // Performance optimization: Check cache first
+          const { getSmartCache } = await import("@/lib/cache");
+          const smartCache = await getSmartCache();
+
+          const cachedResults = await smartCache.getCachedVectorSearch<
+            UnifiedSearchResult[]
+          >(validatedRequest.query, validatedRequest.sources, {
+            maxResults: validatedRequest.maxResults,
+            threshold: validatedRequest.threshold,
+            queryContext: validatedRequest.queryContext,
+          });
+
+          if (cachedResults) {
+            monitoringService.recordSearchLatency(
+              "unified",
+              Date.now() - startTime,
+              {
+                query: validatedRequest.query,
+                resultsCount: cachedResults.length,
+                cached: true,
+              },
+            );
+            return cachedResults;
+          }
+
+          // Performance optimization: Calculate results per source more efficiently
+          const resultsPerSource = Math.ceil(
+            validatedRequest.maxResults / validatedRequest.sources.length,
+          );
+
+          // Search in parallel with Promise.allSettled for better error handling
           const searchPromises = validatedRequest.sources.map(
             async (source) => {
               try {
                 switch (source) {
-                  case 'openai':
+                  case "openai":
                     if (openaiService.isEnabled) {
                       return await this.searchOpenAI(
                         validatedRequest.query,
-                        Math.ceil(
-                          validatedRequest.maxResults /
-                            validatedRequest.sources.length,
-                        ),
-                        validatedRequest.queryContext,
-                        validatedRequest.optimizePrompts,
-                        validatedRequest.promptConfig,
+                        resultsPerSource,
                       );
                     }
                     break;
 
-                  case 'neon':
+                  case "neon":
                     if (neonService.isEnabled) {
                       return await this.searchNeon(
                         validatedRequest.query,
-                        Math.ceil(
-                          validatedRequest.maxResults /
-                            validatedRequest.sources.length,
-                        ),
+                        resultsPerSource,
                         validatedRequest.threshold,
-                        validatedRequest.queryContext,
                       );
                     }
                     break;
 
-                  case 'memory':
+                  case "supabase":
+                    if (supabaseService.isEnabled) {
+                      return await this.searchSupabase(
+                        validatedRequest.query,
+                        resultsPerSource,
+                      );
+                    }
+                    break;
+
+                  case "memory":
                     // Memory search would be handled by existing RAG service with context
                     return [];
                 }
               } catch (error) {
-                monitoringService.recordSearchError('unified', error as Error, {
+                monitoringService.recordSearchError("unified", error as Error, {
                   query: validatedRequest.query,
                   failedSource: source,
                   optimizationUsed: validatedRequest.optimizePrompts,
@@ -433,23 +522,43 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
             },
           );
 
-          const results = await Promise.all(searchPromises);
+          // Performance optimization: Use Promise.allSettled for better error resilience
+          const settledResults = await Promise.allSettled(searchPromises);
+          const allResults: UnifiedSearchResult[] = [];
 
-          // Combine and sort results by similarity
-          for (const sourceResults of results) {
-            if (sourceResults) {
-              allResults.push(...sourceResults);
+          // Process settled results and extract successful ones
+          for (const result of settledResults) {
+            if (result.status === "fulfilled" && result.value) {
+              allResults.push(...result.value);
             }
           }
 
-          const finalResults = allResults
-            .sort((a, b) => b.similarity - a.similarity)
-            .slice(0, validatedRequest.maxResults);
+          // Performance optimization: Use more efficient sorting
+          const sortedResults = allResults.toSorted(
+            (a, b) => b.similarity - a.similarity,
+          );
+          const finalResults = sortedResults.slice(
+            0,
+            validatedRequest.maxResults,
+          );
 
           const executionTime = Date.now() - startTime;
 
+          // Cache successful results
+          await smartCache.cacheVectorSearch(
+            validatedRequest.query,
+            validatedRequest.sources,
+            {
+              maxResults: validatedRequest.maxResults,
+              threshold: validatedRequest.threshold,
+              queryContext: validatedRequest.queryContext,
+            },
+            finalResults,
+            5 * 60 * 1000, // 5 minutes cache TTL
+          );
+
           // Record unified search metrics with optimization info
-          monitoringService.recordSearchLatency('unified', executionTime, {
+          monitoringService.recordSearchLatency("unified", executionTime, {
             query: validatedRequest.query,
             resultsCount: finalResults.length,
             sourcesSearched: validatedRequest.sources,
@@ -458,14 +567,14 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
             queryType: validatedRequest.queryContext?.type,
             domain: validatedRequest.queryContext?.domain,
           });
-          monitoringService.recordSearchSuccess('unified', {
+          monitoringService.recordSearchSuccess("unified", {
             query: validatedRequest.query,
             resultsCount: finalResults.length,
             promptOptimizationUsed: validatedRequest.optimizePrompts,
           });
           return finalResults;
         } catch (error) {
-          monitoringService.recordSearchError('unified', error as Error, {
+          monitoringService.recordSearchError("unified", error as Error, {
             query: validatedRequest.query,
             sources: validatedRequest.sources,
             optimizationUsed: validatedRequest.optimizePrompts,
@@ -507,12 +616,12 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
               id: result.id,
               content: result.content,
               metadata: result.metadata || {},
-              source: 'openai',
+              source: "openai",
               createdAt: result.metadata?.responseId ? new Date() : undefined,
             }),
             similarity: result.similarity,
             distance: 1 - result.similarity, // Convert similarity to distance
-            source: 'openai',
+            source: "openai",
           }),
         );
       } catch (_error) {
@@ -551,13 +660,57 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
               id: result.document.id,
               content: result.document.content,
               metadata: result.document.metadata,
-              source: 'neon',
+              source: "neon",
               createdAt: result.document.createdAt,
               updatedAt: result.document.updatedAt,
             }),
             similarity: result.similarity,
             distance: result.distance,
-            source: 'neon',
+            source: "neon",
+          }),
+        );
+      } catch (_error) {
+        return [];
+      }
+    },
+
+    async searchSupabase(
+      query: string,
+      maxResults = 10,
+      threshold = 0.3,
+      queryContext?: any,
+    ): Promise<UnifiedSearchResult[]> {
+      if (!supabaseService.isEnabled) {
+        return [];
+      }
+
+      try {
+        const results = await supabaseService.searchSimilar({
+          query,
+          maxResults,
+          threshold,
+          metadata: queryContext
+            ? {
+                queryType: queryContext.type,
+                domain: queryContext.domain,
+                optimizationContext: true,
+              }
+            : undefined,
+        });
+
+        return results.map((result) =>
+          UnifiedSearchResult.parse({
+            document: UnifiedDocument.parse({
+              id: result.document.id,
+              content: result.document.content,
+              metadata: result.document.metadata,
+              source: "supabase",
+              createdAt: result.document.createdAt,
+              updatedAt: result.document.updatedAt,
+            }),
+            similarity: result.similarity,
+            distance: result.distance,
+            source: "supabase",
           }),
         );
       } catch (_error) {
@@ -570,14 +723,18 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
 
       // Prioritize OpenAI vector store for RoboRail documentation
       if (openaiService.isEnabled) {
-        sources.push('openai');
+        sources.push("openai");
       }
 
       // Add memory as fallback
-      sources.push('memory');
+      sources.push("memory");
 
       if (neonService.isEnabled) {
-        sources.push('neon');
+        sources.push("neon");
+      }
+
+      if (supabaseService.isEnabled) {
+        sources.push("supabase");
       }
 
       return sources;
@@ -593,6 +750,7 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
         memory: { enabled: true },
         openai: { enabled: openaiService.isEnabled },
         neon: { enabled: neonService.isEnabled },
+        supabase: { enabled: supabaseService.isEnabled },
         unified: { enabled: true },
       };
 
@@ -625,7 +783,7 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
         let diversificationApplied = false;
         let hybridSearchUsed = false;
         let rerankingTime = 0;
-        let scoringStrategy = 'basic_similarity';
+        let scoringStrategy = "basic_similarity";
 
         // Step 2: Apply relevance scoring and reranking if enabled
         if (
@@ -746,13 +904,13 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
           rerankingApplied: false,
           diversificationApplied: false,
           hybridSearchUsed: false,
-          scoringStrategy: 'fallback_basic',
+          scoringStrategy: "fallback_basic",
           performance: {
             searchTime: totalTime,
             totalTime,
           },
           debugInfo: {
-            error: error instanceof Error ? error.message : 'Unknown error',
+            error: error instanceof Error ? error.message : "Unknown error",
             fallbackUsed: true,
           },
         });
@@ -788,7 +946,7 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
       const adjustments = { ...weights };
 
       DocumentRerankingEngine.updateUserPreferences(userId, {
-        queryType: 'general', // Could be inferred from context
+        queryType: "general", // Could be inferred from context
         preferredFactors: Object.keys(weights),
         adjustments,
       });
@@ -822,7 +980,7 @@ let unifiedVectorStoreService: UnifiedVectorStoreService | null = null;
 export async function getUnifiedVectorStoreService(): Promise<UnifiedVectorStoreService> {
   if (!unifiedVectorStoreService) {
     // Use fault-tolerant version by default for production resilience
-    if (process.env.USE_FAULT_TOLERANT !== 'false') {
+    if (process.env.USE_FAULT_TOLERANT !== "false") {
       unifiedVectorStoreService =
         await getFaultTolerantUnifiedVectorStoreService();
     } else {

@@ -8,7 +8,7 @@ import {
   FallbackMode,
   FaultToleranceFactory,
   type FaultTolerantService,
-} from '../fault-tolerance';
+} from "../fault-tolerance";
 
 export interface FaultTolerantConfig {
   maxRetries: number;
@@ -50,10 +50,10 @@ export const DEFAULT_FAULT_TOLERANT_CONFIG: FaultTolerantConfig = {
  * Generic fault-tolerant wrapper that can wrap any service type
  */
 export class GenericFaultTolerantService<TService> {
-  private baseService: TService;
-  private faultTolerantService: FaultTolerantService<any>;
+  private readonly baseService: TService;
+  private readonly faultTolerantService: FaultTolerantService<unknown>;
   private config: FaultTolerantConfig;
-  private serviceName: string;
+  private readonly serviceName: string;
 
   constructor(
     baseService: TService,
@@ -66,7 +66,7 @@ export class GenericFaultTolerantService<TService> {
 
     // Create fault-tolerant service with provided configuration
     this.faultTolerantService = FaultToleranceFactory.createService(
-      serviceName,
+      this.serviceName,
       {
         enableRetry: true,
         enableCircuitBreaker: this.config.enableCircuitBreaker,
@@ -79,22 +79,24 @@ export class GenericFaultTolerantService<TService> {
   /**
    * Wrap any method of the base service with fault tolerance
    */
-  wrapMethod<Args extends any[], Return>(
+  wrapMethod<Args extends unknown[], Return>(
     methodName: keyof TService,
-    options: any = {},
+    options: { fallbackValue?: Return } = {},
   ): (...args: Args) => Promise<Return> {
     return async (...args: Args): Promise<Return> => {
       try {
-        const method = this.baseService[methodName] as any;
-        if (typeof method !== 'function') {
+        const method = this.baseService[methodName] as (
+          ...args: Args
+        ) => Promise<Return>;
+        if (typeof method !== "function") {
           throw new Error(`Method ${String(methodName)} is not a function`);
         }
         return await method.apply(this.baseService, args);
-      } catch (error) {
+      } catch (error: unknown) {
         if (options.fallbackValue !== undefined) {
           return options.fallbackValue;
         }
-        throw error;
+        throw error instanceof Error ? error : new Error(String(error));
       }
     };
   }
@@ -104,15 +106,15 @@ export class GenericFaultTolerantService<TService> {
    */
   getWrappedMethods() {
     return {
-      search: this.wrapMethod('search' as keyof TService, {
+      search: this.wrapMethod("search" as keyof TService, {
         fallbackValue: [],
       }),
-      upload: this.wrapMethod('upload' as keyof TService, {}),
-      delete: this.wrapMethod('delete' as keyof TService, {}),
-      healthCheck: this.wrapMethod('healthCheck' as keyof TService, {
-        fallbackValue: { status: 'unhealthy', timestamp: Date.now() },
+      upload: this.wrapMethod("upload" as keyof TService, {}),
+      delete: this.wrapMethod("delete" as keyof TService, {}),
+      healthCheck: this.wrapMethod("healthCheck" as keyof TService, {
+        fallbackValue: { status: "unhealthy", timestamp: Date.now() },
       }),
-      getStats: this.wrapMethod('getStats' as keyof TService, {
+      getStats: this.wrapMethod("getStats" as keyof TService, {
         fallbackValue: { documentsCount: 0, lastUpdated: new Date() },
       }),
     };

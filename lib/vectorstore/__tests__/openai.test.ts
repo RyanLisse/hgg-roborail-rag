@@ -107,8 +107,8 @@ global.fetch = mockFetch;
 describe('OpenAI Vector Store Service', () => {
   let service: OpenAIVectorStoreService;
   let consoleWarnSpy: any;
-  let consoleErrorSpy: any;
-  let consoleLogSpy: any;
+  let _consoleErrorSpy: any;
+  let _consoleLogSpy: any;
 
   // Skip these tests if OpenAI API key is not available
   const _skipIfNoOpenAI = process.env.OPENAI_API_KEY ? it : it.skip;
@@ -146,9 +146,9 @@ describe('OpenAI Vector Store Service', () => {
     mockMonitoringService.recordMetric.mockClear();
 
     // Mock console methods to prevent test pollution
-    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    _consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    _consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
     // Set default test environment variables only if not already set
     if (!process.env.OPENAI_API_KEY) {
@@ -179,8 +179,8 @@ describe('OpenAI Vector Store Service', () => {
       // Save and clear environment variables for this test
       const savedApiKey = process.env.OPENAI_API_KEY;
       const savedVectorStore = process.env.OPENAI_VECTORSTORE;
-      delete process.env.OPENAI_API_KEY;
-      delete process.env.OPENAI_VECTORSTORE;
+      process.env.OPENAI_API_KEY = undefined;
+      process.env.OPENAI_VECTORSTORE = undefined;
 
       service = createOpenAIVectorStoreService({
         apiKey: '',
@@ -919,7 +919,7 @@ describe('OpenAI Vector Store Service', () => {
       it('should not retry on non-retryable errors', async () => {
         // Save and clear environment variables
         const savedVectorStore = process.env.OPENAI_VECTORSTORE;
-        delete process.env.OPENAI_VECTORSTORE;
+        process.env.OPENAI_VECTORSTORE = undefined;
 
         const serviceWithoutStore = createOpenAIVectorStoreService({
           apiKey: 'sk-test-key',
@@ -1198,7 +1198,7 @@ describe('OpenAI Vector Store Service', () => {
       it('should return null without vector store ID', () => {
         // Save and clear environment variables
         const savedVectorStore = process.env.OPENAI_VECTORSTORE;
-        delete process.env.OPENAI_VECTORSTORE;
+        process.env.OPENAI_VECTORSTORE = undefined;
 
         const serviceWithoutStore = createOpenAIVectorStoreService({
           apiKey: 'sk-test-key',
@@ -1235,8 +1235,8 @@ describe('OpenAI Vector Store Service', () => {
       // Save and clear environment variables
       originalEnvApiKey = process.env.OPENAI_API_KEY;
       originalEnvVectorStore = process.env.OPENAI_VECTORSTORE;
-      delete process.env.OPENAI_API_KEY;
-      delete process.env.OPENAI_VECTORSTORE;
+      process.env.OPENAI_API_KEY = undefined;
+      process.env.OPENAI_VECTORSTORE = undefined;
 
       disabledService = createOpenAIVectorStoreService({
         apiKey: '',

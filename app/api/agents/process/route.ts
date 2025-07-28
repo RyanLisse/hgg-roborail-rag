@@ -27,7 +27,7 @@ const requestSchema = z.object({
 });
 
 export const POST = withStreamingApiErrorHandling(
-  async (_request, { session, validatedBody }) => {
+  async (_request, { session: _session, validatedBody }) => {
     const { query, chatHistory, sources, modelId, streaming } = validatedBody;
 
     if (streaming) {

@@ -1,0 +1,221 @@
+# ==========================================
+# Production Docker Compose Configuration
+# Optimized for production deployment
+# ==========================================
+
+version: '3.8'
+
+services:
+  # Next.js Application - Production
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+      args:
+        - NODE_ENV=production
+    ports:
+      - 3000:3000
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL}
+      - AUTH_SECRET=${AUTH_SECRET}
+      - NEXTAUTH_URL=${NEXTAUTH_URL}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - GOOGLE_GENERATIVE_AI_API_KEY=${GOOGLE_GENERATIVE_AI_API_KEY}
+      - COHERE_API_KEY=${COHERE_API_KEY}
+      - BLOB_READ_WRITE_TOKEN=${BLOB_READ_WRITE_TOKEN}
+      - LANGCHAIN_TRACING_V2=${LANGCHAIN_TRACING_V2:-false}
+      - LANGCHAIN_API_KEY=${LANGCHAIN_API_KEY}
+      - LANGCHAIN_PROJECT=${LANGCHAIN_PROJECT}
+      - NEXT_TELEMETRY_DISABLED=1
+      - LOG_LEVEL=info
+      - NODE_OPTIONS=--max-old-space-size=4096
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - roborail-network
+    restart: unless-stopped
+    healthcheck:
+      test: [CMD, node, healthcheck.js]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2.0'
+        reservations:
+          memory: 1G
+          cpus: '0.5'
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+
+  # PostgreSQL Database - Production
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-roborail_prod}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    networks:
+      - roborail-network
+    restart: unless-stopped
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-roborail_prod}]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.25'
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+    # Security hardening
+    security_opt:
+      - no-new-privileges:true
+    user: postgres
+
+  # Redis Cache - Production
+  redis:
+    image: redis:7-alpine
+    command: >
+      redis-server
+      --appendonly yes
+      --requirepass ${REDIS_PASSWORD}
+      --maxmemory 1gb
+      --maxmemory-policy allkeys-lru
+      --save 900 1
+      --save 300 10
+      --save 60 10000
+    volumes:
+      - redis_data:/data
+    networks:
+      - roborail-network
+    restart: unless-stopped
+    healthcheck:
+      test: [CMD, redis-cli, --raw, incr, ping]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.1'
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+    # Security hardening
+    security_opt:
+      - no-new-privileges:true
+
+  # Nginx Reverse Proxy (Optional)
+  nginx:
+    image: nginx:alpine
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - app
+    networks:
+      - roborail-network
+    restart: unless-stopped
+    profiles:
+      - with-nginx
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+
+volumes:
+  postgres_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /var/lib/docker/volumes/postgres_data
+  redis_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /var/lib/docker/volumes/redis_data
+
+networks:
+  roborail-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# ==========================================
+# Production Deployment Commands:
+# ==========================================
+#
+# Deploy production stack:
+#   docker-compose -f docker-compose.prod.yml up -d
+#
+# Deploy with nginx:
+#   docker-compose -f docker-compose.prod.yml --profile with-nginx up -d
+#
+# Scale application:
+#   docker-compose -f docker-compose.prod.yml up -d --scale app=3
+#
+# View production logs:
+#   docker-compose -f docker-compose.prod.yml logs -f app
+#
+# Run database migrations:
+#   docker-compose -f docker-compose.prod.yml exec app pnpm db:migrate
+#
+# Backup database:
+#   docker-compose -f docker-compose.prod.yml exec postgres pg_dump -U postgres roborail_prod > backup.sql
+#
+# Monitor resources:
+#   docker-compose -f docker-compose.prod.yml top
+#
+# Rolling update:
+#   docker-compose -f docker-compose.prod.yml up -d --no-deps app
+#
+# Stop production stack:
+#   docker-compose -f docker-compose.prod.yml down
+# ==========================================

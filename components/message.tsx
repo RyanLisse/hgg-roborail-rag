@@ -19,6 +19,7 @@ import { PreviewAttachment } from './preview-attachment';
 import { Button } from './ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { Weather } from './weather';
+import { Citations } from './citations';
 
 const PurePreviewMessage = ({
   chatId,
@@ -211,6 +212,16 @@ const PurePreviewMessage = ({
                           isReadonly={isReadonly}
                           result={result}
                           type="request-suggestions"
+                        />
+                      ) : toolName === 'enhancedSearch' ? (
+                        <Citations
+                          citations={result.citationSources || []}
+                          sources={result.results || []}
+                        />
+                      ) : toolName === 'searchDocuments' ? (
+                        <Citations
+                          citations={result.results || []}
+                          sources={result.results || []}
                         />
                       ) : (
                         <pre>{JSON.stringify(result, null, 2)}</pre>

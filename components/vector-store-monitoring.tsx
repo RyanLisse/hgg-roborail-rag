@@ -154,7 +154,12 @@ export function VectorStoreMonitoring() {
     );
   }
 
-  const { overview, healthStatus, recentErrors, alerts } = dashboardData.data;
+  const {
+    overview,
+    healthStatus: _healthStatus,
+    recentErrors,
+    alerts: _alerts,
+  } = dashboardData.data;
   const healthStatuses = healthData.data;
 
   return (

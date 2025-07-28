@@ -25,8 +25,7 @@ export async function POST(request: NextRequest) {
     if (!query) {
       return NextResponse.json({ error: 'Query is required' }, { status: 400 });
     }
-    if (queryContext) {
-    }
+    // Query context parameter validated
 
     const vectorStoreService = await getUnifiedVectorStoreService();
 

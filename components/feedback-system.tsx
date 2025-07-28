@@ -278,7 +278,10 @@ interface FeedbackStatsProps {
   className?: string;
 }
 
-export function FeedbackStats({ runId, className }: FeedbackStatsProps) {
+export function FeedbackStats({
+  runId: _runId,
+  className,
+}: FeedbackStatsProps) {
   // This would fetch stats for the runId
   // For now, we'll show a placeholder
   return (

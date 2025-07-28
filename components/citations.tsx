@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { ChevronDown, ChevronUp, FileText, Quote } from 'lucide-react';
-import { useState } from 'react';
-import type { ParsedCitation, SourceFile } from '@/lib/utils/citations';
+import { ChevronDown, ChevronUp, FileText, Quote } from "lucide-react";
+import { useState, useMemo, useCallback } from "react";
+import type { ParsedCitation, SourceFile } from "@/lib/utils/citations";
 
 interface CitationsProps {
   citations: ParsedCitation[];
@@ -13,31 +13,42 @@ interface CitationsProps {
 export function Citations({
   citations,
   sources,
-  className = '',
+  className = "",
 }: CitationsProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  if (!(citations.length || sources?.length)) {
+  // Performance optimization: Memoize display citations calculation
+  const displayCitations = useMemo(() => {
+    if (citations.length > 0) {
+      return citations;
+    }
+    return (
+      sources?.map((source, index) => ({
+        id: `source-${index}`,
+        number: index + 1,
+        text: "",
+        fileName: source.name,
+        fileId: source.id,
+        quote: undefined,
+      })) || []
+    );
+  }, [citations, sources]);
+
+  // Performance optimization: Memoize toggle handler
+  const handleToggle = useCallback(() => {
+    setIsExpanded(!isExpanded);
+  }, [isExpanded]);
+
+  // Early return for empty citations
+  if (displayCitations.length === 0) {
     return null;
   }
-
-  const displayCitations =
-    citations.length > 0
-      ? citations
-      : sources?.map((source, index) => ({
-          id: `source-${index}`,
-          number: index + 1,
-          text: '',
-          fileName: source.name,
-          fileId: source.id,
-          quote: undefined,
-        })) || [];
 
   return (
     <div className={`mt-4 border-t pt-4 ${className}`}>
       <button
         className="flex items-center gap-2 font-medium text-gray-700 text-sm transition-colors hover:text-gray-900"
-        onClick={() => setIsExpanded(!isExpanded)}
+        onClick={handleToggle}
         type="button"
       >
         <FileText className="size-4" />
@@ -67,7 +78,8 @@ export function Citations({
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <p className="truncate font-medium text-gray-900 text-sm">
-                      {citation.fileName || (citation as any).name}
+                      {citation.fileName ||
+                        (citation as unknown as SourceFile).name}
                     </p>
 
                     {citation.quote && (
@@ -104,19 +116,20 @@ interface InlineCitationProps {
 export function InlineCitation({
   number,
   citationId,
-  className = '',
+  className = "",
 }: InlineCitationProps) {
-  const handleClick = () => {
+  // Performance optimization: Memoize click handler to prevent recreating on each render
+  const handleClick = useCallback(() => {
     const element = document.getElementById(`citation-${citationId}`);
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      element.scrollIntoView({ behavior: "smooth", block: "center" });
       // Add highlight effect
-      element.classList.add('ring-2', 'ring-blue-300', 'ring-opacity-75');
+      element.classList.add("ring-2", "ring-blue-300", "ring-opacity-75");
       setTimeout(() => {
-        element.classList.remove('ring-2', 'ring-blue-300', 'ring-opacity-75');
+        element.classList.remove("ring-2", "ring-blue-300", "ring-opacity-75");
       }, 2000);
     }
-  };
+  }, [citationId]);
 
   return (
     <button
@@ -139,7 +152,7 @@ interface CitationBadgeProps {
 export function CitationBadge({
   count,
   onClick,
-  className = '',
+  className = "",
 }: CitationBadgeProps) {
   if (count === 0) {
     return null;
@@ -152,7 +165,7 @@ export function CitationBadge({
       type="button"
     >
       <FileText className="size-3" />
-      {count} source{count !== 1 ? 's' : ''}
+      {count} source{count !== 1 ? "s" : ""}
     </button>
   );
 }

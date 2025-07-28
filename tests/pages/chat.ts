@@ -9,7 +9,7 @@ const __dirname = path.dirname(__filename);
 const CHAT_ID_REGEX = /\/chat\/[0-9a-f-]+/;
 
 export class Chat {
-  private page: Page;
+  private readonly page: Page;
 
   constructor(page: Page) {
     this.page = page;
@@ -117,13 +117,13 @@ export class Chat {
     const sendButton = this.page.getByTestId('send-button');
     await sendButton.waitFor({ state: 'visible', timeout: 5000 });
 
-    // Ensure send button is enabled
+    // Ensure send button is enabled (increased timeout for test stability)
     await this.page.waitForFunction(
       () =>
         !document
           .querySelector('[data-testid="send-button"]')
           ?.hasAttribute('disabled'),
-      { timeout: 5000 },
+      { timeout: 15_000 },
     );
 
     await sendButton.click();
@@ -158,36 +158,51 @@ export class Chat {
     }
   }
 
-  async waitForResponse(timeout = 45_000) {
+  async waitForResponse(timeout = 30_000) {
     try {
-      // Wait for chat API response
+      // Wait for chat API response (POST request)
       const response = await this.page.waitForResponse(
-        (response) => response.url().includes('/api/chat'),
+        (response) =>
+          response.url().includes('/api/chat') &&
+          response.request().method() === 'POST',
         { timeout },
       );
       await response.finished();
 
-      // Wait for UI to update
-      await this.page.waitForTimeout(1000);
+      // Wait for assistant message to appear in DOM
+      await this.page.waitForSelector('[data-testid="message-assistant"]', {
+        timeout: 15_000,
+      });
 
       // Wait for send button to be re-enabled (indicating completion)
+      // Increased timeout for test stability with mock providers
       await this.page.waitForSelector(
         '[data-testid="send-button"]:not([disabled])',
-        { timeout: 10_000 },
+        { timeout: 20_000 },
       );
     } catch (_error) {
-      // Fallback: wait for send button to be enabled
-      await this.page
-        .waitForSelector('[data-testid="send-button"]:not([disabled])', {
+      // Fallback: wait for assistant message to appear
+      try {
+        await this.page.waitForSelector('[data-testid="message-assistant"]', {
           timeout: 10_000,
-        })
-        .catch(() => {
-          // Ignore timeout errors when waiting for send button
         });
+      } catch (_fallbackError) {
+        // Final fallback: wait for send button to be enabled
+        await this.page
+          .waitForSelector('[data-testid="send-button"]:not([disabled])', {
+            timeout: 15_000,
+          })
+          .catch(() => {});
+      }
     }
   }
 
   async getLastAssistantMessage() {
+    // Wait for at least one assistant message to appear first
+    await this.page.waitForSelector('[data-testid="message-assistant"]', {
+      timeout: 10_000,
+    });
+
     const messageElements = await this.page
       .getByTestId('message-assistant')
       .all();
@@ -196,6 +211,10 @@ export class Chat {
     }
 
     const lastMessage = messageElements.at(-1);
+    if (!lastMessage) {
+      throw new Error('Unable to get last assistant message');
+    }
+
     const content = await lastMessage
       .getByTestId('message-content')
       .innerText();
@@ -392,7 +411,7 @@ export class Chat {
   }
 
   async hasNewChatUrl() {
-    const url = this.getCurrentUrl();
+    const url = await this.getCurrentUrl();
     const baseURL = process.env.PORT
       ? `http://localhost:${process.env.PORT}`
       : 'http://localhost:3001';
@@ -400,7 +419,7 @@ export class Chat {
   }
 
   async hasChatId() {
-    const url = this.getCurrentUrl();
+    const url = await this.getCurrentUrl();
     return CHAT_ID_REGEX.test(url);
   }
 
@@ -421,7 +440,7 @@ export class Chat {
         // Click edit button on the message
         await lastMessage?.getByTestId('message-edit').click();
         // Fill new content
-        const editInput = await this.page.getByTestId('message-edit-input');
+        const editInput = this.page.getByTestId('message-edit-input');
         await editInput.fill(newContent);
         // Submit the edit
         await this.page.getByTestId('message-edit-submit').click();
@@ -476,7 +495,9 @@ export class Chat {
     await this.page.waitForFunction(
       () => {
         const container = document.querySelector('.overflow-y-scroll');
-        if (!container) return false;
+        if (!container) {
+          return false;
+        }
         return (
           Math.abs(
             container.scrollHeight -

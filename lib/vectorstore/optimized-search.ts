@@ -11,7 +11,7 @@ import {
   type EnhancedSearchResponse,
   type UnifiedSearchRequest,
   VectorStoreType,
-} from './core/types';
+} from "./core/types";
 
 interface SearchCacheKey {
   query: string;
@@ -27,7 +27,7 @@ interface CachedSearchResult {
 }
 
 class OptimizedVectorSearch {
-  private searchCache = new Map<string, CachedSearchResult>();
+  private readonly searchCache = new Map<string, CachedSearchResult>();
   private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
   private readonly SEARCH_TIMEOUT = 3000; // 3 seconds
 
@@ -94,8 +94,8 @@ class OptimizedVectorSearch {
    */
   async executeParallelSearch(
     _request: UnifiedSearchRequest,
-    searchMethods: Array<() => Promise<any[]>>,
-  ): Promise<any[]> {
+    searchMethods: Array<() => Promise<unknown[]>>,
+  ): Promise<unknown[]> {
     const controller = new AbortController();
     const timeout = setTimeout(() => {
       controller.abort();
@@ -109,7 +109,7 @@ class OptimizedVectorSearch {
           const result = await Promise.race([
             searchMethod(),
             new Promise((_, reject) => {
-              controller.signal.addEventListener('abort', () => {
+              controller.signal.addEventListener("abort", () => {
                 reject(new Error(`Search ${index} aborted due to timeout`));
               });
             }),
@@ -129,8 +129,8 @@ class OptimizedVectorSearch {
       // Extract successful results
       return results
         .filter(
-          (result): result is PromiseFulfilledResult<any[]> =>
-            result.status === 'fulfilled',
+          (result): result is PromiseFulfilledResult<unknown[]> =>
+            result.status === "fulfilled",
         )
         .flatMap((result) => result.value);
     } catch (_error) {
@@ -144,7 +144,7 @@ class OptimizedVectorSearch {
    */
   async search(
     request: UnifiedSearchRequest,
-    vectorStoreService: any,
+    vectorStoreService: unknown,
   ): Promise<EnhancedSearchResponse> {
     const startTime = Date.now();
     const cacheKey = this.generateCacheKey(request);
@@ -164,11 +164,15 @@ class OptimizedVectorSearch {
 
     try {
       // Create search methods for each enabled source
-      const searchMethods: Array<() => Promise<any[]>> = [];
+      const searchMethods: Array<() => Promise<unknown[]>> = [];
 
       if (request.sources?.includes(VectorStoreType.OPENAI)) {
         searchMethods.push(async () => {
-          return await vectorStoreService.searchOpenAI(
+          return await (
+            vectorStoreService as {
+              searchOpenAI: (...args: unknown[]) => Promise<unknown[]>;
+            }
+          ).searchOpenAI(
             request.query,
             Math.ceil(request.maxResults / (request.sources?.length || 1)),
             request.queryContext,
@@ -180,7 +184,11 @@ class OptimizedVectorSearch {
 
       if (request.sources?.includes(VectorStoreType.NEON)) {
         searchMethods.push(async () => {
-          return await vectorStoreService.searchNeon(
+          return await (
+            vectorStoreService as {
+              searchNeon: (...args: unknown[]) => Promise<unknown[]>;
+            }
+          ).searchNeon(
             request.query,
             Math.ceil(request.maxResults / (request.sources?.length || 1)),
             request.threshold,
@@ -203,8 +211,15 @@ class OptimizedVectorSearch {
       );
 
       // Quick sort and slice - no complex reranking unless specifically requested
-      const finalResults = allResults
-        .sort((a, b) => (b.similarity || 0) - (a.similarity || 0))
+      const finalResults = (
+        allResults as Array<{
+          content: string;
+          id: string;
+          score: number;
+          metadata?: Record<string, unknown>;
+        }>
+      )
+        .toSorted((a, b) => (b.score || 0) - (a.score || 0))
         .slice(0, request.maxResults);
 
       const totalTime = Date.now() - startTime;
@@ -217,7 +232,7 @@ class OptimizedVectorSearch {
         rerankingApplied: false,
         diversificationApplied: false,
         hybridSearchUsed: false,
-        scoringStrategy: 'optimized_parallel',
+        scoringStrategy: "optimized_parallel",
         performance: {
           searchTime: totalTime,
           totalTime,
@@ -241,12 +256,12 @@ class OptimizedVectorSearch {
         rerankingApplied: false,
         diversificationApplied: false,
         hybridSearchUsed: false,
-        scoringStrategy: 'fallback_optimized',
+        scoringStrategy: "fallback_optimized",
         performance: {
           searchTime: totalTime,
           totalTime,
           cacheHit: false,
-          error: 'Search failed',
+          error: "Search failed",
         },
         // debugInfo: {
         //   error: error instanceof Error ? error.message : 'Unknown error',

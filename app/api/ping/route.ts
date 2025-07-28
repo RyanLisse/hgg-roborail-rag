@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 /**
  * Simple ping endpoint for health checks and test server readiness
  */
-export async function GET() {
+export function GET() {
   return NextResponse.json(
     {
       status: 'ok',

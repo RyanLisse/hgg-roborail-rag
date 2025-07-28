@@ -1,4 +1,5 @@
 import type { InferSelectModel } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
 import {
   boolean,
   foreignKey,
@@ -16,6 +17,7 @@ export const user = pgTable('User', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   email: varchar('email', { length: 64 }).notNull(),
   password: varchar('password', { length: 64 }),
+  type: varchar('type').notNull().default('user'),
 });
 
 export type User = InferSelectModel<typeof user>;
@@ -34,9 +36,9 @@ export const chat = pgTable('Chat', {
 
 export type Chat = InferSelectModel<typeof chat>;
 
-// Deprecated Message table removed - use message (Message_v2) instead
+// Message table schema matching Supabase database structure
 
-export const message = pgTable('Message_v2', {
+export const message = pgTable('Message', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   chatId: uuid('chatId')
     .notNull()
@@ -49,10 +51,10 @@ export const message = pgTable('Message_v2', {
 
 export type DBMessage = InferSelectModel<typeof message>;
 
-// Deprecated Vote table removed - use vote (Vote_v2) instead
+// Vote table schema matching Supabase database structure
 
 export const vote = pgTable(
-  'Vote_v2',
+  'Vote',
   {
     chatId: uuid('chatId')
       .notNull()
@@ -93,6 +95,27 @@ export const document = pgTable(
 );
 
 export type Document = InferSelectModel<typeof document>;
+
+export const embedding = pgTable(
+  'Embedding',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    documentId: uuid('documentId').notNull(),
+    documentCreatedAt: timestamp('documentCreatedAt').notNull(),
+    content: text('content').notNull(),
+    embedding: vector('embedding', { dimensions: 1024 }), // Cohere Embed v4
+    metadata: json('metadata').default({}),
+    createdAt: timestamp('createdAt').notNull().default(sql`NOW()`),
+  },
+  (table) => ({
+    documentRef: foreignKey({
+      columns: [table.documentId, table.documentCreatedAt],
+      foreignColumns: [document.id, document.createdAt],
+    }),
+  }),
+);
+
+export type Embedding = InferSelectModel<typeof embedding>;
 
 export const suggestion = pgTable(
   'Suggestion',

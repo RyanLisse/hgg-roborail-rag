@@ -24,7 +24,7 @@ export class MemoryVectorStore extends BaseVectorStoreService {
 
   async search(query: string, options: any = {}) {
     return this.withRetry(async () => {
-      const { maxResults = 10, threshold = 0.3 } = options;
+      const { maxResults = 10, threshold: _threshold = 0.3 } = options;
 
       // Simple keyword-based search for memory store
       const results = Array.from(this.documents.values())

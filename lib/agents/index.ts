@@ -52,7 +52,7 @@ export const AGENT_CODE_SPLITTING_ENABLED =
  */
 export async function createQAAgent() {
   if (!AGENT_CODE_SPLITTING_ENABLED) {
-    const { QAAgent: QAAgentClass } = require('./qa-agent');
+    const { QAAgent: QAAgentClass } = await import('./qa-agent');
     return new QAAgentClass();
   }
 
@@ -65,7 +65,7 @@ export async function createQAAgent() {
  */
 export async function createRewriteAgent() {
   if (!AGENT_CODE_SPLITTING_ENABLED) {
-    const { RewriteAgent } = require('./rewrite-agent');
+    const { RewriteAgent } = await import('./rewrite-agent');
     return new RewriteAgent();
   }
 
@@ -78,7 +78,7 @@ export async function createRewriteAgent() {
  */
 export async function createPlannerAgent() {
   if (!AGENT_CODE_SPLITTING_ENABLED) {
-    const { PlannerAgent } = require('./planner-agent');
+    const { PlannerAgent } = await import('./planner-agent');
     return new PlannerAgent();
   }
 
@@ -91,7 +91,7 @@ export async function createPlannerAgent() {
  */
 export async function createResearchAgent() {
   if (!AGENT_CODE_SPLITTING_ENABLED) {
-    const { ResearchAgent } = require('./research-agent');
+    const { ResearchAgent } = await import('./research-agent');
     return new ResearchAgent();
   }
 
@@ -104,7 +104,7 @@ export async function createResearchAgent() {
  */
 export async function createSmartAgentRouter() {
   if (!AGENT_CODE_SPLITTING_ENABLED) {
-    const { SmartAgentRouter } = require('./router');
+    const { SmartAgentRouter } = await import('./router');
     return new SmartAgentRouter();
   }
 
@@ -117,7 +117,7 @@ export async function createSmartAgentRouter() {
  */
 export async function createAgentOrchestrator(config?: Partial<AgentConfig>) {
   if (!AGENT_CODE_SPLITTING_ENABLED) {
-    const { AgentOrchestrator } = require('./orchestrator');
+    const { AgentOrchestrator } = await import('./orchestrator');
     return new AgentOrchestrator(config);
   }
 

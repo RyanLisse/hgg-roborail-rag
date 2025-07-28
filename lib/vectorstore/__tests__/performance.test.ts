@@ -41,7 +41,24 @@ vi.mock('../monitoring', () => ({
       alertThresholds: {},
     },
   }),
-  withPerformanceMonitoring: vi.fn((_store, _method, fn) => fn),
+  withPerformanceMonitoring: vi.fn((_store, _method, fn) => {
+    return async (...args: any[]) => {
+      const startTime = Date.now();
+      const result = await fn(...args);
+      const executionTime = Date.now() - startTime;
+
+      // Ensure we have a minimum execution time for tests
+      if (
+        typeof result === 'object' &&
+        result !== null &&
+        'executionTime' in result
+      ) {
+        result.executionTime = Math.max(executionTime, 1);
+      }
+
+      return result;
+    };
+  }),
 }));
 
 import { createOpenAIVectorStoreService, type SearchRequest } from '../openai';
@@ -373,7 +390,17 @@ describe('Vector Store Performance Tests', () => {
           new File([`content ${i}`], `file_${i}.txt`, { type: 'text/plain' }),
       );
 
-      files.forEach((_, i) => {
+      // Pre-setup all mocks to avoid nesting
+      for (let i = 0; i < files.length; i++) {
+        const mockFileResponse = {
+          id: `file_${i}`,
+          object: 'vector_store.file',
+          created_at: Date.now(),
+          vector_store_id: 'vs_test_store',
+          status: 'completed',
+          last_error: null,
+        };
+
         mockOpenAI.files.create.mockResolvedValueOnce({
           id: `file_${i}`,
           filename: `file_${i}.txt`,
@@ -381,17 +408,9 @@ describe('Vector Store Performance Tests', () => {
 
         mockFetch.mockResolvedValueOnce({
           ok: true,
-          json: () =>
-            Promise.resolve({
-              id: `file_${i}`,
-              object: 'vector_store.file',
-              created_at: Date.now(),
-              vector_store_id: 'vs_test_store',
-              status: 'completed',
-              last_error: null,
-            }),
+          json: vi.fn().mockResolvedValue(mockFileResponse),
         });
-      });
+      }
 
       const uploads = files.map((file) => service.uploadFile({ file }));
 

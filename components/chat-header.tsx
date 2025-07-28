@@ -11,17 +11,17 @@ import { PlusIcon } from './icons';
 import { useSidebar } from './ui/sidebar';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
-type VectorStoreType = 'openai' | 'neon' | 'memory';
+type VectorStoreType = 'openai' | 'neon' | 'supabase' | 'memory';
 
 function PureChatHeader({
-  chatId,
-  selectedModelId,
+  chatId: _chatId,
+  selectedModelId: _selectedModelId,
   selectedSources,
   onSourcesChange,
   availableSources,
   sourceStats,
   isReadonly,
-  session,
+  session: _session,
 }: {
   chatId: string;
   selectedModelId: string;

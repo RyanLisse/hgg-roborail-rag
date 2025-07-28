@@ -1,29 +1,29 @@
-import 'server-only';
-import { BaseVectorStoreService } from './core/base-service';
+import "server-only";
+import { BaseVectorStoreService } from "./core/base-service";
 import {
   FallbackMode,
   FaultToleranceFactory,
   type FaultTolerantService,
   type ServiceProvider,
-} from './fault-tolerance';
+} from "./fault-tolerance";
 import {
   getVectorStoreMonitoringService,
   withPerformanceMonitoring,
-} from './monitoring';
+} from "./monitoring";
 import {
   type FaultTolerantNeonVectorStoreService,
   getFaultTolerantNeonVectorStoreService,
-} from './neon-fault-tolerant';
+} from "./neon-fault-tolerant";
 import {
   type FaultTolerantOpenAIVectorStoreService,
   getFaultTolerantOpenAIVectorStoreService,
-} from './openai-fault-tolerant';
+} from "./openai-fault-tolerant";
 import type {
   FusionScore,
   HybridSearchRequest,
   RerankingRequest,
   RerankingResult,
-} from './reranking';
+} from "./reranking";
 import {
   BasicSearchRequest,
   DocumentUploadRequest,
@@ -35,7 +35,8 @@ import {
   type UnifiedVectorStoreService,
   type UserFeedback,
   type VectorStoreType,
-} from './unified';
+} from "./unified";
+import type { QueryContext, PromptConfig } from "./prompt-optimization";
 
 // ====================================
 // FAULT-TOLERANT UNIFIED SERVICE
@@ -45,33 +46,67 @@ export class FaultTolerantUnifiedVectorStoreService
   extends BaseVectorStoreService
   implements UnifiedVectorStoreService
 {
-  protected async searchImplementation(request: any): Promise<any[]> {
-    return this.searchAcrossSources(request);
+  public supabaseService: any = null;
+  protected async searchImplementation(request: unknown): Promise<unknown[]> {
+    const requestObj = request as Record<string, unknown>;
+    const searchRequest =
+      typeof request === "object" && request !== null
+        ? {
+            query: String(requestObj.query || ""),
+            sources: (requestObj.sources as (
+              | "openai"
+              | "neon"
+              | "memory"
+              | "unified"
+            )[]) || ["openai", "neon", "memory"],
+            maxResults: Number(requestObj.maxResults) || 10,
+            threshold: Number(requestObj.threshold) || 0.3,
+            optimizePrompts: Boolean(requestObj.optimizePrompts) || false,
+            metadata: requestObj.metadata as
+              | Record<string, unknown>
+              | undefined,
+            queryContext: requestObj.queryContext as QueryContext | undefined,
+            promptConfig: requestObj.promptConfig as PromptConfig | undefined,
+          }
+        : {
+            query: String(request),
+            sources: ["openai", "neon", "memory"] as (
+              | "openai"
+              | "neon"
+              | "memory"
+              | "unified"
+            )[],
+            maxResults: 10,
+            threshold: 0.3,
+            optimizePrompts: false,
+          };
+    return this.searchAcrossSources(searchRequest);
   }
 
   protected async performHealthCheck(): Promise<void> {
     const sources = await this.getAvailableSources();
     if (sources.length === 0) {
-      throw new Error('No sources available');
+      throw new Error("No sources available");
     }
   }
   openaiService: FaultTolerantOpenAIVectorStoreService;
   neonService: FaultTolerantNeonVectorStoreService;
 
-  private faultTolerantService: FaultTolerantService<any>;
+  private readonly faultTolerantService: FaultTolerantService<unknown>;
 
   constructor(
     openaiService?: FaultTolerantOpenAIVectorStoreService,
     neonService?: FaultTolerantNeonVectorStoreService,
   ) {
-    super('unified-vector-store');
+    super("unified-vector-store");
     this.openaiService =
       openaiService || getFaultTolerantOpenAIVectorStoreService();
-    this.neonService = neonService || (null as any); // Will be initialized async
+    this.neonService =
+      neonService || (null as unknown as FaultTolerantNeonVectorStoreService); // Will be initialized async
 
     // Create fault-tolerant wrapper for unified operations
     this.faultTolerantService = FaultToleranceFactory.createService(
-      'unified_vector_store',
+      "unified_vector_store",
       {
         enableRetry: true,
         enableCircuitBreaker: true,
@@ -105,14 +140,22 @@ export class FaultTolerantUnifiedVectorStoreService
       },
     );
 
-    this.initializeAsync();
     this.setupFallbackProviders();
+    // Initialize neon service asynchronously without blocking constructor
+    this.initializeNeonService();
   }
 
-  private async initializeAsync() {
+  private initializeNeonService(): void {
+    // Use void to indicate we don't wait for this
+    void this.performAsyncInitialization();
+  }
+
+  private async performAsyncInitialization(): Promise<void> {
     try {
       this.neonService = await getFaultTolerantNeonVectorStoreService();
-    } catch (_error) {}
+    } catch (_error) {
+      // Neon service initialization failed, but we can continue with other services
+    }
   }
 
   // ====================================
@@ -146,6 +189,10 @@ export class FaultTolerantUnifiedVectorStoreService
         // Return partial results if at least one source succeeded
         if (results.length > 0) {
           if (errors.length > 0) {
+            // Log partial success with some failures, but continue with available results
+            console.warn(
+              `Partial document upload success: ${errors.length} sources failed`,
+            );
           }
           return results;
         }
@@ -158,7 +205,7 @@ export class FaultTolerantUnifiedVectorStoreService
         return results;
       },
       {
-        operationName: 'addDocument',
+        operationName: "addDocument",
         requiredServiceLevel: 1,
       },
     );
@@ -173,14 +220,14 @@ export class FaultTolerantUnifiedVectorStoreService
     return this.faultTolerantService.execute(
       async () => {
         switch (source) {
-          case 'openai':
+          case "openai":
             if (this.openaiService.isEnabled) {
               // OpenAI doesn't have direct document retrieval, return null gracefully
               return null;
             }
             break;
 
-          case 'neon':
+          case "neon":
             if (this.neonService?.isEnabled) {
               const neonDoc = await this.neonService.getDocument(id);
               if (neonDoc) {
@@ -188,7 +235,7 @@ export class FaultTolerantUnifiedVectorStoreService
                   id: neonDoc.id,
                   content: neonDoc.content,
                   metadata: neonDoc.metadata,
-                  source: 'neon',
+                  source: "neon",
                   createdAt: neonDoc.createdAt,
                   updatedAt: neonDoc.updatedAt,
                 });
@@ -196,7 +243,7 @@ export class FaultTolerantUnifiedVectorStoreService
             }
             break;
 
-          case 'memory':
+          case "memory":
             // Memory retrieval would be handled by existing RAG service
             return null;
         }
@@ -204,7 +251,7 @@ export class FaultTolerantUnifiedVectorStoreService
         return null;
       },
       {
-        operationName: 'getDocument',
+        operationName: "getDocument",
         cacheKey,
         requiredServiceLevel: 3,
       },
@@ -215,19 +262,19 @@ export class FaultTolerantUnifiedVectorStoreService
     return this.faultTolerantService.execute(
       async () => {
         switch (source) {
-          case 'openai':
+          case "openai":
             if (this.openaiService.isEnabled) {
               return await this.openaiService.deleteFile(id);
             }
             break;
 
-          case 'neon':
+          case "neon":
             if (this.neonService?.isEnabled) {
               return await this.neonService.deleteDocument(id);
             }
             break;
 
-          case 'memory':
+          case "memory":
             // Memory deletion would be handled by existing RAG service
             return true;
         }
@@ -235,7 +282,7 @@ export class FaultTolerantUnifiedVectorStoreService
         return false;
       },
       {
-        operationName: 'deleteDocument',
+        operationName: "deleteDocument",
         requiredServiceLevel: 1,
       },
     );
@@ -246,10 +293,10 @@ export class FaultTolerantUnifiedVectorStoreService
   // ====================================
 
   searchAcrossSources = withPerformanceMonitoring(
-    'unified',
-    'searchAcrossSources',
+    "unified",
+    "searchAcrossSources",
     async (request: BasicSearchRequest): Promise<UnifiedSearchResult[]> => {
-      const cacheKey = `unified:search:${request.query}:${request.maxResults}:${request.sources.join(',')}`;
+      const cacheKey = `unified:search:${request.query}:${request.maxResults}:${request.sources.join(",")}`;
 
       return this.faultTolerantService.execute(
         async () => {
@@ -263,7 +310,7 @@ export class FaultTolerantUnifiedVectorStoreService
             async (source) => {
               try {
                 switch (source) {
-                  case 'openai':
+                  case "openai":
                     if (this.openaiService.isEnabled) {
                       return await this.searchOpenAI(
                         validatedRequest.query,
@@ -275,7 +322,7 @@ export class FaultTolerantUnifiedVectorStoreService
                     }
                     break;
 
-                  case 'neon':
+                  case "neon":
                     if (this.neonService?.isEnabled) {
                       return await this.searchNeon(
                         validatedRequest.query,
@@ -288,12 +335,24 @@ export class FaultTolerantUnifiedVectorStoreService
                     }
                     break;
 
-                  case 'memory':
+                  case "supabase":
+                    if (this.supabaseService?.isEnabled) {
+                      return await this.searchSupabase(
+                        validatedRequest.query,
+                        Math.ceil(
+                          validatedRequest.maxResults /
+                            validatedRequest.sources.length,
+                        ),
+                      );
+                    }
+                    break;
+
+                  case "memory":
                     // Memory search would be handled by existing RAG service
                     return [];
                 }
               } catch (error) {
-                monitoringService.recordSearchError('unified', error as Error, {
+                monitoringService.recordSearchError("unified", error as Error, {
                   query: validatedRequest.query,
                   failedSource: source,
                 });
@@ -306,27 +365,27 @@ export class FaultTolerantUnifiedVectorStoreService
 
           // Collect successful results
           for (const result of results) {
-            if (result.status === 'fulfilled' && result.value) {
+            if (result.status === "fulfilled" && result.value) {
               allResults.push(...result.value);
             }
           }
 
           // Sort by similarity and limit results
           const finalResults = allResults
-            .sort((a, b) => b.similarity - a.similarity)
+            .toSorted((a, b) => b.similarity - a.similarity)
             .slice(0, validatedRequest.maxResults);
 
           const executionTime = Date.now() - startTime;
 
           // Record unified search metrics
-          monitoringService.recordSearchLatency('unified', executionTime, {
+          monitoringService.recordSearchLatency("unified", executionTime, {
             query: validatedRequest.query,
             resultsCount: finalResults.length,
             sourcesSearched: validatedRequest.sources,
             totalSourceResults: allResults.length,
           });
 
-          monitoringService.recordSearchSuccess('unified', {
+          monitoringService.recordSearchSuccess("unified", {
             query: validatedRequest.query,
             resultsCount: finalResults.length,
           });
@@ -334,7 +393,7 @@ export class FaultTolerantUnifiedVectorStoreService
           return finalResults;
         },
         {
-          operationName: 'searchAcrossSources',
+          operationName: "searchAcrossSources",
           cacheKey,
           requiredServiceLevel: 2,
         },
@@ -369,12 +428,12 @@ export class FaultTolerantUnifiedVectorStoreService
             id: result.id,
             content: result.content,
             metadata: result.metadata || {},
-            source: 'openai',
+            source: "openai",
             createdAt: result.metadata?.responseId ? new Date() : undefined,
           }),
           similarity: result.similarity,
           distance: 1 - result.similarity,
-          source: 'openai',
+          source: "openai",
         }),
       );
     } catch (_error) {
@@ -404,13 +463,48 @@ export class FaultTolerantUnifiedVectorStoreService
             id: result.document.id,
             content: result.document.content,
             metadata: result.document.metadata,
-            source: 'neon',
+            source: "neon",
             createdAt: result.document.createdAt,
             updatedAt: result.document.updatedAt,
           }),
           similarity: result.similarity,
           distance: result.distance,
-          source: 'neon',
+          source: "neon",
+        }),
+      );
+    } catch (_error) {
+      return [];
+    }
+  }
+
+  async searchSupabase(
+    query: string,
+    maxResults = 10,
+  ): Promise<UnifiedSearchResult[]> {
+    if (!this.supabaseService?.isEnabled) {
+      return [];
+    }
+
+    try {
+      const results = await this.supabaseService.searchSimilar({
+        query,
+        maxResults,
+        threshold: 0.3,
+      });
+
+      return results.map((result: any) =>
+        UnifiedSearchResult.parse({
+          document: UnifiedDocument.parse({
+            id: result.document.id,
+            content: result.document.content,
+            metadata: result.document.metadata,
+            source: "supabase",
+            createdAt: result.document.createdAt,
+            updatedAt: result.document.updatedAt,
+          }),
+          similarity: result.similarity,
+          distance: result.distance,
+          source: "supabase",
         }),
       );
     } catch (_error) {
@@ -432,20 +526,20 @@ export class FaultTolerantUnifiedVectorStoreService
           try {
             const health = await this.openaiService.healthCheck();
             if (health.isHealthy) {
-              sources.push('openai');
+              sources.push("openai");
             }
           } catch (_error) {}
         }
 
         // Always include memory as fallback
-        sources.push('memory');
+        sources.push("memory");
 
         // Check Neon availability
         if (this.neonService?.isEnabled) {
           try {
             const health = await this.neonService.healthCheck();
             if (health.isHealthy) {
-              sources.push('neon');
+              sources.push("neon");
             }
           } catch (_error) {}
         }
@@ -453,7 +547,7 @@ export class FaultTolerantUnifiedVectorStoreService
         return sources;
       },
       {
-        operationName: 'getAvailableSources',
+        operationName: "getAvailableSources",
         requiredServiceLevel: 4,
       },
     );
@@ -471,6 +565,7 @@ export class FaultTolerantUnifiedVectorStoreService
           memory: { enabled: true },
           openai: { enabled: this.openaiService.isEnabled },
           neon: { enabled: this.neonService?.isEnabled },
+          supabase: { enabled: this.supabaseService?.isEnabled || false },
           unified: { enabled: true },
         };
 
@@ -488,7 +583,7 @@ export class FaultTolerantUnifiedVectorStoreService
         return stats;
       },
       {
-        operationName: 'getSourceStats',
+        operationName: "getSourceStats",
         requiredServiceLevel: 3,
       },
     );
@@ -507,15 +602,15 @@ export class FaultTolerantUnifiedVectorStoreService
 
     return {
       unified:
-        unifiedHealth.status === 'fulfilled'
+        unifiedHealth.status === "fulfilled"
           ? unifiedHealth.value
           : { healthy: false },
       openai:
-        openaiHealth.status === 'fulfilled'
+        openaiHealth.status === "fulfilled"
           ? openaiHealth.value
           : { healthy: false },
       neon:
-        neonHealth.status === 'fulfilled'
+        neonHealth.status === "fulfilled"
           ? neonHealth.value
           : { healthy: false },
       timestamp: Date.now(),
@@ -543,11 +638,11 @@ export class FaultTolerantUnifiedVectorStoreService
     const results: UnifiedDocument[] = [];
 
     switch (source) {
-      case 'openai':
+      case "openai":
         if (this.openaiService.isEnabled && request.file) {
           const vectorStoreFile = await this.openaiService.uploadFile({
             file: request.file,
-            metadata: request.metadata,
+            metadata: request.metadata as Record<string, string> | undefined,
           });
 
           results.push(
@@ -555,14 +650,14 @@ export class FaultTolerantUnifiedVectorStoreService
               id: vectorStoreFile.id,
               content: request.content,
               metadata: request.metadata,
-              source: 'openai',
+              source: "openai",
               createdAt: new Date(vectorStoreFile.created_at * 1000),
             }),
           );
         }
         break;
 
-      case 'neon':
+      case "neon":
         if (this.neonService?.isEnabled) {
           const neonDoc = await this.neonService.addDocument({
             content: request.content,
@@ -574,7 +669,7 @@ export class FaultTolerantUnifiedVectorStoreService
               id: neonDoc.id,
               content: neonDoc.content,
               metadata: neonDoc.metadata,
-              source: 'neon',
+              source: "neon",
               createdAt: neonDoc.createdAt,
               updatedAt: neonDoc.updatedAt,
             }),
@@ -582,14 +677,14 @@ export class FaultTolerantUnifiedVectorStoreService
         }
         break;
 
-      case 'memory':
+      case "memory":
         // Memory storage is handled by the existing RAG service
         results.push(
           UnifiedDocument.parse({
             id: crypto.randomUUID(),
             content: request.content,
             metadata: request.metadata,
-            source: 'memory',
+            source: "memory",
             createdAt: new Date(),
           }),
         );
@@ -602,7 +697,7 @@ export class FaultTolerantUnifiedVectorStoreService
   private setupFallbackProviders(): void {
     // Multi-source search provider
     const multiSourceProvider: ServiceProvider<UnifiedSearchResult[]> = {
-      name: 'unified_multi_source',
+      name: "unified_multi_source",
       priority: 1,
       isAvailable: async () => {
         const sources = await this.getAvailableSources();
@@ -615,7 +710,7 @@ export class FaultTolerantUnifiedVectorStoreService
 
     // OpenAI-only fallback
     const openaiOnlyProvider: ServiceProvider<UnifiedSearchResult[]> = {
-      name: 'unified_openai_only',
+      name: "unified_openai_only",
       priority: 2,
       isAvailable: async () => {
         return this.openaiService.isEnabled;
@@ -627,7 +722,7 @@ export class FaultTolerantUnifiedVectorStoreService
 
     // Neon-only fallback
     const neonOnlyProvider: ServiceProvider<UnifiedSearchResult[]> = {
-      name: 'unified_neon_only',
+      name: "unified_neon_only",
       priority: 3,
       isAvailable: async () => {
         return this.neonService?.isEnabled;
@@ -644,10 +739,28 @@ export class FaultTolerantUnifiedVectorStoreService
       },
     };
 
+    // Supabase-only fallback
+    const supabaseOnlyProvider: ServiceProvider<UnifiedSearchResult[]> = {
+      name: "unified_supabase_only",
+      priority: 4,
+      isAvailable: async () => {
+        return this.supabaseService?.isEnabled;
+      },
+      execute: async (request: UnifiedSearchRequest) => {
+        if (!this.supabaseService) {
+          return [];
+        }
+        return await this.searchSupabase(
+          request.query,
+          request.maxResults,
+        );
+      },
+    };
+
     // Emergency provider
     const emergencyProvider: ServiceProvider<UnifiedSearchResult[]> = {
-      name: 'unified_emergency',
-      priority: 4,
+      name: "unified_emergency",
+      priority: 5,
       isAvailable: async () => true,
       execute: async (_request: UnifiedSearchRequest) => {
         return [];
@@ -659,6 +772,7 @@ export class FaultTolerantUnifiedVectorStoreService
     this.faultTolerantService.addProvider(multiSourceProvider);
     this.faultTolerantService.addProvider(openaiOnlyProvider);
     this.faultTolerantService.addProvider(neonOnlyProvider);
+    this.faultTolerantService.addProvider(supabaseOnlyProvider);
     this.faultTolerantService.addProvider(emergencyProvider);
   }
 
@@ -715,7 +829,7 @@ export class FaultTolerantUnifiedVectorStoreService
 
   private async getBasicService(): Promise<UnifiedVectorStoreService> {
     // Import here to avoid circular dependency
-    const { createUnifiedVectorStoreService } = await import('./unified');
+    const { createUnifiedVectorStoreService } = await import("./unified");
     return createUnifiedVectorStoreService();
   }
 }
@@ -746,4 +860,4 @@ export type {
   UnifiedSearchRequest,
   UnifiedSearchResult,
   VectorStoreType,
-} from './unified';
+} from "./unified";

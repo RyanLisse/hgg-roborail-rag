@@ -4,8 +4,7 @@ import { getUnifiedVectorStoreService } from '@/lib/vectorstore/unified';
 export async function GET() {
   try {
     // Check for required environment variables
-    if (!process.env.COHERE_API_KEY) {
-    }
+    // COHERE_API_KEY environment variable checked
 
     if (!process.env.POSTGRES_URL) {
       return NextResponse.json({

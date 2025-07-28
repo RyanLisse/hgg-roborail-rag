@@ -42,6 +42,174 @@ const PerformanceRequest = z.object({
   timeWindow: z.string().optional().default('24h'),
 });
 
+// Helper function to handle health check for all providers
+async function handleHealthCheckAll() {
+  const [openaiService, neonService, _unifiedService] = await Promise.all([
+    getOpenAIVectorStoreService(),
+    getNeonVectorStoreService(),
+    getUnifiedVectorStoreService(),
+  ]);
+
+  const healthChecks = await Promise.all([
+    openaiService.healthCheck().catch((error) => ({
+      isHealthy: false,
+      error: error.message,
+    })),
+    Promise.resolve({
+      isHealthy: neonService.isEnabled,
+      error: neonService.isEnabled ? undefined : 'Service disabled',
+    }),
+    Promise.resolve({
+      isHealthy: true, // Unified service is always enabled
+    }),
+  ]);
+
+  return {
+    success: true,
+    data: {
+      openai: {
+        provider: 'openai' as const,
+        ...healthChecks[0],
+        lastChecked: new Date(),
+      },
+      neon: {
+        provider: 'neon' as const,
+        ...healthChecks[1],
+        lastChecked: new Date(),
+      },
+      unified: {
+        provider: 'unified' as const,
+        ...healthChecks[2],
+        lastChecked: new Date(),
+      },
+    },
+  };
+}
+
+// Helper function to handle health check for specific provider
+async function handleHealthCheckSpecific(provider: string) {
+  let healthResult: { isHealthy: boolean; error?: string };
+
+  if (provider === 'openai') {
+    const service = await getOpenAIVectorStoreService();
+    healthResult = await service.healthCheck();
+  } else if (provider === 'neon') {
+    const service = await getNeonVectorStoreService();
+    healthResult = {
+      isHealthy: service.isEnabled,
+      error: service.isEnabled ? undefined : 'Service disabled',
+    };
+  } else {
+    healthResult = { isHealthy: true };
+  }
+
+  return {
+    success: true,
+    data: {
+      provider,
+      ...healthResult,
+      lastChecked: new Date(),
+    },
+  };
+}
+
+// Helper function to handle metrics request
+function handleMetricsRequest(
+  searchParams: URLSearchParams,
+  monitoringService: any,
+) {
+  const params = MetricsRequest.parse({
+    provider: searchParams.get('provider'),
+    metricType: searchParams.get('metricType'),
+    timeWindow: searchParams.get('timeWindow'),
+  });
+
+  const metrics = monitoringService.getMetrics(
+    params.provider,
+    params.metricType,
+    params.timeWindow,
+  );
+
+  return {
+    success: true,
+    data: {
+      metrics,
+      count: metrics.length,
+      timeWindow: params.timeWindow,
+      provider: params.provider,
+      metricType: params.metricType,
+    },
+  };
+}
+
+// Helper function to handle performance request
+function handlePerformanceRequest(
+  searchParams: URLSearchParams,
+  monitoringService: any,
+) {
+  const params = PerformanceRequest.parse({
+    provider: searchParams.get('provider'),
+    timeWindow: searchParams.get('timeWindow'),
+  });
+
+  const performance = monitoringService.getPerformanceMetrics(
+    params.provider,
+    params.timeWindow,
+  );
+
+  return {
+    success: true,
+    data: performance,
+  };
+}
+
+// Helper function to handle dashboard request
+async function handleDashboardRequest(monitoringService: any) {
+  const dashboardData = await monitoringService.getDashboardData();
+  const healthStatus = monitoringService.getHealthStatus();
+
+  return {
+    success: true,
+    data: {
+      ...dashboardData,
+      healthStatus,
+      timestamp: new Date(),
+    },
+  };
+}
+
+// Helper function to handle export request
+async function handleExportRequest(
+  searchParams: URLSearchParams,
+  monitoringService: any,
+) {
+  const timeWindow = searchParams.get('timeWindow') || '24h';
+  const metrics = await monitoringService.exportMetrics(timeWindow);
+
+  return {
+    success: true,
+    data: {
+      metrics,
+      exportedAt: new Date(),
+      timeWindow,
+      count: metrics.length,
+    },
+  };
+}
+
+// Helper function to handle alerts request
+async function handleAlertsRequest(monitoringService: any) {
+  const dashboardData = await monitoringService.getDashboardData();
+
+  return {
+    success: true,
+    data: {
+      alerts: dashboardData.alerts,
+      recentErrors: dashboardData.recentErrors,
+    },
+  };
+}
+
 export async function GET(request: NextRequest) {
   const monitoringService = getVectorStoreMonitoringService();
   const { searchParams } = new URL(request.url);
@@ -55,159 +223,43 @@ export async function GET(request: NextRequest) {
         });
 
         if (params.provider === 'all') {
-          // Perform health checks for all providers
-          const [openaiService, neonService, _unifiedService] =
-            await Promise.all([
-              getOpenAIVectorStoreService(),
-              getNeonVectorStoreService(),
-              getUnifiedVectorStoreService(),
-            ]);
-
-          const healthChecks = await Promise.all([
-            openaiService.healthCheck().catch((error) => ({
-              isHealthy: false,
-              error: error.message,
-            })),
-            Promise.resolve({
-              isHealthy: neonService.isEnabled,
-              error: neonService.isEnabled ? undefined : 'Service disabled',
-            }),
-            Promise.resolve({
-              isHealthy: true, // Unified service is always enabled
-            }),
-          ]);
-
-          return NextResponse.json({
-            success: true,
-            data: {
-              openai: {
-                provider: 'openai' as const,
-                ...healthChecks[0],
-                lastChecked: new Date(),
-              },
-              neon: {
-                provider: 'neon' as const,
-                ...healthChecks[1],
-                lastChecked: new Date(),
-              },
-              unified: {
-                provider: 'unified' as const,
-                ...healthChecks[2],
-                lastChecked: new Date(),
-              },
-            },
-          });
+          const result = await handleHealthCheckAll();
+          return NextResponse.json(result);
         } else {
-          // Perform health check for specific provider
-          let healthResult: { isHealthy: boolean; error?: string };
-
-          if (params.provider === 'openai') {
-            const service = await getOpenAIVectorStoreService();
-            healthResult = await service.healthCheck();
-          } else if (params.provider === 'neon') {
-            const service = await getNeonVectorStoreService();
-            healthResult = {
-              isHealthy: service.isEnabled,
-              error: service.isEnabled ? undefined : 'Service disabled',
-            };
-          } else {
-            healthResult = { isHealthy: true };
-          }
-
-          return NextResponse.json({
-            success: true,
-            data: {
-              provider: params.provider,
-              ...healthResult,
-              lastChecked: new Date(),
-            },
-          });
+          const result = await handleHealthCheckSpecific(params.provider);
+          return NextResponse.json(result);
         }
       }
 
       case 'metrics': {
-        const params = MetricsRequest.parse({
-          provider: searchParams.get('provider'),
-          metricType: searchParams.get('metricType'),
-          timeWindow: searchParams.get('timeWindow'),
-        });
-
-        const metrics = monitoringService.getMetrics(
-          params.provider,
-          params.metricType,
-          params.timeWindow,
-        );
-
-        return NextResponse.json({
-          success: true,
-          data: {
-            metrics,
-            count: metrics.length,
-            timeWindow: params.timeWindow,
-            provider: params.provider,
-            metricType: params.metricType,
-          },
-        });
+        const result = handleMetricsRequest(searchParams, monitoringService);
+        return NextResponse.json(result);
       }
 
       case 'performance': {
-        const params = PerformanceRequest.parse({
-          provider: searchParams.get('provider'),
-          timeWindow: searchParams.get('timeWindow'),
-        });
-
-        const performance = monitoringService.getPerformanceMetrics(
-          params.provider,
-          params.timeWindow,
+        const result = handlePerformanceRequest(
+          searchParams,
+          monitoringService,
         );
-
-        return NextResponse.json({
-          success: true,
-          data: performance,
-        });
+        return NextResponse.json(result);
       }
 
       case 'dashboard': {
-        const dashboardData = await monitoringService.getDashboardData();
-
-        // Add real-time health status
-        const healthStatus = monitoringService.getHealthStatus();
-
-        return NextResponse.json({
-          success: true,
-          data: {
-            ...dashboardData,
-            healthStatus,
-            timestamp: new Date(),
-          },
-        });
+        const result = await handleDashboardRequest(monitoringService);
+        return NextResponse.json(result);
       }
 
       case 'export': {
-        const timeWindow = searchParams.get('timeWindow') || '24h';
-        const metrics = await monitoringService.exportMetrics(timeWindow);
-
-        return NextResponse.json({
-          success: true,
-          data: {
-            metrics,
-            exportedAt: new Date(),
-            timeWindow,
-            count: metrics.length,
-          },
-        });
+        const result = await handleExportRequest(
+          searchParams,
+          monitoringService,
+        );
+        return NextResponse.json(result);
       }
 
       case 'alerts': {
-        const dashboardData = await monitoringService.getDashboardData();
-
-        return NextResponse.json({
-          success: true,
-          data: {
-            alerts: dashboardData.alerts,
-            recentErrors: dashboardData.recentErrors,
-          },
-        });
+        const result = await handleAlertsRequest(monitoringService);
+        return NextResponse.json(result);
       }
 
       default:

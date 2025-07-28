@@ -88,52 +88,46 @@ export async function resetCache(): Promise<void> {
 }
 
 /**
+ * Simple hash function for cache keys
+ */
+function hash(input: string): string {
+  let hashValue = 0;
+  for (let i = 0; i < input.length; i++) {
+    const char = input.charCodeAt(i);
+    hashValue = (hashValue << 5) - hashValue + char;
+    hashValue &= hashValue; // Convert to 32-bit integer
+  }
+  return Math.abs(hashValue).toString(36);
+}
+
+/**
  * Smart cache key generator for semantic caching
  */
-export namespace CacheKeyGenerator {
-  export function vectorSearch(
-    query: string,
-    sources: string[],
-    options: any = {},
-  ): string {
+export const CacheKeyGenerator = {
+  vectorSearch(query: string, sources: string[], options: any = {}): string {
     const optionsHash = JSON.stringify(options, Object.keys(options).sort());
     const sourcesStr = sources.sort().join(',');
     return `vs:${hash(query)}:${hash(sourcesStr)}:${hash(optionsHash)}`;
-  }
+  },
 
-  export function agentRouting(query: string, context: any = {}): string {
+  agentRouting(query: string, context: any = {}): string {
     const contextHash = JSON.stringify(context, Object.keys(context).sort());
     return `ar:${hash(query)}:${hash(contextHash)}`;
-  }
+  },
 
-  export function agentResponse(
-    agentType: string,
-    query: string,
-    context: any = {},
-  ): string {
+  agentResponse(agentType: string, query: string, context: any = {}): string {
     const contextHash = JSON.stringify(context, Object.keys(context).sort());
     return `ap:${agentType}:${hash(query)}:${hash(contextHash)}`;
-  }
+  },
 
-  export function documentEmbedding(content: string, model: string): string {
+  documentEmbedding(content: string, model: string): string {
     return `emb:${model}:${hash(content)}`;
-  }
+  },
 
-  export function healthCheck(service: string, endpoint: string): string {
+  healthCheck(service: string, endpoint: string): string {
     return `health:${service}:${hash(endpoint)}`;
-  }
-
-  function hash(input: string): string {
-    // Simple hash function for cache keys
-    let hash = 0;
-    for (let i = 0; i < input.length; i++) {
-      const char = input.charCodeAt(i);
-      hash = (hash << 5) - hash + char;
-      hash &= hash; // Convert to 32-bit integer
-    }
-    return Math.abs(hash).toString(36);
-  }
-}
+  },
+} as const;
 
 /**
  * High-level cache utilities with semantic caching

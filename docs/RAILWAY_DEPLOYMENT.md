@@ -1,12 +1,15 @@
 # Railway Deployment Guide
 
-This guide covers deploying the HGG RoboRail Assistant to Railway.
+This comprehensive guide covers deploying the HGG RoboRail Assistant to Railway
+platform with production-ready configuration.
 
 ## Prerequisites
 
-1. Railway account (https://railway.app)
-2. Railway CLI installed (optional)
-3. GitHub repository connected to Railway
+1. **Railway Account**: Sign up at [railway.app](https://railway.app)
+2. **Railway CLI** (optional): `npm install -g @railway/cli`
+3. **GitHub Repository**: Repository connected to Railway
+4. **Environment Variables**: All required API keys and secrets ready
+5. **Database Access**: PostgreSQL with pgvector extension support
 
 ## Deployment Steps
 
@@ -112,6 +115,7 @@ The project includes a `railway.json` configuration file that:
 ## Scaling
 
 Railway supports:
+
 - Horizontal scaling (multiple instances)
 - Automatic HTTPS/SSL
 - Custom domains
@@ -133,6 +137,6 @@ Railway supports:
 
 ## Support
 
-- Railway Discord: https://discord.gg/railway
-- Railway Docs: https://docs.railway.app
+- Railway Discord: <https://discord.gg/railway>
+- Railway Docs: <https://docs.railway.app>
 - Project Issues: GitHub Issues

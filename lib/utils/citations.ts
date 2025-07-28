@@ -1,4 +1,4 @@
-import type { SourceAnnotation, SourceFile } from '@/lib/ai/responses';
+import type { SourceAnnotation, SourceFile } from "@/lib/ai/responses";
 
 // Re-export for convenience
 export type { SourceFile };
@@ -18,14 +18,80 @@ export interface CitationContext {
   hasAnnotations: boolean;
 }
 
+// Performance optimization: Cache for parsed citations
+const citationCache = new Map<string, CitationContext>();
+const MAX_CACHE_SIZE = 1000;
+
+// Performance optimization: Pre-compiled regex for citation markers
+const CITATION_REGEX = /\[(\d+)\]/g;
+
 /**
- * Parse OpenAI response content and extract citations
+ * Generate cache key for citation parsing
+ */
+function generateCacheKey(
+  content: string,
+  annotations: SourceAnnotation[],
+  sources: SourceFile[],
+): string {
+  return `${content.length}-${annotations.length}-${sources.length}-${annotations.map((a) => a.start_index).join(",")}`;
+}
+
+/**
+ * Extract citation positions from content
+ */
+function extractCitationPositions(content: string): Map<number, number> {
+  CITATION_REGEX.lastIndex = 0; // Reset regex state
+  const citationMatches = Array.from(content.matchAll(CITATION_REGEX));
+  const citationPositions = new Map<number, number>();
+
+  citationMatches.forEach((match) => {
+    if (match.index !== undefined) {
+      const number = Number.parseInt(match[1], 10);
+      citationPositions.set(number, match.index);
+    }
+  });
+
+  return citationPositions;
+}
+
+/**
+ * Find best matching citation number for annotation
+ */
+function findCitationNumber(
+  annotation: SourceAnnotation,
+  citationPositions: Map<number, number>,
+  defaultNumber: number,
+): number {
+  for (const [number, position] of citationPositions) {
+    if (Math.abs(position - annotation.start_index) <= 10) {
+      return number;
+    }
+  }
+  return defaultNumber;
+}
+
+/**
+ * Cache parsed result with size management
+ */
+function cacheResult(cacheKey: string, result: CitationContext): void {
+  if (citationCache.size >= MAX_CACHE_SIZE) {
+    const firstKey = citationCache.keys().next().value;
+    if (firstKey) {
+      citationCache.delete(firstKey);
+    }
+  }
+  citationCache.set(cacheKey, result);
+}
+
+/**
+ * Parse OpenAI response content and extract citations (optimized with caching)
  */
 export function parseCitationsFromContent(
   content: string,
   annotations: SourceAnnotation[],
   sources: SourceFile[],
 ): CitationContext {
+  // Performance optimization: Early return for empty inputs
   if (!(annotations.length && sources.length)) {
     return {
       content,
@@ -34,51 +100,57 @@ export function parseCitationsFromContent(
     };
   }
 
-  const citations: ParsedCitation[] = [];
-  const sourceMap = new Map(sources.map((source) => [source.id, source]));
-  const processedContent = content;
+  // Check cache first
+  const cacheKey = generateCacheKey(content, annotations, sources);
+  const cached = citationCache.get(cacheKey);
+  if (cached) {
+    return cached;
+  }
 
-  // Extract citation markers from content (e.g., [1], [2], etc.)
-  const citationRegex = /\[(\d+)\]/g;
-  const citationMatches = Array.from(content.matchAll(citationRegex));
+  // Performance optimization: Use Map for O(1) lookups
+  const sourceMap = new Map(sources.map((source) => [source.id, source]));
+  const citationPositions = extractCitationPositions(content);
+  const citations: ParsedCitation[] = [];
 
   // Create citations from annotations
-  annotations.forEach((annotation, index) => {
-    if (annotation.type === 'file_citation' && annotation.file_citation) {
+  for (let i = 0; i < annotations.length; i++) {
+    const annotation = annotations[i];
+    if (annotation.type === "file_citation" && annotation.file_citation) {
       const fileId = annotation.file_citation.file_id;
       const source = sourceMap.get(fileId);
 
       if (source) {
-        // Find corresponding citation number from content
-        const citationNumber = citationMatches.find(
-          (match) =>
-            match.index &&
-            match.index >= annotation.start_index - 10 &&
-            match.index <= annotation.end_index + 10,
+        const citationNumber = findCitationNumber(
+          annotation,
+          citationPositions,
+          i + 1,
         );
 
         citations.push({
-          id: `citation-${index}`,
-          number: citationNumber
-            ? Number.parseInt(citationNumber[1], 10)
-            : index + 1,
+          id: `citation-${i}`,
+          number: citationNumber,
           text: annotation.text,
           fileName: source.name,
-          quote: annotation.file_citation.quote,
+          quote: annotation.file_citation.quote || undefined,
           fileId,
         });
       }
     }
-  });
+  }
 
   // Sort citations by number
   citations.sort((a, b) => a.number - b.number);
 
-  return {
-    content: processedContent,
+  const result: CitationContext = {
+    content,
     citations,
     hasAnnotations: true,
   };
+
+  // Cache the result
+  cacheResult(cacheKey, result);
+
+  return result;
 }
 
 /**
@@ -86,7 +158,7 @@ export function parseCitationsFromContent(
  */
 export function formatCitationsMarkdown(citations: ParsedCitation[]): string {
   if (!citations.length) {
-    return '';
+    return "";
   }
 
   const formattedCitations = citations.map((citation) => {
@@ -99,7 +171,7 @@ export function formatCitationsMarkdown(citations: ParsedCitation[]): string {
     return formatted;
   });
 
-  return `\n\n---\n\n**Sources:**\n\n${formattedCitations.join('\n\n')}`;
+  return `\n\n---\n\n**Sources:**\n\n${formattedCitations.join("\n\n")}`;
 }
 
 /**
@@ -107,7 +179,7 @@ export function formatCitationsMarkdown(citations: ParsedCitation[]): string {
  */
 export function formatCitationsText(citations: ParsedCitation[]): string {
   if (!citations.length) {
-    return '';
+    return "";
   }
 
   const formattedCitations = citations.map((citation) => {
@@ -120,7 +192,7 @@ export function formatCitationsText(citations: ParsedCitation[]): string {
     return formatted;
   });
 
-  return `\n\nSources:\n${formattedCitations.join('\n')}`;
+  return `\n\nSources:\n${formattedCitations.join("\n")}`;
 }
 
 /**
@@ -156,7 +228,7 @@ export function enhanceCitationsInContent(
   const sortedCitations = [...citations].sort((a, b) => b.number - a.number);
 
   sortedCitations.forEach((citation) => {
-    const citationRegex = new RegExp(`\\[${citation.number}\\]`, 'g');
+    const citationRegex = new RegExp(`\\[${citation.number}\\]`, "g");
     enhancedContent = enhancedContent.replace(
       citationRegex,
       `[${citation.number}](#citation-${citation.id})`,
@@ -204,7 +276,7 @@ export function validateCitations(citations: ParsedCitation[]): {
  */
 export function createCitationFootnotes(citations: ParsedCitation[]): string {
   if (!citations.length) {
-    return '';
+    return "";
   }
 
   const footnotes = citations.map((citation) => {
@@ -215,9 +287,9 @@ export function createCitationFootnotes(citations: ParsedCitation[]): string {
       footnote += `<br><em>"${citation.quote}"</em>`;
     }
 
-    footnote += '</div>';
+    footnote += "</div>";
     return footnote;
   });
 
-  return `\n\n<div class="citations-section">\n<h4>Sources</h4>\n${footnotes.join('\n')}\n</div>`;
+  return `\n\n<div class="citations-section">\n<h4>Sources</h4>\n${footnotes.join("\n")}\n</div>`;
 }

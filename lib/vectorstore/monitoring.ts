@@ -24,6 +24,7 @@ export const MetricType = z.enum([
 export const VectorStoreProvider = z.enum([
   'openai',
   'neon',
+  'supabase',
   'unified',
   'memory',
 ]);
@@ -641,6 +642,7 @@ export function createVectorStoreMonitoringService(
       const providers: VectorStoreProvider[] = [
         'openai',
         'neon',
+        'supabase',
         'unified',
         'memory',
       ];
@@ -686,7 +688,7 @@ export function getVectorStoreMonitoringService(): VectorStoreMonitoringService 
 // Health check scheduler
 export function startHealthCheckScheduler(
   service: VectorStoreMonitoringService,
-  providers: VectorStoreProvider[] = ['openai', 'neon', 'unified'],
+  providers: VectorStoreProvider[] = ['openai', 'neon', 'supabase', 'unified'],
 ): () => void {
   const interval = setInterval(async () => {
     for (const provider of providers) {

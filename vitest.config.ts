@@ -6,6 +6,13 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./tests/setup.ts'],
+    exclude: [
+      '**/e2e/**',
+      '**/routes/**',
+      '**/mcp/**',
+      '**/node_modules/**',
+      '**/dist/**',
+    ],
   },
   resolve: {
     alias: {

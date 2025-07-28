@@ -180,5 +180,5 @@ export interface AgentRouter {
 }
 
 // Vector store type definition
-export const VectorStoreType = z.enum(['openai', 'neon', 'memory']);
+export const VectorStoreType = z.enum(['openai', 'neon', 'supabase', 'memory']);
 export type VectorStoreType = z.infer<typeof VectorStoreType>;

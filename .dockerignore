@@ -1,0 +1,153 @@
+# ==========================================
+# Docker Ignore File
+# Optimizes Docker build context
+# ==========================================
+
+# Dependencies
+node_modules
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Production builds
+.next/
+out/
+dist/
+build/
+
+# Environment files
+.env*
+!.env.example
+
+# Development files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Testing
+coverage/
+.nyc_output/
+test-results/
+playwright-report/
+playwright/
+
+# Git
+.git/
+.gitignore
+*.orig
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+.circleci/
+
+# Documentation
+README.md
+CHANGELOG.md
+LICENSE
+docs/
+*.md
+!README.md
+
+# Logs
+logs/
+*.log
+pids/
+lib-cov/
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Temporary files
+.tmp/
+temp/
+tmp/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Database files
+*.sqlite
+*.db
+*.db-journal
+
+# Cache directories
+.cache/
+.parcel-cache/
+.eslintcache
+.stylelintcache
+
+# TypeScript cache
+tsconfig.tsbuildinfo
+*.tsbuildinfo
+
+# Vercel
+.vercel/
+
+# Railway
+railway.json
+nixpacks.toml
+
+# Deployment configs (keep only if needed in container)
+docker-compose*.yml
+Dockerfile*
+.dockerignore
+
+# Memory and coordination files
+.swarm/
+.claude/
+memories.json
+reflections.json
+memory/
+coordination/
+
+# Test files and reports
+tests/
+**/*.test.*
+**/*.spec.*
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+__tests__/
+test-*
+*-test.*
+
+# Development scripts
+scripts/
+*.sh
+Makefile
+
+# Security and analysis files
+security-audit.json
+dependency-tree.json
+
+# Playwright specific
+playwright.config.ts
+playwright-report/
+test-results/
+
+# Project specific excludes
+SETUP.sh
+SMART_SPAWN_OPTIMIZATION.md
+DATABASE_VALIDATION_REPORT.md
+INTEGRATION_TEST_REPORT.md
+
+# Temporary integration files
+citation-integration-test.js
+simple-integration-test.cjs
+test-db-connection.js
+test-file.js

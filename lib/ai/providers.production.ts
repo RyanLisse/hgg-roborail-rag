@@ -1,46 +1,45 @@
-import { google } from '@ai-sdk/google';
-import { openai } from '@ai-sdk/openai';
+import { google } from "@ai-sdk/google";
+import { openai } from "@ai-sdk/openai";
+import { cohere } from "@ai-sdk/cohere";
 import {
   customProvider,
   extractReasoningMiddleware,
   type LanguageModel,
   wrapLanguageModel,
-} from 'ai';
-import { z } from 'zod';
-import { GOOGLE_GENERATIVE_AI_API_KEY, OPENAI_API_KEY } from '../env';
-import { chatModels, getModelById } from './models';
+} from "ai";
+import { z } from "zod";
+import { GOOGLE_GENERATIVE_AI_API_KEY, OPENAI_API_KEY, COHERE_API_KEY } from "../env";
+import { chatModels, getModelById } from "./models";
 
 // Check if we're in test mode
 const isTestMode =
-  process.env.NODE_ENV === 'test' ||
-  process.env.PLAYWRIGHT === 'true' ||
-  process.env.OPENAI_API_KEY?.startsWith('sk-test-');
+  process.env.NODE_ENV === "test" ||
+  process.env.PLAYWRIGHT === "true" ||
+  process.env.OPENAI_API_KEY?.startsWith("sk-test-") ||
+  process.env.OPENAI_API_KEY?.includes("mock");
 
-// Lazy load mock providers in test mode
-let mockProviders: any = null;
+// For test mode detection (unused for now but preserved for future test integration)
 if (isTestMode) {
-  try {
-    mockProviders = require('./providers.mock');
-  } catch (_error) {
-    // Mock providers not available
-  }
+  // Test mode is active but we'll use the existing provider structure
+  console.log(
+    "Test mode detected, using production providers with test configuration",
+  );
 }
 
 // Provider instances
 export const aiProviders = {
   openai,
   google,
+  cohere,
 } as const;
 
 // Provider validation schema
-const providerSchema = z.enum(['openai', 'google']);
+const providerSchema = z.enum(["openai", "google", "cohere"]);
 
 // Get model instance by model ID
 export function getModelInstance(modelId: string) {
-  // Use mock providers in test mode
-  if (isTestMode && mockProviders) {
-    return mockProviders.getModelInstance(modelId);
-  }
+  // In test mode, we'll need to handle async loading differently
+  // For now, use production providers and let the test framework handle mocking
 
   const model = getModelById(modelId);
   if (!model) {
@@ -56,13 +55,26 @@ export function getModelInstance(modelId: string) {
 }
 
 // Get embedding model instance
-export function getEmbeddingModelInstance(_modelId: string) {
-  // Use mock providers in test mode
-  if (isTestMode && mockProviders) {
-    return mockProviders.getEmbeddingModelInstance(_modelId);
+export function getEmbeddingModelInstance(modelId: string = "cohere-embed-v4.0") {
+  // Support multiple embedding models
+  if (modelId.includes("cohere") || modelId.includes("embed-v4")) {
+    if (COHERE_API_KEY) {
+      return cohere.embedding("embed-v4.0");
+    }
+    // Fallback to OpenAI if Cohere not available
+    console.warn("Cohere API key not available, falling back to OpenAI embeddings");
   }
-  // For now, use OpenAI text-embedding-3-small for all embeddings
-  return openai.embedding('text-embedding-3-small');
+  
+  if (modelId.includes("openai") || modelId.includes("text-embedding")) {
+    return openai.embedding("text-embedding-3-small");
+  }
+  
+  // Default to Cohere if available, otherwise OpenAI
+  if (COHERE_API_KEY) {
+    return cohere.embedding("embed-v4.0");
+  }
+  
+  return openai.embedding("text-embedding-3-small");
 }
 
 // Enhanced language model factory with reasoning support
@@ -75,8 +87,8 @@ function createDynamicLanguageModel(modelId: string): LanguageModel {
       model: baseModel,
       middleware: [
         extractReasoningMiddleware({
-          tagName: 'thinking',
-          separator: '\n\n',
+          tagName: "thinking",
+          separator: "\n\n",
         }),
       ],
     });
@@ -89,15 +101,15 @@ function createDynamicLanguageModel(modelId: string): LanguageModel {
 // Helper function to identify reasoning models
 function isReasoningModel(modelId: string): boolean {
   const reasoningPatterns = [
-    'o1-',
-    'o1.',
-    'o3-',
-    'o3.',
-    'o4-',
-    'o4.',
-    'reasoning',
-    'think',
-    'step-by-step',
+    "o1-",
+    "o1.",
+    "o3-",
+    "o3.",
+    "o4-",
+    "o4.",
+    "reasoning",
+    "think",
+    "step-by-step",
   ];
 
   return reasoningPatterns.some((pattern) =>
@@ -111,14 +123,14 @@ function createAllLanguageModels(): Record<string, LanguageModel> {
 
   // Primary models with fallbacks - June 2025 optimized
   const primaryModels = {
-    'chat-model': 'openai-gpt-4.1',
-    'chat-model-fast': 'openai-gpt-4.1-mini',
-    'chat-model-reasoning': 'openai-o3-mini',
-    'chat-model-advanced-reasoning': 'openai-o4-mini',
-    'title-model': 'openai-gpt-4.1-nano',
-    'artifact-model': 'openai-gpt-4.1',
-    'research-model': 'google-gemini-2.5-pro-latest',
-    'rewrite-model': 'openai-gpt-4.1',
+    "chat-model": "openai-gpt-4.1",
+    "chat-model-fast": "openai-gpt-4.1-mini",
+    "chat-model-reasoning": "openai-o3-mini",
+    "chat-model-advanced-reasoning": "openai-o4-mini",
+    "title-model": "openai-gpt-4.1-nano",
+    "artifact-model": "openai-gpt-4.1",
+    "research-model": "google-gemini-2.5-pro-latest",
+    "rewrite-model": "openai-gpt-4.1",
   };
 
   // Create primary models with fallback logic
@@ -153,7 +165,7 @@ function createAllLanguageModels(): Record<string, LanguageModel> {
   // Ensure we have at least one working model
   if (Object.keys(models).length === 0) {
     throw new Error(
-      'No language models could be initialized. Check your API keys.',
+      "No language models could be initialized. Check your API keys.",
     );
   }
 
@@ -164,10 +176,13 @@ function createAllLanguageModels(): Record<string, LanguageModel> {
 function getAvailableProviders(): string[] {
   const providers = [];
   if (OPENAI_API_KEY) {
-    providers.push('openai');
+    providers.push("openai");
   }
   if (GOOGLE_GENERATIVE_AI_API_KEY) {
-    providers.push('google');
+    providers.push("google");
+  }
+  if (COHERE_API_KEY) {
+    providers.push("cohere");
   }
   return providers;
 }
@@ -178,10 +193,10 @@ function getFallbackModel(originalModelId: string): string | null {
 
   // Fallback hierarchy based on capabilities and availability
   const fallbacks: Record<string, string[]> = {
-    'openai-gpt-4.1': ['openai-gpt-4o', 'google-gemini-2.5-pro-latest'],
-    'openai-o3-mini': ['openai-o1-mini', 'openai-gpt-4.1'],
-    'openai-o4-mini': ['openai-o3-mini', 'openai-o1-mini', 'openai-gpt-4.1'],
-    'google-gemini-2.5-pro-latest': ['google-gemini-1.5-pro', 'openai-gpt-4.1'],
+    "openai-gpt-4.1": ["openai-gpt-4o", "google-gemini-2.5-pro-latest"],
+    "openai-o3-mini": ["openai-o1-mini", "openai-gpt-4.1"],
+    "openai-o4-mini": ["openai-o3-mini", "openai-o1-mini", "openai-gpt-4.1"],
+    "google-gemini-2.5-pro-latest": ["google-gemini-1.5-pro", "openai-gpt-4.1"],
   };
 
   const modelFallbacks = fallbacks[originalModelId] || [];
@@ -197,26 +212,23 @@ function getFallbackModel(originalModelId: string): string | null {
 
   // Ultimate fallback: any working model
   if (OPENAI_API_KEY) {
-    return 'openai-gpt-4o-mini';
+    return "openai-gpt-4o-mini";
   }
   if (GOOGLE_GENERATIVE_AI_API_KEY) {
-    return 'google-gemini-1.5-flash';
+    return "google-gemini-1.5-flash";
   }
 
   return null;
 }
 
 // Enhanced provider with comprehensive model support and error handling
-export const myProvider =
-  isTestMode && mockProviders
-    ? mockProviders.myProvider
-    : customProvider({
-        languageModels: createAllLanguageModels(),
-      });
+export const myProvider = customProvider({
+  languageModels: createAllLanguageModels(),
+});
 
 // Provider health check
 export async function checkProviderHealth(): Promise<{
-  status: 'healthy' | 'degraded' | 'error';
+  status: "healthy" | "degraded" | "error";
   availableModels: string[];
   unavailableModels: string[];
   providers: Record<string, boolean>;
@@ -244,13 +256,13 @@ export async function checkProviderHealth(): Promise<{
   const healthyProviders = Object.values(providers).filter(Boolean).length;
   const totalProviders = Object.keys(providers).length;
 
-  let status: 'healthy' | 'degraded' | 'error';
+  let status: "healthy" | "degraded" | "error";
   if (healthyProviders === totalProviders && availableModels.length > 0) {
-    status = 'healthy';
+    status = "healthy";
   } else if (healthyProviders > 0 && availableModels.length > 0) {
-    status = 'degraded';
+    status = "degraded";
   } else {
-    status = 'error';
+    status = "error";
   }
 
   return {
@@ -276,14 +288,20 @@ export function validateProviderConfig(): {
   const providerChecks = [
     {
       key: OPENAI_API_KEY,
-      name: 'OPENAI_API_KEY',
-      provider: 'openai',
+      name: "OPENAI_API_KEY",
+      provider: "openai",
       required: false,
     },
     {
       key: GOOGLE_GENERATIVE_AI_API_KEY,
-      name: 'GOOGLE_GENERATIVE_AI_API_KEY',
-      provider: 'google',
+      name: "GOOGLE_GENERATIVE_AI_API_KEY",
+      provider: "google",
+      required: false,
+    },
+    {
+      key: COHERE_API_KEY,
+      name: "COHERE_API_KEY",
+      provider: "cohere",
       required: false,
     },
   ];
@@ -294,7 +312,7 @@ export function validateProviderConfig(): {
       availableProviders.push(check.provider);
 
       // Validate key format
-      if (check.provider === 'openai' && !check.key.startsWith('sk-')) {
+      if (check.provider === "openai" && !check.key.startsWith("sk-")) {
         warnings.push(`${check.name} should start with 'sk-'`);
       }
     } else if (check.required) {
@@ -304,17 +322,20 @@ export function validateProviderConfig(): {
 
   // Ensure at least one provider is available
   if (availableProviders.length === 0) {
-    errors.push('At least one AI provider API key must be configured');
+    errors.push("At least one AI provider API key must be configured");
   }
 
   // Log configuration status
   if (availableProviders.length > 0) {
+    // Providers are available
   }
 
   if (warnings.length > 0) {
+    // Warnings exist but configuration can proceed
   }
 
   if (errors.length > 0) {
+    // Errors exist that need to be addressed
   }
 
   return {

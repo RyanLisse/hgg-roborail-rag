@@ -360,7 +360,11 @@ class RecursiveChunker {
     config: ChunkingConfig,
     documentType?: string,
   ): string[] {
-    const { chunkSize, minChunkSize, maxChunkSize } = config;
+    const {
+      chunkSize: _chunkSize,
+      minChunkSize: _minChunkSize,
+      maxChunkSize: _maxChunkSize,
+    } = config;
     const separators = config.customSeparators || STRUCTURE_SEPARATORS;
 
     return RecursiveChunker.recursiveChunk(

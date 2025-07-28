@@ -32,7 +32,7 @@ export const enhancedSearch = (sources: VectorStoreType[] = ['memory']) =>
     execute: async ({
       query,
       limit = 5,
-      includeQuotes = true,
+      includeQuotes: _includeQuotes = true,
       responseModel = 'gpt-4o-mini',
     }) => {
       try {

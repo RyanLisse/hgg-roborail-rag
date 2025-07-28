@@ -1,20 +1,20 @@
-import 'server-only';
-import { z } from 'zod';
+import "server-only";
+import { z } from "zod";
 
 // Environment validation schema with logical grouping
 const envSchema = z.object({
   // Node.js Environment
   NODE_ENV: z
-    .enum(['development', 'production', 'test'])
-    .default('development'),
+    .enum(["development", "production", "test"])
+    .default("development"),
 
   // Authentication & Security
-  AUTH_SECRET: z.string().min(1, 'AUTH_SECRET is required for NextAuth.js'),
+  AUTH_SECRET: z.string().min(1, "AUTH_SECRET is required for NextAuth.js"),
 
   // Database Configuration
   POSTGRES_URL: z
     .string()
-    .url('POSTGRES_URL must be a valid PostgreSQL connection string'),
+    .url("POSTGRES_URL must be a valid PostgreSQL connection string"),
 
   // AI Provider API Keys (at least one required)
   OPENAI_API_KEY: z.string().optional(),
@@ -25,32 +25,48 @@ const envSchema = z.object({
   OPENAI_VECTORSTORE: z
     .string()
     .optional()
-    .describe('Default OpenAI vector store ID (starts with vs_)'),
+    .describe("Default OpenAI vector store ID (starts with vs_)"),
+
+  // Supabase Configuration
+  SUPABASE_URL: z.string().url().optional().describe("Supabase project URL"),
+  SUPABASE_ANON_KEY: z.string().optional().describe("Supabase anonymous key"),
+  SUPABASE_SERVICE_ROLE_KEY: z
+    .string()
+    .optional()
+    .describe("Supabase service role key (for server-side operations)"),
 
   // Storage & File Upload
   BLOB_READ_WRITE_TOKEN: z
     .string()
     .optional()
-    .describe('Vercel Blob storage token for file uploads'),
+    .describe("Vercel Blob storage token for file uploads"),
 
   // Observability & Monitoring (Optional)
   LANGSMITH_API_KEY: z.string().optional(),
   LANGSMITH_PROJECT: z.string().optional(),
   LANGSMITH_PROJECT_NAME: z.string().optional(),
   LANGSMITH_BASE_URL: z.string().url().optional(),
-  LANGSMITH_TRACING: z.enum(['true', 'false']).optional().default('false'),
+  LANGSMITH_TRACING: z.enum(["true", "false"]).optional().default("false"),
 
   // Redis for resumable streams (Optional)
   REDIS_URL: z
     .string()
     .url()
     .optional()
-    .describe('Redis URL for resumable streaming functionality'),
+    .describe("Redis URL for resumable streaming functionality"),
 
   // Testing & Playwright
   PLAYWRIGHT_TEST_BASE_URL: z.string().url().optional(),
   PLAYWRIGHT: z.string().optional(),
   CI_PLAYWRIGHT: z.string().optional(),
+
+  // Smart-Spawn Database Configuration
+  SMART_SPAWN_DB_MAX_CONNECTIONS: z.string().optional(),
+  SMART_SPAWN_DB_CONNECTION_TIMEOUT: z.string().optional(),
+  SMART_SPAWN_DB_RETRY_ATTEMPTS: z.string().optional(),
+  SMART_SPAWN_DB_RETRY_DELAY: z.string().optional(),
+  SMART_SPAWN_FALLBACK_MODE: z.enum(["graceful", "strict"]).optional(),
+  SMART_SPAWN_TEST_MODE: z.string().optional(),
 });
 
 // Custom refinement to ensure at least one AI provider API key is provided
@@ -64,21 +80,21 @@ const envSchemaWithRefinements = envSchema
     },
     {
       message:
-        'At least one AI provider API key must be provided (OPENAI_API_KEY or GOOGLE_GENERATIVE_AI_API_KEY)',
-      path: ['AI_PROVIDERS'],
+        "At least one AI provider API key must be provided (OPENAI_API_KEY or GOOGLE_GENERATIVE_AI_API_KEY)",
+      path: ["AI_PROVIDERS"],
     },
   )
   .refine(
     (data) => {
       // Validate OpenAI API key format if provided
-      if (data.OPENAI_API_KEY && !data.OPENAI_API_KEY.startsWith('sk-')) {
+      if (data.OPENAI_API_KEY && !data.OPENAI_API_KEY.startsWith("sk-")) {
         return false;
       }
       return true;
     },
     {
       message: 'OPENAI_API_KEY must start with "sk-" if provided',
-      path: ['OPENAI_API_KEY'],
+      path: ["OPENAI_API_KEY"],
     },
   )
   .refine(
@@ -86,7 +102,7 @@ const envSchemaWithRefinements = envSchema
       // Validate OpenAI vector store ID format if provided
       if (
         data.OPENAI_VECTORSTORE &&
-        !data.OPENAI_VECTORSTORE.startsWith('vs_')
+        !data.OPENAI_VECTORSTORE.startsWith("vs_")
       ) {
         return false;
       }
@@ -94,21 +110,21 @@ const envSchemaWithRefinements = envSchema
     },
     {
       message: 'OPENAI_VECTORSTORE must start with "vs_" if provided',
-      path: ['OPENAI_VECTORSTORE'],
+      path: ["OPENAI_VECTORSTORE"],
     },
   )
   .refine(
     (data) => {
       // If LangSmith tracing is enabled, API key is required
-      if (data.LANGSMITH_TRACING === 'true' && !data.LANGSMITH_API_KEY) {
+      if (data.LANGSMITH_TRACING === "true" && !data.LANGSMITH_API_KEY) {
         return false;
       }
       return true;
     },
     {
       message:
-        'LANGSMITH_API_KEY is required when LANGSMITH_TRACING is enabled',
-      path: ['LANGSMITH_API_KEY'],
+        "LANGSMITH_API_KEY is required when LANGSMITH_TRACING is enabled",
+      path: ["LANGSMITH_API_KEY"],
     },
   );
 
@@ -122,12 +138,12 @@ export function validateEnv(): Env {
 
     if (!result.success) {
       const errorMessages = result.error.errors.map((error) => {
-        const path = error.path.join('.');
+        const path = error.path.join(".");
         return `  - ${path}: ${error.message}`;
       });
 
       throw new Error(
-        `Environment variable validation failed:\n${errorMessages.join('\n')}\n\nPlease check your .env.local file and ensure all required environment variables are set correctly.`,
+        `Environment variable validation failed:\n${errorMessages.join("\n")}\n\nPlease check your .env.local file and ensure all required environment variables are set correctly.`,
       );
     }
 
@@ -136,12 +152,12 @@ export function validateEnv(): Env {
     if (error instanceof z.ZodError) {
       // This shouldn't happen due to safeParse, but handle just in case
       const errorMessages = error.errors.map((err) => {
-        const path = err.path.join('.');
+        const path = err.path.join(".");
         return `  - ${path}: ${err.message}`;
       });
 
       throw new Error(
-        `Environment variable validation failed:\n${errorMessages.join('\n')}\n\nPlease check your .env.local file and ensure all required environment variables are set correctly.`,
+        `Environment variable validation failed:\n${errorMessages.join("\n")}\n\nPlease check your .env.local file and ensure all required environment variables are set correctly.`,
       );
     }
     throw error;
@@ -155,16 +171,17 @@ function initializeEnv(): Env {
   } catch (error) {
     // In development or when not all vars are available yet (like during migration), log the error but don't crash
     if (
-      process.env.NODE_ENV === 'development' ||
+      process.env.NODE_ENV === "development" ||
       process.env.NODE_ENV === undefined
     ) {
       // Create a partial env object with defaults for development
       return {
-        NODE_ENV: (process.env.NODE_ENV as any) || 'development',
+        NODE_ENV: process.env.NODE_ENV || "development",
         AUTH_SECRET:
-          process.env.AUTH_SECRET || 'dev-secret-change-in-production',
-        POSTGRES_URL: process.env.POSTGRES_URL || '',
-        LANGSMITH_TRACING: (process.env.LANGSMITH_TRACING as any) || 'false',
+          process.env.AUTH_SECRET || "dev-secret-change-in-production",
+        POSTGRES_URL: process.env.POSTGRES_URL || "",
+        LANGSMITH_TRACING:
+          (process.env.LANGSMITH_TRACING as "true" | "false") || "false",
         // Include other available vars
         OPENAI_API_KEY: process.env.OPENAI_API_KEY,
         GOOGLE_GENERATIVE_AI_API_KEY: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
@@ -179,7 +196,23 @@ function initializeEnv(): Env {
         PLAYWRIGHT_TEST_BASE_URL: process.env.PLAYWRIGHT_TEST_BASE_URL,
         PLAYWRIGHT: process.env.PLAYWRIGHT,
         CI_PLAYWRIGHT: process.env.CI_PLAYWRIGHT,
-      } as Env;
+        // Smart-Spawn configuration
+        SMART_SPAWN_DB_MAX_CONNECTIONS:
+          process.env.SMART_SPAWN_DB_MAX_CONNECTIONS,
+        SMART_SPAWN_DB_CONNECTION_TIMEOUT:
+          process.env.SMART_SPAWN_DB_CONNECTION_TIMEOUT,
+        SMART_SPAWN_DB_RETRY_ATTEMPTS:
+          process.env.SMART_SPAWN_DB_RETRY_ATTEMPTS,
+        SMART_SPAWN_DB_RETRY_DELAY: process.env.SMART_SPAWN_DB_RETRY_DELAY,
+        SMART_SPAWN_FALLBACK_MODE: process.env.SMART_SPAWN_FALLBACK_MODE as
+          | "graceful"
+          | "strict",
+        SMART_SPAWN_TEST_MODE: process.env.SMART_SPAWN_TEST_MODE,
+        // Supabase configuration
+        SUPABASE_URL: process.env.SUPABASE_URL,
+        SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY,
+        SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+      } satisfies Env;
     } else {
       // In production, crash immediately
       throw error;
@@ -194,13 +227,13 @@ const env: Env = initializeEnv();
 export default env;
 
 // Helper functions for common environment checks
-export const isProduction = env.NODE_ENV === 'production';
-export const isDevelopment = env.NODE_ENV === 'development';
-export const isTest = env.NODE_ENV === 'test';
+export const isProduction = env.NODE_ENV === "production";
+export const isDevelopment = env.NODE_ENV === "development";
+export const isTest = env.NODE_ENV === "test";
 
 // Check if specific features are enabled
 export const isLangSmithEnabled =
-  env.LANGSMITH_TRACING === 'true' && !!env.LANGSMITH_API_KEY;
+  env.LANGSMITH_TRACING === "true" && !!env.LANGSMITH_API_KEY;
 export const isRedisEnabled = !!env.REDIS_URL;
 export const isBlobStorageEnabled = !!env.BLOB_READ_WRITE_TOKEN;
 
@@ -211,6 +244,14 @@ export const availableAIProviders = {
   cohere: !!env.COHERE_API_KEY,
 } as const;
 
+// Supabase configuration
+export const supabaseConfig = {
+  url: env.SUPABASE_URL || "",
+  anonKey: env.SUPABASE_ANON_KEY || "",
+  serviceRoleKey: env.SUPABASE_SERVICE_ROLE_KEY || "",
+  isEnabled: !!(env.SUPABASE_URL && env.SUPABASE_ANON_KEY),
+} as const;
+
 // Vector store configuration
 export const vectorStoreConfig = {
   openaiVectorStoreId: env.OPENAI_VECTORSTORE || null,
@@ -219,9 +260,9 @@ export const vectorStoreConfig = {
 
 // LangSmith configuration
 export const langSmithConfig = {
-  apiKey: env.LANGSMITH_API_KEY || '',
+  apiKey: env.LANGSMITH_API_KEY || "",
   projectName:
-    env.LANGSMITH_PROJECT || env.LANGSMITH_PROJECT_NAME || 'rra-rag-chatbot',
+    env.LANGSMITH_PROJECT || env.LANGSMITH_PROJECT_NAME || "rra-rag-chatbot",
   baseUrl: env.LANGSMITH_BASE_URL,
   isEnabled: isLangSmithEnabled,
 } as const;
@@ -255,4 +296,23 @@ export const {
   PLAYWRIGHT_TEST_BASE_URL,
   PLAYWRIGHT,
   CI_PLAYWRIGHT,
+  SMART_SPAWN_DB_MAX_CONNECTIONS,
+  SMART_SPAWN_DB_CONNECTION_TIMEOUT,
+  SMART_SPAWN_DB_RETRY_ATTEMPTS,
+  SMART_SPAWN_DB_RETRY_DELAY,
+  SMART_SPAWN_FALLBACK_MODE,
+  SMART_SPAWN_TEST_MODE,
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY,
+  SUPABASE_SERVICE_ROLE_KEY,
 } = env;
+
+// Smart-Spawn configuration helpers
+export const smartSpawnConfig = {
+  maxConnections: parseInt(SMART_SPAWN_DB_MAX_CONNECTIONS || "10"),
+  connectionTimeout: parseInt(SMART_SPAWN_DB_CONNECTION_TIMEOUT || "30000"),
+  retryAttempts: parseInt(SMART_SPAWN_DB_RETRY_ATTEMPTS || "3"),
+  retryDelay: parseInt(SMART_SPAWN_DB_RETRY_DELAY || "2000"),
+  fallbackMode: SMART_SPAWN_FALLBACK_MODE || "graceful",
+  testMode: SMART_SPAWN_TEST_MODE === "true",
+} as const;

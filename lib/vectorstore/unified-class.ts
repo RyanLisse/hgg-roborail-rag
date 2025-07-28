@@ -3,31 +3,79 @@
  * Wrapper around the existing service-based implementation
  */
 
-import { BaseVectorStoreService } from './core/base-service';
+import { BaseVectorStoreService } from "./core/base-service";
 import {
   getUnifiedVectorStoreService,
   type UnifiedVectorStoreService,
-} from './unified';
+} from "./unified";
+import type { QueryContext, PromptConfig } from "./prompt-optimization";
+
+type VectorStoreSource = "openai" | "neon" | "memory" | "unified";
 
 export class UnifiedVectorStore extends BaseVectorStoreService {
-  private service: Promise<UnifiedVectorStoreService>;
+  private readonly service: Promise<UnifiedVectorStoreService>;
 
-  constructor(_stores?: any[]) {
-    super('unified-vector-store');
-    this.service = getUnifiedVectorStoreService();
+  private constructor(service: Promise<UnifiedVectorStoreService>) {
+    super("unified-vector-store");
+    this.service = service;
   }
 
-  async search(query: string, options?: any) {
+  static create(_stores?: unknown[]): UnifiedVectorStore {
+    const service = getUnifiedVectorStoreService();
+    return new UnifiedVectorStore(service);
+  }
+
+  async search(query: string, options?: Record<string, unknown>) {
     const service = await this.service;
+    const searchRequest = {
+      query,
+      sources: (options?.sources as VectorStoreSource[]) || [
+        "openai",
+        "neon",
+        "memory",
+      ],
+      maxResults: (options?.maxResults as number) || 10,
+      threshold: (options?.threshold as number) || 0.3,
+      optimizePrompts: (options?.optimizePrompts as boolean) || false,
+      metadata: options?.metadata as Record<string, unknown> | undefined,
+      queryContext: options?.queryContext as QueryContext | undefined,
+      promptConfig: options?.promptConfig as PromptConfig | undefined,
+    };
     return this.withRetry(
-      () => service.searchAcrossSources({ query, ...options }),
-      'search',
+      () => service.searchAcrossSources(searchRequest),
+      "search",
     );
   }
 
-  protected async searchImplementation(request: any): Promise<any[]> {
+  protected async searchImplementation(request: unknown): Promise<unknown[]> {
     const service = await this.service;
-    return service.searchAcrossSources(request);
+    const requestObj = request as Record<string, unknown>;
+    const searchRequest =
+      typeof request === "object" && request !== null
+        ? {
+            query: String(requestObj.query || ""),
+            sources: (requestObj.sources as VectorStoreSource[]) || [
+              "openai",
+              "neon",
+              "memory",
+            ],
+            maxResults: Number(requestObj.maxResults) || 10,
+            threshold: Number(requestObj.threshold) || 0.3,
+            optimizePrompts: Boolean(requestObj.optimizePrompts) || false,
+            metadata: requestObj.metadata as
+              | Record<string, unknown>
+              | undefined,
+            queryContext: requestObj.queryContext as QueryContext | undefined,
+            promptConfig: requestObj.promptConfig as PromptConfig | undefined,
+          }
+        : {
+            query: String(request),
+            sources: ["openai", "neon", "memory"] as VectorStoreSource[],
+            maxResults: 10,
+            threshold: 0.3,
+            optimizePrompts: false,
+          };
+    return service.searchAcrossSources(searchRequest);
   }
 
   protected async performHealthCheck(): Promise<void> {
@@ -35,23 +83,39 @@ export class UnifiedVectorStore extends BaseVectorStoreService {
     const service = await this.service;
     const sources = await service.getAvailableSources();
     if (sources.length === 0) {
-      throw new Error('No vector store sources available');
+      throw new Error("No vector store sources available");
     }
   }
 
-  async upload(documents: any[]) {
+  async upload(documents: unknown[]) {
     const service = await this.service;
     return this.withRetry(
-      () => Promise.all(documents.map((doc) => service.addDocument(doc))),
-      'upload',
+      () =>
+        Promise.all(
+          documents.map((doc) => {
+            const docObj = doc as Record<string, unknown>;
+            const uploadRequest = {
+              content: String(docObj.content || ""),
+              targetSources: (docObj.targetSources as VectorStoreSource[]) || [
+                "openai",
+                "neon",
+                "memory",
+              ],
+              metadata: docObj.metadata as Record<string, unknown> | undefined,
+              file: docObj.file as File | undefined,
+            };
+            return service.addDocument(uploadRequest);
+          }),
+        ),
+      "upload",
     );
   }
 
   async delete(ids: string[]) {
     const service = await this.service;
     return this.withRetry(
-      () => Promise.all(ids.map((id) => service.deleteDocument(id, 'unified'))),
-      'delete',
+      () => Promise.all(ids.map((id) => service.deleteDocument(id, "unified"))),
+      "delete",
     );
   }
 
@@ -62,13 +126,13 @@ export class UnifiedVectorStore extends BaseVectorStoreService {
       return {
         message:
           sources.length > 0
-            ? 'Unified service is healthy'
-            : 'No sources available',
+            ? "Unified service is healthy"
+            : "No sources available",
         isHealthy: sources.length > 0,
         responseTime: 0,
         lastChecked: new Date(),
       };
-    }, 'healthCheck');
+    }, "healthCheck");
   }
 
   async getStats() {
@@ -83,6 +147,6 @@ export class UnifiedVectorStore extends BaseVectorStoreService {
         lastUpdated: new Date(),
         sources: sourceStats,
       };
-    }, 'getStats');
+    }, "getStats");
   }
 }

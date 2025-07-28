@@ -60,6 +60,123 @@ const UserPreferencesSchema = z.object({
     .optional(),
 });
 
+// Helper function to handle feedback recording
+async function handleFeedback(
+  body: any,
+  vectorStoreService: any,
+  userId: string,
+) {
+  let validatedFeedback: z.infer<typeof UserFeedbackSchema>;
+  try {
+    validatedFeedback = UserFeedbackSchema.parse(body.data);
+  } catch (validationError: any) {
+    return NextResponse.json(
+      {
+        error: 'Invalid feedback format',
+        details:
+          validationError instanceof z.ZodError
+            ? validationError.errors
+            : 'Unknown validation error',
+      },
+      { status: 400 },
+    );
+  }
+
+  const feedback = {
+    ...validatedFeedback,
+    userId,
+    timestamp: new Date(),
+  };
+
+  await vectorStoreService.recordUserFeedback(feedback);
+
+  return NextResponse.json({
+    success: true,
+    message: 'Feedback recorded successfully',
+    feedbackId: crypto.randomUUID(),
+  });
+}
+
+// Helper function to handle preferences update
+async function handlePreferences(
+  body: any,
+  vectorStoreService: any,
+  userId: string,
+) {
+  let validatedPreferences: z.infer<typeof UserPreferencesSchema>;
+  try {
+    validatedPreferences = UserPreferencesSchema.parse(body.data);
+  } catch (validationError: any) {
+    return NextResponse.json(
+      {
+        error: 'Invalid preferences format',
+        details:
+          validationError instanceof z.ZodError
+            ? validationError.errors
+            : 'Unknown validation error',
+      },
+      { status: 400 },
+    );
+  }
+
+  // Apply preference adjustments
+  if (validatedPreferences.relevanceWeightAdjustments) {
+    await vectorStoreService.updateUserPreferences(
+      userId,
+      validatedPreferences.relevanceWeightAdjustments,
+    );
+  }
+
+  return NextResponse.json({
+    success: true,
+    message: 'Preferences updated successfully',
+    updatedPreferences: validatedPreferences,
+  });
+}
+
+// Helper function to handle interaction recording
+async function handleInteraction(
+  body: any,
+  vectorStoreService: any,
+  userId: string,
+) {
+  const { queryId, interactions } = body.data;
+
+  if (!(queryId && Array.isArray(interactions))) {
+    return NextResponse.json(
+      {
+        error:
+          'Invalid interaction data: queryId and interactions array required',
+      },
+      { status: 400 },
+    );
+  }
+
+  // Record interactions for learning-to-rank algorithm
+  await Promise.all(
+    interactions.map(async (interaction: any) => {
+      try {
+        await vectorStoreService.recordInteraction({
+          queryId,
+          documentId: interaction.documentId,
+          userId,
+          timestamp: new Date(),
+          interactionType: interaction.type,
+          metadata: interaction.metadata || {},
+        });
+      } catch (_error) {
+        // Failed to record interaction - continue silently
+      }
+    }),
+  );
+
+  return NextResponse.json({
+    success: true,
+    message: 'Interactions recorded successfully',
+    interactionCount: interactions.length,
+  });
+}
+
 export async function POST(request: NextRequest) {
   try {
     const session = await auth();
@@ -69,99 +186,31 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const { action } = body;
-
     const vectorStoreService = await getUnifiedVectorStoreService();
 
-    if (action === 'feedback') {
-      // Record user feedback for a specific document
-      let validatedFeedback: z.infer<typeof UserFeedbackSchema>;
-      try {
-        validatedFeedback = UserFeedbackSchema.parse(body.data);
-      } catch (validationError: any) {
-        return NextResponse.json(
-          {
-            error: 'Invalid feedback format',
-            details:
-              validationError instanceof z.ZodError
-                ? validationError.errors
-                : 'Unknown validation error',
-          },
-          { status: 400 },
-        );
-      }
-
-      const feedback = {
-        ...validatedFeedback,
-        userId: session.user.id,
-        timestamp: new Date(),
-      };
-
-      await vectorStoreService.recordUserFeedback(feedback);
-
-      return NextResponse.json({
-        success: true,
-        message: 'Feedback recorded successfully',
-        feedbackId: crypto.randomUUID(),
-      });
-    } else if (action === 'preferences') {
-      // Update user preferences
-      let validatedPreferences: z.infer<typeof UserPreferencesSchema>;
-      try {
-        validatedPreferences = UserPreferencesSchema.parse(body.data);
-      } catch (validationError: any) {
-        return NextResponse.json(
-          {
-            error: 'Invalid preferences format',
-            details:
-              validationError instanceof z.ZodError
-                ? validationError.errors
-                : 'Unknown validation error',
-          },
-          { status: 400 },
-        );
-      }
-
-      // Apply preference adjustments
-      if (validatedPreferences.relevanceWeightAdjustments) {
-        await vectorStoreService.updateUserPreferences(
+    switch (action) {
+      case 'feedback':
+        return await handleFeedback(body, vectorStoreService, session.user.id);
+      case 'preferences':
+        return await handlePreferences(
+          body,
+          vectorStoreService,
           session.user.id,
-          validatedPreferences.relevanceWeightAdjustments,
         );
-      }
-
-      return NextResponse.json({
-        success: true,
-        message: 'Preferences updated successfully',
-        updatedPreferences: validatedPreferences,
-      });
-    } else if (action === 'interaction') {
-      // Record interaction data for learning-to-rank
-      const { queryId, interactions } = body.data;
-
-      if (!(queryId && Array.isArray(interactions))) {
+      case 'interaction':
+        return await handleInteraction(
+          body,
+          vectorStoreService,
+          session.user.id,
+        );
+      default:
         return NextResponse.json(
           {
             error:
-              'Invalid interaction data: queryId and interactions array required',
+              'Invalid action. Supported actions: feedback, preferences, interaction',
           },
           { status: 400 },
         );
-      }
-      interactions.forEach((_interaction: any, _index: number) => {});
-
-      return NextResponse.json({
-        success: true,
-        message: 'Interactions recorded successfully',
-        interactionCount: interactions.length,
-      });
-    } else {
-      return NextResponse.json(
-        {
-          error:
-            'Invalid action. Supported actions: feedback, preferences, interaction',
-        },
-        { status: 400 },
-      );
     }
   } catch (error) {
     return NextResponse.json(

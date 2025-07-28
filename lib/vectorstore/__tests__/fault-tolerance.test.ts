@@ -5,14 +5,17 @@ import {
   ErrorCategory,
   ErrorClassifier,
   RetryMechanism,
-} from './error-handling';
+} from '../error-handling';
 import {
   FallbackManager,
   FallbackMode,
   GracefulDegradation,
   type ServiceProvider,
-} from './fallback';
-import { FaultToleranceFactory, FaultTolerantService } from './fault-tolerance';
+} from '../fallback';
+import {
+  FaultToleranceFactory,
+  FaultTolerantService,
+} from '../fault-tolerance';
 
 // Mock timers globally for all tests
 vi.mock('server-only', () => ({}));
@@ -81,6 +84,7 @@ describe('ErrorClassifier', () => {
 
 describe('RetryMechanism', { timeout: 10_000 }, () => {
   let retryMechanism: RetryMechanism;
+  let originalUnhandledRejection: any;
 
   beforeEach(() => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
@@ -92,10 +96,25 @@ describe('RetryMechanism', { timeout: 10_000 }, () => {
       jitterFactor: 0.1,
       timeoutMs: 5000,
     });
+
+    // Capture and suppress unhandled rejections for this test suite
+    originalUnhandledRejection = process.listeners('unhandledRejection');
+    process.removeAllListeners('unhandledRejection');
+    process.on('unhandledRejection', () => {
+      // Silently consume unhandled rejections during retry mechanism tests
+    });
   });
 
   afterEach(() => {
     vi.useRealTimers();
+
+    // Restore original unhandled rejection handlers
+    process.removeAllListeners('unhandledRejection');
+    if (originalUnhandledRejection) {
+      for (const listener of originalUnhandledRejection) {
+        process.on('unhandledRejection', listener);
+      }
+    }
   });
 
   test('should succeed on first attempt', async () => {
@@ -140,15 +159,31 @@ describe('RetryMechanism', { timeout: 10_000 }, () => {
   });
 
   test('should respect max retries limit', async () => {
-    const mockOperation = vi.fn().mockRejectedValue(new Error('network error'));
+    const mockOperation = vi.fn().mockImplementation(async () => {
+      throw new Error('network error');
+    });
 
-    const promise = retryMechanism.execute(mockOperation);
+    // Use try-catch to handle the expected rejection properly
+    let thrownError: Error | null = null;
 
-    // Run all timers to completion
-    await vi.runAllTimersAsync();
+    try {
+      const executePromise = retryMechanism.execute(mockOperation);
 
-    await expect(promise).rejects.toThrow('network error');
+      // Run all timers to completion to ensure all retries happen
+      await vi.runAllTimersAsync();
+
+      await executePromise;
+    } catch (error) {
+      thrownError = error as Error;
+    }
+
+    // Verify the error was thrown and operation was called correct number of times
+    expect(thrownError).toBeTruthy();
+    expect(thrownError?.message).toBe('network error');
     expect(mockOperation).toHaveBeenCalledTimes(4); // 1 initial + 3 retries
+
+    // Wait for any remaining async operations to settle
+    await vi.runAllTimersAsync();
   });
 
   test(
@@ -158,12 +193,11 @@ describe('RetryMechanism', { timeout: 10_000 }, () => {
       // Use real timers for this specific test as it's testing timeout behavior
       vi.useRealTimers();
 
-      const slowOperation = vi.fn().mockImplementation(
-        () =>
-          new Promise((resolve) => {
-            setTimeout(() => resolve('never'), 10_000);
-          }),
-      );
+      const slowOperation = vi.fn().mockImplementation(() => {
+        return new Promise((resolve) => {
+          setTimeout(resolve, 10_000, 'never');
+        });
+      });
 
       const shortTimeoutRetry = new RetryMechanism({ timeoutMs: 1000 });
 

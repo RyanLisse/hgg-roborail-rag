@@ -1,2 +1,2 @@
-// Use production providers without test dependencies for build
-export * from './providers.production';
+// Use production providers with built-in test mode detection
+export * from "./providers.production";
