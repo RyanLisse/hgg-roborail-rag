@@ -16,7 +16,6 @@ WORKDIR /app
 
 # Copy package files
 COPY package.json pnpm-lock.yaml ./
-COPY .npmrc .npmrc* ./
 
 # Install dependencies with frozen lockfile
 RUN pnpm install --frozen-lockfile --production=false
