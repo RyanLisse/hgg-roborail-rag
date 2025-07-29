@@ -7,10 +7,10 @@
 export const TEST_CONFIG = {
   // Timeout configurations (in milliseconds)
   timeouts: {
-    short: 5_000,      // 5 seconds - for quick operations
-    medium: 15_000,    // 15 seconds - for API calls
-    long: 30_000,      // 30 seconds - for complex operations
-    extended: 60_000,  // 60 seconds - for integration tests
+    short: 5000, // 5 seconds - for quick operations
+    medium: 15_000, // 15 seconds - for API calls
+    long: 30_000, // 30 seconds - for complex operations
+    extended: 60_000, // 60 seconds - for integration tests
   },
 
   // Retry configurations
@@ -30,10 +30,10 @@ export const TEST_CONFIG = {
 
   // Mock response delays (for realistic testing)
   delays: {
-    api: 100,          // 100ms for API responses
-    database: 50,      // 50ms for database operations
-    network: 200,      // 200ms for network requests
-    ai: 1000,          // 1s for AI operations
+    api: 100, // 100ms for API responses
+    database: 50, // 50ms for database operations
+    network: 200, // 200ms for network requests
+    ai: 1000, // 1s for AI operations
   },
 
   // Feature flags for conditional testing
@@ -58,16 +58,24 @@ export const TEST_CONFIG = {
 export const TEST_CONSTANTS = {
   // User types
   userTypes: ['free', 'pro', 'premium'] as const,
-  
+
   // Message roles
   messageRoles: ['user', 'assistant', 'system'] as const,
-  
+
   // AI providers
   aiProviders: ['openai', 'anthropic', 'google', 'cohere', 'groq'] as const,
-  
+
   // File types
-  supportedFileTypes: ['.pdf', '.txt', '.md', '.docx', '.png', '.jpg', '.jpeg'] as const,
-  
+  supportedFileTypes: [
+    '.pdf',
+    '.txt',
+    '.md',
+    '.docx',
+    '.png',
+    '.jpg',
+    '.jpeg',
+  ] as const,
+
   // HTTP status codes
   httpStatus: {
     ok: 200,
@@ -139,7 +147,9 @@ export const TEST_CONSTANTS = {
 export const ENV_CONFIG = {
   test: {
     database: {
-      url: process.env.TEST_DATABASE_URL || 'postgresql://test:test@localhost:5432/test_db',
+      url:
+        process.env.TEST_DATABASE_URL ||
+        'postgresql://test:test@localhost:5432/test_db',
       maxConnections: 5,
     },
     redis: {
@@ -150,7 +160,7 @@ export const ENV_CONFIG = {
       timeout: TEST_CONFIG.timeouts.medium,
     },
   },
-  
+
   development: {
     database: {
       url: process.env.POSTGRES_URL,
@@ -164,7 +174,7 @@ export const ENV_CONFIG = {
       timeout: TEST_CONFIG.timeouts.long,
     },
   },
-  
+
   production: {
     database: {
       url: process.env.NEON_DATABASE_URL,
@@ -204,7 +214,10 @@ export const configUtils = {
   },
 
   // Validate test data against patterns
-  validatePattern: (value: string, pattern: keyof typeof TEST_CONFIG.patterns) => {
+  validatePattern: (
+    value: string,
+    pattern: keyof typeof TEST_CONFIG.patterns,
+  ) => {
     return TEST_CONFIG.patterns[pattern].test(value);
   },
 
@@ -252,7 +265,9 @@ export const configUtils = {
 // Performance testing utilities
 export const performanceUtils = {
   // Measure execution time
-  measureTime: async <T>(fn: () => Promise<T>): Promise<{ result: T; duration: number }> => {
+  measureTime: async <T>(
+    fn: () => Promise<T>,
+  ): Promise<{ result: T; duration: number }> => {
     const start = performance.now();
     const result = await fn();
     const duration = performance.now() - start;

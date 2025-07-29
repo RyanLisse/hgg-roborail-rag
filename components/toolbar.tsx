@@ -1,6 +1,5 @@
 'use client';
 import type { UseChatHelpers } from '@ai-sdk/react';
-import { cn } from '@/lib/utils';
 import {
   AnimatePresence,
   motion,
@@ -24,6 +23,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
 import { type ArtifactKind, artifactDefinitions } from './artifact';
 import type { ArtifactToolbarItem } from './create-artifact';
 import { ArrowUpIcon, StopIcon, SummarizeIcon } from './icons';

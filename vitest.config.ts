@@ -19,7 +19,7 @@ export default defineConfig({
     ],
     // Enhanced timeout configuration using centralized config
     testTimeout: 30_000, // 30 seconds for comprehensive tests including performance benchmarks
-    hookTimeout: 10_000,  // 10 seconds for setup/teardown hooks
+    hookTimeout: 10_000, // 10 seconds for setup/teardown hooks
     // Bail out early on failures in CI
     bail: process.env.CI ? 3 : 0,
     // Enable TypeScript support
@@ -28,8 +28,8 @@ export default defineConfig({
       tsconfig: './tsconfig.test.json',
     },
     // Enhanced reporter configuration
-    reporters: process.env.CI 
-      ? ['github-actions', 'json'] 
+    reporters: process.env.CI
+      ? ['github-actions', 'json']
       : ['verbose', 'json'],
     // Output configuration
     outputFile: {
@@ -48,7 +48,7 @@ export default defineConfig({
     // Test sequencing
     sequence: {
       shuffle: true, // Randomize test order to catch interdependencies
-      seed: 42,      // Consistent seed for reproducible shuffling
+      seed: 42, // Consistent seed for reproducible shuffling
     },
     // Enhanced coverage configuration
     coverage: {
@@ -104,15 +104,11 @@ export default defineConfig({
   define: {
     'process.env.NODE_ENV': '"test"',
     // Define test-specific globals
-    '__TEST__': 'true',
-    '__DEV__': 'false',
+    __TEST__: 'true',
+    __DEV__: 'false',
   },
   // Optimize dependencies for faster test startup
   optimizeDeps: {
-    include: [
-      'vitest',
-      '@testing-library/jest-dom',
-      '@testing-library/react',
-    ],
+    include: ['vitest', '@testing-library/jest-dom', '@testing-library/react'],
   },
 });

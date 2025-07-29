@@ -47,11 +47,13 @@ vi.mock('@ai-sdk/cohere', () => ({
       supportsParallelCalls: true,
       doEmbed: async ({ values }: { values: string[] }) => {
         return {
-          embeddings: values.map(() => Array.from({ length: 1024 }, () => Math.random() - 0.5))
+          embeddings: values.map(() =>
+            Array.from({ length: 1024 }, () => Math.random() - 0.5),
+          ),
         };
-      }
-    })
-  }
+      },
+    }),
+  },
 }));
 
 // Mock environment variables
@@ -64,8 +66,8 @@ vi.mock('@/lib/env', () => ({
   smartSpawnConfig: {
     maxConnections: 10,
     connectionTimeout: 5000,
-    retryAttempts: 3
-  }
+    retryAttempts: 3,
+  },
 }));
 
 // Import after mocking
@@ -414,7 +416,7 @@ describe('SupabaseRAGService', () => {
     it('should get vector store statistics', async () => {
       const mockStats = {
         totalDocuments: 150,
-        totalSize: 50000,
+        totalSize: 50_000,
         avgSimilarity: 0.75,
       };
 

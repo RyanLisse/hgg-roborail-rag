@@ -2,8 +2,8 @@ import 'server-only';
 
 import { z } from 'zod';
 import { getVectorStoreMonitoringService } from './monitoring';
-import { getOpenAIVectorStoreService } from './openai';
 import { getNeonVectorStoreService } from './neon';
+import { getOpenAIVectorStoreService } from './openai';
 import { getUnifiedVectorStoreService } from './unified';
 
 // Performance benchmark schemas
@@ -194,7 +194,7 @@ export interface ReportOptions {
 
 // Performance utilities
 class PerformanceTimer {
-  private startTime: number = 0;
+  private startTime = 0;
   private measurements: number[] = [];
 
   start(): void {
@@ -238,11 +238,11 @@ class PerformanceTimer {
 }
 
 class MemoryMonitor {
-  private initialMemory: number = 0;
+  private initialMemory = 0;
   private samples: number[] = [];
   private samplingInterval: NodeJS.Timeout | null = null;
 
-  start(samplingIntervalMs: number = 100): void {
+  start(samplingIntervalMs = 100): void {
     this.initialMemory = this.getCurrentMemoryMB();
     this.samples = [this.initialMemory];
 
@@ -287,7 +287,7 @@ class MemoryMonitor {
     if (typeof process !== 'undefined' && (process as any).memoryUsage.gc) {
       return (process as any).memoryUsage.gc().majorGCCount || 0;
     }
-    return undefined;
+    return;
   }
 }
 
@@ -770,7 +770,7 @@ export class PerformanceBenchmarkSuite {
         loadSteps.push(step);
 
         // Check for breaking point
-        if (errorRate > 0.5 || averageLatency > 10000) {
+        if (errorRate > 0.5 || averageLatency > 10_000) {
           // 50% error rate or 10s latency
           breakingPoint = {
             concurrency,

@@ -1,15 +1,15 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import {
+  createLoadTestingEngine,
+  type LoadTestResult,
+  PREDEFINED_SCENARIOS,
+} from '@/lib/vectorstore/load-testing';
+import {
+  type BenchmarkResult,
   createPerformanceBenchmarkSuite,
   DEFAULT_BENCHMARK_CONFIG,
-  type BenchmarkResult,
 } from '@/lib/vectorstore/performance-benchmarks';
-import {
-  createLoadTestingEngine,
-  PREDEFINED_SCENARIOS,
-  type LoadTestResult,
-} from '@/lib/vectorstore/load-testing';
 
 // Request schemas
 const BenchmarkRequest = z.object({

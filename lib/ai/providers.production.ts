@@ -1,6 +1,6 @@
+import { cohere } from '@ai-sdk/cohere';
 import { google } from '@ai-sdk/google';
 import { openai } from '@ai-sdk/openai';
-import { cohere } from '@ai-sdk/cohere';
 import {
   customProvider,
   extractReasoningMiddleware,
@@ -9,9 +9,9 @@ import {
 } from 'ai';
 import { z } from 'zod';
 import {
+  COHERE_API_KEY,
   GOOGLE_GENERATIVE_AI_API_KEY,
   OPENAI_API_KEY,
-  COHERE_API_KEY,
 } from '../env';
 import { chatModels, getModelById } from './models';
 
@@ -59,9 +59,7 @@ export function getModelInstance(modelId: string) {
 }
 
 // Get embedding model instance
-export function getEmbeddingModelInstance(
-  modelId: string = 'cohere-embed-v4.0',
-) {
+export function getEmbeddingModelInstance(modelId = 'cohere-embed-v4.0') {
   // Support multiple embedding models
   if (modelId.includes('cohere') || modelId.includes('embed-v4')) {
     if (COHERE_API_KEY) {

@@ -103,7 +103,7 @@ export async function POST(
     }
 
     // Validate that either content or file is provided
-    if (!rawContent && !file) {
+    if (!(rawContent || file)) {
       return NextResponse.json(
         {
           error: 'Either content or file is required',

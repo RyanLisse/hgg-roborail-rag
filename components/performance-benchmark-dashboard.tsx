@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import useSWR from 'swr';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -194,7 +194,7 @@ export function PerformanceBenchmarkDashboard() {
     }
   };
 
-  if (!statusData || !configData) {
+  if (!(statusData && configData)) {
     return (
       <div className="p-6">
         <Card className="p-6">
@@ -225,8 +225,8 @@ export function PerformanceBenchmarkDashboard() {
         <div className="flex items-center gap-2">
           <select
             className="rounded border px-3 py-1 text-sm"
-            value={activeProvider}
             onChange={(e) => setActiveProvider(e.target.value)}
+            value={activeProvider}
           >
             {statusData.data.availableProviders.map((provider) => (
               <option key={provider} value={provider}>
@@ -244,7 +244,7 @@ export function PerformanceBenchmarkDashboard() {
         </div>
       </div>
 
-      <Tabs defaultValue="single" className="w-full">
+      <Tabs className="w-full" defaultValue="single">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="single">Single Provider</TabsTrigger>
           <TabsTrigger value="comparison">Provider Comparison</TabsTrigger>
@@ -253,7 +253,7 @@ export function PerformanceBenchmarkDashboard() {
         </TabsList>
 
         {/* Single Provider Benchmarks */}
-        <TabsContent value="single" className="space-y-4">
+        <TabsContent className="space-y-4" value="single">
           <Card>
             <CardHeader>
               <CardTitle>
@@ -263,45 +263,45 @@ export function PerformanceBenchmarkDashboard() {
             <CardContent>
               <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
                 <Button
-                  onClick={() => runBenchmark('search_latency')}
-                  disabled={isRunning}
                   className="h-20 flex-col"
+                  disabled={isRunning}
+                  onClick={() => runBenchmark('search_latency')}
                 >
-                  <span className="text-sm font-medium">Search Latency</span>
-                  <span className="text-xs text-gray-500">
+                  <span className="font-medium text-sm">Search Latency</span>
+                  <span className="text-gray-500 text-xs">
                     Response time analysis
                   </span>
                 </Button>
                 <Button
-                  onClick={() => runBenchmark('concurrent_operations')}
-                  disabled={isRunning}
-                  variant="outline"
                   className="h-20 flex-col"
+                  disabled={isRunning}
+                  onClick={() => runBenchmark('concurrent_operations')}
+                  variant="outline"
                 >
-                  <span className="text-sm font-medium">Concurrent Ops</span>
-                  <span className="text-xs text-gray-500">
+                  <span className="font-medium text-sm">Concurrent Ops</span>
+                  <span className="text-gray-500 text-xs">
                     Parallel processing
                   </span>
                 </Button>
                 <Button
-                  onClick={() => runBenchmark('stress_test')}
-                  disabled={isRunning}
-                  variant="outline"
                   className="h-20 flex-col"
+                  disabled={isRunning}
+                  onClick={() => runBenchmark('stress_test')}
+                  variant="outline"
                 >
-                  <span className="text-sm font-medium">Stress Test</span>
-                  <span className="text-xs text-gray-500">
+                  <span className="font-medium text-sm">Stress Test</span>
+                  <span className="text-gray-500 text-xs">
                     Breaking point analysis
                   </span>
                 </Button>
                 <Button
-                  onClick={() => runBenchmark('memory_leak_test')}
-                  disabled={isRunning}
-                  variant="outline"
                   className="h-20 flex-col"
+                  disabled={isRunning}
+                  onClick={() => runBenchmark('memory_leak_test')}
+                  variant="outline"
                 >
-                  <span className="text-sm font-medium">Memory Test</span>
-                  <span className="text-xs text-gray-500">
+                  <span className="font-medium text-sm">Memory Test</span>
+                  <span className="text-gray-500 text-xs">
                     Memory leak detection
                   </span>
                 </Button>
@@ -323,14 +323,14 @@ export function PerformanceBenchmarkDashboard() {
                       result.metrics.averageLatency,
                     );
                     return (
-                      <div key={index} className="rounded border p-3">
+                      <div className="rounded border p-3" key={index}>
                         <div className="mb-2 flex items-center justify-between">
                           <span className="font-medium text-sm">
                             {result.provider} - {result.operation}
                           </span>
                           <Badge variant={badge.variant}>{badge.label}</Badge>
                         </div>
-                        <div className="space-y-1 text-xs text-gray-600">
+                        <div className="space-y-1 text-gray-600 text-xs">
                           <div className="flex justify-between">
                             <span>Avg Latency:</span>
                             <span>
@@ -360,7 +360,7 @@ export function PerformanceBenchmarkDashboard() {
         </TabsContent>
 
         {/* Provider Comparison */}
-        <TabsContent value="comparison" className="space-y-4">
+        <TabsContent className="space-y-4" value="comparison">
           <Card>
             <CardHeader>
               <CardTitle>Provider Performance Comparison</CardTitle>
@@ -368,9 +368,9 @@ export function PerformanceBenchmarkDashboard() {
             <CardContent>
               <div className="space-y-4">
                 <Button
-                  onClick={runProviderComparison}
-                  disabled={isRunning}
                   className="w-full"
+                  disabled={isRunning}
+                  onClick={runProviderComparison}
                 >
                   {isRunning
                     ? 'Running Comparison...'
@@ -382,12 +382,12 @@ export function PerformanceBenchmarkDashboard() {
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="border-b">
-                          <th className="text-left p-2">Provider</th>
-                          <th className="text-left p-2">Avg Latency</th>
-                          <th className="text-left p-2">P95 Latency</th>
-                          <th className="text-left p-2">Throughput</th>
-                          <th className="text-left p-2">Success Rate</th>
-                          <th className="text-left p-2">Status</th>
+                          <th className="p-2 text-left">Provider</th>
+                          <th className="p-2 text-left">Avg Latency</th>
+                          <th className="p-2 text-left">P95 Latency</th>
+                          <th className="p-2 text-left">Throughput</th>
+                          <th className="p-2 text-left">Success Rate</th>
+                          <th className="p-2 text-left">Status</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -400,7 +400,7 @@ export function PerformanceBenchmarkDashboard() {
                               result.metrics.averageLatency,
                             );
                             return (
-                              <tr key={index} className="border-b">
+                              <tr className="border-b" key={index}>
                                 <td className="p-2 font-medium">
                                   {result.provider.toUpperCase()}
                                 </td>
@@ -438,7 +438,7 @@ export function PerformanceBenchmarkDashboard() {
         </TabsContent>
 
         {/* Load Testing */}
-        <TabsContent value="load" className="space-y-4">
+        <TabsContent className="space-y-4" value="load">
           <Card>
             <CardHeader>
               <CardTitle>Load Testing Scenarios</CardTitle>
@@ -448,8 +448,8 @@ export function PerformanceBenchmarkDashboard() {
                 <div className="flex items-center gap-2">
                   <select
                     className="flex-1 rounded border px-3 py-2"
-                    value={selectedScenario}
                     onChange={(e) => setSelectedScenario(e.target.value)}
+                    value={selectedScenario}
                   >
                     <option value="">Select a load test scenario...</option>
                     {statusData.data.predefinedScenarios.map((scenario) => (
@@ -459,10 +459,10 @@ export function PerformanceBenchmarkDashboard() {
                     ))}
                   </select>
                   <Button
+                    disabled={isRunning || !selectedScenario}
                     onClick={() =>
                       selectedScenario && runLoadTest(selectedScenario)
                     }
-                    disabled={isRunning || !selectedScenario}
                   >
                     {isRunning ? 'Running...' : 'Run Load Test'}
                   </Button>
@@ -480,7 +480,7 @@ export function PerformanceBenchmarkDashboard() {
                           <p className="text-gray-600 text-sm">
                             {scenario.description}
                           </p>
-                          <div className="mt-2 flex gap-4 text-xs text-gray-500">
+                          <div className="mt-2 flex gap-4 text-gray-500 text-xs">
                             <span>
                               Provider: {scenario.provider.toUpperCase()}
                             </span>
@@ -500,7 +500,7 @@ export function PerformanceBenchmarkDashboard() {
                   <div className="space-y-3">
                     <h4 className="font-medium">Recent Load Test Results</h4>
                     {loadTestResults.slice(0, 3).map((result, index) => (
-                      <div key={index} className="rounded border p-3">
+                      <div className="rounded border p-3" key={index}>
                         <div className="mb-2 flex items-center justify-between">
                           <span className="font-medium">
                             {result.scenario.name}
@@ -556,7 +556,7 @@ export function PerformanceBenchmarkDashboard() {
         </TabsContent>
 
         {/* Results Archive */}
-        <TabsContent value="results" className="space-y-4">
+        <TabsContent className="space-y-4" value="results">
           <Card>
             <CardHeader>
               <CardTitle>Benchmark Results Archive</CardTitle>
@@ -609,7 +609,7 @@ export function PerformanceBenchmarkDashboard() {
                 {/* Detailed Results */}
                 <div className="space-y-2">
                   {benchmarkResults.map((result, index) => (
-                    <details key={index} className="rounded border p-3">
+                    <details className="rounded border p-3" key={index}>
                       <summary className="cursor-pointer font-medium">
                         <span className="mr-2">
                           {result.provider.toUpperCase()}
@@ -617,8 +617,8 @@ export function PerformanceBenchmarkDashboard() {
                         <span className="mr-2">-</span>
                         <span className="mr-2">{result.operation}</span>
                         <Badge
-                          variant={result.success ? 'default' : 'destructive'}
                           className="mr-2"
+                          variant={result.success ? 'default' : 'destructive'}
                         >
                           {result.success ? 'Success' : 'Failed'}
                         </Badge>
@@ -681,7 +681,7 @@ export function PerformanceBenchmarkDashboard() {
                 </div>
 
                 {benchmarkResults.length === 0 && (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className="py-8 text-center text-gray-500">
                     <p>
                       No benchmark results yet. Run some benchmarks to see
                       results here.

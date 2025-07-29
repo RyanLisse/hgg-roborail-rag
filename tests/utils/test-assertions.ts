@@ -13,7 +13,8 @@ export const customMatchers = {
     const pass = TEST_CONFIG.patterns.uuid.test(received);
     return {
       pass,
-      message: () => `expected ${received} ${pass ? 'not ' : ''}to be a valid UUID`,
+      message: () =>
+        `expected ${received} ${pass ? 'not ' : ''}to be a valid UUID`,
     };
   },
 
@@ -22,7 +23,8 @@ export const customMatchers = {
     const pass = TEST_CONFIG.patterns.email.test(received);
     return {
       pass,
-      message: () => `expected ${received} ${pass ? 'not ' : ''}to be a valid email`,
+      message: () =>
+        `expected ${received} ${pass ? 'not ' : ''}to be a valid email`,
     };
   },
 
@@ -31,7 +33,8 @@ export const customMatchers = {
     const pass = TEST_CONFIG.patterns.timestamp.test(received);
     return {
       pass,
-      message: () => `expected ${received} ${pass ? 'not ' : ''}to be a valid timestamp`,
+      message: () =>
+        `expected ${received} ${pass ? 'not ' : ''}to be a valid timestamp`,
     };
   },
 
@@ -40,38 +43,41 @@ export const customMatchers = {
     const pass = TEST_CONFIG.patterns.apiKey.test(received);
     return {
       pass,
-      message: () => `expected ${received} ${pass ? 'not ' : ''}to be a valid API key format`,
+      message: () =>
+        `expected ${received} ${pass ? 'not ' : ''}to be a valid API key format`,
     };
   },
 
   // Check if execution time is within expected range
-  toCompleteWithin: (received: number, expected: number, tolerance: number = 100) => {
+  toCompleteWithin: (received: number, expected: number, tolerance = 100) => {
     const pass = Math.abs(received - expected) <= tolerance;
     return {
       pass,
-      message: () => 
+      message: () =>
         `expected execution time ${received}ms ${pass ? 'not ' : ''}to be within ${tolerance}ms of ${expected}ms`,
     };
   },
 
   // Validate response structure
   toHaveValidResponseStructure: (received: any, expectedKeys: string[]) => {
-    const hasAllKeys = expectedKeys.every(key => key in received);
-    const pass = hasAllKeys && typeof received === 'object' && received !== null;
+    const hasAllKeys = expectedKeys.every((key) => key in received);
+    const pass =
+      hasAllKeys && typeof received === 'object' && received !== null;
     return {
       pass,
-      message: () => 
+      message: () =>
         `expected response ${pass ? 'not ' : ''}to have valid structure with keys: ${expectedKeys.join(', ')}`,
     };
   },
 
   // Validate array of specific type
   toBeArrayOfType: (received: any[], expectedType: string) => {
-    const pass = Array.isArray(received) && 
-      received.every(item => typeof item === expectedType);
+    const pass =
+      Array.isArray(received) &&
+      received.every((item) => typeof item === expectedType);
     return {
       pass,
-      message: () => 
+      message: () =>
         `expected ${received} ${pass ? 'not ' : ''}to be an array of ${expectedType}`,
     };
   },
@@ -81,7 +87,7 @@ export const customMatchers = {
     const pass = received >= 200 && received < 300;
     return {
       pass,
-      message: () => 
+      message: () =>
         `expected status ${received} ${pass ? 'not ' : ''}to be a success status (200-299)`,
     };
   },
@@ -92,10 +98,10 @@ export const customMatchers = {
     const hasValidCode = typeof received.code === 'string';
     const hasValidMessage = typeof received.message === 'string';
     const pass = hasRequiredFields && hasValidCode && hasValidMessage;
-    
+
     return {
       pass,
-      message: () => 
+      message: () =>
         `expected ${JSON.stringify(received)} ${pass ? 'not ' : ''}to be a valid error response with code and message`,
     };
   },
@@ -127,10 +133,10 @@ export const assertUtils = {
   },
 
   // Assert API response structure
-  assertValidAPIResponse: (response: any, expectedStatus: number = 200) => {
+  assertValidAPIResponse: (response: any, expectedStatus = 200) => {
     expect(response).toBeDefined();
     expect(response.status).toBe(expectedStatus);
-    
+
     if (expectedStatus >= 200 && expectedStatus < 300) {
       expect(response.ok).toBe(true);
     } else {
@@ -155,7 +161,9 @@ export const assertUtils = {
     expect(embedding).toBeDefined();
     expect(embedding).toHaveProperty('embedding');
     expect(Array.isArray(embedding.embedding)).toBe(true);
-    expect(embedding.embedding).toHaveLength(TEST_CONSTANTS.vectorStore.dimensions);
+    expect(embedding.embedding).toHaveLength(
+      TEST_CONSTANTS.vectorStore.dimensions,
+    );
     embedding.embedding.forEach((value: any) => {
       expect(value).toBeTypeOf('number');
     });
@@ -183,7 +191,7 @@ export const assertUtils = {
     expect(status).toHaveProperty('lastChecked');
     expect(status.isHealthy).toBeTypeOf('boolean');
     expect(status.lastChecked).toMatch(TEST_CONFIG.patterns.timestamp);
-    
+
     if (status.isHealthy) {
       expect(status).toHaveProperty('latency');
       expect(status.latency).toBeTypeOf('number');
@@ -198,7 +206,7 @@ export const assertUtils = {
     expect(result).toBeDefined();
     expect(result).toHaveProperty('rows');
     expect(Array.isArray(result.rows)).toBe(true);
-    
+
     if (expectedRowCount !== undefined) {
       expect(result.rows).toHaveLength(expectedRowCount);
     }
@@ -214,7 +222,7 @@ export const assertUtils = {
     expect(error).toBeInstanceOf(Error);
     expect(error).toHaveProperty('message');
     expect(error.message).toBeTypeOf('string');
-    
+
     if (expectedCode) {
       expect(error).toHaveProperty('code');
       expect(error.code).toBe(expectedCode);
@@ -223,9 +231,9 @@ export const assertUtils = {
 
   // Assert array contains valid items
   assertArrayContainsValidItems: <T>(
-    array: T[], 
+    array: T[],
     validator: (item: T) => void,
-    minLength: number = 0
+    minLength = 0,
   ) => {
     expect(Array.isArray(array)).toBe(true);
     expect(array.length).toBeGreaterThanOrEqual(minLength);
@@ -235,10 +243,13 @@ export const assertUtils = {
   // Assert async operation completes within timeout
   assertCompletesWithinTimeout: async <T>(
     operation: Promise<T>,
-    timeout: number = TEST_CONFIG.timeouts.medium
+    timeout: number = TEST_CONFIG.timeouts.medium,
   ): Promise<T> => {
     const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => reject(new Error(`Operation timed out after ${timeout}ms`)), timeout);
+      setTimeout(
+        () => reject(new Error(`Operation timed out after ${timeout}ms`)),
+        timeout,
+      );
     });
 
     return Promise.race([operation, timeoutPromise]);
@@ -248,15 +259,17 @@ export const assertUtils = {
   assertPerformance: <T>(
     result: { result: T; duration: number },
     maxDuration: number,
-    operation: string = 'Operation'
+    operation = 'Operation',
   ) => {
     expect(result).toBeDefined();
     expect(result).toHaveProperty('result');
     expect(result).toHaveProperty('duration');
     expect(result.duration).toBeLessThanOrEqual(maxDuration);
-    
+
     if (result.duration > maxDuration * 0.8) {
-      console.warn(`⚠️ ${operation} took ${result.duration}ms (close to timeout of ${maxDuration}ms)`);
+      console.warn(
+        `⚠️ ${operation} took ${result.duration}ms (close to timeout of ${maxDuration}ms)`,
+      );
     }
   },
 };
@@ -275,12 +288,16 @@ export const snapshotUtils = {
 
     if (typeof data === 'object') {
       const normalized: any = {};
-      
+
       for (const [key, value] of Object.entries(data)) {
         // Replace dynamic values with predictable ones
         if (key === 'id' && typeof value === 'string') {
           normalized[key] = '[DYNAMIC_ID]';
-        } else if (key === 'createdAt' || key === 'updatedAt' || key === 'timestamp') {
+        } else if (
+          key === 'createdAt' ||
+          key === 'updatedAt' ||
+          key === 'timestamp'
+        ) {
           normalized[key] = '[DYNAMIC_TIMESTAMP]';
         } else if (key === 'duration' && typeof value === 'number') {
           normalized[key] = '[DYNAMIC_DURATION]';
@@ -288,7 +305,7 @@ export const snapshotUtils = {
           normalized[key] = snapshotUtils.normalizeForSnapshot(value);
         }
       }
-      
+
       return normalized;
     }
 

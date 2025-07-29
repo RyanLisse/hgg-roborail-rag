@@ -7,6 +7,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { memo, useState } from 'react';
 import type { Vote } from '@/lib/db/schema';
 import { cn, sanitizeText } from '@/lib/utils';
+import { Citations } from './citations';
 import { DocumentToolCall, DocumentToolResult } from './document';
 import { DocumentPreview } from './document-preview';
 import { PencilEditIcon, SparklesIcon } from './icons';
@@ -18,7 +19,6 @@ import { PreviewAttachment } from './preview-attachment';
 import { Button } from './ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { Weather } from './weather';
-import { Citations } from './citations';
 
 const PurePreviewMessage = ({
   chatId,

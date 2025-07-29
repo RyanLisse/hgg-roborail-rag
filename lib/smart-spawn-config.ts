@@ -52,8 +52,8 @@ export function getSmartSpawnConfig(): SmartSpawnDatabaseConfig {
     connectionPooling: {
       idleTimeout: isTest ? 15 : 60, // Shorter timeouts for tests
       connectTimeout: isTest ? 15 : 30, // Faster connection attempts for tests
-      statementTimeout: isTest ? 15000 : 30000, // Query timeout in milliseconds
-      idleInTransactionTimeout: isTest ? 30000 : 60000, // Transaction timeout
+      statementTimeout: isTest ? 15_000 : 30_000, // Query timeout in milliseconds
+      idleInTransactionTimeout: isTest ? 30_000 : 60_000, // Transaction timeout
     },
 
     // NeonDB-specific optimizations
@@ -61,13 +61,13 @@ export function getSmartSpawnConfig(): SmartSpawnDatabaseConfig {
       disablePreparedStatements: true, // Better NeonDB compatibility
       transformUndefinedToNull: true, // PostgreSQL compatibility
       suppressNotices: !isProduction, // Reduce noise in development
-      enableDebugMode: !isProduction && !isTest, // Debug only in development
+      enableDebugMode: !(isProduction || isTest), // Debug only in development
     },
 
     // Monitoring and health checks
     monitoring: {
       enableHealthChecks: true,
-      healthCheckInterval: isTest ? 10000 : 30000, // Health check frequency
+      healthCheckInterval: isTest ? 10_000 : 30_000, // Health check frequency
       enableMetrics: isProduction || process.env.ENABLE_DB_METRICS === 'true',
       logConnections: !isProduction, // Log connections in development
     },
@@ -117,7 +117,7 @@ export function validateSmartSpawnConfig(): {
     errors.push('maxConnections must be between 1 and 100');
   }
 
-  if (config.connectionTimeout < 1000 || config.connectionTimeout > 120000) {
+  if (config.connectionTimeout < 1000 || config.connectionTimeout > 120_000) {
     errors.push('connectionTimeout must be between 1000ms and 120000ms');
   }
 
@@ -125,7 +125,7 @@ export function validateSmartSpawnConfig(): {
     errors.push('retryAttempts must be between 0 and 10');
   }
 
-  if (config.retryDelay < 100 || config.retryDelay > 10000) {
+  if (config.retryDelay < 100 || config.retryDelay > 10_000) {
     errors.push('retryDelay must be between 100ms and 10000ms');
   }
 
@@ -137,7 +137,7 @@ export function validateSmartSpawnConfig(): {
       );
     }
 
-    if (config.connectionTimeout < 15000) {
+    if (config.connectionTimeout < 15_000) {
       warnings.push(
         'Consider increasing connectionTimeout for production (recommended: 30000ms+)',
       );
@@ -152,7 +152,7 @@ export function validateSmartSpawnConfig(): {
       );
     }
 
-    if (config.connectionPooling.statementTimeout > 60000) {
+    if (config.connectionPooling.statementTimeout > 60_000) {
       warnings.push(
         'NeonDB may timeout long-running queries (recommended: <60000ms)',
       );

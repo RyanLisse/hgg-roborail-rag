@@ -105,14 +105,14 @@ export async function getChatsByUserId({
       id: `chat-${Date.now()}-1`,
       userId: id,
       title: 'Test Chat 1',
-      createdAt: new Date(Date.now() - 86400000), // 1 day ago
+      createdAt: new Date(Date.now() - 86_400_000), // 1 day ago
       visibility: 'private',
     };
     const mockChat2: Chat = {
       id: `chat-${Date.now()}-2`,
       userId: id,
       title: 'Test Chat 2',
-      createdAt: new Date(Date.now() - 172800000), // 2 days ago
+      createdAt: new Date(Date.now() - 172_800_000), // 2 days ago
       visibility: 'private',
     };
 

@@ -1,7 +1,9 @@
 'use client';
 
+import { Database, FileText, Search, Upload } from 'lucide-react';
 import { useState } from 'react';
 import useSWR from 'swr';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -13,10 +15,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Upload, Search, Database, FileText } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
 import { fetcher } from '@/lib/utils';
 
 interface VectorStoreStats {
@@ -70,7 +70,7 @@ export function SupabaseVectorStore() {
   }>('/api/vectorstore/supabase-upload', fetcher);
 
   const handleFileUpload = async () => {
-    if (!uploadFile && !uploadContent) {
+    if (!(uploadFile || uploadContent)) {
       alert('Please provide either a file or content to upload');
       return;
     }
@@ -175,24 +175,24 @@ export function SupabaseVectorStore() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <div className="text-center">
-              <div className="text-2xl font-bold">
+              <div className="font-bold text-2xl">
                 {stats?.stats.totalDocuments || 0}
               </div>
-              <div className="text-sm text-muted-foreground">Documents</div>
+              <div className="text-muted-foreground text-sm">Documents</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold">
+              <div className="font-bold text-2xl">
                 {stats?.stats.totalEmbeddings || 0}
               </div>
-              <div className="text-sm text-muted-foreground">Embeddings</div>
+              <div className="text-muted-foreground text-sm">Embeddings</div>
             </div>
             <div className="text-center">
-              <Badge variant="outline" className="text-sm">
+              <Badge className="text-sm" variant="outline">
                 {selectedModelInfo?.name}
               </Badge>
-              <div className="text-sm text-muted-foreground mt-1">
+              <div className="mt-1 text-muted-foreground text-sm">
                 Current Model
               </div>
             </div>
@@ -209,7 +209,7 @@ export function SupabaseVectorStore() {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="model-select">Choose Embedding Model</Label>
-              <Select value={selectedModel} onValueChange={setSelectedModel}>
+              <Select onValueChange={setSelectedModel} value={selectedModel}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select embedding model" />
                 </SelectTrigger>
@@ -218,7 +218,7 @@ export function SupabaseVectorStore() {
                     <SelectItem key={model.id} value={model.id}>
                       <div className="flex flex-col">
                         <span>{model.name}</span>
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-muted-foreground text-xs">
                           {model.provider} • {model.dimensions}D
                         </span>
                       </div>
@@ -228,7 +228,7 @@ export function SupabaseVectorStore() {
               </Select>
             </div>
             {selectedModelInfo && (
-              <div className="text-sm text-muted-foreground bg-muted p-3 rounded">
+              <div className="rounded bg-muted p-3 text-muted-foreground text-sm">
                 <strong>{selectedModelInfo.name}</strong> by{' '}
                 {selectedModelInfo.provider}
                 <br />
@@ -259,19 +259,19 @@ export function SupabaseVectorStore() {
               <Label htmlFor="upload-title">Document Title (Optional)</Label>
               <Input
                 id="upload-title"
-                value={uploadTitle}
                 onChange={(e) => setUploadTitle(e.target.value)}
                 placeholder="Enter document title..."
+                value={uploadTitle}
               />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="upload-file">Upload File</Label>
               <Input
-                id="upload-file"
-                type="file"
                 accept=".txt,.md,text/*"
+                id="upload-file"
                 onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
+                type="file"
               />
             </div>
 
@@ -281,17 +281,17 @@ export function SupabaseVectorStore() {
               <Label htmlFor="upload-content">Paste Content</Label>
               <Textarea
                 id="upload-content"
-                value={uploadContent}
                 onChange={(e) => setUploadContent(e.target.value)}
                 placeholder="Paste your document content here..."
                 rows={6}
+                value={uploadContent}
               />
             </div>
 
             <Button
-              onClick={handleFileUpload}
-              disabled={isUploading || (!uploadFile && !uploadContent)}
               className="w-full"
+              disabled={isUploading || !(uploadFile || uploadContent)}
+              onClick={handleFileUpload}
             >
               {isUploading ? 'Uploading...' : 'Upload & Generate Embeddings'}
             </Button>
@@ -311,12 +311,12 @@ export function SupabaseVectorStore() {
           <div className="space-y-4">
             <div className="flex gap-2">
               <Input
-                value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Enter your search query..."
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                placeholder="Enter your search query..."
+                value={searchQuery}
               />
-              <Button onClick={handleSearch} disabled={isSearching}>
+              <Button disabled={isSearching} onClick={handleSearch}>
                 {isSearching ? 'Searching...' : 'Search'}
               </Button>
             </div>
@@ -330,18 +330,18 @@ export function SupabaseVectorStore() {
                 {searchResults.map((result, index) => (
                   <Card key={result.id}>
                     <CardContent className="pt-4">
-                      <div className="flex justify-between items-start mb-2">
+                      <div className="mb-2 flex items-start justify-between">
                         <Badge variant="secondary">
                           Similarity: {(result.similarity * 100).toFixed(1)}%
                         </Badge>
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-muted-foreground text-xs">
                           Doc: {result.documentId.slice(0, 8)}...
                         </span>
                       </div>
                       <p className="text-sm">{result.content}</p>
                       {result.metadata.title && (
-                        <p className="text-xs text-muted-foreground mt-2">
-                          <FileText className="h-3 w-3 inline mr-1" />
+                        <p className="mt-2 text-muted-foreground text-xs">
+                          <FileText className="mr-1 inline h-3 w-3" />
                           {result.metadata.title}
                         </p>
                       )}

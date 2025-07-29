@@ -18,13 +18,13 @@ import type { ArtifactKind } from '@/components/artifact';
 import type { VisibilityType } from '@/components/visibility-selector';
 import { POSTGRES_URL } from '../env';
 import { ChatSDKError } from '../errors';
-import { generateUUID } from '../utils';
 import {
-  getSmartSpawnConfig,
   getPostgresConfig,
+  getSmartSpawnConfig,
   handleSmartSpawnError,
   smartSpawnHealthCheck,
 } from '../smart-spawn-config';
+import { generateUUID } from '../utils';
 import {
   type Chat,
   chat,

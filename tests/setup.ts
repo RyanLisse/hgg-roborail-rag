@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom/vitest';
-import { vi } from 'vitest';
 import { resolve } from 'node:path';
 import dotenv from 'dotenv';
+import { vi } from 'vitest';
 import { mockRegistry } from './utils/mock-providers';
 import { configUtils, TEST_CONFIG } from './utils/test-config';
 
@@ -79,7 +79,7 @@ vi.mock('@ai-sdk/provider-utils', () => ({
 // Configure test timeouts globally using standardized config
 vi.setConfig({
   testTimeout: TEST_CONFIG.timeouts.medium, // 15 seconds default timeout
-  hookTimeout: TEST_CONFIG.timeouts.short,  // 5 seconds for setup/teardown
+  hookTimeout: TEST_CONFIG.timeouts.short, // 5 seconds for setup/teardown
 });
 
 // Global test utilities available to all tests
@@ -101,16 +101,23 @@ process.on('uncaughtException', (error) => {
 if (TEST_CONFIG.features.verbose) {
   const originalIt = (globalThis as any).it;
   (globalThis as any).it = (name: string, fn?: any, timeout?: number) => {
-    return originalIt(name, async () => {
-      const start = performance.now();
-      try {
-        await fn?.();
-      } finally {
-        const duration = performance.now() - start;
-        if (duration > 1000) { // Log slow tests
-          console.log(`⚠️  Slow test: "${name}" took ${duration.toFixed(2)}ms`);
+    return originalIt(
+      name,
+      async () => {
+        const start = performance.now();
+        try {
+          await fn?.();
+        } finally {
+          const duration = performance.now() - start;
+          if (duration > 1000) {
+            // Log slow tests
+            console.log(
+              `⚠️  Slow test: "${name}" took ${duration.toFixed(2)}ms`,
+            );
+          }
         }
-      }
-    }, timeout);
+      },
+      timeout,
+    );
   };
 }

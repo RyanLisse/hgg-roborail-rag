@@ -6,8 +6,8 @@
  */
 
 import { config } from 'dotenv';
-import postgres from 'postgres';
 import { performance } from 'perf_hooks';
+import postgres from 'postgres';
 
 // Load environment variables
 config({ path: '.env.test' });

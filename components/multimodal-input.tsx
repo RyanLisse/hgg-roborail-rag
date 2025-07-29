@@ -2,7 +2,6 @@
 
 import type { UseChatHelpers } from '@ai-sdk/react';
 import type { Attachment, UIMessage } from 'ai';
-import { cn } from '@/lib/utils';
 import equal from 'fast-deep-equal';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowDown } from 'lucide-react';
@@ -20,6 +19,7 @@ import {
 import { toast } from 'sonner';
 import { useLocalStorage, useWindowSize } from 'usehooks-ts';
 import { useScrollToBottom } from '@/hooks/use-scroll-to-bottom';
+import { cn } from '@/lib/utils';
 import { ArrowUpIcon, PaperclipIcon, StopIcon } from './icons';
 import { PreviewAttachment } from './preview-attachment';
 import { SuggestedActions } from './suggested-actions';

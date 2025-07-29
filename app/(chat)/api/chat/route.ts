@@ -9,8 +9,9 @@ import {
 } from 'ai';
 import { differenceInSeconds } from 'date-fns';
 import { NextResponse } from 'next/server';
-import { auth, type UserType } from '@/app/(auth)/auth';
 import type { Session } from 'next-auth';
+import { auth, type UserType } from '@/app/(auth)/auth';
+import type { VisibilityType } from '@/components/visibility-selector';
 import { entitlementsByUserType } from '@/lib/ai/entitlements';
 import { type RequestHints, systemPrompt } from '@/lib/ai/prompts';
 import { myProvider } from '@/lib/ai/providers';
@@ -39,7 +40,6 @@ import { generateUUID, getTrailingMessageId } from '@/lib/utils';
 import { checkEnvironment } from '@/lib/utils/env-check';
 import { generateTitleFromUserMessage } from '../../actions';
 import { type PostRequestBody, postRequestBodySchema } from './schema';
-import type { VisibilityType } from '@/components/visibility-selector';
 
 export const maxDuration = 60;
 
@@ -330,7 +330,7 @@ function createStreamForChat(
                     ? msg.content
                         .map((c) => (c.type === 'text' ? c.text : ''))
                         .join(' ')
-                    : msg.content ?? '',
+                    : (msg.content ?? ''),
                   timestamp: Date.now(), // Use current time as approximation
                 })),
             ),

@@ -3,8 +3,8 @@ import 'server-only';
 import { z } from 'zod';
 import { getVectorStoreMonitoringService } from './monitoring';
 import {
-  createPerformanceBenchmarkSuite,
   type BenchmarkConfig,
+  createPerformanceBenchmarkSuite,
 } from './performance-benchmarks';
 
 // Load testing specific schemas
@@ -294,7 +294,7 @@ class LoadTestResourceMonitor {
   private readonly memorySamples: number[] = [];
   private interval: NodeJS.Timeout | null = null;
 
-  start(samplingInterval: number = 1000): void {
+  start(samplingInterval = 1000): void {
     this.interval = setInterval(() => {
       this.collectSample();
     }, samplingInterval);
@@ -917,7 +917,7 @@ export const PREDEFINED_SCENARIOS: LoadTestScenario[] = [
     users: {
       initial: 2,
       peak: 25,
-      rampUpTime: 5_000,
+      rampUpTime: 5000,
       rampDownTime: 15_000,
     },
     thresholds: {

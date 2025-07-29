@@ -21,7 +21,7 @@ const TEST_CONFIG = {
   TEST_DB_NO_SSL: process.env.POSTGRES_URL_NO_SSL,
 
   // Connection timeout
-  TIMEOUT_MS: 10000,
+  TIMEOUT_MS: 10_000,
 };
 
 // Colors for console output

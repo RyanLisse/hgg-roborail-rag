@@ -1,8 +1,8 @@
 'use client';
 
-import { cn } from '@/lib/utils';
 import { format, isWithinInterval } from 'date-fns';
 import { useEffect, useState } from 'react';
+import { cn } from '@/lib/utils';
 
 interface WeatherAtLocation {
   latitude: number;

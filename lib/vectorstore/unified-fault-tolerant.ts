@@ -18,6 +18,7 @@ import {
   type FaultTolerantOpenAIVectorStoreService,
   getFaultTolerantOpenAIVectorStoreService,
 } from './openai-fault-tolerant';
+import type { PromptConfig, QueryContext } from './prompt-optimization';
 import type {
   FusionScore,
   HybridSearchRequest,
@@ -36,7 +37,6 @@ import {
   type UserFeedback,
   type VectorStoreType,
 } from './unified';
-import type { QueryContext, PromptConfig } from './prompt-optimization';
 
 // ====================================
 // FAULT-TOLERANT UNIFIED SERVICE
@@ -61,7 +61,7 @@ export class FaultTolerantUnifiedVectorStoreService
             )[]) || ['openai', 'neon', 'memory'],
             maxResults: Number(requestObj.maxResults) || 10,
             threshold: Number(requestObj.threshold) || 0.3,
-            optimizePrompts: Boolean(requestObj.optimizePrompts) || false,
+            optimizePrompts: Boolean(requestObj.optimizePrompts),
             metadata: requestObj.metadata as
               | Record<string, unknown>
               | undefined,
@@ -565,7 +565,7 @@ export class FaultTolerantUnifiedVectorStoreService
           memory: { enabled: true },
           openai: { enabled: this.openaiService.isEnabled },
           neon: { enabled: this.neonService?.isEnabled },
-          supabase: { enabled: this.supabaseService?.isEnabled || false },
+          supabase: { enabled: this.supabaseService?.isEnabled },
           unified: { enabled: true },
         };
 

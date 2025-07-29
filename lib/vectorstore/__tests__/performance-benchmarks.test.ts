@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createPerformanceBenchmarkSuite } from '../performance-benchmarks';
 import type {
-  BenchmarkResult,
   BenchmarkConfig,
+  BenchmarkResult,
 } from '../performance-benchmarks';
+import { createPerformanceBenchmarkSuite } from '../performance-benchmarks';
 
 // Mock server-only module
 vi.mock('server-only', () => ({}));
@@ -52,36 +52,42 @@ vi.mock('../monitoring', () => {
     stopMonitoring: vi.fn(),
     reset: vi.fn(),
   };
-  
+
   return {
-    getVectorStoreMonitoringService: vi.fn().mockReturnValue(mockMonitoringService),
-    VectorStoreMonitoringService: vi.fn().mockImplementation(() => mockMonitoringService),
+    getVectorStoreMonitoringService: vi
+      .fn()
+      .mockReturnValue(mockMonitoringService),
+    VectorStoreMonitoringService: vi
+      .fn()
+      .mockImplementation(() => mockMonitoringService),
     default: mockMonitoringService,
   };
 });
 
 vi.mock('../openai', () => ({
-  getOpenAIVectorStoreService: vi.fn(() => Promise.resolve({
-    searchFiles: vi.fn().mockResolvedValue({
-      success: true,
-      results: [
-        {
-          id: 'test-1',
-          content: 'Test content',
-          similarity: 0.9,
-          metadata: {},
-        },
-      ],
-      sources: ['test-file.txt'],
-      totalResults: 1,
-      query: 'test query',
-      executionTime: 100,
+  getOpenAIVectorStoreService: vi.fn(() =>
+    Promise.resolve({
+      searchFiles: vi.fn().mockResolvedValue({
+        success: true,
+        results: [
+          {
+            id: 'test-1',
+            content: 'Test content',
+            similarity: 0.9,
+            metadata: {},
+          },
+        ],
+        sources: ['test-file.txt'],
+        totalResults: 1,
+        query: 'test query',
+        executionTime: 100,
+      }),
+      uploadFile: vi.fn().mockResolvedValue({ id: 'test-file', success: true }),
+      healthCheck: vi.fn().mockResolvedValue({ isHealthy: true }),
+      listFiles: vi.fn().mockResolvedValue([]),
+      deleteFile: vi.fn().mockResolvedValue({ success: true }),
     }),
-    uploadFile: vi.fn().mockResolvedValue({ id: 'test-file', success: true }),
-    healthCheck: vi.fn().mockResolvedValue({ isHealthy: true }),
-    listFiles: vi.fn().mockResolvedValue([]),
-    deleteFile: vi.fn().mockResolvedValue({ success: true }),
-  })),
+  ),
   createOpenAIVectorStoreService: vi.fn(() => ({
     searchFiles: vi.fn().mockResolvedValue({
       success: true,
@@ -106,51 +112,55 @@ vi.mock('../openai', () => ({
 }));
 
 vi.mock('../neon', () => ({
-  getNeonVectorStoreService: vi.fn(() => Promise.resolve({
-    searchFiles: vi.fn().mockResolvedValue({
-      success: true,
-      results: [
-        {
-          id: 'test-1',
-          content: 'Test content',
-          similarity: 0.9,
-          metadata: {},
-        },
-      ],
-      sources: ['test-file.txt'],
-      totalResults: 1,
-      query: 'test query',
-      executionTime: 100,
+  getNeonVectorStoreService: vi.fn(() =>
+    Promise.resolve({
+      searchFiles: vi.fn().mockResolvedValue({
+        success: true,
+        results: [
+          {
+            id: 'test-1',
+            content: 'Test content',
+            similarity: 0.9,
+            metadata: {},
+          },
+        ],
+        sources: ['test-file.txt'],
+        totalResults: 1,
+        query: 'test query',
+        executionTime: 100,
+      }),
+      uploadFile: vi.fn().mockResolvedValue({ id: 'test-file', success: true }),
+      healthCheck: vi.fn().mockResolvedValue({ isHealthy: true }),
+      listFiles: vi.fn().mockResolvedValue([]),
+      deleteFile: vi.fn().mockResolvedValue({ success: true }),
     }),
-    uploadFile: vi.fn().mockResolvedValue({ id: 'test-file', success: true }),
-    healthCheck: vi.fn().mockResolvedValue({ isHealthy: true }),
-    listFiles: vi.fn().mockResolvedValue([]),
-    deleteFile: vi.fn().mockResolvedValue({ success: true }),
-  })),
+  ),
 }));
 
 vi.mock('../unified', () => ({
-  getUnifiedVectorStoreService: vi.fn(() => Promise.resolve({
-    searchFiles: vi.fn().mockResolvedValue({
-      success: true,
-      results: [
-        {
-          id: 'test-1',
-          content: 'Test content',
-          similarity: 0.9,
-          metadata: {},
-        },
-      ],
-      sources: ['test-file.txt'],
-      totalResults: 1,
-      query: 'test query',
-      executionTime: 100,
+  getUnifiedVectorStoreService: vi.fn(() =>
+    Promise.resolve({
+      searchFiles: vi.fn().mockResolvedValue({
+        success: true,
+        results: [
+          {
+            id: 'test-1',
+            content: 'Test content',
+            similarity: 0.9,
+            metadata: {},
+          },
+        ],
+        sources: ['test-file.txt'],
+        totalResults: 1,
+        query: 'test query',
+        executionTime: 100,
+      }),
+      uploadFile: vi.fn().mockResolvedValue({ id: 'test-file', success: true }),
+      healthCheck: vi.fn().mockResolvedValue({ isHealthy: true }),
+      listFiles: vi.fn().mockResolvedValue([]),
+      deleteFile: vi.fn().mockResolvedValue({ success: true }),
     }),
-    uploadFile: vi.fn().mockResolvedValue({ id: 'test-file', success: true }),
-    healthCheck: vi.fn().mockResolvedValue({ isHealthy: true }),
-    listFiles: vi.fn().mockResolvedValue([]),
-    deleteFile: vi.fn().mockResolvedValue({ success: true }),
-  })),
+  ),
 }));
 
 describe('Performance Benchmark Suite', () => {
@@ -158,11 +168,11 @@ describe('Performance Benchmark Suite', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     benchmarkSuite = createPerformanceBenchmarkSuite({
       enabled: true,
       maxConcurrentRequests: 10,
-      timeoutMs: 30000,
+      timeoutMs: 30_000,
       warmupIterations: 3,
       benchmarkIterations: 10,
       providers: ['openai', 'neon', 'unified'],
@@ -257,7 +267,7 @@ describe('Performance Benchmark Suite', () => {
       const ranking = await benchmarkSuite.rankProvidersByPerformance({
         criteria: ['latency', 'throughput', 'reliability'],
         weights: { latency: 0.4, throughput: 0.4, reliability: 0.2 },
-        testDuration: 30000, // 30 seconds
+        testDuration: 30_000, // 30 seconds
       });
 
       expect(ranking).toBeDefined();
@@ -291,7 +301,7 @@ describe('Performance Benchmark Suite', () => {
         provider: 'openai',
         operation: 'search',
         concurrency: 5,
-        durationMs: 10000, // 10 seconds for test
+        durationMs: 10_000, // 10 seconds for test
         queries: ['query 1', 'query 2', 'query 3'],
       });
 
@@ -481,7 +491,7 @@ describe('Performance Benchmark Suite', () => {
       const validConfig: BenchmarkConfig = {
         enabled: true,
         maxConcurrentRequests: 10,
-        timeoutMs: 30000,
+        timeoutMs: 30_000,
         warmupIterations: 3,
         benchmarkIterations: 10,
         providers: ['openai'],

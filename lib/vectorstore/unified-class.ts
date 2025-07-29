@@ -4,11 +4,11 @@
  */
 
 import { BaseVectorStoreService } from './core/base-service';
+import type { PromptConfig, QueryContext } from './prompt-optimization';
 import {
   getUnifiedVectorStoreService,
   type UnifiedVectorStoreService,
 } from './unified';
-import type { QueryContext, PromptConfig } from './prompt-optimization';
 
 type VectorStoreSource = 'openai' | 'neon' | 'memory' | 'unified';
 
@@ -36,7 +36,7 @@ export class UnifiedVectorStore extends BaseVectorStoreService {
       ],
       maxResults: (options?.maxResults as number) || 10,
       threshold: (options?.threshold as number) || 0.3,
-      optimizePrompts: (options?.optimizePrompts as boolean) || false,
+      optimizePrompts: options?.optimizePrompts as boolean,
       metadata: options?.metadata as Record<string, unknown> | undefined,
       queryContext: options?.queryContext as QueryContext | undefined,
       promptConfig: options?.promptConfig as PromptConfig | undefined,
@@ -61,7 +61,7 @@ export class UnifiedVectorStore extends BaseVectorStoreService {
             ],
             maxResults: Number(requestObj.maxResults) || 10,
             threshold: Number(requestObj.threshold) || 0.3,
-            optimizePrompts: Boolean(requestObj.optimizePrompts) || false,
+            optimizePrompts: Boolean(requestObj.optimizePrompts),
             metadata: requestObj.metadata as
               | Record<string, unknown>
               | undefined,

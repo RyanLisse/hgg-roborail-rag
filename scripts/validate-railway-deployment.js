@@ -67,12 +67,10 @@ class RailwayValidator {
             `Missing required AI provider. Need at least one: ${envVar.join(', ')}`,
           );
         }
+      } else if (process.env[envVar]) {
+        this.passed.push(`${envVar}: ✓`);
       } else {
-        if (process.env[envVar]) {
-          this.passed.push(`${envVar}: ✓`);
-        } else {
-          this.errors.push(`Missing required environment variable: ${envVar}`);
-        }
+        this.errors.push(`Missing required environment variable: ${envVar}`);
       }
     }
 

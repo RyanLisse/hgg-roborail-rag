@@ -88,7 +88,7 @@ test.describe('Vector Store with Stagehand AI', () => {
     // Use AI to look for deploy button
     try {
       await page.act('Find the Deploy with Vercel button', {
-        timeout: 15000,
+        timeout: 15_000,
       });
       // If we get here without timeout, the button exists (should fail)
       expect(false).toBe(true);
@@ -288,7 +288,7 @@ Important considerations for responsible AI development:
       await page.act(
         'Type "Please process this AI guide for knowledge retrieval" in the chat input and send it',
       );
-      await page.waitForTimeout(10000); // Wait for processing
+      await page.waitForTimeout(10_000); // Wait for processing
 
       await page.act(
         'Clear the chat input and type "What is machine learning?" then send the message',
@@ -355,7 +355,7 @@ Important considerations for responsible AI development:
       await page.act(
         'Type "Please rewrite the machine learning section to make it suitable for high school students, using simpler language and more examples" then send',
       );
-      await page.waitForTimeout(10000);
+      await page.waitForTimeout(10_000);
 
       const rewriteResult = await page.extract({
         instruction:
@@ -384,7 +384,7 @@ Important considerations for responsible AI development:
       await page.act(
         'Type "Create a step-by-step learning plan for someone who wants to master AI, starting from beginner level. Include timelines and specific topics." then send',
       );
-      await page.waitForTimeout(10000);
+      await page.waitForTimeout(10_000);
 
       const planResult = await page.extract({
         instruction:
@@ -609,7 +609,7 @@ Important considerations for responsible AI development:
       await page.act(
         'Type "Add programming languages guide to knowledge base" and send',
       );
-      await page.waitForTimeout(10000);
+      await page.waitForTimeout(10_000);
 
       // Upload second document
       await page.act('Upload another file');
@@ -617,7 +617,7 @@ Important considerations for responsible AI development:
       await page.act(
         'Type "Add development practices guide to knowledge base" and send',
       );
-      await page.waitForTimeout(10000);
+      await page.waitForTimeout(10_000);
 
       // Test cross-document synthesis
       await page.act(
@@ -654,7 +654,7 @@ Important considerations for responsible AI development:
       await page.act(
         'Type "Create a learning roadmap that combines programming skills with development best practices" and send',
       );
-      await page.waitForTimeout(10000);
+      await page.waitForTimeout(10_000);
 
       const planningResult = await page.extract({
         instruction:
@@ -766,7 +766,7 @@ Important considerations for responsible AI development:
       await page.act(
         'Type "Can you rewrite this and also create a plan and research related topics?" and send',
       );
-      await page.waitForTimeout(10000);
+      await page.waitForTimeout(10_000);
 
       const mixedIntentResult = await page.extract({
         instruction:

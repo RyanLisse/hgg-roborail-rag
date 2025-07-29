@@ -11,10 +11,6 @@ import {
   type OpenAIVectorStoreService,
 } from './openai';
 import {
-  getSupabaseVectorStoreService,
-  type SupabaseVectorStoreService,
-} from './supabase';
-import {
   type HybridSearchRequest,
   RelevanceScoringEngine,
   type RelevanceWeights,
@@ -27,6 +23,10 @@ import {
   LearningToRankEngine,
   type RerankingResult,
 } from './reranking';
+import {
+  getSupabaseVectorStoreService,
+  type SupabaseVectorStoreService,
+} from './supabase';
 import { getFaultTolerantUnifiedVectorStoreService } from './unified-fault-tolerant';
 
 // Re-export types for use by other modules

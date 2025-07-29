@@ -1,10 +1,10 @@
-import { describe, it, expect } from 'vitest';
-import { 
-  createMockPerformanceMetrics,
-  createMockHealthStatus,
+import { describe, expect, it } from 'vitest';
+import {
   assertUtils,
+  createMockHealthStatus,
+  createMockPerformanceMetrics,
   TEST_CONSTANTS,
-  testUtils
+  testUtils,
 } from '../utils';
 
 // Test logic for VectorStoreMonitoring component functionality
@@ -54,7 +54,7 @@ describe('VectorStoreMonitoring Component Logic', () => {
         p95Latency: 500,
         p99Latency: 1000,
         errorRate: 0.05,
-        tokensUsed: 50000,
+        tokensUsed: 50_000,
         lastUpdated: '2024-01-01T12:00:00Z',
       };
 
@@ -186,7 +186,7 @@ describe('VectorStoreMonitoring Component Logic', () => {
             p95Latency: 400,
             p99Latency: 800,
             errorRate: 0.05,
-            tokensUsed: 30000,
+            tokensUsed: 30_000,
             lastUpdated: '2024-01-01T12:00:00Z',
           },
         },
@@ -270,7 +270,7 @@ describe('VectorStoreMonitoring Component Logic', () => {
       const formatNumber = (num: number) => num.toLocaleString();
 
       expect(formatNumber(1000)).toBe('1,000');
-      expect(formatNumber(1500000)).toBe('1,500,000');
+      expect(formatNumber(1_500_000)).toBe('1,500,000');
       expect(formatNumber(500)).toBe('500');
     });
   });

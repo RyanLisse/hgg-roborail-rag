@@ -310,7 +310,7 @@ describe('Agent System', () => {
         'Research the latest developments in quantum computing',
       );
       expect(researchDecision.selectedAgent).toBe('research');
-    }, 15000);
+    }, 15_000);
   });
 
   describe('Agent Processing', () => {
@@ -397,7 +397,7 @@ describe('Agent System', () => {
       expect(response.agent).toBeDefined();
       expect(response.metadata.orchestrationTime).toBeDefined();
       expect(response.metadata.routingDecision).toBeDefined();
-    }, 15000);
+    }, 15_000);
 
     it('should support streaming responses', async () => {
       const { generateText, streamText } = await import('ai');
@@ -450,7 +450,7 @@ describe('Agent System', () => {
 
       expect(hasContent).toBe(true);
       expect(chunks.length).toBeGreaterThan(0);
-    }, 15000);
+    }, 15_000);
 
     it('should handle fallback agents on errors', async () => {
       const { generateText } = await import('ai');
@@ -481,7 +481,7 @@ describe('Agent System', () => {
 
       expect(response).toBeDefined();
       expect(response.content).toBeDefined();
-    }, 15000);
+    }, 15_000);
 
     it('should provide health check functionality', async () => {
       const health = await orchestrator.healthCheck();
@@ -535,7 +535,7 @@ describe('Agent System', () => {
       expect(response.content).toBeDefined();
       expect(response.agent).toBeDefined();
       expect(response.metadata).toBeDefined();
-    }, 15000);
+    }, 15_000);
 
     it('should support query streaming through the main interface', async () => {
       const { generateText, streamText } = await import('ai');
@@ -580,7 +580,7 @@ describe('Agent System', () => {
 
       expect(chunks.length).toBeGreaterThan(0);
       expect(chunks.join('')).toBeTruthy();
-    }, 15000);
+    }, 15_000);
   });
 
   describe('Error Handling', () => {

@@ -1,5 +1,5 @@
-import { simulateReadableStream } from 'ai';
 import type { LanguageModelV1Prompt } from 'ai';
+import { simulateReadableStream } from 'ai';
 import { getResponseChunksByPrompt } from '@/tests/prompts/utils';
 
 // Mock implementation for testing

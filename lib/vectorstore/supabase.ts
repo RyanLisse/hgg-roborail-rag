@@ -1,7 +1,7 @@
 import 'server-only';
 
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { embed } from 'ai';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 import { getEmbeddingModelInstance } from '../ai/providers';
 import { supabaseConfig } from '../env';
@@ -210,7 +210,7 @@ export function createSupabaseVectorStoreService(
         .insert({
           content: validatedDocument.content,
           metadata: validatedDocument.metadata || {},
-          embedding: embedding,
+          embedding,
           created_at: new Date().toISOString(),
         })
         .select()

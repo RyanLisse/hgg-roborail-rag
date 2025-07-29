@@ -1,7 +1,7 @@
 'use client';
 
 import { ChevronDown, ChevronUp, FileText, Quote } from 'lucide-react';
-import { useState, useMemo, useCallback } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import type { ParsedCitation, SourceFile } from '@/lib/utils/citations';
 
 interface CitationsProps {

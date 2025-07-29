@@ -2,7 +2,7 @@ import { embed } from 'ai';
 import { sql } from 'drizzle-orm';
 import { getEmbeddingModelInstance } from '../ai/providers';
 import { getDb } from '../db/queries';
-import { embedding, document as documentTable } from '../db/schema';
+import { document as documentTable, embedding } from '../db/schema';
 import type { Document as ChunkingDocument } from './chunking';
 import { createChunkingService } from './chunking';
 

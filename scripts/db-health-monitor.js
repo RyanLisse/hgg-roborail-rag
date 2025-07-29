@@ -6,15 +6,15 @@
  */
 
 import { config } from 'dotenv';
-import postgres from 'postgres';
 import { performance } from 'perf_hooks';
+import postgres from 'postgres';
 
 // Load environment variables
 config({ path: '.env.local' });
 
-const HEALTH_CHECK_INTERVAL = 30000; // 30 seconds
+const HEALTH_CHECK_INTERVAL = 30_000; // 30 seconds
 const MAX_LATENCY_THRESHOLD = 1000; // 1 second
-const CONNECTION_TIMEOUT = 10000; // 10 seconds
+const CONNECTION_TIMEOUT = 10_000; // 10 seconds
 
 class DatabaseHealthMonitor {
   constructor() {

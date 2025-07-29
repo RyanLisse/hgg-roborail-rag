@@ -136,7 +136,7 @@ export const createMockAPIResponse = (
 };
 
 // Chat Conversation Factory
-export const createMockChatConversation = (messageCount: number = 3) => {
+export const createMockChatConversation = (messageCount = 3) => {
   const chatId = `chat-${Math.random().toString(36).substring(7)}`;
   const messages: MockMessage[] = [];
 
@@ -173,7 +173,7 @@ export const createMockDatabaseResult = (
 
 // Error Factory
 export const createMockError = (
-  message: string = 'Test error',
+  message = 'Test error',
   options: Partial<{ code: string; status: number; cause?: Error }> = {},
 ): Error & { code?: string; status?: number; cause?: Error } => {
   const error = new Error(message) as Error & {
@@ -199,7 +199,7 @@ export const createMockPerformanceMetrics = (overrides: Partial<any> = {}) => ({
   p95Latency: 400 + Math.random() * 600,
   p99Latency: 800 + Math.random() * 1200,
   errorRate: 0.01 + Math.random() * 0.04,
-  tokensUsed: 30000 + Math.floor(Math.random() * 50000),
+  tokensUsed: 30_000 + Math.floor(Math.random() * 50_000),
   lastUpdated: new Date().toISOString(),
   ...overrides,
 });
@@ -216,7 +216,7 @@ export const createMockHealthStatus = (overrides: Partial<any> = {}) => ({
 });
 
 // Embedding Factory
-export const createMockEmbedding = (dimensions: number = 1536) => ({
+export const createMockEmbedding = (dimensions = 1536) => ({
   embedding: Array.from({ length: dimensions }, () => Math.random() * 2 - 1), // Range -1 to 1
   model: 'text-embedding-ada-002',
   usage: {
@@ -277,7 +277,7 @@ export const createMockWithTimestamp = <
 >(
   factory: (overrides?: any) => T,
   baseTime: Date = new Date(),
-  offsetMinutes: number = 0,
+  offsetMinutes = 0,
 ): T => {
   const timestamp = new Date(
     baseTime.getTime() + offsetMinutes * 60 * 1000,

@@ -1,10 +1,10 @@
 import { vi } from 'vitest';
 import {
-  createMockUser,
-  createMockSession,
+  createMockAIResponse,
   createMockAPIResponse,
   createMockEmbedding,
-  createMockAIResponse,
+  createMockSession,
+  createMockUser,
 } from './mock-factories';
 
 /**
@@ -57,12 +57,10 @@ export const mockAICore = {
       usage: { promptTokens: 10, completionTokens: 2, totalTokens: 12 },
     };
   }),
-  generateObject: vi
-    .fn()
-    .mockResolvedValue({
-      object: { test: true },
-      usage: { promptTokens: 50, completionTokens: 25, totalTokens: 75 },
-    }),
+  generateObject: vi.fn().mockResolvedValue({
+    object: { test: true },
+    usage: { promptTokens: 50, completionTokens: 25, totalTokens: 75 },
+  }),
 };
 
 // Mock Next.js specific modules with factory integration
