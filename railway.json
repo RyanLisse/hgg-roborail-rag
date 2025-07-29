@@ -3,12 +3,8 @@
   "build": {
     "builder": "NIXPACKS",
     "buildCommand": "pnpm install --frozen-lockfile && pnpm run build:railway",
-    "watchPatterns": [
-      "**/*.ts",
-      "**/*.tsx",
-      "**/*.js",
-      "**/*.jsx"
-    ]
+    "watchPatterns": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"],
+    "nixpacksConfigPath": "nixpacks.toml"
   },
   "deploy": {
     "numReplicas": 1,
@@ -29,6 +25,31 @@
       "variables": {
         "NODE_ENV": "production",
         "PORT": "3000"
+      },
+      "dependencies": ["postgres"]
+    },
+    {
+      "name": "postgres",
+      "source": {
+        "type": "image",
+        "image": "postgres:15-alpine"
+      },
+      "variables": {
+        "POSTGRES_DB": "roborail_prod",
+        "POSTGRES_USER": "roborail_user",
+        "POSTGRES_PASSWORD": "${{ POSTGRES_PASSWORD }}",
+        "PGDATA": "/var/lib/postgresql/data/pgdata"
+      },
+      "volumes": [
+        {
+          "name": "postgres-data",
+          "mountPath": "/var/lib/postgresql/data"
+        }
+      ],
+      "deploy": {
+        "numReplicas": 1,
+        "sleepApplication": false,
+        "restartPolicyType": "ALWAYS"
       }
     }
   ]

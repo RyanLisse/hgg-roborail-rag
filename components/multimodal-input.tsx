@@ -2,7 +2,7 @@
 
 import type { UseChatHelpers } from '@ai-sdk/react';
 import type { Attachment, UIMessage } from 'ai';
-import cx from 'classnames';
+import { cn } from '@/lib/utils';
 import equal from 'fast-deep-equal';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowDown } from 'lucide-react';
@@ -255,7 +255,7 @@ function PureMultimodalInput({
 
       <Textarea
         autoFocus
-        className={cx(
+        className={cn(
           '!text-base max-h-[calc(75dvh)] min-h-[24px] resize-none overflow-hidden rounded-2xl bg-muted pb-10 dark:border-zinc-700',
           className,
         )}

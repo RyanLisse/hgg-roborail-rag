@@ -2,29 +2,29 @@ import type {
   EmbeddingModel,
   LanguageModelV1,
   LanguageModelV1CallOptions,
-} from "ai";
-import { chatModels, getModelById } from "./models";
+} from 'ai';
+import { chatModels, getModelById } from './models';
 
 // Mock language model for testing
 export class MockLanguageModel implements LanguageModelV1 {
-  readonly specificationVersion = "v1" as const;
+  readonly specificationVersion = 'v1' as const;
   readonly modelId: string;
   readonly provider: string;
-  readonly defaultObjectGenerationMode = "tool" as const;
+  readonly defaultObjectGenerationMode = 'tool' as const;
   readonly supportsImageUrls = true;
   readonly supportsUrl = (_url: URL) => false;
 
   constructor(modelId: string) {
     this.modelId = modelId;
-    this.provider = "mock";
+    this.provider = 'mock';
   }
 
   async doGenerate(_options: LanguageModelV1CallOptions) {
     // Simulate thinking for reasoning models
-    const isReasoning = this.modelId.includes("reasoning");
+    const isReasoning = this.modelId.includes('reasoning');
     const thinking = isReasoning
-      ? "<thinking>This is a test thinking process.</thinking>\n\n"
-      : "";
+      ? '<thinking>This is a test thinking process.</thinking>\n\n'
+      : '';
 
     return {
       text: `${thinking}This is a mock response from the ${this.modelId} model for testing purposes. The grass is green due to chlorophyll.`,
@@ -33,7 +33,7 @@ export class MockLanguageModel implements LanguageModelV1 {
         completionTokens: 20,
         totalTokens: 30,
       },
-      finishReason: "stop" as const,
+      finishReason: 'stop' as const,
       toolCalls: [],
       toolResults: [],
       rawCall: {
@@ -52,20 +52,20 @@ export class MockLanguageModel implements LanguageModelV1 {
           // Simulate streaming by chunking the response
           const chunks = response.text.match(/.{1,20}/g) || [];
           const isTest =
-            process.env.NODE_ENV === "test" ||
-            process.env.PLAYWRIGHT === "true";
+            process.env.NODE_ENV === 'test' ||
+            process.env.PLAYWRIGHT === 'true';
           const delay = isTest ? 1 : 10; // Faster streaming in test mode
 
           for (const chunk of chunks) {
             controller.enqueue({
-              type: "text-delta",
+              type: 'text-delta',
               textDelta: chunk,
             });
             await new Promise((resolve) => setTimeout(resolve, delay));
           }
           controller.enqueue({
-            type: "finish",
-            finishReason: "stop",
+            type: 'finish',
+            finishReason: 'stop',
             usage: response.usage,
           });
           controller.close();
@@ -79,7 +79,7 @@ export class MockLanguageModel implements LanguageModelV1 {
 
 // Mock embedding model for testing
 export class MockEmbeddingModel implements EmbeddingModel<string> {
-  readonly specificationVersion = "v1" as const;
+  readonly specificationVersion = 'v1' as const;
   readonly modelId: string;
   readonly provider: string;
   readonly maxEmbeddingsPerCall = 2048;
@@ -87,7 +87,7 @@ export class MockEmbeddingModel implements EmbeddingModel<string> {
 
   constructor(modelId: string) {
     this.modelId = modelId;
-    this.provider = "mock";
+    this.provider = 'mock';
   }
 
   async doEmbed(options: {
@@ -97,7 +97,7 @@ export class MockEmbeddingModel implements EmbeddingModel<string> {
   }) {
     // Generate consistent fake embeddings based on input
     const embeddings = options.values.map((value: string) => {
-      const hash = value.split("").reduce((a, b) => {
+      const hash = value.split('').reduce((a, b) => {
         a = (a << 5) - a + b.charCodeAt(0);
         return a & a;
       }, 0);
@@ -112,7 +112,7 @@ export class MockEmbeddingModel implements EmbeddingModel<string> {
     return {
       embeddings,
       usage: {
-        tokens: options.values.join("").length,
+        tokens: options.values.join('').length,
       },
     };
   }
@@ -160,15 +160,15 @@ export function getEmbeddingModelInstance(modelId: string) {
 // Helper function to identify reasoning models
 export function isReasoningModel(modelId: string): boolean {
   const reasoningPatterns = [
-    "o1-",
-    "o1.",
-    "o3-",
-    "o3.",
-    "o4-",
-    "o4.",
-    "reasoning",
-    "think",
-    "step-by-step",
+    'o1-',
+    'o1.',
+    'o3-',
+    'o3.',
+    'o4-',
+    'o4.',
+    'reasoning',
+    'think',
+    'step-by-step',
   ];
   return reasoningPatterns.some((pattern) =>
     modelId.toLowerCase().includes(pattern),
@@ -186,14 +186,14 @@ function createAllLanguageModels(): Record<string, LanguageModelV1> {
 
   // Primary models with fallbacks
   const primaryModels = {
-    "chat-model": "openai-gpt-4.1",
-    "chat-model-fast": "openai-gpt-4.1-mini",
-    "chat-model-reasoning": "openai-o3-mini",
-    "chat-model-advanced-reasoning": "openai-o4-mini",
-    "title-model": "openai-gpt-4.1-nano",
-    "artifact-model": "openai-gpt-4.1",
-    "research-model": "google-gemini-2.5-pro-latest",
-    "rewrite-model": "openai-gpt-4.1",
+    'chat-model': 'openai-gpt-4.1',
+    'chat-model-fast': 'openai-gpt-4.1-mini',
+    'chat-model-reasoning': 'openai-o3-mini',
+    'chat-model-advanced-reasoning': 'openai-o4-mini',
+    'title-model': 'openai-gpt-4.1-nano',
+    'artifact-model': 'openai-gpt-4.1',
+    'research-model': 'google-gemini-2.5-pro-latest',
+    'rewrite-model': 'openai-gpt-4.1',
   };
 
   // Create models
@@ -216,7 +216,7 @@ export const myProvider = {
   // Add a method to get a specific model
   languageModel(modelId?: string): LanguageModelV1 {
     const models = this.languageModels;
-    const selectedModelId = modelId || "chat-model";
+    const selectedModelId = modelId || 'chat-model';
 
     if (models[selectedModelId]) {
       return models[selectedModelId];
@@ -227,15 +227,44 @@ export const myProvider = {
   },
 };
 
-// Export additional utilities for compatibility
-export const customProvider = () => aiProviders;
-export const extractReasoningMiddleware = () => ({
-  tagName: "thinking",
-  separator: "\n\n",
+// Mock customProvider function that matches the real AI SDK signature
+export const customProvider = (config: {
+  languageModels: Record<string, LanguageModelV1>;
+  [key: string]: any;
+}) => {
+  return {
+    languageModel: (modelId?: string): LanguageModelV1 => {
+      const selectedModelId = modelId || 'chat-model';
+      if (config.languageModels[selectedModelId]) {
+        return config.languageModels[selectedModelId];
+      }
+      return new MockLanguageModel(selectedModelId);
+    },
+    ...config,
+  };
+};
+
+// Export for compatibility with the ai module mock
+export { customProvider as default };
+
+// Mock middleware functions
+export const extractReasoningMiddleware = (config?: {
+  tagName?: string;
+  separator?: string;
+}) => ({
+  tagName: config?.tagName || 'thinking',
+  separator: config?.separator || '\n\n',
 });
-export const wrapLanguageModel = (config: { model: LanguageModelV1 }) =>
-  config.model;
+
+export const wrapLanguageModel = (config: {
+  model: LanguageModelV1;
+  middleware?: any[];
+}) => config.model;
 
 // Export individual providers for compatibility
 export const openai = aiProviders.openai;
 export const google = aiProviders.google;
+export const cohere = aiProviders.cohere;
+export const anthropic = aiProviders.anthropic;
+export const groq = aiProviders.groq;
+export const xai = aiProviders.xai;

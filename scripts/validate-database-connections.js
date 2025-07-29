@@ -11,16 +11,17 @@ require('dotenv').config({ path: '.env.test' });
 // Test configuration
 const TEST_CONFIG = {
   // Main production database URL (from provided connection)
-  MAIN_DB: 'postgresql://neondb_owner:npg_09TNDHWMZhzi@ep-late-boat-a8biqbk3-pooler.eastus2.azure.neon.tech/neondb?sslmode=require&channel_binding=require',
-  
+  MAIN_DB:
+    'postgresql://neondb_owner:npg_09TNDHWMZhzi@ep-late-boat-a8biqbk3-pooler.eastus2.azure.neon.tech/neondb?sslmode=require&channel_binding=require',
+
   // Test database URLs from .env.test
   TEST_DB: process.env.DATABASE_URL,
   TEST_DB_POSTGRES: process.env.POSTGRES_URL,
   TEST_DB_NON_POOLING: process.env.POSTGRES_URL_NON_POOLING,
   TEST_DB_NO_SSL: process.env.POSTGRES_URL_NO_SSL,
-  
+
   // Connection timeout
-  TIMEOUT_MS: 10000
+  TIMEOUT_MS: 10000,
 };
 
 // Colors for console output
@@ -30,7 +31,7 @@ const colors = {
   yellow: '\x1b[33m',
   blue: '\x1b[34m',
   reset: '\x1b[0m',
-  bold: '\x1b[1m'
+  bold: '\x1b[1m',
 };
 
 function log(message, color = colors.reset) {
@@ -65,7 +66,7 @@ async function testConnection(name, connectionString, description = '') {
   }
 
   logInfo(`Testing ${name}${description ? ` (${description})` : ''}...`);
-  
+
   const client = new Client({
     connectionString,
     connectionTimeoutMillis: TEST_CONFIG.TIMEOUT_MS,
@@ -84,10 +85,14 @@ async function testConnection(name, connectionString, description = '') {
 async function testBasicQueries(client, name) {
   try {
     // Test basic SELECT query
-    const result = await client.query('SELECT NOW() as current_time, VERSION() as version');
+    const result = await client.query(
+      'SELECT NOW() as current_time, VERSION() as version',
+    );
     logSuccess(`${name}: Basic query successful`);
     logInfo(`  Database time: ${result.rows[0].current_time}`);
-    logInfo(`  PostgreSQL version: ${result.rows[0].version.substring(0, 50)}...`);
+    logInfo(
+      `  PostgreSQL version: ${result.rows[0].version.substring(0, 50)}...`,
+    );
 
     // Test database name query
     const dbResult = await client.query('SELECT current_database()');
@@ -105,7 +110,7 @@ async function testSSLConfiguration(client, name) {
     // Check SSL status
     const sslResult = await client.query('SHOW ssl');
     const sslStatus = sslResult.rows[0].ssl;
-    
+
     if (sslStatus === 'on') {
       logSuccess(`${name}: SSL is enabled`);
     } else {
@@ -120,11 +125,11 @@ async function testSSLConfiguration(client, name) {
         current_user as current_user,
         session_user as session_user
     `);
-    
+
     logInfo(`  Client IP: ${securityResult.rows[0].client_ip || 'N/A'}`);
     logInfo(`  Server IP: ${securityResult.rows[0].server_ip || 'N/A'}`);
     logInfo(`  Current user: ${securityResult.rows[0].current_user}`);
-    
+
     return true;
   } catch (error) {
     logError(`${name}: SSL configuration check failed - ${error.message}`);
@@ -136,17 +141,23 @@ async function testPermissions(client, name) {
   try {
     // Test table creation permissions
     const testTableName = `test_permissions_${Date.now()}`;
-    
-    await client.query(`CREATE TABLE IF NOT EXISTS ${testTableName} (id SERIAL PRIMARY KEY, test_col TEXT)`);
+
+    await client.query(
+      `CREATE TABLE IF NOT EXISTS ${testTableName} (id SERIAL PRIMARY KEY, test_col TEXT)`,
+    );
     logSuccess(`${name}: CREATE TABLE permission verified`);
 
     // Test insert permissions
-    await client.query(`INSERT INTO ${testTableName} (test_col) VALUES ('test_data')`);
+    await client.query(
+      `INSERT INTO ${testTableName} (test_col) VALUES ('test_data')`,
+    );
     logSuccess(`${name}: INSERT permission verified`);
 
     // Test select permissions
     const selectResult = await client.query(`SELECT * FROM ${testTableName}`);
-    logSuccess(`${name}: SELECT permission verified (${selectResult.rows.length} rows)`);
+    logSuccess(
+      `${name}: SELECT permission verified (${selectResult.rows.length} rows)`,
+    );
 
     // Test update permissions
     await client.query(`UPDATE ${testTableName} SET test_col = 'updated_data'`);
@@ -174,7 +185,7 @@ async function testConnectionPooling(connectionString, name) {
   }
 
   logInfo(`Testing connection pooling for ${name}...`);
-  
+
   const connections = [];
   const promises = [];
 
@@ -193,30 +204,32 @@ async function testConnectionPooling(connectionString, name) {
     logSuccess(`${name}: Multiple connections (5) established successfully`);
 
     // Test concurrent queries
-    const queryPromises = connections.map((client, index) => 
-      client.query(`SELECT ${index + 1} as connection_id, NOW() as timestamp`)
+    const queryPromises = connections.map((client, index) =>
+      client.query(`SELECT ${index + 1} as connection_id, NOW() as timestamp`),
     );
 
     const results = await Promise.all(queryPromises);
     logSuccess(`${name}: Concurrent queries executed successfully`);
 
     // Close all connections
-    await Promise.all(connections.map(client => client.end()));
+    await Promise.all(connections.map((client) => client.end()));
     logSuccess(`${name}: All connections closed successfully`);
 
     return true;
   } catch (error) {
     logError(`${name}: Connection pooling test failed - ${error.message}`);
-    
+
     // Cleanup on error
-    await Promise.all(connections.map(async (client) => {
-      try {
-        await client.end();
-      } catch (e) {
-        // Ignore cleanup errors
-      }
-    }));
-    
+    await Promise.all(
+      connections.map(async (client) => {
+        try {
+          await client.end();
+        } catch (e) {
+          // Ignore cleanup errors
+        }
+      }),
+    );
+
     return false;
   }
 }
@@ -229,7 +242,7 @@ async function testDatabaseQuotas(client, name) {
         pg_size_pretty(pg_database_size(current_database())) as database_size,
         current_database() as database_name
     `);
-    
+
     logInfo(`  Database size: ${dbSizeResult.rows[0].database_size}`);
 
     // Check table count
@@ -238,7 +251,7 @@ async function testDatabaseQuotas(client, name) {
       FROM information_schema.tables 
       WHERE table_schema = 'public'
     `);
-    
+
     logInfo(`  Public tables: ${tableCountResult.rows[0].table_count}`);
 
     // Check connection limits
@@ -249,8 +262,10 @@ async function testDatabaseQuotas(client, name) {
       FROM pg_settings 
       WHERE name = 'max_connections'
     `);
-    
-    logInfo(`  Max connections: ${connectionLimitResult.rows[0].max_connections}`);
+
+    logInfo(
+      `  Max connections: ${connectionLimitResult.rows[0].max_connections}`,
+    );
 
     logSuccess(`${name}: Database quota information retrieved`);
     return true;
@@ -271,22 +286,28 @@ async function testApplicationSchema(client, name) {
       ORDER BY table_name
     `);
 
-    const existingTables = tablesResult.rows.map(row => row.table_name);
-    
+    const existingTables = tablesResult.rows.map((row) => row.table_name);
+
     if (existingTables.length > 0) {
-      logSuccess(`${name}: Found application tables: ${existingTables.join(', ')}`);
-      
+      logSuccess(
+        `${name}: Found application tables: ${existingTables.join(', ')}`,
+      );
+
       // Test each table with a simple count query
       for (const table of existingTables) {
         try {
-          const countResult = await client.query(`SELECT COUNT(*) as count FROM "${table}"`);
+          const countResult = await client.query(
+            `SELECT COUNT(*) as count FROM "${table}"`,
+          );
           logInfo(`  Table "${table}": ${countResult.rows[0].count} rows`);
         } catch (error) {
           logWarning(`  Table "${table}": Query failed - ${error.message}`);
         }
       }
     } else {
-      logWarning(`${name}: No application tables found (this may be expected for a fresh database)`);
+      logWarning(
+        `${name}: No application tables found (this may be expected for a fresh database)`,
+      );
     }
 
     return true;
@@ -305,21 +326,41 @@ async function validateDatabaseConnections() {
     total: 0,
     passed: 0,
     failed: 0,
-    connections: {}
+    connections: {},
   };
 
   const testCases = [
-    { name: 'MAIN_DB', url: TEST_CONFIG.MAIN_DB, description: 'Production database (provided)' },
-    { name: 'TEST_DB', url: TEST_CONFIG.TEST_DB, description: 'Test database (DATABASE_URL)' },
-    { name: 'TEST_DB_POSTGRES', url: TEST_CONFIG.TEST_DB_POSTGRES, description: 'Test database (POSTGRES_URL)' },
-    { name: 'TEST_DB_NON_POOLING', url: TEST_CONFIG.TEST_DB_NON_POOLING, description: 'Non-pooling connection' },
-    { name: 'TEST_DB_NO_SSL', url: TEST_CONFIG.TEST_DB_NO_SSL, description: 'No SSL connection' }
+    {
+      name: 'MAIN_DB',
+      url: TEST_CONFIG.MAIN_DB,
+      description: 'Production database (provided)',
+    },
+    {
+      name: 'TEST_DB',
+      url: TEST_CONFIG.TEST_DB,
+      description: 'Test database (DATABASE_URL)',
+    },
+    {
+      name: 'TEST_DB_POSTGRES',
+      url: TEST_CONFIG.TEST_DB_POSTGRES,
+      description: 'Test database (POSTGRES_URL)',
+    },
+    {
+      name: 'TEST_DB_NON_POOLING',
+      url: TEST_CONFIG.TEST_DB_NON_POOLING,
+      description: 'Non-pooling connection',
+    },
+    {
+      name: 'TEST_DB_NO_SSL',
+      url: TEST_CONFIG.TEST_DB_NO_SSL,
+      description: 'No SSL connection',
+    },
   ];
 
   for (const testCase of testCases) {
     logHeader(`Testing ${testCase.name}`);
     results.total++;
-    
+
     const testResult = {
       connection: false,
       basicQueries: false,
@@ -327,22 +368,29 @@ async function validateDatabaseConnections() {
       permissions: false,
       pooling: false,
       quotas: false,
-      schema: false
+      schema: false,
     };
 
     // Test basic connection
-    const client = await testConnection(testCase.name, testCase.url, testCase.description);
+    const client = await testConnection(
+      testCase.name,
+      testCase.url,
+      testCase.description,
+    );
     if (client) {
       testResult.connection = true;
-      
+
       try {
         // Run all tests with the connected client
         testResult.basicQueries = await testBasicQueries(client, testCase.name);
-        testResult.sslConfig = await testSSLConfiguration(client, testCase.name);
+        testResult.sslConfig = await testSSLConfiguration(
+          client,
+          testCase.name,
+        );
         testResult.permissions = await testPermissions(client, testCase.name);
         testResult.quotas = await testDatabaseQuotas(client, testCase.name);
         testResult.schema = await testApplicationSchema(client, testCase.name);
-        
+
         await client.end();
       } catch (error) {
         logError(`${testCase.name}: Test execution failed - ${error.message}`);
@@ -356,20 +404,27 @@ async function validateDatabaseConnections() {
 
     // Test connection pooling separately
     if (testCase.url) {
-      testResult.pooling = await testConnectionPooling(testCase.url, testCase.name);
+      testResult.pooling = await testConnectionPooling(
+        testCase.url,
+        testCase.name,
+      );
     }
 
     results.connections[testCase.name] = testResult;
-    
+
     const passedTests = Object.values(testResult).filter(Boolean).length;
     const totalTests = Object.keys(testResult).length;
-    
+
     if (passedTests === totalTests) {
       results.passed++;
-      logSuccess(`${testCase.name}: All tests passed (${passedTests}/${totalTests})`);
+      logSuccess(
+        `${testCase.name}: All tests passed (${passedTests}/${totalTests})`,
+      );
     } else {
       results.failed++;
-      logWarning(`${testCase.name}: Some tests failed (${passedTests}/${totalTests})`);
+      logWarning(
+        `${testCase.name}: Some tests failed (${passedTests}/${totalTests})`,
+      );
     }
   }
 
@@ -396,8 +451,12 @@ async function validateDatabaseConnections() {
   log('Environment variables:');
   log(`  DATABASE_URL: ${process.env.DATABASE_URL ? '✅ Set' : '❌ Not set'}`);
   log(`  POSTGRES_URL: ${process.env.POSTGRES_URL ? '✅ Set' : '❌ Not set'}`);
-  log(`  POSTGRES_URL_NON_POOLING: ${process.env.POSTGRES_URL_NON_POOLING ? '✅ Set' : '❌ Not set'}`);
-  log(`  POSTGRES_URL_NO_SSL: ${process.env.POSTGRES_URL_NO_SSL ? '✅ Set' : '❌ Not set'}`);
+  log(
+    `  POSTGRES_URL_NON_POOLING: ${process.env.POSTGRES_URL_NON_POOLING ? '✅ Set' : '❌ Not set'}`,
+  );
+  log(
+    `  POSTGRES_URL_NO_SSL: ${process.env.POSTGRES_URL_NO_SSL ? '✅ Set' : '❌ Not set'}`,
+  );
 
   logHeader('RECOMMENDATIONS');
   if (results.passed === results.total) {
@@ -405,9 +464,11 @@ async function validateDatabaseConnections() {
     log('✅ Your NeonDB configuration is ready for production use.');
   } else {
     logWarning('⚠️  Some database connections need attention:');
-    
+
     for (const [name, result] of Object.entries(results.connections)) {
-      const failedTests = Object.entries(result).filter(([test, passed]) => !passed);
+      const failedTests = Object.entries(result).filter(
+        ([test, passed]) => !passed,
+      );
       if (failedTests.length > 0) {
         log(`\n${name} issues:`);
         failedTests.forEach(([test, passed]) => {

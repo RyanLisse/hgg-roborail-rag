@@ -79,20 +79,23 @@ export function getSmartSpawnConfig(): SmartSpawnDatabaseConfig {
  */
 export function getPostgresConfig(url: string) {
   const config = getSmartSpawnConfig();
-  
+
   return {
     max: config.maxConnections,
     idle_timeout: config.connectionPooling.idleTimeout,
     connect_timeout: config.connectionPooling.connectTimeout,
     prepare: !config.optimizations.disablePreparedStatements,
-    transform: config.optimizations.transformUndefinedToNull ? {
-      undefined: null,
-    } : undefined,
+    transform: config.optimizations.transformUndefinedToNull
+      ? {
+          undefined: null,
+        }
+      : undefined,
     onnotice: config.optimizations.suppressNotices ? () => {} : undefined,
     debug: config.optimizations.enableDebugMode,
     connection: {
       statement_timeout: config.connectionPooling.statementTimeout,
-      idle_in_transaction_session_timeout: config.connectionPooling.idleInTransactionTimeout,
+      idle_in_transaction_session_timeout:
+        config.connectionPooling.idleInTransactionTimeout,
     },
   };
 }
@@ -129,22 +132,30 @@ export function validateSmartSpawnConfig(): {
   // Environment-specific warnings
   if (process.env.NODE_ENV === 'production') {
     if (config.maxConnections < 5) {
-      warnings.push('Consider increasing maxConnections for production (recommended: 10+)');
+      warnings.push(
+        'Consider increasing maxConnections for production (recommended: 10+)',
+      );
     }
-    
+
     if (config.connectionTimeout < 15000) {
-      warnings.push('Consider increasing connectionTimeout for production (recommended: 30000ms+)');
+      warnings.push(
+        'Consider increasing connectionTimeout for production (recommended: 30000ms+)',
+      );
     }
   }
 
   // NeonDB-specific recommendations
   if (process.env.POSTGRES_URL?.includes('neon.tech')) {
     if (!config.optimizations.disablePreparedStatements) {
-      warnings.push('Consider disabling prepared statements for better NeonDB compatibility');
+      warnings.push(
+        'Consider disabling prepared statements for better NeonDB compatibility',
+      );
     }
-    
+
     if (config.connectionPooling.statementTimeout > 60000) {
-      warnings.push('NeonDB may timeout long-running queries (recommended: <60000ms)');
+      warnings.push(
+        'NeonDB may timeout long-running queries (recommended: <60000ms)',
+      );
     }
   }
 
@@ -164,18 +175,18 @@ export async function smartSpawnHealthCheck(client: any): Promise<{
   error?: string;
 }> {
   const startTime = Date.now();
-  
+
   try {
     await client`SELECT 1 as health_check`;
     const latency = Date.now() - startTime;
-    
+
     return {
       isHealthy: true,
       latency,
     };
   } catch (error: any) {
     const latency = Date.now() - startTime;
-    
+
     return {
       isHealthy: false,
       latency,
@@ -200,7 +211,8 @@ export function handleSmartSpawnError(error: any): {
     return {
       shouldRetry: false,
       fallbackMode: config.fallbackMode === 'graceful',
-      userMessage: 'Database quota exceeded. Operations will use fallback mode.',
+      userMessage:
+        'Database quota exceeded. Operations will use fallback mode.',
     };
   }
 
@@ -209,7 +221,8 @@ export function handleSmartSpawnError(error: any): {
     return {
       shouldRetry: true,
       fallbackMode: config.fallbackMode === 'graceful',
-      userMessage: 'Database connection timeout. Retrying with smart-spawn optimization.',
+      userMessage:
+        'Database connection timeout. Retrying with smart-spawn optimization.',
     };
   }
 
@@ -235,7 +248,8 @@ export function handleSmartSpawnError(error: any): {
   return {
     shouldRetry: true,
     fallbackMode: config.fallbackMode === 'graceful',
-    userMessage: 'Database operation failed. Smart-spawn will attempt recovery.',
+    userMessage:
+      'Database operation failed. Smart-spawn will attempt recovery.',
   };
 }
 

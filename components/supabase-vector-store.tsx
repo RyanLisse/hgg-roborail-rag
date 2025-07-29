@@ -1,23 +1,23 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import useSWR from "swr";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { useState } from 'react';
+import useSWR from 'swr';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Upload, Search, Database, FileText } from "lucide-react";
-import { fetcher } from "@/lib/utils";
+} from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Upload, Search, Database, FileText } from 'lucide-react';
+import { fetcher } from '@/lib/utils';
 
 interface VectorStoreStats {
   totalDocuments: number;
@@ -34,31 +34,31 @@ interface SearchResult {
 
 const EMBEDDING_MODELS = [
   {
-    id: "embed-v4.0",
-    name: "Cohere Embed v4.0",
-    provider: "Cohere",
+    id: 'embed-v4.0',
+    name: 'Cohere Embed v4.0',
+    provider: 'Cohere',
     dimensions: 1024,
   },
   {
-    id: "text-embedding-ada-002",
-    name: "OpenAI Ada v2",
-    provider: "OpenAI",
+    id: 'text-embedding-ada-002',
+    name: 'OpenAI Ada v2',
+    provider: 'OpenAI',
     dimensions: 1536,
   },
   {
-    id: "text-embedding-3-small",
-    name: "OpenAI Embedding v3 Small",
-    provider: "OpenAI",
+    id: 'text-embedding-3-small',
+    name: 'OpenAI Embedding v3 Small',
+    provider: 'OpenAI',
     dimensions: 1536,
   },
 ];
 
 export function SupabaseVectorStore() {
-  const [selectedModel, setSelectedModel] = useState("embed-v4.0");
+  const [selectedModel, setSelectedModel] = useState('embed-v4.0');
   const [uploadFile, setUploadFile] = useState<File | null>(null);
-  const [uploadContent, setUploadContent] = useState("");
-  const [uploadTitle, setUploadTitle] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [uploadContent, setUploadContent] = useState('');
+  const [uploadTitle, setUploadTitle] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
@@ -67,11 +67,11 @@ export function SupabaseVectorStore() {
   const { data: stats, mutate: mutateStats } = useSWR<{
     stats: VectorStoreStats;
     message: string;
-  }>("/api/vectorstore/supabase-upload", fetcher);
+  }>('/api/vectorstore/supabase-upload', fetcher);
 
   const handleFileUpload = async () => {
     if (!uploadFile && !uploadContent) {
-      alert("Please provide either a file or content to upload");
+      alert('Please provide either a file or content to upload');
       return;
     }
 
@@ -80,32 +80,32 @@ export function SupabaseVectorStore() {
       const formData = new FormData();
 
       if (uploadFile) {
-        formData.append("file", uploadFile);
+        formData.append('file', uploadFile);
       }
 
       if (uploadContent) {
-        formData.append("content", uploadContent);
+        formData.append('content', uploadContent);
       }
 
       if (uploadTitle) {
-        formData.append("title", uploadTitle);
+        formData.append('title', uploadTitle);
       }
 
       formData.append(
-        "metadata",
+        'metadata',
         JSON.stringify({
           embeddingModel: selectedModel,
           uploadedAt: new Date().toISOString(),
         }),
       );
 
-      const response = await fetch("/api/vectorstore/supabase-upload", {
-        method: "POST",
+      const response = await fetch('/api/vectorstore/supabase-upload', {
+        method: 'POST',
         body: formData,
       });
 
       if (!response.ok) {
-        throw new Error("Upload failed");
+        throw new Error('Upload failed');
       }
 
       const result = await response.json();
@@ -113,14 +113,14 @@ export function SupabaseVectorStore() {
 
       // Reset form
       setUploadFile(null);
-      setUploadContent("");
-      setUploadTitle("");
+      setUploadContent('');
+      setUploadTitle('');
 
       // Refresh stats
       mutateStats();
     } catch (error) {
-      console.error("Upload error:", error);
-      alert("Upload failed. Please try again.");
+      console.error('Upload error:', error);
+      alert('Upload failed. Please try again.');
     } finally {
       setIsUploading(false);
     }
@@ -128,16 +128,16 @@ export function SupabaseVectorStore() {
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
-      alert("Please enter a search query");
+      alert('Please enter a search query');
       return;
     }
 
     setIsSearching(true);
     try {
-      const response = await fetch("/api/vectorstore/supabase-search", {
-        method: "POST",
+      const response = await fetch('/api/vectorstore/supabase-search', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           query: searchQuery,
@@ -147,14 +147,14 @@ export function SupabaseVectorStore() {
       });
 
       if (!response.ok) {
-        throw new Error("Search failed");
+        throw new Error('Search failed');
       }
 
       const result = await response.json();
       setSearchResults(result.results);
     } catch (error) {
-      console.error("Search error:", error);
-      alert("Search failed. Please try again.");
+      console.error('Search error:', error);
+      alert('Search failed. Please try again.');
     } finally {
       setIsSearching(false);
     }
@@ -229,12 +229,12 @@ export function SupabaseVectorStore() {
             </div>
             {selectedModelInfo && (
               <div className="text-sm text-muted-foreground bg-muted p-3 rounded">
-                <strong>{selectedModelInfo.name}</strong> by{" "}
+                <strong>{selectedModelInfo.name}</strong> by{' '}
                 {selectedModelInfo.provider}
                 <br />
                 Vector dimensions: {selectedModelInfo.dimensions}
                 <br />
-                {selectedModelInfo.id === "embed-v4.0" && (
+                {selectedModelInfo.id === 'embed-v4.0' && (
                   <span className="text-green-600">
                     ✓ Recommended for Supabase pgvector
                   </span>
@@ -293,7 +293,7 @@ export function SupabaseVectorStore() {
               disabled={isUploading || (!uploadFile && !uploadContent)}
               className="w-full"
             >
-              {isUploading ? "Uploading..." : "Upload & Generate Embeddings"}
+              {isUploading ? 'Uploading...' : 'Upload & Generate Embeddings'}
             </Button>
           </div>
         </CardContent>
@@ -314,10 +314,10 @@ export function SupabaseVectorStore() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Enter your search query..."
-                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               />
               <Button onClick={handleSearch} disabled={isSearching}>
-                {isSearching ? "Searching..." : "Search"}
+                {isSearching ? 'Searching...' : 'Search'}
               </Button>
             </div>
 

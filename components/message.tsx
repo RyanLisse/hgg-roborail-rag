@@ -2,7 +2,6 @@
 
 import type { UseChatHelpers } from '@ai-sdk/react';
 import type { UIMessage } from 'ai';
-import cx from 'classnames';
 import equal from 'fast-deep-equal';
 import { AnimatePresence, motion } from 'framer-motion';
 import { memo, useState } from 'react';
@@ -163,7 +162,7 @@ const PurePreviewMessage = ({
 
                   return (
                     <div
-                      className={cx({
+                      className={cn({
                         skeleton: ['getWeather'].includes(toolName),
                       })}
                       key={toolCallId}
@@ -283,7 +282,7 @@ export const ThinkingMessage = () => {
       initial={{ y: 5, opacity: 0 }}
     >
       <div
-        className={cx(
+        className={cn(
           'flex w-full gap-4 rounded-xl group-data-[role=user]/message:ml-auto group-data-[role=user]/message:w-fit group-data-[role=user]/message:max-w-2xl group-data-[role=user]/message:px-3 group-data-[role=user]/message:py-2',
           {
             'group-data-[role=user]/message:bg-muted': true,

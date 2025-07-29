@@ -1,19 +1,19 @@
-import "server-only";
+import 'server-only';
 
-import { z } from "zod";
-import { getVectorStoreMonitoringService } from "./monitoring";
+import { z } from 'zod';
+import { getVectorStoreMonitoringService } from './monitoring';
 import {
   createPerformanceBenchmarkSuite,
   type BenchmarkConfig,
-} from "./performance-benchmarks";
+} from './performance-benchmarks';
 
 // Load testing specific schemas
 export const LoadTestScenario = z.object({
   name: z.string(),
   description: z.string(),
-  provider: z.enum(["openai", "neon", "supabase", "unified", "memory"]),
-  operation: z.enum(["search", "upload", "mixed"]),
-  loadPattern: z.enum(["constant", "ramp_up", "spike", "stress", "soak"]),
+  provider: z.enum(['openai', 'neon', 'supabase', 'unified', 'memory']),
+  operation: z.enum(['search', 'upload', 'mixed']),
+  loadPattern: z.enum(['constant', 'ramp_up', 'spike', 'stress', 'soak']),
   duration: z.number().min(1000), // milliseconds
   users: z.object({
     initial: z.number().min(1),
@@ -65,7 +65,7 @@ export const LoadTestResult = z.object({
       metric: z.string(),
       threshold: z.number(),
       actual: z.number(),
-      severity: z.enum(["warning", "critical"]),
+      severity: z.enum(['warning', 'critical']),
     }),
   ),
   resourceUsage: z.object({
@@ -165,7 +165,7 @@ class VirtualUser {
   }
 
   private selectOperation(): string {
-    if (this.scenario.operation === "mixed" && this.scenario.testData.weights) {
+    if (this.scenario.operation === 'mixed' && this.scenario.testData.weights) {
       // Weighted random selection
       const weights = this.scenario.testData.weights;
       const totalWeight = Object.values(weights).reduce(
@@ -191,29 +191,29 @@ class VirtualUser {
     let error: string | undefined;
 
     try {
-      if (operation === "search" || this.scenario.operation === "search") {
+      if (operation === 'search' || this.scenario.operation === 'search') {
         const queries = this.scenario.testData.queries || [
-          "default search query",
+          'default search query',
         ];
         const query = queries[Math.floor(Math.random() * queries.length)];
         const result = await this.vectorStoreService.searchFiles({ query });
         success = result.success;
         if (!success) {
-          error = result.message || "Search failed";
+          error = result.message || 'Search failed';
         }
       } else if (
-        operation === "upload" ||
-        this.scenario.operation === "upload"
+        operation === 'upload' ||
+        this.scenario.operation === 'upload'
       ) {
         // Create a test file for upload
         const content = `Test file content ${Math.random()}`;
         const file = new File([content], `test-${Date.now()}.txt`, {
-          type: "text/plain",
+          type: 'text/plain',
         });
         const result = await this.vectorStoreService.uploadFile({ file });
         success = !!result.id;
         if (!success) {
-          error = "Upload failed";
+          error = 'Upload failed';
         }
       }
     } catch (err) {
@@ -240,18 +240,18 @@ class VirtualUser {
 // Load pattern generators
 class LoadPatternGenerator {
   static generateUserCount(
-    pattern: LoadTestScenario["loadPattern"],
-    users: LoadTestScenario["users"],
+    pattern: LoadTestScenario['loadPattern'],
+    users: LoadTestScenario['users'],
     currentTime: number,
     totalDuration: number,
   ): number {
     const progress = currentTime / totalDuration;
 
     switch (pattern) {
-      case "constant":
+      case 'constant':
         return users.peak;
 
-      case "ramp_up":
+      case 'ramp_up':
         if (currentTime < users.rampUpTime) {
           const rampProgress = currentTime / users.rampUpTime;
           return Math.floor(
@@ -260,7 +260,7 @@ class LoadPatternGenerator {
         }
         return users.peak;
 
-      case "spike": {
+      case 'spike': {
         // Quick ramp up, then constant load
         const spikeRampTime = totalDuration * 0.1; // 10% of total time
         if (currentTime < spikeRampTime) {
@@ -272,13 +272,13 @@ class LoadPatternGenerator {
         return users.peak;
       }
 
-      case "stress": {
+      case 'stress': {
         // Gradually increase load beyond peak
         const stressMultiplier = 1 + progress;
         return Math.floor(users.peak * stressMultiplier);
       }
 
-      case "soak":
+      case 'soak':
         // Long duration constant load
         return users.peak;
 
@@ -337,7 +337,7 @@ class LoadTestResourceMonitor {
     this.cpuSamples.push(Math.random() * 100);
 
     // Memory usage
-    if (typeof process !== "undefined" && process.memoryUsage) {
+    if (typeof process !== 'undefined' && process.memoryUsage) {
       const memUsage = process.memoryUsage();
       this.memorySamples.push(memUsage.heapUsed / 1024 / 1024); // MB
     } else {
@@ -364,11 +364,11 @@ export class LoadTestingEngine {
         timeoutMs: 60_000,
         warmupIterations: 0,
         benchmarkIterations: 1,
-        providers: ["openai", "neon", "unified"],
-        testDataSizes: ["small", "medium", "large"],
+        providers: ['openai', 'neon', 'unified'],
+        testDataSizes: ['small', 'medium', 'large'],
         memoryThresholdMB: 1000,
-        outputDirectory: "./benchmark-results",
-        reportFormat: "json",
+        outputDirectory: './benchmark-results',
+        reportFormat: 'json',
       },
     );
   }
@@ -427,7 +427,7 @@ export class LoadTestingEngine {
       const duration = endTime.getTime() - startTime.getTime();
       const resourceUsage = resourceMonitor.stop();
       const passed =
-        thresholdViolations.filter((v) => v.severity === "critical").length ===
+        thresholdViolations.filter((v) => v.severity === 'critical').length ===
         0;
 
       const summary = passed
@@ -580,60 +580,60 @@ export class LoadTestingEngine {
     metric: string;
     threshold: number;
     actual: number;
-    severity: "warning" | "critical";
+    severity: 'warning' | 'critical';
   }> {
     const thresholdViolations: Array<{
       metric: string;
       threshold: number;
       actual: number;
-      severity: "warning" | "critical";
+      severity: 'warning' | 'critical';
     }> = [];
 
     if (metrics.avgResponseTime > scenario.thresholds.avgResponseTime) {
       thresholdViolations.push({
-        metric: "avgResponseTime",
+        metric: 'avgResponseTime',
         threshold: scenario.thresholds.avgResponseTime,
         actual: metrics.avgResponseTime,
         severity:
           metrics.avgResponseTime > scenario.thresholds.avgResponseTime * 1.5
-            ? "critical"
-            : "warning",
+            ? 'critical'
+            : 'warning',
       });
     }
 
     if (metrics.p95ResponseTime > scenario.thresholds.p95ResponseTime) {
       thresholdViolations.push({
-        metric: "p95ResponseTime",
+        metric: 'p95ResponseTime',
         threshold: scenario.thresholds.p95ResponseTime,
         actual: metrics.p95ResponseTime,
         severity:
           metrics.p95ResponseTime > scenario.thresholds.p95ResponseTime * 1.5
-            ? "critical"
-            : "warning",
+            ? 'critical'
+            : 'warning',
       });
     }
 
     if (metrics.errorRate > scenario.thresholds.errorRate) {
       thresholdViolations.push({
-        metric: "errorRate",
+        metric: 'errorRate',
         threshold: scenario.thresholds.errorRate,
         actual: metrics.errorRate,
         severity:
           metrics.errorRate > scenario.thresholds.errorRate * 2
-            ? "critical"
-            : "warning",
+            ? 'critical'
+            : 'warning',
       });
     }
 
     if (metrics.throughput < scenario.thresholds.throughput) {
       thresholdViolations.push({
-        metric: "throughput",
+        metric: 'throughput',
         threshold: scenario.thresholds.throughput,
         actual: metrics.throughput,
         severity:
           metrics.throughput < scenario.thresholds.throughput * 0.5
-            ? "critical"
-            : "warning",
+            ? 'critical'
+            : 'warning',
       });
     }
 
@@ -728,10 +728,10 @@ export class LoadTestingEngine {
             },
             thresholdViolations: [
               {
-                metric: "scenario_execution",
+                metric: 'scenario_execution',
                 threshold: 1,
                 actual: 0,
-                severity: "critical",
+                severity: 'critical',
               },
             ],
             resourceUsage: {
@@ -814,13 +814,13 @@ export class LoadTestingEngine {
 
     if (overallSuccessRate < 0.95) {
       recommendations.push(
-        "Overall success rate is below 95%. Investigate error causes.",
+        'Overall success rate is below 95%. Investigate error causes.',
       );
     }
 
     if (averageResponseTime > 2000) {
       recommendations.push(
-        "High average response time detected. Consider performance optimizations.",
+        'High average response time detected. Consider performance optimizations.',
       );
     }
 
@@ -860,9 +860,9 @@ export class LoadTestingEngine {
         return {
           success,
           results: success
-            ? [{ id: "1", content: `Result for: ${query}` }]
+            ? [{ id: '1', content: `Result for: ${query}` }]
             : [],
-          message: success ? "Success" : "Search failed",
+          message: success ? 'Success' : 'Search failed',
         };
       },
       uploadFile: async ({ file }: { file: File }) => {
@@ -879,11 +879,11 @@ export class LoadTestingEngine {
 // Predefined load test scenarios
 export const PREDEFINED_SCENARIOS: LoadTestScenario[] = [
   {
-    name: "Basic Search Load Test",
-    description: "Tests basic search functionality under moderate load",
-    provider: "openai",
-    operation: "search",
-    loadPattern: "constant",
+    name: 'Basic Search Load Test',
+    description: 'Tests basic search functionality under moderate load',
+    provider: 'openai',
+    operation: 'search',
+    loadPattern: 'constant',
     duration: 60_000, // 1 minute
     users: {
       initial: 5,
@@ -899,20 +899,20 @@ export const PREDEFINED_SCENARIOS: LoadTestScenario[] = [
     },
     testData: {
       queries: [
-        "machine learning algorithms",
-        "database optimization techniques",
-        "API design best practices",
-        "cloud architecture patterns",
-        "security vulnerabilities",
+        'machine learning algorithms',
+        'database optimization techniques',
+        'API design best practices',
+        'cloud architecture patterns',
+        'security vulnerabilities',
       ],
     },
   },
   {
-    name: "Spike Test - Search",
-    description: "Tests system behavior under sudden load spikes",
-    provider: "unified",
-    operation: "search",
-    loadPattern: "spike",
+    name: 'Spike Test - Search',
+    description: 'Tests system behavior under sudden load spikes',
+    provider: 'unified',
+    operation: 'search',
+    loadPattern: 'spike',
     duration: 120_000, // 2 minutes
     users: {
       initial: 2,
@@ -928,18 +928,18 @@ export const PREDEFINED_SCENARIOS: LoadTestScenario[] = [
     },
     testData: {
       queries: [
-        "complex distributed systems",
-        "microservices architecture",
-        "performance optimization",
+        'complex distributed systems',
+        'microservices architecture',
+        'performance optimization',
       ],
     },
   },
   {
-    name: "Stress Test - Mixed Operations",
-    description: "Tests system limits with mixed search and upload operations",
-    provider: "openai",
-    operation: "mixed",
-    loadPattern: "stress",
+    name: 'Stress Test - Mixed Operations',
+    description: 'Tests system limits with mixed search and upload operations',
+    provider: 'openai',
+    operation: 'mixed',
+    loadPattern: 'stress',
     duration: 180_000, // 3 minutes
     users: {
       initial: 5,
@@ -955,9 +955,9 @@ export const PREDEFINED_SCENARIOS: LoadTestScenario[] = [
     },
     testData: {
       queries: [
-        "system integration",
-        "data processing pipelines",
-        "real-time analytics",
+        'system integration',
+        'data processing pipelines',
+        'real-time analytics',
       ],
       weights: {
         search: 0.8,
@@ -966,11 +966,11 @@ export const PREDEFINED_SCENARIOS: LoadTestScenario[] = [
     },
   },
   {
-    name: "Soak Test - Extended Load",
-    description: "Tests system stability over extended periods",
-    provider: "unified",
-    operation: "search",
-    loadPattern: "soak",
+    name: 'Soak Test - Extended Load',
+    description: 'Tests system stability over extended periods',
+    provider: 'unified',
+    operation: 'search',
+    loadPattern: 'soak',
     duration: 600_000, // 10 minutes
     users: {
       initial: 8,
@@ -986,10 +986,10 @@ export const PREDEFINED_SCENARIOS: LoadTestScenario[] = [
     },
     testData: {
       queries: [
-        "long running processes",
-        "memory management",
-        "resource optimization",
-        "concurrent operations",
+        'long running processes',
+        'memory management',
+        'resource optimization',
+        'concurrent operations',
       ],
     },
   },

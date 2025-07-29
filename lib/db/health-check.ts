@@ -21,8 +21,9 @@ export interface DatabaseHealthStatus {
  */
 export async function checkDatabaseHealth(): Promise<DatabaseHealthStatus> {
   const startTime = Date.now();
-  const isTestMode = process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT === 'true';
-  
+  const isTestMode =
+    process.env.NODE_ENV === 'test' || process.env.PLAYWRIGHT === 'true';
+
   const baseStatus: DatabaseHealthStatus = {
     isConnected: false,
     status: 'unavailable',
@@ -74,9 +75,9 @@ export async function checkDatabaseHealth(): Promise<DatabaseHealthStatus> {
 
     // Test basic connectivity
     await client`SELECT 1 as test, version() as db_version`;
-    
+
     const responseTime = Date.now() - startTime;
-    
+
     return {
       ...baseStatus,
       isConnected: true,
@@ -87,10 +88,9 @@ export async function checkDatabaseHealth(): Promise<DatabaseHealthStatus> {
       },
       recommendations: ['Database connection is healthy'],
     };
-
   } catch (error: any) {
     const responseTime = Date.now() - startTime;
-    
+
     // Analyze specific error types
     const errorMessage = error.message || 'Unknown database error';
     let status: 'degraded' | 'unavailable' = 'unavailable';
@@ -102,7 +102,7 @@ export async function checkDatabaseHealth(): Promise<DatabaseHealthStatus> {
         '🚨 Database quota exceeded',
         '💰 Upgrade your NeonDB plan to increase limits',
         '🔄 Consider using a different database provider',
-        '📊 Monitor your database usage patterns'
+        '📊 Monitor your database usage patterns',
       );
     } else if (errorMessage.includes('connection')) {
       status = 'degraded';
@@ -110,7 +110,7 @@ export async function checkDatabaseHealth(): Promise<DatabaseHealthStatus> {
         '🔌 Database connection failed',
         '🌐 Check your network connectivity',
         '🔑 Verify database credentials',
-        '🔒 Ensure SSL/TLS configuration is correct'
+        '🔒 Ensure SSL/TLS configuration is correct',
       );
     } else if (errorMessage.includes('timeout')) {
       status = 'degraded';
@@ -118,14 +118,14 @@ export async function checkDatabaseHealth(): Promise<DatabaseHealthStatus> {
         '⏰ Database connection timeout',
         '🌐 Check network latency to database server',
         '📈 Monitor database server performance',
-        '⚙️ Consider adjusting connection timeout settings'
+        '⚙️ Consider adjusting connection timeout settings',
       );
     } else {
       recommendations.push(
         '💥 Unexpected database error',
         '📋 Check database server logs',
         '🔍 Review connection string format',
-        '📞 Contact database provider support if needed'
+        '📞 Contact database provider support if needed',
       );
     }
 
@@ -139,7 +139,6 @@ export async function checkDatabaseHealth(): Promise<DatabaseHealthStatus> {
       },
       recommendations,
     };
-
   } finally {
     // Clean up connection
     if (client) {
@@ -155,7 +154,10 @@ export async function checkDatabaseHealth(): Promise<DatabaseHealthStatus> {
 /**
  * Quick database status check (for API endpoints)
  */
-export async function quickDatabaseStatus(): Promise<{ status: string; connected: boolean }> {
+export async function quickDatabaseStatus(): Promise<{
+  status: string;
+  connected: boolean;
+}> {
   try {
     const health = await checkDatabaseHealth();
     return {
@@ -175,15 +177,16 @@ export async function quickDatabaseStatus(): Promise<{ status: string; connected
  */
 export function formatHealthCheckResults(health: DatabaseHealthStatus): string {
   const { status, isConnected, error, details, recommendations } = health;
-  
+
   let output = '\n📊 Database Health Check Results\n';
   output += '═'.repeat(40) + '\n';
-  
+
   // Status indicator
-  const statusIcon = status === 'healthy' ? '✅' : status === 'degraded' ? '⚠️' : '❌';
+  const statusIcon =
+    status === 'healthy' ? '✅' : status === 'degraded' ? '⚠️' : '❌';
   output += `${statusIcon} Status: ${status.toUpperCase()}\n`;
   output += `🔗 Connected: ${isConnected ? 'YES' : 'NO'}\n`;
-  
+
   // Connection details
   output += `\n📋 Connection Details:\n`;
   output += `  • Connection String: ${details.connectionString}\n`;
@@ -193,21 +196,21 @@ export function formatHealthCheckResults(health: DatabaseHealthStatus): string {
   if (details.responseTime) {
     output += `  • Response Time: ${details.responseTime}ms\n`;
   }
-  
+
   // Error details
   if (error) {
     output += `\n❌ Error: ${error}\n`;
   }
-  
+
   // Recommendations
   if (recommendations.length > 0) {
     output += `\n💡 Recommendations:\n`;
-    recommendations.forEach(rec => {
+    recommendations.forEach((rec) => {
       output += `  • ${rec}\n`;
     });
   }
-  
+
   output += '═'.repeat(40) + '\n';
-  
+
   return output;
 }

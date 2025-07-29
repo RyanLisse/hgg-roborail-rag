@@ -183,11 +183,11 @@ function accumulateTotals(metrics: any): {
   let totalLatency = 0;
   let latencyCount = 0;
 
-  totalRequests += metrics.totalRequests || 0;
-  totalSuccessful += metrics.successfulRequests || 0;
-  totalFailed += metrics.failedRequests || 0;
-  totalRetries += metrics.retriedRequests || 0;
-  totalFallbacks += metrics.fallbackActivations || 0;
+  totalRequests += metrics.totalRequests ?? 0;
+  totalSuccessful += metrics.successfulRequests ?? 0;
+  totalFailed += metrics.failedRequests ?? 0;
+  totalRetries += metrics.retriedRequests ?? 0;
+  totalFallbacks += metrics.fallbackActivations ?? 0;
 
   if (metrics.averageLatency > 0) {
     totalLatency += metrics.averageLatency;
@@ -299,11 +299,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     const requestData = MetricsRequest.parse({
       services: servicesParam ? servicesParam.split(',') : undefined,
-      timeRange: timeRangeParam || '24h',
+      timeRange: timeRangeParam ?? '24h',
       includeDetails: includeDetailsParam === 'true',
     });
 
-    const requestedServices = requestData.services || ['all'];
+    const requestedServices = requestData.services ?? ['all'];
 
     const { services, totals } = await gatherServiceMetrics(requestedServices);
     const {
@@ -450,7 +450,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       })
       .parse(body);
 
-    const servicesToReset = resetRequest.services || ['all'];
+    const servicesToReset = resetRequest.services ?? ['all'];
     const resetResults = await gatherResetOperations(servicesToReset);
 
     return NextResponse.json({

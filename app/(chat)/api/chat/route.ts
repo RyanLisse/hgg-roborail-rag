@@ -1,26 +1,26 @@
-import { geolocation } from "@vercel/functions";
-import type { UIMessage } from "ai";
+import { geolocation } from '@vercel/functions';
+import type { UIMessage } from 'ai';
 import {
   appendClientMessage,
   appendResponseMessages,
   createDataStream,
   smoothStream,
   streamText,
-} from "ai";
-import { differenceInSeconds } from "date-fns";
-import { NextResponse } from "next/server";
-import { auth, type UserType } from "@/app/(auth)/auth";
-import type { Session } from "next-auth";
-import { entitlementsByUserType } from "@/lib/ai/entitlements";
-import { type RequestHints, systemPrompt } from "@/lib/ai/prompts";
-import { myProvider } from "@/lib/ai/providers";
-import { createDocument } from "@/lib/ai/tools/create-document";
-import { enhancedSearch } from "@/lib/ai/tools/enhanced-search";
-import { getWeather } from "@/lib/ai/tools/get-weather";
-import { requestSuggestions } from "@/lib/ai/tools/request-suggestions";
-import { searchDocuments } from "@/lib/ai/tools/search-documents";
-import { updateDocument } from "@/lib/ai/tools/update-document";
-import { isProductionEnvironment } from "@/lib/constants";
+} from 'ai';
+import { differenceInSeconds } from 'date-fns';
+import { NextResponse } from 'next/server';
+import { auth, type UserType } from '@/app/(auth)/auth';
+import type { Session } from 'next-auth';
+import { entitlementsByUserType } from '@/lib/ai/entitlements';
+import { type RequestHints, systemPrompt } from '@/lib/ai/prompts';
+import { myProvider } from '@/lib/ai/providers';
+import { createDocument } from '@/lib/ai/tools/create-document';
+import { enhancedSearch } from '@/lib/ai/tools/enhanced-search';
+import { getWeather } from '@/lib/ai/tools/get-weather';
+import { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
+import { searchDocuments } from '@/lib/ai/tools/search-documents';
+import { updateDocument } from '@/lib/ai/tools/update-document';
+import { isProductionEnvironment } from '@/lib/constants';
 import {
   createStreamId,
   deleteChatById,
@@ -30,16 +30,16 @@ import {
   getStreamIdsByChatId,
   saveChat,
   saveMessages,
-} from "@/lib/db/queries";
-import type { Chat, DBMessage } from "@/lib/db/schema";
-import { initializeDI, isDIInitialized } from "@/lib/di";
-import { resolve, ServiceTokens } from "@/lib/di/container";
-import { ChatSDKError } from "@/lib/errors";
-import { generateUUID, getTrailingMessageId } from "@/lib/utils";
-import { checkEnvironment } from "@/lib/utils/env-check";
-import { generateTitleFromUserMessage } from "../../actions";
-import { type PostRequestBody, postRequestBodySchema } from "./schema";
-import type { VisibilityType } from "@/components/visibility-selector";
+} from '@/lib/db/queries';
+import type { Chat, DBMessage } from '@/lib/db/schema';
+import { initializeDI, isDIInitialized } from '@/lib/di';
+import { resolve, ServiceTokens } from '@/lib/di/container';
+import { ChatSDKError } from '@/lib/errors';
+import { generateUUID, getTrailingMessageId } from '@/lib/utils';
+import { checkEnvironment } from '@/lib/utils/env-check';
+import { generateTitleFromUserMessage } from '../../actions';
+import { type PostRequestBody, postRequestBodySchema } from './schema';
+import type { VisibilityType } from '@/components/visibility-selector';
 
 export const maxDuration = 60;
 
@@ -47,13 +47,13 @@ export const maxDuration = 60;
 const convertToUIMessages = (dbMessages: DBMessage[]): UIMessage[] => {
   return dbMessages.map((msg) => ({
     id: msg.id,
-    parts: msg.parts as UIMessage["parts"],
-    role: msg.role as UIMessage["role"],
-    content: "", // Note: content will soon be deprecated in @ai-sdk/react
+    parts: msg.parts as UIMessage['parts'],
+    role: msg.role as UIMessage['role'],
+    content: '', // Note: content will soon be deprecated in @ai-sdk/react
     createdAt:
       msg.createdAt instanceof Date ? msg.createdAt : new Date(msg.createdAt),
     experimental_attachments:
-      (msg.attachments as UIMessage["experimental_attachments"]) || [],
+      (msg.attachments as UIMessage['experimental_attachments']) ?? [],
   }));
 };
 
@@ -75,7 +75,7 @@ function validateEnvironmentAndInitDI(): NextResponse | null {
   if (!envStatus.isValid) {
     return NextResponse.json(
       {
-        error: "Service unavailable - configuration issues",
+        error: 'Service unavailable - configuration issues',
         details: envStatus.errors,
       },
       { status: 503 },
@@ -106,7 +106,7 @@ function validateAndFallbackModel(selectedChatModel: string): string {
     const _testModel = myProvider.languageModel(selectedChatModel);
     return selectedChatModel;
   } catch (_error) {
-    return "openai-gpt-4.1-mini"; // Fast fallback model
+    return 'openai-gpt-4.1-mini'; // Fast fallback model
   }
 }
 
@@ -117,12 +117,12 @@ async function checkRateLimit(user: {
 }): Promise<Response | null> {
   // Performance optimization: Use cache for rate limit checks
   try {
-    const { getSmartCache } = await import("@/lib/cache");
+    const { getSmartCache } = await import('@/lib/cache');
     const smartCache = await getSmartCache();
 
     const cacheKey = `rate-limit:${user.id}:${new Date().toDateString()}`;
     let messageCount = await smartCache.getCachedHealthCheck(
-      "rate-limit",
+      'rate-limit',
       cacheKey,
     );
 
@@ -134,7 +134,7 @@ async function checkRateLimit(user: {
 
       // Cache for 5 minutes to avoid repeated DB queries
       await smartCache.cacheHealthCheck(
-        "rate-limit",
+        'rate-limit',
         cacheKey,
         messageCount,
         5 * 60 * 1000,
@@ -142,7 +142,7 @@ async function checkRateLimit(user: {
     }
 
     if (messageCount > entitlementsByUserType[user.type].maxMessagesPerDay) {
-      return new ChatSDKError("rate_limit:chat").toResponse();
+      return new ChatSDKError('rate_limit:chat').toResponse();
     }
 
     return null;
@@ -154,7 +154,7 @@ async function checkRateLimit(user: {
     });
 
     if (messageCount > entitlementsByUserType[user.type].maxMessagesPerDay) {
-      return new ChatSDKError("rate_limit:chat").toResponse();
+      return new ChatSDKError('rate_limit:chat').toResponse();
     }
 
     return null;
@@ -172,7 +172,7 @@ async function initializeOrValidateChat(
 
   if (chat) {
     if (chat.userId !== userId) {
-      return new ChatSDKError("forbidden:chat").toResponse();
+      return new ChatSDKError('forbidden:chat').toResponse();
     }
   } else {
     // Ensure the message has the correct date type for title generation
@@ -240,7 +240,7 @@ async function setupMessagesAndContext(
   // Convert Message[] to UIMessage[] by ensuring parts is not undefined
   const messages: UIMessage[] = rawMessages.map((msg) => ({
     ...msg,
-    parts: msg.parts || [],
+    parts: msg.parts ?? [],
   }));
 
   const { longitude, latitude, city, country } = geolocation(request);
@@ -257,8 +257,8 @@ async function setupMessagesAndContext(
       {
         chatId: id,
         id: normalizedMessage.id,
-        role: "user",
-        parts: normalizedMessage.parts || [],
+        role: 'user',
+        parts: normalizedMessage.parts ?? [],
         attachments: normalizedMessage.experimental_attachments ?? [],
         createdAt: new Date(),
       },
@@ -290,18 +290,18 @@ function createStreamForChat(
           messages,
           maxSteps: 5,
           experimental_activeTools:
-            modelToUse === "chat-model-reasoning"
+            modelToUse === 'chat-model-reasoning'
               ? []
               : [
-                  "getWeather",
-                  "createDocument",
-                  "updateDocument",
-                  "requestSuggestions",
+                  'getWeather',
+                  'createDocument',
+                  'updateDocument',
+                  'requestSuggestions',
                   ...(selectedSources && selectedSources.length > 0
-                    ? ["enhancedSearch" as const, "searchDocuments" as const]
+                    ? ['enhancedSearch' as const, 'searchDocuments' as const]
                     : []),
                 ],
-          experimental_transform: smoothStream({ chunking: "word" }),
+          experimental_transform: smoothStream({ chunking: 'word' }),
           experimental_generateMessageId: generateUUID,
           tools: {
             getWeather,
@@ -313,34 +313,34 @@ function createStreamForChat(
             }),
             searchDocuments: searchDocuments(
               (selectedSources as (
-                | "openai"
-                | "neon"
-                | "memory"
-                | "unified"
-              )[]) || ["memory"],
+                | 'openai'
+                | 'neon'
+                | 'memory'
+                | 'unified'
+              )[]) ?? ['memory'],
               // Pass recent conversation history for context-aware optimization
               messages
                 .filter(
-                  (msg) => msg.role === "user" || msg.role === "assistant",
+                  (msg) => msg.role === 'user' || msg.role === 'assistant',
                 )
                 .slice(-10) // Last 10 messages for context
                 .map((msg) => ({
-                  role: msg.role as "user" | "assistant",
+                  role: msg.role as 'user' | 'assistant',
                   content: Array.isArray(msg.content)
                     ? msg.content
-                        .map((c) => (c.type === "text" ? c.text : ""))
-                        .join(" ")
-                    : msg.content || "",
+                        .map((c) => (c.type === 'text' ? c.text : ''))
+                        .join(' ')
+                    : msg.content ?? '',
                   timestamp: Date.now(), // Use current time as approximation
                 })),
             ),
             enhancedSearch: enhancedSearch(
               (selectedSources as (
-                | "openai"
-                | "neon"
-                | "memory"
-                | "unified"
-              )[]) || ["memory"],
+                | 'openai'
+                | 'neon'
+                | 'memory'
+                | 'unified'
+              )[]) ?? ['memory'],
             ),
           },
           onFinish: async ({ response }) => {
@@ -348,12 +348,12 @@ function createStreamForChat(
               try {
                 const assistantId = getTrailingMessageId({
                   messages: response.messages.filter(
-                    (msg) => msg.role === "assistant",
+                    (msg) => msg.role === 'assistant',
                   ),
                 });
 
                 if (!assistantId) {
-                  throw new Error("No assistant message found!");
+                  throw new Error('No assistant message found!');
                 }
 
                 const [, assistantMessage] = appendResponseMessages({
@@ -361,19 +361,21 @@ function createStreamForChat(
                   responseMessages: response.messages,
                 });
 
-                await saveMessages({
-                  messages: [
-                    {
-                      id: assistantId,
-                      chatId: id,
-                      role: assistantMessage.role,
-                      parts: assistantMessage.parts,
-                      attachments:
-                        assistantMessage.experimental_attachments ?? [],
-                      createdAt: new Date(),
-                    },
-                  ],
-                });
+                if (assistantMessage) {
+                  await saveMessages({
+                    messages: [
+                      {
+                        id: assistantId,
+                        chatId: id,
+                        role: assistantMessage.role,
+                        parts: assistantMessage.parts,
+                        attachments:
+                          assistantMessage.experimental_attachments ?? [],
+                        createdAt: new Date(),
+                      },
+                    ],
+                  });
+                }
               } catch (_) {
                 // Failed to save messages - continue streaming
               }
@@ -381,7 +383,7 @@ function createStreamForChat(
           },
           experimental_telemetry: {
             isEnabled: isProductionEnvironment,
-            functionId: "stream-text",
+            functionId: 'stream-text',
           },
         });
 
@@ -392,13 +394,13 @@ function createStreamForChat(
         });
       } catch (_streamError) {
         dataStream.writeData({
-          type: "error",
-          content: "Failed to initialize AI model. Please try again.",
+          type: 'error',
+          content: 'Failed to initialize AI model. Please try again.',
         });
       }
     },
     onError: () => {
-      return "Oops, an error occurred!";
+      return 'Oops, an error occurred!';
     },
   });
 }
@@ -415,7 +417,7 @@ export async function POST(request: Request) {
   try {
     requestBody = await parseRequestBody(request);
   } catch (_) {
-    return new ChatSDKError("bad_request:api").toResponse();
+    return new ChatSDKError('bad_request:api').toResponse();
   }
 
   try {
@@ -432,7 +434,7 @@ export async function POST(request: Request) {
     const session = await auth();
 
     if (!session?.user) {
-      return new ChatSDKError("unauthorized:chat").toResponse();
+      return new ChatSDKError('unauthorized:chat').toResponse();
     }
 
     // Check rate limits
@@ -454,6 +456,7 @@ export async function POST(request: Request) {
     const normalizedMessageForCalls: UIMessage = {
       ...message,
       createdAt: normalizedCreatedAt,
+      experimental_attachments: message.experimental_attachments ?? undefined,
     };
 
     // Handle chat initialization
@@ -494,12 +497,12 @@ export async function POST(request: Request) {
     // Handle all other errors with a generic 500 response
     return new Response(
       JSON.stringify({
-        code: "internal_server_error:chat",
-        message: "An unexpected error occurred. Please try again later.",
+        code: 'internal_server_error:chat',
+        message: 'An unexpected error occurred. Please try again later.',
       }),
       {
         status: 500,
-        headers: { "Content-Type": "application/json" },
+        headers: { 'Content-Type': 'application/json' },
       },
     );
   }
@@ -515,15 +518,15 @@ async function validateStreamResumeRequest(
   }
 
   const { searchParams } = new URL(request.url);
-  const chatId = searchParams.get("chatId");
+  const chatId = searchParams.get('chatId');
 
   if (!chatId) {
-    return new ChatSDKError("bad_request:api").toResponse();
+    return new ChatSDKError('bad_request:api').toResponse();
   }
 
   const session = await auth();
   if (!session?.user) {
-    return new ChatSDKError("unauthorized:chat").toResponse();
+    return new ChatSDKError('unauthorized:chat').toResponse();
   }
 
   return { chatId, session };
@@ -539,15 +542,15 @@ async function validateChatAccess(
   try {
     chat = await getChatById({ id: chatId });
   } catch {
-    return new ChatSDKError("not_found:chat").toResponse();
+    return new ChatSDKError('not_found:chat').toResponse();
   }
 
   if (!chat) {
-    return new ChatSDKError("not_found:chat").toResponse();
+    return new ChatSDKError('not_found:chat').toResponse();
   }
 
-  if (chat.visibility === "private" && chat.userId !== userId) {
-    return new ChatSDKError("forbidden:chat").toResponse();
+  if (chat.visibility === 'private' && chat.userId !== userId) {
+    return new ChatSDKError('forbidden:chat').toResponse();
   }
 
   return chat;
@@ -562,7 +565,7 @@ function createRestoredStreamFromMessage(
   return getMessagesByChatId({ id: chatId }).then((messages) => {
     const mostRecentMessage = messages.at(-1);
 
-    if (!mostRecentMessage || mostRecentMessage.role !== "assistant") {
+    if (!mostRecentMessage || mostRecentMessage.role !== 'assistant') {
       return new Response(emptyDataStream, { status: 200 });
     }
 
@@ -574,7 +577,7 @@ function createRestoredStreamFromMessage(
     const restoredStream = createDataStream({
       execute: (buffer) => {
         buffer.writeData({
-          type: "append-message",
+          type: 'append-message',
           message: JSON.stringify(mostRecentMessage),
         });
       },
@@ -603,7 +606,7 @@ export async function GET(request: Request) {
   // Check for valid stream
   const streamIds = await getStreamIdsByChatId({ chatId });
   if (!(streamIds.length && streamIds.at(-1))) {
-    return new ChatSDKError("not_found:stream").toResponse();
+    return new ChatSDKError('not_found:stream').toResponse();
   }
 
   const emptyDataStream = createDataStream({
@@ -628,22 +631,22 @@ export async function GET(request: Request) {
 
 export async function DELETE(request: Request) {
   const { searchParams } = new URL(request.url);
-  const id = searchParams.get("id");
+  const id = searchParams.get('id');
 
   if (!id) {
-    return new ChatSDKError("bad_request:api").toResponse();
+    return new ChatSDKError('bad_request:api').toResponse();
   }
 
   const session = await auth();
 
   if (!session?.user) {
-    return new ChatSDKError("unauthorized:chat").toResponse();
+    return new ChatSDKError('unauthorized:chat').toResponse();
   }
 
   const chat = await getChatById({ id });
 
   if (chat.userId !== session.user.id) {
-    return new ChatSDKError("forbidden:chat").toResponse();
+    return new ChatSDKError('forbidden:chat').toResponse();
   }
 
   const deletedChat = await deleteChatById({ id });

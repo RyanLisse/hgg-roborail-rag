@@ -19,11 +19,11 @@ import type { VisibilityType } from '@/components/visibility-selector';
 import { POSTGRES_URL } from '../env';
 import { ChatSDKError } from '../errors';
 import { generateUUID } from '../utils';
-import { 
-  getSmartSpawnConfig, 
-  getPostgresConfig, 
+import {
+  getSmartSpawnConfig,
+  getPostgresConfig,
   handleSmartSpawnError,
-  smartSpawnHealthCheck 
+  smartSpawnHealthCheck,
 } from '../smart-spawn-config';
 import {
   type Chat,
@@ -53,26 +53,34 @@ let connectionAttempted = false;
 const SMART_SPAWN_CONFIG = getSmartSpawnConfig();
 
 async function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 async function createConnectionWithRetry(): Promise<any> {
   let lastError: any = null;
-  
-  for (let attempt = 1; attempt <= SMART_SPAWN_CONFIG.retryAttempts; attempt++) {
+
+  for (
+    let attempt = 1;
+    attempt <= SMART_SPAWN_CONFIG.retryAttempts;
+    attempt++
+  ) {
     try {
-      console.log(`🔄 Database connection attempt ${attempt}/${SMART_SPAWN_CONFIG.retryAttempts}`);
-      
+      console.log(
+        `🔄 Database connection attempt ${attempt}/${SMART_SPAWN_CONFIG.retryAttempts}`,
+      );
+
       // Use optimized PostgreSQL configuration from smart-spawn
       const connectionConfig = getPostgresConfig(POSTGRES_URL);
 
       const client = postgres(POSTGRES_URL, connectionConfig);
-      
+
       // Test connection and perform health check
       const healthCheck = await smartSpawnHealthCheck(client);
-      
+
       if (healthCheck.isHealthy) {
-        console.log(`✅ Database connected successfully on attempt ${attempt} (latency: ${healthCheck.latency}ms)`);
+        console.log(
+          `✅ Database connected successfully on attempt ${attempt} (latency: ${healthCheck.latency}ms)`,
+        );
         return client;
       } else {
         throw new Error(`Health check failed: ${healthCheck.error}`);
@@ -80,20 +88,23 @@ async function createConnectionWithRetry(): Promise<any> {
     } catch (error: any) {
       lastError = error;
       const errorInfo = handleSmartSpawnError(error);
-      
+
       console.warn(`⚠️ Connection attempt ${attempt} failed:`, error.message);
       console.warn(`🔧 Smart-spawn analysis:`, errorInfo.userMessage);
-      
-      if (!errorInfo.shouldRetry || attempt >= SMART_SPAWN_CONFIG.retryAttempts) {
+
+      if (
+        !errorInfo.shouldRetry ||
+        attempt >= SMART_SPAWN_CONFIG.retryAttempts
+      ) {
         break;
       }
-      
+
       const delay = SMART_SPAWN_CONFIG.retryDelay * attempt; // Exponential backoff
       console.log(`⏳ Waiting ${delay}ms before retry...`);
       await sleep(delay);
     }
   }
-  
+
   throw lastError;
 }
 
@@ -107,7 +118,7 @@ function initializeDatabase() {
   try {
     // Check if we're in test mode first
     const isTestMode =
-      process.env.NODE_ENV === 'test' || 
+      process.env.NODE_ENV === 'test' ||
       process.env.PLAYWRIGHT === 'true' ||
       SMART_SPAWN_CONFIG.testMode;
 
@@ -118,7 +129,9 @@ function initializeDatabase() {
 
     // Check if POSTGRES_URL is available
     if (!POSTGRES_URL) {
-      console.warn('⚠️ POSTGRES_URL not set - database operations will use fallback mode');
+      console.warn(
+        '⚠️ POSTGRES_URL not set - database operations will use fallback mode',
+      );
       return null;
     }
 
@@ -130,8 +143,11 @@ function initializeDatabase() {
         console.log('🚀 Smart-Spawn database initialization complete');
       })
       .catch((error) => {
-        console.error('💥 Smart-Spawn database initialization failed after all retries:', error.message);
-        
+        console.error(
+          '💥 Smart-Spawn database initialization failed after all retries:',
+          error.message,
+        );
+
         if (SMART_SPAWN_CONFIG.fallbackMode === 'graceful') {
           console.log('🔄 Switching to graceful fallback mode');
           client = null;
@@ -147,23 +163,25 @@ function initializeDatabase() {
     basicConfig.max = 1;
     basicConfig.idle_timeout = 30;
     basicConfig.connect_timeout = 10;
-    
+
     client = postgres(POSTGRES_URL, basicConfig);
     db = drizzle(client);
     return db;
   } catch (error: any) {
     // Use smart-spawn enhanced error handling
     const errorInfo = handleSmartSpawnError(error);
-    
+
     console.error('💥 Database initialization failed:', error.message);
     console.error('🔧 Smart-spawn analysis:', errorInfo.userMessage);
-    
+
     // In graceful fallback mode, return null instead of throwing
     if (errorInfo.fallbackMode) {
-      console.log('🛡️ Graceful fallback activated - operations will use mock data');
+      console.log(
+        '🛡️ Graceful fallback activated - operations will use mock data',
+      );
       return null;
     }
-    
+
     return null;
   }
 }
@@ -336,7 +354,9 @@ export async function getChatsByUserId({
 
   // If database is not available (test mode), use mock implementation
   if (!database) {
-    const { getChatsByUserId: mockGetChatsByUserId } = await import('./queries.mock');
+    const { getChatsByUserId: mockGetChatsByUserId } = await import(
+      './queries.mock'
+    );
     return mockGetChatsByUserId({ id, limit, startingAfter, endingBefore });
   }
 
@@ -833,7 +853,8 @@ export async function getMessageCountByUserId({
 
   // If database is not available (test mode), use mock implementation
   if (!database) {
-    const { getMessageCountByUserId: mockGetMessageCountByUserId } = await import('./queries.mock');
+    const { getMessageCountByUserId: mockGetMessageCountByUserId } =
+      await import('./queries.mock');
     return mockGetMessageCountByUserId({ id, differenceInHours });
   }
 

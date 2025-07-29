@@ -1,10 +1,10 @@
-import { embed } from "ai";
-import { sql } from "drizzle-orm";
-import { getEmbeddingModelInstance } from "../ai/providers";
-import { getDb } from "../db/queries";
-import { embedding, document as documentTable } from "../db/schema";
-import type { Document as ChunkingDocument } from "./chunking";
-import { createChunkingService } from "./chunking";
+import { embed } from 'ai';
+import { sql } from 'drizzle-orm';
+import { getEmbeddingModelInstance } from '../ai/providers';
+import { getDb } from '../db/queries';
+import { embedding, document as documentTable } from '../db/schema';
+import type { Document as ChunkingDocument } from './chunking';
+import { createChunkingService } from './chunking';
 
 export interface SupabaseRAGDocument {
   id: string;
@@ -24,7 +24,7 @@ export interface EmbeddingResult {
 export class SupabaseRAGService {
   private readonly chunkingService = createChunkingService();
   private readonly embeddingModel =
-    getEmbeddingModelInstance("cohere-embed-v4.0");
+    getEmbeddingModelInstance('cohere-embed-v4.0');
 
   /**
    * Upload a document and generate embeddings
@@ -35,7 +35,7 @@ export class SupabaseRAGService {
   ): Promise<void> {
     const database = getDb();
     if (!database) {
-      throw new Error("Database not available");
+      throw new Error('Database not available');
     }
 
     // First, save the document
@@ -45,7 +45,7 @@ export class SupabaseRAGService {
         id: doc.id,
         title: doc.title,
         content: doc.content,
-        kind: "text",
+        kind: 'text',
         userId,
         createdAt: new Date(),
       })
@@ -55,7 +55,7 @@ export class SupabaseRAGService {
     const chunkingDoc: ChunkingDocument = {
       id: doc.id,
       content: doc.content,
-      type: "text",
+      type: 'text',
       metadata: {
         title: doc.title,
         ...(doc.metadata || {}),
@@ -102,7 +102,7 @@ export class SupabaseRAGService {
   ): Promise<EmbeddingResult[]> {
     const database = getDb();
     if (!database) {
-      throw new Error("Database not available");
+      throw new Error('Database not available');
     }
 
     // Generate embedding for the query
@@ -166,7 +166,7 @@ export class SupabaseRAGService {
     // Prepare context from sources
     const context = sources
       .map((source, index) => `[${index + 1}] ${source.content}`)
-      .join("\n\n");
+      .join('\n\n');
 
     // For now, return the context and sources
     // In a full implementation, you'd use generateText() here with the system prompt
@@ -184,7 +184,7 @@ export class SupabaseRAGService {
   async deleteDocument(documentId: string): Promise<void> {
     const database = getDb();
     if (!database) {
-      throw new Error("Database not available");
+      throw new Error('Database not available');
     }
 
     await database
@@ -201,7 +201,7 @@ export class SupabaseRAGService {
   }> {
     const database = getDb();
     if (!database) {
-      throw new Error("Database not available");
+      throw new Error('Database not available');
     }
 
     const [docCount] = await database

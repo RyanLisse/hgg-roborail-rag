@@ -1,17 +1,22 @@
+import '@testing-library/jest-dom/vitest';
 import { vi } from 'vitest';
-import '@testing-library/jest-dom';
 import { resolve } from 'node:path';
 import dotenv from 'dotenv';
+import { mockRegistry } from './utils/mock-providers';
+import { configUtils, TEST_CONFIG } from './utils/test-config';
 
 // Load environment variables from .env.local first to get real DB credentials
 dotenv.config({ path: resolve(__dirname, '../.env.local') });
 
-// Mock server-only module to prevent client component errors in tests
-vi.mock('server-only', () => ({}));
+// Setup global mocks early using centralized registry
+mockRegistry.presets.unit();
 
 // Set test environment AFTER loading .env.local so our database logic can see the real credentials
 // but still detect test mode and skip connections
 process.env.NODE_ENV = 'test';
+
+// Create standardized test environment
+configUtils.createTestEnv();
 
 // Use actual environment variables from .env.local, with fallbacks for testing
 process.env.OPENAI_API_KEY = process.env.OPENAI_API_KEY || 'sk-test-openai-key';
@@ -37,78 +42,75 @@ process.env.LANGCHAIN_API_KEY =
 process.env.LANGCHAIN_PROJECT = process.env.LANGCHAIN_PROJECT || 'test-project';
 process.env.LANGCHAIN_TRACING_V2 = process.env.LANGCHAIN_TRACING_V2 || 'false';
 
-// Mock next-auth
-vi.mock('next-auth/react', () => ({
-  useSession: vi.fn(() => ({
-    data: {
-      user: {
-        id: 'test-user',
-        type: 'free',
-      },
-    },
-  })),
-  SessionProvider: ({ children }: { children: React.ReactNode }) => children,
-}));
+// Mock next-auth using centralized mock registry
+vi.mock('next-auth/react', () => mockRegistry.services.auth);
 
-// Mock localStorage
-Object.defineProperty(window, 'localStorage', {
-  value: {
-    getItem: vi.fn(() => null),
-    setItem: vi.fn(),
-    removeItem: vi.fn(),
-    clear: vi.fn(),
-  },
-  writable: true,
-});
-
-// Mock crypto.randomUUID for jsdom environment
-if (!global.crypto) {
-  global.crypto = {} as any;
-}
-if (!global.crypto.randomUUID) {
-  global.crypto.randomUUID = () =>
-    `test-uuid-${Math.random().toString(36).substring(7)}`;
-}
-
-// Mock AI SDK functions for testing
+// Mock AI SDK functions for testing using proper mock implementation
 vi.mock('ai', async () => {
   const actual = await vi.importActual('ai');
+  const mockAI = await import('../lib/ai/providers.mock');
   return {
     ...actual,
-    embed: vi.fn().mockResolvedValue({
-      embedding: Array.from({ length: 1536 }, () => Math.random()),
-    }),
-    generateText: vi.fn().mockResolvedValue({
-      text: 'This is a mocked response for testing purposes.',
-      usage: {
-        promptTokens: 100,
-        completionTokens: 50,
-        totalTokens: 150,
-      },
-    }),
-    customProvider: vi.fn(),
-    wrapLanguageModel: vi.fn(),
-    extractReasoningMiddleware: vi.fn(),
+    customProvider: mockAI.customProvider,
+    extractReasoningMiddleware: mockAI.extractReasoningMiddleware,
+    wrapLanguageModel: mockAI.wrapLanguageModel,
+    ...mockRegistry.services.ai,
   };
 });
 
-// Mock AI SDK providers
-vi.mock('@ai-sdk/openai', () => ({
-  openai: vi.fn().mockImplementation(() => vi.fn()),
+// Mock AI SDK providers using centralized mock registry
+vi.mock('@ai-sdk/openai', () => mockRegistry.providers.openai);
+vi.mock('@ai-sdk/anthropic', () => mockRegistry.providers.anthropic);
+vi.mock('@ai-sdk/google', () => mockRegistry.providers.google);
+vi.mock('@ai-sdk/cohere', () => mockRegistry.providers.cohere);
+vi.mock('@ai-sdk/groq', () => mockRegistry.providers.groq);
+
+// Mock additional providers that might be used
+vi.mock('@ai-sdk/xai', () => ({
+  xai: vi.fn().mockImplementation(() => vi.fn()),
 }));
 
-vi.mock('@ai-sdk/anthropic', () => ({
-  anthropic: vi.fn().mockImplementation(() => vi.fn()),
+// Mock Vercel AI SDK utilities
+vi.mock('@ai-sdk/provider-utils', () => ({
+  createLanguageModel: vi.fn(),
+  createEmbeddingModel: vi.fn(),
 }));
 
-vi.mock('@ai-sdk/google', () => ({
-  google: vi.fn().mockImplementation(() => vi.fn()),
-}));
+// Configure test timeouts globally using standardized config
+vi.setConfig({
+  testTimeout: TEST_CONFIG.timeouts.medium, // 15 seconds default timeout
+  hookTimeout: TEST_CONFIG.timeouts.short,  // 5 seconds for setup/teardown
+});
 
-vi.mock('@ai-sdk/cohere', () => ({
-  cohere: vi.fn().mockImplementation(() => vi.fn()),
-}));
+// Global test utilities available to all tests
+(global as any).testUtils = mockRegistry.utils;
+(global as any).mockRegistry = mockRegistry;
 
-vi.mock('@ai-sdk/groq', () => ({
-  groq: vi.fn().mockImplementation(() => vi.fn()),
-}));
+// Enhanced error handling for tests
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  // Don't exit the process in tests, just log
+});
+
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  // Don't exit the process in tests, just log
+});
+
+// Setup performance monitoring for tests
+if (TEST_CONFIG.features.verbose) {
+  const originalIt = (globalThis as any).it;
+  (globalThis as any).it = (name: string, fn?: any, timeout?: number) => {
+    return originalIt(name, async () => {
+      const start = performance.now();
+      try {
+        await fn?.();
+      } finally {
+        const duration = performance.now() - start;
+        if (duration > 1000) { // Log slow tests
+          console.log(`⚠️  Slow test: "${name}" took ${duration.toFixed(2)}ms`);
+        }
+      }
+    }, timeout);
+  };
+}

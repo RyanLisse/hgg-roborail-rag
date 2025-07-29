@@ -1,8 +1,8 @@
-import type { UseChatHelpers } from "@ai-sdk/react";
-import type { Attachment, UIMessage } from "ai";
-import { formatDistance } from "date-fns";
-import equal from "fast-deep-equal";
-import { AnimatePresence, motion } from "framer-motion";
+import type { UseChatHelpers } from '@ai-sdk/react';
+import type { Attachment, UIMessage } from 'ai';
+import { formatDistance } from 'date-fns';
+import equal from 'fast-deep-equal';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
   type Dispatch,
   memo,
@@ -10,23 +10,23 @@ import {
   useCallback,
   useEffect,
   useState,
-} from "react";
-import useSWR, { useSWRConfig } from "swr";
-import { useDebounceCallback, useWindowSize } from "usehooks-ts";
-import { codeArtifact } from "@/artifacts/code/client";
-import { imageArtifact } from "@/artifacts/image/client";
-import { sheetArtifact } from "@/artifacts/sheet/client";
-import { textArtifact } from "@/artifacts/text/client";
-import { useArtifact } from "@/hooks/use-artifact";
-import type { Document, Vote } from "@/lib/db/schema";
-import { fetcher } from "@/lib/utils";
-import { ArtifactActions } from "./artifact-actions";
-import { ArtifactCloseButton } from "./artifact-close-button";
-import { ArtifactMessages } from "./artifact-messages";
-import { MultimodalInput } from "./multimodal-input";
-import { Toolbar } from "./toolbar";
-import { useSidebar } from "./ui/sidebar";
-import { VersionFooter } from "./version-footer";
+} from 'react';
+import useSWR, { useSWRConfig } from 'swr';
+import { useDebounceCallback, useWindowSize } from 'usehooks-ts';
+import { codeArtifact } from '@/artifacts/code/client';
+import { imageArtifact } from '@/artifacts/image/client';
+import { sheetArtifact } from '@/artifacts/sheet/client';
+import { textArtifact } from '@/artifacts/text/client';
+import { useArtifact } from '@/hooks/use-artifact';
+import type { Document, Vote } from '@/lib/db/schema';
+import { fetcher } from '@/lib/utils';
+import { ArtifactActions } from './artifact-actions';
+import { ArtifactCloseButton } from './artifact-close-button';
+import { ArtifactMessages } from './artifact-messages';
+import { MultimodalInput } from './multimodal-input';
+import { Toolbar } from './toolbar';
+import { useSidebar } from './ui/sidebar';
+import { VersionFooter } from './version-footer';
 
 export const artifactDefinitions = [
   textArtifact,
@@ -34,7 +34,7 @@ export const artifactDefinitions = [
   imageArtifact,
   sheetArtifact,
 ];
-export type ArtifactKind = (typeof artifactDefinitions)[number]["kind"];
+export type ArtifactKind = (typeof artifactDefinitions)[number]['kind'];
 
 export interface UIArtifact {
   title: string;
@@ -42,7 +42,7 @@ export interface UIArtifact {
   kind: ArtifactKind;
   content: string;
   isVisible: boolean;
-  status: "streaming" | "idle";
+  status: 'streaming' | 'idle';
   boundingBox: {
     top: number;
     left: number;
@@ -58,7 +58,7 @@ function useDocumentHandling(artifact: UIArtifact, setArtifact: any) {
     isLoading: isDocumentsFetching,
     mutate: mutateDocuments,
   } = useSWR<Document[]>(
-    artifact.documentId !== "init" && artifact.status !== "streaming"
+    artifact.documentId !== 'init' && artifact.status !== 'streaming'
       ? `/api/document?id=${artifact.documentId}`
       : null,
     fetcher,
@@ -76,7 +76,7 @@ function useDocumentHandling(artifact: UIArtifact, setArtifact: any) {
         setCurrentVersionIndex(documents.length - 1);
         setArtifact((currentArtifact: any) => ({
           ...currentArtifact,
-          content: mostRecentDocument.content ?? "",
+          content: mostRecentDocument.content ?? '',
         }));
       }
     }
@@ -124,7 +124,7 @@ function useContentSaving(artifact: UIArtifact, document: Document | null) {
 
           if (currentDocument.content !== updatedContent) {
             await fetch(`/api/document?id=${artifact.documentId}`, {
-              method: "POST",
+              method: 'POST',
               body: JSON.stringify({
                 title: artifact.title,
                 content: updatedContent,
@@ -191,17 +191,17 @@ function PureArtifact({
 }: {
   chatId: string;
   input: string;
-  setInput: UseChatHelpers["setInput"];
-  status: UseChatHelpers["status"];
-  stop: UseChatHelpers["stop"];
+  setInput: UseChatHelpers['setInput'];
+  status: UseChatHelpers['status'];
+  stop: UseChatHelpers['stop'];
   attachments: Attachment[];
   setAttachments: Dispatch<SetStateAction<Attachment[]>>;
   messages: UIMessage[];
-  setMessages: UseChatHelpers["setMessages"];
+  setMessages: UseChatHelpers['setMessages'];
   votes: Vote[] | undefined;
-  append: UseChatHelpers["append"];
-  handleSubmit: UseChatHelpers["handleSubmit"];
-  reload: UseChatHelpers["reload"];
+  append: UseChatHelpers['append'];
+  handleSubmit: UseChatHelpers['handleSubmit'];
+  reload: UseChatHelpers['reload'];
   isReadonly: boolean;
 }) {
   const { artifact, setArtifact, metadata, setMetadata } = useArtifact();
@@ -216,38 +216,38 @@ function PureArtifact({
 
   const { isContentDirty, saveContent } = useContentSaving(artifact, document);
 
-  const [mode, setMode] = useState<"edit" | "diff">("edit");
+  const [mode, setMode] = useState<'edit' | 'diff'>('edit');
   const { open: isSidebarOpen } = useSidebar();
 
   function getDocumentContentById(index: number) {
     if (!documents) {
-      return "";
+      return '';
     }
     if (!documents[index]) {
-      return "";
+      return '';
     }
-    return documents[index].content ?? "";
+    return documents[index].content ?? '';
   }
 
-  const handleVersionChange = (type: "next" | "prev" | "toggle" | "latest") => {
+  const handleVersionChange = (type: 'next' | 'prev' | 'toggle' | 'latest') => {
     if (!documents) {
       return;
     }
 
-    if (type === "latest") {
+    if (type === 'latest') {
       setCurrentVersionIndex(documents.length - 1);
-      setMode("edit");
+      setMode('edit');
     }
 
-    if (type === "toggle") {
-      setMode((currentMode) => (currentMode === "edit" ? "diff" : "edit"));
+    if (type === 'toggle') {
+      setMode((currentMode) => (currentMode === 'edit' ? 'diff' : 'edit'));
     }
 
-    if (type === "prev") {
+    if (type === 'prev') {
       if (currentVersionIndex > 0) {
         setCurrentVersionIndex((index) => index - 1);
       }
-    } else if (type === "next" && currentVersionIndex < documents.length - 1) {
+    } else if (type === 'next' && currentVersionIndex < documents.length - 1) {
       setCurrentVersionIndex((index) => index + 1);
     }
   };
@@ -273,11 +273,11 @@ function PureArtifact({
   );
 
   if (!artifactDefinition) {
-    throw new Error("Artifact definition not found!");
+    throw new Error('Artifact definition not found!');
   }
 
   useEffect(() => {
-    if (artifact.documentId !== "init" && artifactDefinition.initialize) {
+    if (artifact.documentId !== 'init' && artifactDefinition.initialize) {
       artifactDefinition.initialize({
         documentId: artifact.documentId,
         setMetadata,
@@ -318,7 +318,7 @@ function PureArtifact({
                 scale: 1,
                 transition: {
                   delay: 0.2,
-                  type: "spring",
+                  type: 'spring',
                   stiffness: 200,
                   damping: 30,
                 },
@@ -383,11 +383,11 @@ function PureArtifact({
                     x: 0,
                     y: 0,
                     height: windowHeight,
-                    width: windowWidth ? windowWidth : "calc(100dvw)",
+                    width: windowWidth ? windowWidth : 'calc(100dvw)',
                     borderRadius: 0,
                     transition: {
                       delay: 0,
-                      type: "spring",
+                      type: 'spring',
                       stiffness: 200,
                       damping: 30,
                       duration: 5000,
@@ -400,11 +400,11 @@ function PureArtifact({
                     height: windowHeight,
                     width: windowWidth
                       ? windowWidth - 400
-                      : "calc(100dvw-400px)",
+                      : 'calc(100dvw-400px)',
                     borderRadius: 0,
                     transition: {
                       delay: 0,
-                      type: "spring",
+                      type: 'spring',
                       stiffness: 200,
                       damping: 30,
                       duration: 5000,
@@ -417,7 +417,7 @@ function PureArtifact({
               scale: 0.5,
               transition: {
                 delay: 0.1,
-                type: "spring",
+                type: 'spring',
                 stiffness: 600,
                 damping: 30,
               },

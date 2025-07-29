@@ -46,7 +46,9 @@ const RemoteFile = z.object({
 
 const FilesResponse = z.object({
   files: z.array(RemoteFile),
-  availableSources: z.array(z.enum(['openai', 'neon', 'supabase', 'memory'])).optional(),
+  availableSources: z
+    .array(z.enum(['openai', 'neon', 'supabase', 'memory']))
+    .optional(),
   sourceStats: z
     .record(
       z.object({

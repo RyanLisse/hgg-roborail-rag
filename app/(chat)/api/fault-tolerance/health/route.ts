@@ -175,7 +175,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       detailed: detailedParam === 'true',
     });
 
-    const requestedServices = requestData.services || [
+    const requestedServices = requestData.services ?? [
       'openai',
       'neon',
       'unified',
@@ -340,7 +340,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const body = await request.json();
     const requestData = HealthCheckRequest.parse(body);
 
-    const requestedServices = requestData.services || ['system'];
+    const requestedServices = requestData.services ?? ['system'];
     const results = await gatherHealthCheckTriggers(requestedServices);
 
     return NextResponse.json({

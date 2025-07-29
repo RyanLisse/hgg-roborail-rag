@@ -1,6 +1,6 @@
 'use client';
 
-import cx from 'classnames';
+import { cn } from '@/lib/utils';
 import { format, isWithinInterval } from 'date-fns';
 import { useEffect, useState } from 'react';
 
@@ -250,7 +250,7 @@ export function Weather({
 
   return (
     <div
-      className={cx(
+      className={cn(
         'skeleton-bg flex max-w-[500px] flex-col gap-4 rounded-2xl p-4',
         {
           'bg-blue-400': isDay,
@@ -263,7 +263,7 @@ export function Weather({
       <div className="flex flex-row items-center justify-between">
         <div className="flex flex-row items-center gap-2">
           <div
-            className={cx(
+            className={cn(
               'skeleton-div size-10 rounded-full',
               {
                 'bg-yellow-300': isDay,
@@ -289,7 +289,7 @@ export function Weather({
               {format(new Date(time), 'ha')}
             </div>
             <div
-              className={cx(
+              className={cn(
                 'skeleton-div size-6 rounded-full',
                 {
                   'bg-yellow-300': isDay,

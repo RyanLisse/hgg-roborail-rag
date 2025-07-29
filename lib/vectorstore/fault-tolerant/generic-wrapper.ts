@@ -8,7 +8,7 @@ import {
   FallbackMode,
   FaultToleranceFactory,
   type FaultTolerantService,
-} from "../fault-tolerance";
+} from '../fault-tolerance';
 
 export interface FaultTolerantConfig {
   maxRetries: number;
@@ -88,7 +88,7 @@ export class GenericFaultTolerantService<TService> {
         const method = this.baseService[methodName] as (
           ...args: Args
         ) => Promise<Return>;
-        if (typeof method !== "function") {
+        if (typeof method !== 'function') {
           throw new Error(`Method ${String(methodName)} is not a function`);
         }
         return await method.apply(this.baseService, args);
@@ -106,15 +106,15 @@ export class GenericFaultTolerantService<TService> {
    */
   getWrappedMethods() {
     return {
-      search: this.wrapMethod("search" as keyof TService, {
+      search: this.wrapMethod('search' as keyof TService, {
         fallbackValue: [],
       }),
-      upload: this.wrapMethod("upload" as keyof TService, {}),
-      delete: this.wrapMethod("delete" as keyof TService, {}),
-      healthCheck: this.wrapMethod("healthCheck" as keyof TService, {
-        fallbackValue: { status: "unhealthy", timestamp: Date.now() },
+      upload: this.wrapMethod('upload' as keyof TService, {}),
+      delete: this.wrapMethod('delete' as keyof TService, {}),
+      healthCheck: this.wrapMethod('healthCheck' as keyof TService, {
+        fallbackValue: { status: 'unhealthy', timestamp: Date.now() },
       }),
-      getStats: this.wrapMethod("getStats" as keyof TService, {
+      getStats: this.wrapMethod('getStats' as keyof TService, {
         fallbackValue: { documentsCount: 0, lastUpdated: new Date() },
       }),
     };

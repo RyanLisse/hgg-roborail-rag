@@ -1,33 +1,33 @@
-import { type NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
+import { type NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import {
   createPerformanceBenchmarkSuite,
   DEFAULT_BENCHMARK_CONFIG,
   type BenchmarkResult,
-} from "@/lib/vectorstore/performance-benchmarks";
+} from '@/lib/vectorstore/performance-benchmarks';
 import {
   createLoadTestingEngine,
   PREDEFINED_SCENARIOS,
   type LoadTestResult,
-} from "@/lib/vectorstore/load-testing";
+} from '@/lib/vectorstore/load-testing';
 
 // Request schemas
 const BenchmarkRequest = z.object({
   action: z.enum([
-    "search_latency",
-    "upload_performance",
-    "concurrent_operations",
-    "provider_comparison",
-    "stress_test",
-    "endurance_test",
-    "memory_leak_test",
-    "load_test",
-    "create_baseline",
-    "detect_regression",
-    "generate_report",
+    'search_latency',
+    'upload_performance',
+    'concurrent_operations',
+    'provider_comparison',
+    'stress_test',
+    'endurance_test',
+    'memory_leak_test',
+    'load_test',
+    'create_baseline',
+    'detect_regression',
+    'generate_report',
   ]),
   provider: z
-    .enum(["openai", "neon", "supabase", "unified", "memory"])
+    .enum(['openai', 'neon', 'supabase', 'unified', 'memory'])
     .optional(),
   config: z
     .object({
@@ -72,32 +72,32 @@ const BenchmarkRequest = z.object({
 
 // Default test data
 const DEFAULT_TEST_QUERIES = [
-  "machine learning algorithms",
-  "database optimization techniques",
-  "API design best practices",
-  "distributed systems architecture",
-  "performance monitoring",
+  'machine learning algorithms',
+  'database optimization techniques',
+  'API design best practices',
+  'distributed systems architecture',
+  'performance monitoring',
 ];
 
 const DEFAULT_COMPLEXITY_LEVELS = [
-  { name: "simple", query: "test" },
-  { name: "medium", query: "complex technical documentation search" },
+  { name: 'simple', query: 'test' },
+  { name: 'medium', query: 'complex technical documentation search' },
   {
-    name: "complex",
+    name: 'complex',
     query:
-      "comprehensive analysis of distributed systems architecture patterns and implementation strategies",
+      'comprehensive analysis of distributed systems architecture patterns and implementation strategies',
   },
 ];
 
 // Helper functions
 function createTestFiles(): File[] {
   const files = [
-    new File(["Small test content"], "small.txt", { type: "text/plain" }),
-    new File(["Medium test content ".repeat(100)], "medium.txt", {
-      type: "text/plain",
+    new File(['Small test content'], 'small.txt', { type: 'text/plain' }),
+    new File(['Medium test content '.repeat(100)], 'medium.txt', {
+      type: 'text/plain',
     }),
-    new File(["Large test content ".repeat(1000)], "large.txt", {
-      type: "text/plain",
+    new File(['Large test content '.repeat(1000)], 'large.txt', {
+      type: 'text/plain',
     }),
   ];
   return files;
@@ -112,10 +112,10 @@ async function handleSearchLatencyBenchmark(
     DEFAULT_BENCHMARK_CONFIG,
   );
 
-  const queries = testData?.queries || DEFAULT_TEST_QUERIES;
-  const iterations = config?.iterations || 10;
-  const warmupIterations = config?.warmupIterations || 3;
-  const maxResults = config?.maxResults || 10;
+  const queries = testData?.queries ?? DEFAULT_TEST_QUERIES;
+  const iterations = config?.iterations ?? 10;
+  const warmupIterations = config?.warmupIterations ?? 3;
+  const maxResults = config?.maxResults ?? 10;
 
   return await benchmarkSuite.benchmarkSearchLatency(provider, {
     queries,
@@ -135,8 +135,8 @@ async function handleUploadPerformanceBenchmark(
   );
 
   const files = createTestFiles();
-  const iterations = config?.iterations || 5;
-  const warmupIterations = config?.warmupIterations || 2;
+  const iterations = config?.iterations ?? 5;
+  const warmupIterations = config?.warmupIterations ?? 2;
 
   return await benchmarkSuite.benchmarkUploadPerformance(provider, {
     files,
@@ -154,12 +154,12 @@ async function handleConcurrentOperationsBenchmark(
     DEFAULT_BENCHMARK_CONFIG,
   );
 
-  const queries = testData?.queries || DEFAULT_TEST_QUERIES;
-  const concurrency = config?.concurrency || 5;
-  const iterations = config?.iterations || 3;
+  const queries = testData?.queries ?? DEFAULT_TEST_QUERIES;
+  const concurrency = config?.concurrency ?? 5;
+  const iterations = config?.iterations ?? 3;
 
   return await benchmarkSuite.benchmarkConcurrentOperations(provider, {
-    operation: "search",
+    operation: 'search',
     concurrency,
     iterations,
     queries,
@@ -175,8 +175,8 @@ async function handleProviderComparison(
     DEFAULT_BENCHMARK_CONFIG,
   );
 
-  const queries = testData?.queries || DEFAULT_TEST_QUERIES;
-  const iterations = config?.iterations || 5;
+  const queries = testData?.queries ?? DEFAULT_TEST_QUERIES;
+  const iterations = config?.iterations ?? 5;
 
   const testCases = queries.map((query: string) => ({
     query,
@@ -184,7 +184,7 @@ async function handleProviderComparison(
   }));
 
   return await benchmarkSuite.compareProviders({
-    operation: "search",
+    operation: 'search',
     providers,
     testCases,
     iterations,
@@ -200,13 +200,13 @@ async function handleStressTest(
     DEFAULT_BENCHMARK_CONFIG,
   );
 
-  const query = testData?.queries?.[0] || DEFAULT_TEST_QUERIES[0];
+  const query = testData?.queries?.[0] ?? DEFAULT_TEST_QUERIES[0];
 
   return await benchmarkSuite.stressTest({
     provider,
-    operation: "search",
+    operation: 'search',
     startConcurrency: 1,
-    maxConcurrency: config?.concurrency || 10,
+    maxConcurrency: config?.concurrency ?? 10,
     stepSize: 2,
     stepDurationMs: 5000,
     query,
@@ -223,12 +223,12 @@ async function handleEnduranceTest(
   );
 
   const queries = testData?.queries || DEFAULT_TEST_QUERIES;
-  const concurrency = config?.concurrency || 3;
-  const durationMs = config?.timeoutMs || 30_000;
+  const concurrency = config?.concurrency ?? 3;
+  const durationMs = config?.timeoutMs ?? 30_000;
 
   return await benchmarkSuite.enduranceTest({
     provider,
-    operation: "search",
+    operation: 'search',
     concurrency,
     durationMs,
     queries,
@@ -244,12 +244,12 @@ async function handleMemoryLeakTest(
     DEFAULT_BENCHMARK_CONFIG,
   );
 
-  const query = testData?.queries?.[0] || DEFAULT_TEST_QUERIES[0];
-  const iterations = config?.iterations || 50;
+  const query = testData?.queries?.[0] ?? DEFAULT_TEST_QUERIES[0];
+  const iterations = config?.iterations ?? 50;
 
   return await benchmarkSuite.memoryLeakTest({
     provider,
-    operation: "search",
+    operation: 'search',
     iterations,
     memoryThresholdMB: 100,
     query,
@@ -280,15 +280,15 @@ async function handleCreateBaseline(
   const iterations = config?.iterations || 10;
 
   const testCases = [
-    ...queries.map((query: string) => ({ operation: "search", query })),
+    ...queries.map((query: string) => ({ operation: 'search', query })),
     ...createTestFiles()
       .slice(0, 2)
-      .map((file) => ({ operation: "upload", file })),
+      .map((file) => ({ operation: 'upload', file })),
   ];
 
   return await benchmarkSuite.createPerformanceBaseline({
     providers,
-    operations: ["search", "upload"],
+    operations: ['search', 'upload'],
     iterations,
     testCases,
   });
@@ -314,41 +314,41 @@ async function handleGenerateReport(results: BenchmarkResult[]): Promise<any> {
   return await benchmarkSuite.generateReport(results, {
     includeCharts: false,
     includeRawData: true,
-    format: "json",
+    format: 'json',
   });
 }
 
-export async function GET(request: NextRequest) {
+export function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
 
   try {
     // Handle simple status and info requests
-    const action = searchParams.get("action");
+    const action = searchParams.get('action');
 
-    if (action === "status") {
+    if (action === 'status') {
       return NextResponse.json({
         success: true,
         data: {
           benchmarkingEnabled: true,
           availableProviders: [
-            "openai",
-            "neon",
-            "supabase",
-            "unified",
-            "memory",
+            'openai',
+            'neon',
+            'supabase',
+            'unified',
+            'memory',
           ],
           availableActions: [
-            "search_latency",
-            "upload_performance",
-            "concurrent_operations",
-            "provider_comparison",
-            "stress_test",
-            "endurance_test",
-            "memory_leak_test",
-            "load_test",
-            "create_baseline",
-            "detect_regression",
-            "generate_report",
+            'search_latency',
+            'upload_performance',
+            'concurrent_operations',
+            'provider_comparison',
+            'stress_test',
+            'endurance_test',
+            'memory_leak_test',
+            'load_test',
+            'create_baseline',
+            'detect_regression',
+            'generate_report',
           ],
           predefinedScenarios: PREDEFINED_SCENARIOS.map((s) => ({
             name: s.name,
@@ -361,7 +361,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    if (action === "scenarios") {
+    if (action === 'scenarios') {
       return NextResponse.json({
         success: true,
         data: {
@@ -371,7 +371,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    if (action === "config") {
+    if (action === 'config') {
       return NextResponse.json({
         success: true,
         data: {
@@ -385,8 +385,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: "Invalid action. Use POST for benchmark execution.",
-        availableActions: ["status", "scenarios", "config"],
+        error: 'Invalid action. Use POST for benchmark execution.',
+        availableActions: ['status', 'scenarios', 'config'],
       },
       { status: 400 },
     );
@@ -394,7 +394,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : "Internal server error",
+        error: error instanceof Error ? error.message : 'Internal server error',
       },
       { status: 500 },
     );
@@ -422,21 +422,21 @@ async function executeProviderBenchmarks(
   }
 
   switch (action) {
-    case "search_latency":
+    case 'search_latency':
       return await handleSearchLatencyBenchmark(provider, config, testData);
-    case "upload_performance":
+    case 'upload_performance':
       return await handleUploadPerformanceBenchmark(provider, config);
-    case "concurrent_operations":
+    case 'concurrent_operations':
       return await handleConcurrentOperationsBenchmark(
         provider,
         config,
         testData,
       );
-    case "stress_test":
+    case 'stress_test':
       return await handleStressTest(provider, config, testData);
-    case "endurance_test":
+    case 'endurance_test':
       return await handleEnduranceTest(provider, config, testData);
-    case "memory_leak_test":
+    case 'memory_leak_test':
       return await handleMemoryLeakTest(provider, config, testData);
     default:
       throw new Error(`Unknown provider benchmark: ${action}`);
@@ -457,34 +457,34 @@ async function executeSystemBenchmarks(
   } = options;
 
   switch (action) {
-    case "provider_comparison": {
-      const providers = ["openai", "neon", "unified"];
+    case 'provider_comparison': {
+      const providers = ['openai', 'neon', 'unified'];
       return await handleProviderComparison(providers, config, testData);
     }
-    case "load_test":
+    case 'load_test':
       if (!loadTestScenario) {
-        throw new Error("Load test scenario is required");
+        throw new Error('Load test scenario is required');
       }
       return await handleLoadTest(loadTestScenario);
-    case "create_baseline": {
-      const providers = ["openai", "neon", "unified"];
+    case 'create_baseline': {
+      const providers = ['openai', 'neon', 'unified'];
       return await handleCreateBaseline(providers, config, testData);
     }
-    case "detect_regression":
+    case 'detect_regression':
       if (!baseline) {
         throw new Error(
-          "Baseline metrics are required for regression detection",
+          'Baseline metrics are required for regression detection',
         );
       }
       if (!body.current) {
         throw new Error(
-          "Current metrics are required for regression detection",
+          'Current metrics are required for regression detection',
         );
       }
       return handleDetectRegression(baseline, body.current, thresholds);
-    case "generate_report":
-      if (!body.results || !Array.isArray(body.results)) {
-        throw new Error("Results array is required for report generation");
+    case 'generate_report':
+      if (!(body.results && Array.isArray(body.results))) {
+        throw new Error('Results array is required for report generation');
       }
       return await handleGenerateReport(body.results);
     default:
@@ -498,19 +498,19 @@ async function executeBenchmarkAction(
   const { action } = options;
 
   const providerActions = [
-    "search_latency",
-    "upload_performance",
-    "concurrent_operations",
-    "stress_test",
-    "endurance_test",
-    "memory_leak_test",
+    'search_latency',
+    'upload_performance',
+    'concurrent_operations',
+    'stress_test',
+    'endurance_test',
+    'memory_leak_test',
   ];
   const systemActions = [
-    "provider_comparison",
-    "load_test",
-    "create_baseline",
-    "detect_regression",
-    "generate_report",
+    'provider_comparison',
+    'load_test',
+    'create_baseline',
+    'detect_regression',
+    'generate_report',
   ];
 
   if (providerActions.includes(action)) {
@@ -525,23 +525,21 @@ async function executeBenchmarkAction(
 }
 
 export async function POST(request: NextRequest) {
+  let action: string | undefined;
+  let provider: string | undefined;
+
   try {
     const body = await request.json();
     const params = BenchmarkRequest.parse(body);
 
-    const {
-      action,
-      provider,
-      config,
-      testData,
-      loadTestScenario,
-      baseline,
-      thresholds,
-    } = params;
+    const { config, testData, loadTestScenario, baseline, thresholds } = params;
+
+    action = params.action;
+    provider = params.provider;
 
     const result = await executeBenchmarkAction({
       action,
-      provider,
+      provider: provider ?? 'openai',
       config,
       testData,
       loadTestScenario,
@@ -558,25 +556,39 @@ export async function POST(request: NextRequest) {
       provider,
     });
   } catch (error) {
-    console.error("Benchmark API error:", error);
+    // Log structured error for monitoring
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error';
+    const errorContext = {
+      endpoint: '/api/vectorstore/benchmarks',
+      method: 'POST',
+      error: errorMessage,
+      action,
+      provider,
+      timestamp: new Date().toISOString(),
+    };
+    // In production, this would be sent to a logging service
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Benchmark API error:', errorContext);
+    }
 
-    if (error instanceof Error && error.message.startsWith("Unknown action:")) {
+    if (error instanceof Error && error.message.startsWith('Unknown action:')) {
       return NextResponse.json(
         {
           success: false,
           error: error.message,
           availableActions: [
-            "search_latency",
-            "upload_performance",
-            "concurrent_operations",
-            "provider_comparison",
-            "stress_test",
-            "endurance_test",
-            "memory_leak_test",
-            "load_test",
-            "create_baseline",
-            "detect_regression",
-            "generate_report",
+            'search_latency',
+            'upload_performance',
+            'concurrent_operations',
+            'provider_comparison',
+            'stress_test',
+            'endurance_test',
+            'memory_leak_test',
+            'load_test',
+            'create_baseline',
+            'detect_regression',
+            'generate_report',
           ],
         },
         { status: 400 },
@@ -586,7 +598,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : "Internal server error",
+        error: error instanceof Error ? error.message : 'Internal server error',
         timestamp: new Date(),
       },
       { status: 500 },

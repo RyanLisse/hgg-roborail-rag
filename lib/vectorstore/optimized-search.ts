@@ -11,7 +11,7 @@ import {
   type EnhancedSearchResponse,
   type UnifiedSearchRequest,
   VectorStoreType,
-} from "./core/types";
+} from './core/types';
 
 interface SearchCacheKey {
   query: string;
@@ -109,7 +109,7 @@ class OptimizedVectorSearch {
           const result = await Promise.race([
             searchMethod(),
             new Promise((_, reject) => {
-              controller.signal.addEventListener("abort", () => {
+              controller.signal.addEventListener('abort', () => {
                 reject(new Error(`Search ${index} aborted due to timeout`));
               });
             }),
@@ -130,7 +130,7 @@ class OptimizedVectorSearch {
       return results
         .filter(
           (result): result is PromiseFulfilledResult<unknown[]> =>
-            result.status === "fulfilled",
+            result.status === 'fulfilled',
         )
         .flatMap((result) => result.value);
     } catch (_error) {
@@ -232,7 +232,7 @@ class OptimizedVectorSearch {
         rerankingApplied: false,
         diversificationApplied: false,
         hybridSearchUsed: false,
-        scoringStrategy: "optimized_parallel",
+        scoringStrategy: 'optimized_parallel',
         performance: {
           searchTime: totalTime,
           totalTime,
@@ -256,12 +256,12 @@ class OptimizedVectorSearch {
         rerankingApplied: false,
         diversificationApplied: false,
         hybridSearchUsed: false,
-        scoringStrategy: "fallback_optimized",
+        scoringStrategy: 'fallback_optimized',
         performance: {
           searchTime: totalTime,
           totalTime,
           cacheHit: false,
-          error: "Search failed",
+          error: 'Search failed',
         },
         // debugInfo: {
         //   error: error instanceof Error ? error.message : 'Unknown error',

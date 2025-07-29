@@ -28,7 +28,10 @@ export async function GET(request: NextRequest) {
     // If a specific source is requested, get files from that source
     if (source === 'openai') {
       if (!vectorStoreService.openaiService) {
-        return NextResponse.json({ error: 'OpenAI service not available' }, { status: 503 });
+        return NextResponse.json(
+          { error: 'OpenAI service not available' },
+          { status: 503 },
+        );
       }
       const files = await vectorStoreService.openaiService.listFiles(
         vectorStoreId || undefined,
@@ -72,7 +75,10 @@ export async function GET(request: NextRequest) {
     }> = [];
 
     // Get files from OpenAI if available
-    if (availableSources.includes('openai') && vectorStoreService.openaiService) {
+    if (
+      availableSources.includes('openai') &&
+      vectorStoreService.openaiService
+    ) {
       try {
         const openaiFiles = await vectorStoreService.openaiService.listFiles();
         allFiles.push(

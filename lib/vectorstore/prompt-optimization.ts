@@ -1,21 +1,21 @@
-import "server-only";
+import 'server-only';
 
-import { z } from "zod";
+import { z } from 'zod';
 
 // Schema definitions for prompt optimization
 export const QueryType = z.enum([
-  "technical",
-  "conceptual",
-  "procedural",
-  "troubleshooting",
-  "configuration",
-  "api",
-  "integration",
-  "best_practices",
-  "examples",
-  "reference",
-  "multi_turn",
-  "contextual",
+  'technical',
+  'conceptual',
+  'procedural',
+  'troubleshooting',
+  'configuration',
+  'api',
+  'integration',
+  'best_practices',
+  'examples',
+  'reference',
+  'multi_turn',
+  'contextual',
 ]);
 
 export const QueryContext = z.object({
@@ -24,7 +24,7 @@ export const QueryContext = z.object({
   conversationHistory: z
     .array(
       z.object({
-        role: z.enum(["user", "assistant"]),
+        role: z.enum(['user', 'assistant']),
         content: z.string(),
         timestamp: z.number(),
       }),
@@ -32,8 +32,8 @@ export const QueryContext = z.object({
     .optional(),
   previousQueries: z.array(z.string()).optional(),
   userIntent: z.string().optional(),
-  complexity: z.enum(["basic", "intermediate", "advanced"]).optional(),
-  searchDepth: z.enum(["shallow", "comprehensive", "exhaustive"]).optional(),
+  complexity: z.enum(['basic', 'intermediate', 'advanced']).optional(),
+  searchDepth: z.enum(['shallow', 'comprehensive', 'exhaustive']).optional(),
 });
 
 export const PromptConfig = z.object({
@@ -96,80 +96,80 @@ export interface AggregatedOptimizationMetrics {
  */
 export const ROBORAIL_DOMAIN_PROMPTS = {
   automation: {
-    base: "Focus on RoboRail automation features, workflows, triggers, and automation rules.",
+    base: 'Focus on RoboRail automation features, workflows, triggers, and automation rules.',
     context:
-      "Consider automation setup, configuration, scheduling, and monitoring.",
+      'Consider automation setup, configuration, scheduling, and monitoring.',
     keywords: [
-      "automation",
-      "workflow",
-      "trigger",
-      "rule",
-      "schedule",
-      "monitoring",
+      'automation',
+      'workflow',
+      'trigger',
+      'rule',
+      'schedule',
+      'monitoring',
     ],
   },
   integration: {
-    base: "Search for RoboRail integration capabilities, APIs, webhooks, and third-party connections.",
+    base: 'Search for RoboRail integration capabilities, APIs, webhooks, and third-party connections.',
     context:
-      "Include integration patterns, authentication, data exchange, and compatibility.",
+      'Include integration patterns, authentication, data exchange, and compatibility.',
     keywords: [
-      "integration",
-      "API",
-      "webhook",
-      "connection",
-      "third-party",
-      "authentication",
+      'integration',
+      'API',
+      'webhook',
+      'connection',
+      'third-party',
+      'authentication',
     ],
   },
   configuration: {
-    base: "Look for RoboRail configuration guides, settings, parameters, and setup instructions.",
-    context: "Include environment setup, parameter tuning, and best practices.",
+    base: 'Look for RoboRail configuration guides, settings, parameters, and setup instructions.',
+    context: 'Include environment setup, parameter tuning, and best practices.',
     keywords: [
-      "configuration",
-      "settings",
-      "setup",
-      "parameters",
-      "environment",
-      "tuning",
+      'configuration',
+      'settings',
+      'setup',
+      'parameters',
+      'environment',
+      'tuning',
     ],
   },
   troubleshooting: {
-    base: "Search for RoboRail troubleshooting guides, error resolution, and diagnostic procedures.",
+    base: 'Search for RoboRail troubleshooting guides, error resolution, and diagnostic procedures.',
     context:
-      "Include common issues, error codes, debugging steps, and solutions.",
+      'Include common issues, error codes, debugging steps, and solutions.',
     keywords: [
-      "troubleshooting",
-      "error",
-      "debug",
-      "issue",
-      "solution",
-      "diagnostic",
+      'troubleshooting',
+      'error',
+      'debug',
+      'issue',
+      'solution',
+      'diagnostic',
     ],
   },
   performance: {
-    base: "Focus on RoboRail performance optimization, scaling, and monitoring.",
+    base: 'Focus on RoboRail performance optimization, scaling, and monitoring.',
     context:
-      "Include performance metrics, optimization techniques, and resource management.",
+      'Include performance metrics, optimization techniques, and resource management.',
     keywords: [
-      "performance",
-      "optimization",
-      "scaling",
-      "monitoring",
-      "metrics",
-      "resources",
+      'performance',
+      'optimization',
+      'scaling',
+      'monitoring',
+      'metrics',
+      'resources',
     ],
   },
   security: {
-    base: "Search for RoboRail security features, authentication, authorization, and compliance.",
+    base: 'Search for RoboRail security features, authentication, authorization, and compliance.',
     context:
-      "Include security policies, access control, encryption, and audit trails.",
+      'Include security policies, access control, encryption, and audit trails.',
     keywords: [
-      "security",
-      "authentication",
-      "authorization",
-      "encryption",
-      "compliance",
-      "audit",
+      'security',
+      'authentication',
+      'authorization',
+      'encryption',
+      'compliance',
+      'audit',
     ],
   },
 } as const;
@@ -245,18 +245,18 @@ export const PROMPT_TEMPLATES = {
  */
 export const CONTEXT_OPTIMIZATION = {
   large_documents: {
-    strategy: "chunk_summarization",
+    strategy: 'chunk_summarization',
     maxChunkSize: 1000,
     summaryPrompt:
-      "Provide a concise summary of the key information in this document chunk that relates to the search query.",
+      'Provide a concise summary of the key information in this document chunk that relates to the search query.',
   },
   conversation_history: {
-    strategy: "selective_inclusion",
+    strategy: 'selective_inclusion',
     maxHistoryItems: 5,
     relevanceThreshold: 0.7,
   },
   multi_source: {
-    strategy: "source_prioritization",
+    strategy: 'source_prioritization',
     maxSources: 10,
     priorityWeights: {
       official_docs: 1.0,
@@ -324,12 +324,12 @@ export class QueryExpansionEngine {
       const recentContext = context.conversationHistory
         .slice(-3)
         .map((msg) => msg.content)
-        .join(" ");
+        .join(' ');
 
       const contextTerms = QueryExpansionEngine.extractKeyTerms(recentContext);
       if (contextTerms.length > 0) {
         variations.push(
-          `${query} considering ${contextTerms.slice(0, 3).join(" ")}`,
+          `${query} considering ${contextTerms.slice(0, 3).join(' ')}`,
           `${query} related to previous discussion`,
           `${query} ${contextTerms[0]}`, // Add key term directly
         );
@@ -356,12 +356,12 @@ export class QueryExpansionEngine {
 
     // Prioritize important domain terms
     const importantTerms = [
-      "automation",
-      "webhook",
-      "authentication",
-      "roborail",
-      "configuration",
-      "integration",
+      'automation',
+      'webhook',
+      'authentication',
+      'roborail',
+      'configuration',
+      'integration',
     ];
     const prioritized: string[] = [];
     const regular: string[] = [];
@@ -383,65 +383,65 @@ export class QueryExpansionEngine {
 
   private static isStopWord(word: string): boolean {
     const stopWords = new Set([
-      "the",
-      "and",
-      "or",
-      "but",
-      "in",
-      "on",
-      "at",
-      "to",
-      "for",
-      "of",
-      "with",
-      "by",
-      "from",
-      "up",
-      "about",
-      "into",
-      "through",
-      "during",
-      "before",
-      "after",
-      "above",
-      "below",
-      "between",
-      "among",
-      "through",
-      "during",
-      "this",
-      "that",
-      "these",
-      "those",
-      "what",
-      "which",
-      "who",
-      "when",
-      "where",
-      "why",
-      "how",
-      "is",
-      "are",
-      "was",
-      "were",
-      "be",
-      "been",
-      "being",
-      "have",
-      "has",
-      "had",
-      "do",
-      "does",
-      "did",
-      "will",
-      "would",
-      "could",
-      "should",
-      "may",
-      "might",
-      "must",
-      "can",
-      "cannot",
+      'the',
+      'and',
+      'or',
+      'but',
+      'in',
+      'on',
+      'at',
+      'to',
+      'for',
+      'of',
+      'with',
+      'by',
+      'from',
+      'up',
+      'about',
+      'into',
+      'through',
+      'during',
+      'before',
+      'after',
+      'above',
+      'below',
+      'between',
+      'among',
+      'through',
+      'during',
+      'this',
+      'that',
+      'these',
+      'those',
+      'what',
+      'which',
+      'who',
+      'when',
+      'where',
+      'why',
+      'how',
+      'is',
+      'are',
+      'was',
+      'were',
+      'be',
+      'been',
+      'being',
+      'have',
+      'has',
+      'had',
+      'do',
+      'does',
+      'did',
+      'will',
+      'would',
+      'could',
+      'should',
+      'may',
+      'might',
+      'must',
+      'can',
+      'cannot',
     ]);
     return stopWords.has(word.toLowerCase());
   }
@@ -452,16 +452,16 @@ export class QueryExpansionEngine {
   ): Array<{ original: string; synonym: string }> {
     // RoboRail-specific synonyms
     const roborailSynonyms: Record<string, string[]> = {
-      automation: ["workflow", "process", "rule", "trigger"],
-      configuration: ["setup", "settings", "config", "parameters"],
-      integration: ["connection", "linking", "interface", "bridge"],
-      monitoring: ["tracking", "observing", "watching", "surveillance"],
-      optimization: ["tuning", "enhancement", "improvement", "refinement"],
-      troubleshooting: ["debugging", "diagnosis", "problem-solving", "repair"],
-      deployment: ["installation", "setup", "rollout", "implementation"],
-      performance: ["speed", "efficiency", "throughput", "responsiveness"],
-      security: ["protection", "safety", "authentication", "authorization"],
-      scalability: ["growth", "expansion", "scaling", "extensibility"],
+      automation: ['workflow', 'process', 'rule', 'trigger'],
+      configuration: ['setup', 'settings', 'config', 'parameters'],
+      integration: ['connection', 'linking', 'interface', 'bridge'],
+      monitoring: ['tracking', 'observing', 'watching', 'surveillance'],
+      optimization: ['tuning', 'enhancement', 'improvement', 'refinement'],
+      troubleshooting: ['debugging', 'diagnosis', 'problem-solving', 'repair'],
+      deployment: ['installation', 'setup', 'rollout', 'implementation'],
+      performance: ['speed', 'efficiency', 'throughput', 'responsiveness'],
+      security: ['protection', 'safety', 'authentication', 'authorization'],
+      scalability: ['growth', 'expansion', 'scaling', 'extensibility'],
     };
 
     const synonymPairs: Array<{ original: string; synonym: string }> = [];
@@ -479,14 +479,14 @@ export class QueryExpansionEngine {
   private static getRelatedTerms(terms: string[], _domain?: string): string[] {
     // RoboRail-specific related terms
     const roborailRelated: Record<string, string[]> = {
-      automation: ["scheduling", "triggers", "workflows", "rules"],
-      api: ["endpoints", "authentication", "requests", "responses"],
-      configuration: ["environment", "parameters", "variables", "settings"],
-      integration: ["webhooks", "connectors", "adapters", "protocols"],
-      monitoring: ["alerts", "metrics", "dashboards", "logs"],
-      security: ["permissions", "roles", "tokens", "certificates"],
-      performance: ["caching", "optimization", "scaling", "load"],
-      deployment: ["containers", "kubernetes", "docker", "ci/cd"],
+      automation: ['scheduling', 'triggers', 'workflows', 'rules'],
+      api: ['endpoints', 'authentication', 'requests', 'responses'],
+      configuration: ['environment', 'parameters', 'variables', 'settings'],
+      integration: ['webhooks', 'connectors', 'adapters', 'protocols'],
+      monitoring: ['alerts', 'metrics', 'dashboards', 'logs'],
+      security: ['permissions', 'roles', 'tokens', 'certificates'],
+      performance: ['caching', 'optimization', 'scaling', 'load'],
+      deployment: ['containers', 'kubernetes', 'docker', 'ci/cd'],
     };
 
     const related: string[] = [];
@@ -503,7 +503,7 @@ export class QueryExpansionEngine {
     original: string,
     replacement: string,
   ): string {
-    const regex = new RegExp(`\\b${original}\\b`, "gi");
+    const regex = new RegExp(`\\b${original}\\b`, 'gi');
     return query.replace(regex, replacement);
   }
 }
@@ -523,7 +523,7 @@ export class PromptOptimizationEngine {
   ): Promise<OptimizedQuery> {
     // Validate input
     if (!originalQuery || originalQuery.trim().length === 0) {
-      throw new Error("Query cannot be empty");
+      throw new Error('Query cannot be empty');
     }
 
     // Classify query type if not provided or validate if provided
@@ -545,7 +545,7 @@ export class PromptOptimizationEngine {
     const complexity =
       context.complexity ||
       PromptOptimizationEngine.determineComplexity(originalQuery);
-    const searchDepth = context.searchDepth || "comprehensive";
+    const searchDepth = context.searchDepth || 'comprehensive';
 
     // Generate expanded queries
     const expandedQueries = PromptOptimizationEngine.generateExpandedQueries(
@@ -612,149 +612,149 @@ export class PromptOptimizationEngine {
     // Troubleshooting indicators (check first for priority)
     if (
       PromptOptimizationEngine.hasPatterns(lowerQuery, [
-        "troubleshoot",
-        "debug",
-        "fix",
-        "solve",
-        "error",
-        "issue",
-        "problem",
-        "fail",
-        "broken",
-        "not working",
+        'troubleshoot',
+        'debug',
+        'fix',
+        'solve',
+        'error',
+        'issue',
+        'problem',
+        'fail',
+        'broken',
+        'not working',
       ])
     ) {
-      return "troubleshooting";
+      return 'troubleshooting';
     }
 
     // API indicators (check before technical)
     if (
       PromptOptimizationEngine.hasPatterns(lowerQuery, [
-        "api",
-        "endpoint",
-        "rest",
-        "graphql",
-        "request",
-        "response",
+        'api',
+        'endpoint',
+        'rest',
+        'graphql',
+        'request',
+        'response',
       ]) ||
       (PromptOptimizationEngine.hasPatterns(lowerQuery, [
-        "authentication",
-        "authorization",
-        "token",
+        'authentication',
+        'authorization',
+        'token',
       ]) &&
         !PromptOptimizationEngine.hasPatterns(lowerQuery, [
-          "troubleshoot",
-          "debug",
-          "fix",
-          "solve",
-          "error",
-          "issue",
-          "problem",
+          'troubleshoot',
+          'debug',
+          'fix',
+          'solve',
+          'error',
+          'issue',
+          'problem',
         ]))
     ) {
-      return "api";
+      return 'api';
     }
 
     // Procedural indicators (check before configuration and technical)
     if (
       PromptOptimizationEngine.hasPatterns(lowerQuery, [
-        "step by step",
-        "procedure",
-        "guide",
-        "tutorial",
-        "walkthrough",
-        "instruction",
+        'step by step',
+        'procedure',
+        'guide',
+        'tutorial',
+        'walkthrough',
+        'instruction',
       ])
     ) {
-      return "procedural";
+      return 'procedural';
     }
 
     // Check for "how to" without other configuration keywords
     if (
-      PromptOptimizationEngine.hasPatterns(lowerQuery, ["how to"]) &&
-      !PromptOptimizationEngine.hasPatterns(lowerQuery, ["configure", "config"])
+      PromptOptimizationEngine.hasPatterns(lowerQuery, ['how to']) &&
+      !PromptOptimizationEngine.hasPatterns(lowerQuery, ['configure', 'config'])
     ) {
-      return "procedural";
+      return 'procedural';
     }
 
     // Technical indicators
     if (
       PromptOptimizationEngine.hasPatterns(lowerQuery, [
-        "method",
-        "function",
-        "class",
-        "parameter",
-        "specification",
-        "implementation",
-        "code",
-        "syntax",
-        "technical",
+        'method',
+        'function',
+        'class',
+        'parameter',
+        'specification',
+        'implementation',
+        'code',
+        'syntax',
+        'technical',
       ])
     ) {
-      return "technical";
+      return 'technical';
     }
 
     // Configuration indicators
     if (
       PromptOptimizationEngine.hasPatterns(lowerQuery, [
-        "configure",
-        "setup",
-        "install",
-        "setting",
-        "config",
-        "parameter",
-        "environment",
-        "variable",
-        "option",
+        'configure',
+        'setup',
+        'install',
+        'setting',
+        'config',
+        'parameter',
+        'environment',
+        'variable',
+        'option',
       ])
     ) {
-      return "configuration";
+      return 'configuration';
     }
 
     // Integration indicators
     if (
       PromptOptimizationEngine.hasPatterns(lowerQuery, [
-        "integrate",
-        "connect",
-        "link",
-        "interface",
-        "bridge",
-        "webhook",
-        "connector",
-        "third party",
+        'integrate',
+        'connect',
+        'link',
+        'interface',
+        'bridge',
+        'webhook',
+        'connector',
+        'third party',
       ])
     ) {
-      return "integration";
+      return 'integration';
     }
 
     // Best practices indicators
     if (
       PromptOptimizationEngine.hasPatterns(lowerQuery, [
-        "best practice",
-        "recommendation",
-        "optimize",
-        "improve",
-        "performance",
-        "efficient",
-        "pattern",
+        'best practice',
+        'recommendation',
+        'optimize',
+        'improve',
+        'performance',
+        'efficient',
+        'pattern',
       ])
     ) {
-      return "best_practices";
+      return 'best_practices';
     }
 
     // Examples indicators
     if (
       PromptOptimizationEngine.hasPatterns(lowerQuery, [
-        "example",
-        "sample",
-        "demo",
-        "use case",
-        "scenario",
-        "illustration",
-        "template",
+        'example',
+        'sample',
+        'demo',
+        'use case',
+        'scenario',
+        'illustration',
+        'template',
       ])
     ) {
-      return "examples";
+      return 'examples';
     }
 
     // Skip duplicate API check since it's already done above
@@ -762,20 +762,20 @@ export class PromptOptimizationEngine {
     // Reference indicators
     if (
       PromptOptimizationEngine.hasPatterns(lowerQuery, [
-        "reference",
-        "documentation",
-        "spec",
-        "manual",
-        "command",
-        "option",
-        "flag",
+        'reference',
+        'documentation',
+        'spec',
+        'manual',
+        'command',
+        'option',
+        'flag',
       ])
     ) {
-      return "reference";
+      return 'reference';
     }
 
     // Default to conceptual
-    return "conceptual";
+    return 'conceptual';
   }
 
   private static hasPatterns(text: string, patterns: string[]): boolean {
@@ -787,38 +787,38 @@ export class PromptOptimizationEngine {
    */
   private static determineComplexity(
     query: string,
-  ): "basic" | "intermediate" | "advanced" {
+  ): 'basic' | 'intermediate' | 'advanced' {
     const technicalTerms = [
-      "authentication",
-      "authorization",
-      "middleware",
-      "microservices",
-      "containerization",
-      "orchestration",
-      "scaling",
-      "load balancing",
-      "caching",
-      "optimization",
-      "performance",
-      "monitoring",
-      "observability",
-      "ci/cd",
-      "deployment",
-      "infrastructure",
-      "architecture",
+      'authentication',
+      'authorization',
+      'middleware',
+      'microservices',
+      'containerization',
+      'orchestration',
+      'scaling',
+      'load balancing',
+      'caching',
+      'optimization',
+      'performance',
+      'monitoring',
+      'observability',
+      'ci/cd',
+      'deployment',
+      'infrastructure',
+      'architecture',
     ];
 
-    const queryLength = query.split(" ").length;
+    const queryLength = query.split(' ').length;
     const technicalTermCount = technicalTerms.filter((term) =>
       query.toLowerCase().includes(term),
     ).length;
 
     if (queryLength > 15 || technicalTermCount > 2) {
-      return "advanced";
+      return 'advanced';
     } else if (queryLength > 8 || technicalTermCount > 0) {
-      return "intermediate";
+      return 'intermediate';
     } else {
-      return "basic";
+      return 'basic';
     }
   }
 
@@ -874,24 +874,24 @@ export class PromptOptimizationEngine {
     const expansions: string[] = [];
 
     switch (queryType) {
-      case "technical":
+      case 'technical':
         expansions.push(
           `${query} implementation`,
           `${query} technical details`,
           `${query} specifications`,
         );
         break;
-      case "configuration":
+      case 'configuration':
         expansions.push(
           `${query} setup`,
           `${query} configuration guide`,
           `${query} settings`,
         );
         break;
-      case "troubleshooting":
+      case 'troubleshooting':
         expansions.push(`${query} error`, `${query} fix`, `${query} solution`);
         break;
-      case "api":
+      case 'api':
         expansions.push(
           `${query} API`,
           `${query} endpoint`,
@@ -918,9 +918,9 @@ export class PromptOptimizationEngine {
 
     // Use expanded template for complex queries
     const promptTemplate =
-      complexity === "advanced" ? template.expanded : template.base;
+      complexity === 'advanced' ? template.expanded : template.base;
 
-    return promptTemplate.replace("{query}", originalQuery);
+    return promptTemplate.replace('{query}', originalQuery);
   }
 
   /**
@@ -936,7 +936,7 @@ export class PromptOptimizationEngine {
     if (!template?.contextual) {
       throw new Error(`Invalid query type: ${queryType}`);
     }
-    let prompt = template.contextual.replace("{query}", query);
+    let prompt = template.contextual.replace('{query}', query);
 
     // Add domain context
     if (
@@ -957,9 +957,9 @@ export class PromptOptimizationEngine {
       const recentMessages = context.conversationHistory.slice(-3);
       const contextSummary = recentMessages
         .map((msg) => `${msg.role}: ${msg.content.slice(0, 200)}`)
-        .join("\n");
+        .join('\n');
 
-      prompt = prompt.replace("{previousContext}", contextSummary);
+      prompt = prompt.replace('{previousContext}', contextSummary);
       prompt += `\n\nConversation context:\n${contextSummary}`;
     }
 
@@ -984,25 +984,25 @@ export class PromptOptimizationEngine {
 
     // Add type-specific instructions
     switch (queryType) {
-      case "technical":
+      case 'technical':
         instructions +=
-          " Prioritize technical documentation, API references, and implementation guides.";
+          ' Prioritize technical documentation, API references, and implementation guides.';
         break;
-      case "troubleshooting":
+      case 'troubleshooting':
         instructions +=
-          " Focus on error messages, diagnostic procedures, and solution documentation.";
+          ' Focus on error messages, diagnostic procedures, and solution documentation.';
         break;
-      case "configuration":
+      case 'configuration':
         instructions +=
-          " Emphasize setup guides, parameter documentation, and configuration examples.";
+          ' Emphasize setup guides, parameter documentation, and configuration examples.';
         break;
-      case "procedural":
+      case 'procedural':
         instructions +=
-          " Look for step-by-step guides, process documentation, and instructional content.";
+          ' Look for step-by-step guides, process documentation, and instructional content.';
         break;
-      case "integration":
+      case 'integration':
         instructions +=
-          " Search for integration guides, connector documentation, and compatibility information.";
+          ' Search for integration guides, connector documentation, and compatibility information.';
         break;
     }
 
@@ -1025,7 +1025,7 @@ export class PromptOptimizationEngine {
     let score = 0.5; // Base score
 
     // Query length and specificity
-    const queryLength = query.split(" ").length;
+    const queryLength = query.split(' ').length;
     if (queryLength > 5) {
       score += 0.2;
     }
@@ -1232,10 +1232,10 @@ export class ContextWindowManager {
 
     if (relevantSentences.length === 0) {
       // If no relevant sentences, take first few sentences
-      return `${sentences.slice(0, 2).join(". ")}.`;
+      return `${sentences.slice(0, 2).join('. ')}.`;
     }
 
-    return `${relevantSentences.join(". ")}.`;
+    return `${relevantSentences.join('. ')}.`;
   }
 
   /**
@@ -1310,11 +1310,11 @@ export class PromptOptimizationMetrics {
         allMetrics.length,
       queryTypeDistribution: PromptOptimizationMetrics.getDistribution(
         allMetrics,
-        "queryType",
+        'queryType',
       ),
       complexityDistribution: PromptOptimizationMetrics.getDistribution(
         allMetrics,
-        "complexity",
+        'complexity',
       ),
     };
   }

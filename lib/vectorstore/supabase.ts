@@ -60,7 +60,9 @@ export interface SupabaseVectorStoreService {
 
   // Document management
   addDocument: (document: SupabaseDocumentInsert) => Promise<SupabaseDocument>;
-  addDocuments: (documents: SupabaseDocumentInsert[]) => Promise<SupabaseDocument[]>;
+  addDocuments: (
+    documents: SupabaseDocumentInsert[],
+  ) => Promise<SupabaseDocument[]>;
   getDocument: (id: string) => Promise<SupabaseDocument | null>;
   updateDocument: (
     id: string,
@@ -69,7 +71,9 @@ export interface SupabaseVectorStoreService {
   deleteDocument: (id: string) => Promise<boolean>;
 
   // Search operations
-  searchSimilar: (request: SupabaseSearchRequest) => Promise<SupabaseSearchResult[]>;
+  searchSimilar: (
+    request: SupabaseSearchRequest,
+  ) => Promise<SupabaseSearchResult[]>;
   searchSimilarByEmbedding: (
     embedding: number[],
     maxResults?: number,
@@ -98,7 +102,10 @@ export function createSupabaseVectorStoreService(
     anonKey: config?.anonKey || supabaseConfig.anonKey,
     serviceRoleKey: config?.serviceRoleKey || supabaseConfig.serviceRoleKey,
     embeddingModel: config?.embeddingModel || 'text-embedding-3-small',
-    isEnabled: !isTestMode && !!(config?.url || supabaseConfig.url) && !!(config?.anonKey || supabaseConfig.anonKey),
+    isEnabled:
+      !isTestMode &&
+      !!(config?.url || supabaseConfig.url) &&
+      !!(config?.anonKey || supabaseConfig.anonKey),
   };
 
   // In test mode or when disabled, return disabled service
@@ -188,9 +195,11 @@ export function createSupabaseVectorStoreService(
       },
     ),
 
-    async addDocument(document: SupabaseDocumentInsert): Promise<SupabaseDocument> {
+    async addDocument(
+      document: SupabaseDocumentInsert,
+    ): Promise<SupabaseDocument> {
       const validatedDocument = SupabaseDocumentInsert.parse(document);
-      
+
       // Generate embedding if not provided
       const embedding =
         validatedDocument.embedding ||
@@ -276,11 +285,13 @@ export function createSupabaseVectorStoreService(
         throw new Error(`Failed to get document: ${error.message}`);
       }
 
-      return data ? SupabaseDocument.parse({
-        ...data,
-        createdAt: new Date(data.created_at),
-        updatedAt: data.updated_at ? new Date(data.updated_at) : undefined,
-      }) : null;
+      return data
+        ? SupabaseDocument.parse({
+            ...data,
+            createdAt: new Date(data.created_at),
+            updatedAt: data.updated_at ? new Date(data.updated_at) : undefined,
+          })
+        : null;
     },
 
     async updateDocument(
@@ -317,10 +328,7 @@ export function createSupabaseVectorStoreService(
 
     async deleteDocument(id: string): Promise<boolean> {
       try {
-        const { error } = await client
-          .from('documents')
-          .delete()
-          .eq('id', id);
+        const { error } = await client.from('documents').delete().eq('id', id);
 
         return !error;
       } catch (_error) {
@@ -399,7 +407,9 @@ export function createSupabaseVectorStoreService(
             metadata: result.metadata || {},
             embedding: result.embedding,
             createdAt: new Date(result.created_at),
-            updatedAt: result.updated_at ? new Date(result.updated_at) : undefined,
+            updatedAt: result.updated_at
+              ? new Date(result.updated_at)
+              : undefined,
           }),
           similarity: result.similarity || 0,
           distance: 1 - (result.similarity || 0),
@@ -413,7 +423,7 @@ export function createSupabaseVectorStoreService(
       error?: string;
     }> {
       const startTime = Date.now();
-      
+
       try {
         // Test basic connectivity with a simple query
         const { error } = await client

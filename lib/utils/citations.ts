@@ -1,4 +1,4 @@
-import type { SourceAnnotation, SourceFile } from "@/lib/ai/responses";
+import type { SourceAnnotation, SourceFile } from '@/lib/ai/responses';
 
 // Re-export for convenience
 export type { SourceFile };
@@ -33,7 +33,7 @@ function generateCacheKey(
   annotations: SourceAnnotation[],
   sources: SourceFile[],
 ): string {
-  return `${content.length}-${annotations.length}-${sources.length}-${annotations.map((a) => a.start_index).join(",")}`;
+  return `${content.length}-${annotations.length}-${sources.length}-${annotations.map((a) => a.start_index).join(',')}`;
 }
 
 /**
@@ -115,7 +115,7 @@ export function parseCitationsFromContent(
   // Create citations from annotations
   for (let i = 0; i < annotations.length; i++) {
     const annotation = annotations[i];
-    if (annotation.type === "file_citation" && annotation.file_citation) {
+    if (annotation.type === 'file_citation' && annotation.file_citation) {
       const fileId = annotation.file_citation.file_id;
       const source = sourceMap.get(fileId);
 
@@ -158,7 +158,7 @@ export function parseCitationsFromContent(
  */
 export function formatCitationsMarkdown(citations: ParsedCitation[]): string {
   if (!citations.length) {
-    return "";
+    return '';
   }
 
   const formattedCitations = citations.map((citation) => {
@@ -171,7 +171,7 @@ export function formatCitationsMarkdown(citations: ParsedCitation[]): string {
     return formatted;
   });
 
-  return `\n\n---\n\n**Sources:**\n\n${formattedCitations.join("\n\n")}`;
+  return `\n\n---\n\n**Sources:**\n\n${formattedCitations.join('\n\n')}`;
 }
 
 /**
@@ -179,7 +179,7 @@ export function formatCitationsMarkdown(citations: ParsedCitation[]): string {
  */
 export function formatCitationsText(citations: ParsedCitation[]): string {
   if (!citations.length) {
-    return "";
+    return '';
   }
 
   const formattedCitations = citations.map((citation) => {
@@ -192,7 +192,7 @@ export function formatCitationsText(citations: ParsedCitation[]): string {
     return formatted;
   });
 
-  return `\n\nSources:\n${formattedCitations.join("\n")}`;
+  return `\n\nSources:\n${formattedCitations.join('\n')}`;
 }
 
 /**
@@ -228,7 +228,7 @@ export function enhanceCitationsInContent(
   const sortedCitations = [...citations].sort((a, b) => b.number - a.number);
 
   sortedCitations.forEach((citation) => {
-    const citationRegex = new RegExp(`\\[${citation.number}\\]`, "g");
+    const citationRegex = new RegExp(`\\[${citation.number}\\]`, 'g');
     enhancedContent = enhancedContent.replace(
       citationRegex,
       `[${citation.number}](#citation-${citation.id})`,
@@ -276,7 +276,7 @@ export function validateCitations(citations: ParsedCitation[]): {
  */
 export function createCitationFootnotes(citations: ParsedCitation[]): string {
   if (!citations.length) {
-    return "";
+    return '';
   }
 
   const footnotes = citations.map((citation) => {
@@ -287,9 +287,9 @@ export function createCitationFootnotes(citations: ParsedCitation[]): string {
       footnote += `<br><em>"${citation.quote}"</em>`;
     }
 
-    footnote += "</div>";
+    footnote += '</div>';
     return footnote;
   });
 
-  return `\n\n<div class="citations-section">\n<h4>Sources</h4>\n${footnotes.join("\n")}\n</div>`;
+  return `\n\n<div class="citations-section">\n<h4>Sources</h4>\n${footnotes.join('\n')}\n</div>`;
 }

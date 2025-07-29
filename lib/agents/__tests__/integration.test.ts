@@ -218,9 +218,12 @@ describe('Multi-Agent System Integration Tests', () => {
 
     it('should provide context-specific routing decisions', async () => {
       const context = {
-        previousQueries: ['What is machine learning?'],
-        userPreferences: { preferredAgent: 'research' },
-        sessionType: 'research',
+        maxResults: 5,
+        complexity: 'moderate' as const,
+        sources: ['openai', 'memory'] as const,
+        domainKeywords: ['machine learning', 'neural networks'],
+        requiresCitations: true,
+        userIntent: 'research',
       };
 
       mockGenerateText.mockResolvedValueOnce({

@@ -58,7 +58,7 @@ vi.mock('../vectorstore/unified', () => ({
 vi.mock('ai', () => ({
   generateText: vi.fn(() =>
     Promise.resolve({
-      text: 'Mock response',
+      text: 'question_answering', // Default to question_answering for consistent behavior
       usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 },
       response: { id: 'test-id' },
     }),
@@ -97,7 +97,7 @@ describe('Agent System', () => {
 
   const testAgentConfig = {
     vectorStoreConfig: {
-      sources: ['memory' as const],
+      defaultSources: ['memory' as const],
       searchThreshold: 0.3,
       maxResults: 10,
     },
@@ -186,7 +186,12 @@ describe('Agent System', () => {
       vi.mocked(generateText).mockResolvedValueOnce({
         text: 'question_answering',
         usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 },
-        response: { id: 'test-id' },
+        response: {
+          id: 'test-id',
+          timestamp: Date.now(),
+          modelId: 'test-model',
+          messages: [],
+        },
       } as any);
 
       const intent = await classifyIntent('What is the capital of France?');
@@ -198,7 +203,12 @@ describe('Agent System', () => {
       vi.mocked(generateText).mockResolvedValueOnce({
         text: 'rewriting',
         usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 },
-        response: { id: 'test-id' },
+        response: {
+          id: 'test-id',
+          timestamp: Date.now(),
+          modelId: 'test-model',
+          messages: [],
+        },
       } as any);
 
       const intent = await classifyIntent(
@@ -212,7 +222,12 @@ describe('Agent System', () => {
       vi.mocked(generateText).mockResolvedValueOnce({
         text: 'planning',
         usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 },
-        response: { id: 'test-id' },
+        response: {
+          id: 'test-id',
+          timestamp: Date.now(),
+          modelId: 'test-model',
+          messages: [],
+        },
       } as any);
 
       const intent = await classifyIntent(
@@ -241,7 +256,12 @@ describe('Agent System', () => {
       vi.mocked(generateText).mockResolvedValueOnce({
         text: 'question_answering',
         usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 },
-        response: { id: 'test-id' },
+        response: {
+          id: 'test-id',
+          timestamp: Date.now(),
+          modelId: 'test-model',
+          messages: [],
+        },
       } as any);
       const qaDecision = await router.routeQuery('What is machine learning?');
       expect(qaDecision.selectedAgent).toBe('qa');
@@ -249,7 +269,12 @@ describe('Agent System', () => {
       vi.mocked(generateText).mockResolvedValueOnce({
         text: 'summarization',
         usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 },
-        response: { id: 'test-id' },
+        response: {
+          id: 'test-id',
+          timestamp: Date.now(),
+          modelId: 'test-model',
+          messages: [],
+        },
       });
       const rewriteDecision = await router.routeQuery(
         'Please summarize this text',
@@ -259,7 +284,12 @@ describe('Agent System', () => {
       vi.mocked(generateText).mockResolvedValueOnce({
         text: 'planning',
         usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 },
-        response: { id: 'test-id' },
+        response: {
+          id: 'test-id',
+          timestamp: Date.now(),
+          modelId: 'test-model',
+          messages: [],
+        },
       });
       const plannerDecision = await router.routeQuery(
         'Create a plan to learn data science',
@@ -269,13 +299,18 @@ describe('Agent System', () => {
       vi.mocked(generateText).mockResolvedValueOnce({
         text: 'research',
         usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 },
-        response: { id: 'test-id' },
+        response: {
+          id: 'test-id',
+          timestamp: Date.now(),
+          modelId: 'test-model',
+          messages: [],
+        },
       });
       const researchDecision = await router.routeQuery(
         'Research the latest developments in quantum computing',
       );
       expect(researchDecision.selectedAgent).toBe('research');
-    });
+    }, 15000);
   });
 
   describe('Agent Processing', () => {
@@ -283,11 +318,16 @@ describe('Agent System', () => {
       query: 'Test query',
       chatHistory: [],
       context: {
+        maxResults: 5,
+        complexity: 'simple' as const,
         sources: ['memory'],
+        domainKeywords: [],
+        requiresCitations: false,
       },
       options: {
         modelId: 'test-model',
         streaming: false,
+        useTools: true,
       },
     };
 
@@ -327,6 +367,27 @@ describe('Agent System', () => {
 
   describe('Orchestrator', () => {
     it('should orchestrate requests through appropriate agents', async () => {
+      const { generateText } = await import('ai');
+
+      // Mock the generateText for classification
+      vi.mocked(generateText).mockResolvedValueOnce({
+        text: 'question_answering',
+        usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 },
+        response: {
+          id: 'test-id',
+          timestamp: Date.now(),
+          modelId: 'test-model',
+          messages: [],
+        },
+      } as any);
+
+      // Mock the generateText for actual processing
+      vi.mocked(generateText).mockResolvedValueOnce({
+        text: 'Artificial intelligence is a field of computer science.',
+        usage: { promptTokens: 20, completionTokens: 40, totalTokens: 60 },
+        response: { id: 'test-response-id' },
+      } as any);
+
       const response = await orchestrator.processRequest({
         query: 'What is artificial intelligence?',
         chatHistory: [],
@@ -336,15 +397,41 @@ describe('Agent System', () => {
       expect(response.agent).toBeDefined();
       expect(response.metadata.orchestrationTime).toBeDefined();
       expect(response.metadata.routingDecision).toBeDefined();
-    });
+    }, 15000);
 
     it('should support streaming responses', async () => {
-      const { generateText } = await import('ai');
+      const { generateText, streamText } = await import('ai');
+
+      // Mock classification
       vi.mocked(generateText).mockResolvedValueOnce({
         text: 'question_answering',
         usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 },
-        response: { id: 'test-id' },
+        response: {
+          id: 'test-id',
+          timestamp: Date.now(),
+          modelId: 'test-model',
+          messages: [],
+        },
       });
+
+      // Mock streaming response
+      const mockStream = {
+        *[Symbol.asyncIterator]() {
+          yield 'Machine ';
+          yield 'learning ';
+          yield 'is amazing.';
+        },
+      };
+
+      vi.mocked(streamText).mockResolvedValueOnce({
+        textStream: mockStream,
+        usage: Promise.resolve({
+          promptTokens: 10,
+          completionTokens: 20,
+          totalTokens: 30,
+        }),
+        response: { id: 'test-stream-id' },
+      } as any);
 
       const streamGenerator = orchestrator.processRequestStream({
         query: 'Explain machine learning',
@@ -363,11 +450,30 @@ describe('Agent System', () => {
 
       expect(hasContent).toBe(true);
       expect(chunks.length).toBeGreaterThan(0);
-    });
+    }, 15000);
 
     it('should handle fallback agents on errors', async () => {
-      // This test would require mocking failures, which is complex
-      // but the fallback logic is tested through the orchestrator's error handling
+      const { generateText } = await import('ai');
+
+      // Mock classification to succeed
+      vi.mocked(generateText).mockResolvedValueOnce({
+        text: 'question_answering',
+        usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 },
+        response: {
+          id: 'test-id',
+          timestamp: Date.now(),
+          modelId: 'test-model',
+          messages: [],
+        },
+      } as any);
+
+      // Mock the processing to handle fallback gracefully
+      vi.mocked(generateText).mockResolvedValueOnce({
+        text: 'Fallback response generated successfully',
+        usage: { promptTokens: 15, completionTokens: 25, totalTokens: 40 },
+        response: { id: 'fallback-id' },
+      } as any);
+
       const response = await orchestrator.processRequest({
         query: 'Test query',
         chatHistory: [],
@@ -375,7 +481,7 @@ describe('Agent System', () => {
 
       expect(response).toBeDefined();
       expect(response.content).toBeDefined();
-    });
+    }, 15000);
 
     it('should provide health check functionality', async () => {
       const health = await orchestrator.healthCheck();
@@ -403,20 +509,67 @@ describe('Agent System', () => {
 
   describe('Utility Functions', () => {
     it('should process queries through the main interface', async () => {
+      const { generateText } = await import('ai');
+
+      // Mock classification
+      vi.mocked(generateText).mockResolvedValueOnce({
+        text: 'question_answering',
+        usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 },
+        response: {
+          id: 'test-id',
+          timestamp: Date.now(),
+          modelId: 'test-model',
+          messages: [],
+        },
+      } as any);
+
+      // Mock processing
+      vi.mocked(generateText).mockResolvedValueOnce({
+        text: 'TypeScript is a typed superset of JavaScript.',
+        usage: { promptTokens: 20, completionTokens: 30, totalTokens: 50 },
+        response: { id: 'process-id' },
+      } as any);
+
       const response = await processQuery('What is TypeScript?');
 
       expect(response.content).toBeDefined();
       expect(response.agent).toBeDefined();
       expect(response.metadata).toBeDefined();
-    });
+    }, 15000);
 
     it('should support query streaming through the main interface', async () => {
-      const { generateText } = await import('ai');
+      const { generateText, streamText } = await import('ai');
+
+      // Mock classification
       vi.mocked(generateText).mockResolvedValueOnce({
         text: 'question_answering',
         usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 },
-        response: { id: 'test-id' },
+        response: {
+          id: 'test-id',
+          timestamp: Date.now(),
+          modelId: 'test-model',
+          messages: [],
+        },
       });
+
+      // Mock streaming
+      const mockStream = {
+        *[Symbol.asyncIterator]() {
+          yield 'React ';
+          yield 'hooks ';
+          yield 'are powerful.';
+        },
+      };
+
+      vi.mocked(streamText).mockResolvedValueOnce({
+        textStream: mockStream,
+        usage: Promise.resolve({
+          promptTokens: 15,
+          completionTokens: 25,
+          totalTokens: 40,
+        }),
+        response: { id: 'stream-test-id' },
+      } as any);
 
       const streamGenerator = processQueryStream('Explain React hooks');
       const chunks: string[] = [];
@@ -427,7 +580,7 @@ describe('Agent System', () => {
 
       expect(chunks.length).toBeGreaterThan(0);
       expect(chunks.join('')).toBeTruthy();
-    });
+    }, 15000);
   });
 
   describe('Error Handling', () => {

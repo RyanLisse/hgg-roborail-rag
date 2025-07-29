@@ -32,7 +32,7 @@ const runTestMigrate = async () => {
   } finally {
     await connection.end();
   }
-  
+
   process.exit(0);
 };
 

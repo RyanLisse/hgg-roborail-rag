@@ -6,7 +6,7 @@ import { aiProviders, getModelInstance } from './providers';
 describe('AI Providers', () => {
   describe('aiProviders', () => {
     it('should contain all expected providers', () => {
-      const expectedProviders = ['openai', 'google'];
+      const expectedProviders = ['openai', 'google'] as const;
       expectedProviders.forEach((provider) => {
         expect(aiProviders).toHaveProperty(provider);
         expect(aiProviders[provider]).toBeDefined();

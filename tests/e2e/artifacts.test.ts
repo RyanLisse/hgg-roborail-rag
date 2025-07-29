@@ -1,8 +1,8 @@
-import { expect, test } from "../fixtures";
-import { ArtifactPage } from "../pages/artifact";
-import { ChatPage } from "../pages/chat";
+import { expect, test } from '../fixtures';
+import { ArtifactPage } from '../pages/artifact';
+import { ChatPage } from '../pages/chat';
 
-test.describe("Artifacts activity", () => {
+test.describe('Artifacts activity', () => {
   let chatPage: ChatPage;
   let artifactPage: ArtifactPage;
 
@@ -13,50 +13,50 @@ test.describe("Artifacts activity", () => {
     await chatPage.createNewChat();
   });
 
-  test("Create a text artifact", async () => {
+  test('Create a text artifact', async () => {
     await chatPage.sendUserMessage(
-      "Help me write an essay about Silicon Valley",
+      'Help me write an essay about Silicon Valley',
     );
     await chatPage.isGenerationComplete();
     await artifactPage.waitForArtifactToBeReady();
 
     const assistantMessage = await chatPage.getRecentAssistantMessage();
     expect(assistantMessage.content).toBe(
-      "A document was created and is now visible to the user.",
+      'A document was created and is now visible to the user.',
     );
 
     await chatPage.hasChatIdInUrl();
   });
 
-  test("Toggle artifact visibility", async () => {
+  test('Toggle artifact visibility', async () => {
     await chatPage.sendUserMessage(
-      "Help me write an essay about Silicon Valley",
+      'Help me write an essay about Silicon Valley',
     );
     await chatPage.isGenerationComplete();
     await artifactPage.waitForArtifactToBeReady();
 
     const assistantMessage = await chatPage.getRecentAssistantMessage();
     expect(assistantMessage.content).toBe(
-      "A document was created and is now visible to the user.",
+      'A document was created and is now visible to the user.',
     );
 
     await artifactPage.closeArtifact();
-    await chatPage.isElementNotVisible("artifact");
+    await chatPage.isElementNotVisible('artifact');
   });
 
-  test("Send follow up message after generation", async () => {
+  test('Send follow up message after generation', async () => {
     await chatPage.sendUserMessage(
-      "Help me write an essay about Silicon Valley",
+      'Help me write an essay about Silicon Valley',
     );
     await chatPage.isGenerationComplete();
     await artifactPage.waitForArtifactToBeReady();
 
     const assistantMessage = await chatPage.getRecentAssistantMessage();
     expect(assistantMessage.content).toBe(
-      "A document was created and is now visible to the user.",
+      'A document was created and is now visible to the user.',
     );
 
-    await artifactPage.sendUserMessage("Thanks!");
+    await artifactPage.sendUserMessage('Thanks!');
     await artifactPage.isGenerationComplete();
 
     const secondAssistantMessage = await chatPage.getRecentAssistantMessage();

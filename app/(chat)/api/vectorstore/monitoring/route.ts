@@ -97,7 +97,7 @@ async function handleHealthCheckSpecific(provider: string) {
     const service = await getNeonVectorStoreService();
     healthResult = {
       isHealthy: service.isEnabled,
-      error: service.isEnabled ? undefined : 'Service disabled',
+      ...(service.isEnabled ? {} : { error: 'Service disabled' }),
     };
   } else {
     healthResult = { isHealthy: true };

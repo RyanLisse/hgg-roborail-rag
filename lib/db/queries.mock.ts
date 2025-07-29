@@ -95,8 +95,10 @@ export async function getChatsByUserId({
   endingBefore: string | null;
 }) {
   // Create some mock chat data for testing
-  const userChats = Array.from(mockChats.values()).filter(chat => chat.userId === id);
-  
+  const userChats = Array.from(mockChats.values()).filter(
+    (chat) => chat.userId === id,
+  );
+
   // If no chats exist for user, create some mock data
   if (userChats.length === 0) {
     const mockChat1: Chat = {
@@ -113,33 +115,33 @@ export async function getChatsByUserId({
       createdAt: new Date(Date.now() - 172800000), // 2 days ago
       visibility: 'private',
     };
-    
+
     mockChats.set(mockChat1.id, mockChat1);
     mockChats.set(mockChat2.id, mockChat2);
     userChats.push(mockChat1, mockChat2);
   }
-  
+
   // Sort by creation date descending
   userChats.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-  
+
   // Apply pagination logic
   let filteredChats = userChats;
-  
+
   if (startingAfter) {
-    const startIndex = userChats.findIndex(chat => chat.id === startingAfter);
+    const startIndex = userChats.findIndex((chat) => chat.id === startingAfter);
     if (startIndex >= 0) {
       filteredChats = userChats.slice(startIndex + 1);
     }
   } else if (endingBefore) {
-    const endIndex = userChats.findIndex(chat => chat.id === endingBefore);
+    const endIndex = userChats.findIndex((chat) => chat.id === endingBefore);
     if (endIndex >= 0) {
       filteredChats = userChats.slice(0, endIndex);
     }
   }
-  
+
   const hasMore = filteredChats.length > limit;
   const chats = hasMore ? filteredChats.slice(0, limit) : filteredChats;
-  
+
   return {
     chats,
     hasMore,

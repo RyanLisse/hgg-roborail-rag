@@ -1,6 +1,6 @@
-import fs from "node:fs";
-import path from "node:path";
-import { expect, test } from "@playwright/test";
+import fs from 'node:fs';
+import path from 'node:path';
+import { expect, test } from '@playwright/test';
 import {
   createPerformanceMonitor,
   sendMessageWithRetry,
@@ -8,7 +8,7 @@ import {
   verifyAppState,
   waitForChatResponse,
   waitForPageReady,
-} from "../utils/test-helpers";
+} from '../utils/test-helpers';
 
 /**
  * Comprehensive E2E Test Suite for Upload → Search Workflow
@@ -21,11 +21,11 @@ import {
  * 5. Performance benchmarking
  */
 
-test.describe("Comprehensive Upload → Search E2E Tests", () => {
+test.describe('Comprehensive Upload → Search E2E Tests', () => {
   // Test documents with different characteristics
   const testDocuments = {
     technical: {
-      name: "technical-guide.md",
+      name: 'technical-guide.md',
       content: `# Advanced System Architecture Guide
 
 ## Introduction
@@ -78,7 +78,7 @@ Microservices architecture is a design approach that structures an application a
     },
 
     research: {
-      name: "research-paper.md",
+      name: 'research-paper.md',
       content: `# Machine Learning in Healthcare: A Systematic Review
 
 ## Abstract
@@ -153,7 +153,7 @@ Machine learning shows tremendous promise in healthcare, with significant potent
     },
 
     simple: {
-      name: "simple-guide.txt",
+      name: 'simple-guide.txt',
       content: `Getting Started with Web Development
 
 Introduction
@@ -198,7 +198,7 @@ Web development is a rewarding field with many opportunities. Start with the bas
 
   // Helper functions
   const createTestFile = (document: { name: string; content: string }) => {
-    const tempDir = path.join(process.cwd(), "temp", "test-docs");
+    const tempDir = path.join(process.cwd(), 'temp', 'test-docs');
     if (!fs.existsSync(tempDir)) {
       fs.mkdirSync(tempDir, { recursive: true });
     }
@@ -209,27 +209,27 @@ Web development is a rewarding field with many opportunities. Start with the bas
   };
 
   const cleanupTestFiles = () => {
-    const tempDir = path.join(process.cwd(), "temp", "test-docs");
+    const tempDir = path.join(process.cwd(), 'temp', 'test-docs');
     try {
       if (fs.existsSync(tempDir)) {
         fs.rmSync(tempDir, { recursive: true, force: true });
       }
     } catch (error) {
-      console.warn("Failed to cleanup test files:", error);
+      console.warn('Failed to cleanup test files:', error);
     }
   };
 
   test.beforeEach(async ({ page }) => {
     const monitor = createPerformanceMonitor();
-    monitor.start("test-setup");
+    monitor.start('test-setup');
 
     try {
-      await page.goto("/");
+      await page.goto('/');
       await waitForPageReady(page, 20_000);
 
       const isHealthy = await verifyAppState(page);
       if (!isHealthy) {
-        throw new Error("App failed health check");
+        throw new Error('App failed health check');
       }
 
       // Handle authentication if needed
@@ -239,9 +239,9 @@ Web development is a rewarding field with many opportunities. Start with the bas
         await waitForPageReady(page, 10_000);
       }
 
-      monitor.end("test-setup");
+      monitor.end('test-setup');
     } catch (error) {
-      monitor.end("test-setup");
+      monitor.end('test-setup');
       throw error;
     }
   });
@@ -250,7 +250,7 @@ Web development is a rewarding field with many opportunities. Start with the bas
     cleanupTestFiles();
   });
 
-  test("should handle complete upload → process → search workflow", async ({
+  test('should handle complete upload → process → search workflow', async ({
     page,
   }) => {
     const monitor = createPerformanceMonitor();
@@ -258,7 +258,7 @@ Web development is a rewarding field with many opportunities. Start with the bas
 
     try {
       // Phase 1: Document Upload
-      monitor.start("upload-phase");
+      monitor.start('upload-phase');
 
       await uploadFileWithRetry(page, techDoc, { timeout: 15_000 });
 
@@ -267,16 +267,16 @@ Web development is a rewarding field with many opportunities. Start with the bas
         timeout: 10_000,
       });
       const attachment = page.locator('[data-testid="attachment"]');
-      expect(await attachment.textContent()).toContain("technical-guide.md");
+      expect(await attachment.textContent()).toContain('technical-guide.md');
 
-      monitor.end("upload-phase");
+      monitor.end('upload-phase');
 
       // Phase 2: Document Processing
-      monitor.start("processing-phase");
+      monitor.start('processing-phase');
 
       await sendMessageWithRetry(
         page,
-        "Please process this document for vector search and make it available for RAG queries.",
+        'Please process this document for vector search and make it available for RAG queries.',
         {
           waitForResponse: true,
         },
@@ -287,32 +287,32 @@ Web development is a rewarding field with many opportunities. Start with the bas
         expectText: /processed|uploaded|added|vector|stored|indexed/i,
       });
 
-      monitor.end("processing-phase");
+      monitor.end('processing-phase');
 
       // Phase 3: Search and Retrieval Testing
-      monitor.start("search-phase");
+      monitor.start('search-phase');
 
       const searchQueries = [
         {
-          query: "What are the key benefits of microservices architecture?",
+          query: 'What are the key benefits of microservices architecture?',
           expectedTerms: [
-            "scalability",
-            "technology diversity",
-            "fault isolation",
-            "team autonomy",
+            'scalability',
+            'technology diversity',
+            'fault isolation',
+            'team autonomy',
           ],
         },
         {
-          query: "Explain the API Gateway pattern",
-          expectedTerms: ["single entry point", "client requests", "gateway"],
+          query: 'Explain the API Gateway pattern',
+          expectedTerms: ['single entry point', 'client requests', 'gateway'],
         },
         {
-          query: "What database strategies are mentioned for microservices?",
+          query: 'What database strategies are mentioned for microservices?',
           expectedTerms: [
-            "database per service",
-            "event sourcing",
-            "cqrs",
-            "polyglot",
+            'database per service',
+            'event sourcing',
+            'cqrs',
+            'polyglot',
           ],
         },
       ];
@@ -326,27 +326,27 @@ Web development is a rewarding field with many opportunities. Start with the bas
         });
 
         const response = await page
-          .locator(".message-content")
+          .locator('.message-content')
           .last()
           .textContent();
         expect(response).toBeTruthy();
 
         // Check for relevant content
-        const responseText = response?.toLowerCase() || "";
+        const responseText = response?.toLowerCase() || '';
         const foundTerms = expectedTerms.filter((term) =>
           responseText.includes(term.toLowerCase()),
         );
         expect(foundTerms.length).toBeGreaterThan(0);
       }
 
-      monitor.end("search-phase");
+      monitor.end('search-phase');
 
       // Phase 4: Citation Verification
-      monitor.start("citation-phase");
+      monitor.start('citation-phase');
 
       await sendMessageWithRetry(
         page,
-        "What security considerations are mentioned in the document? Please provide citations.",
+        'What security considerations are mentioned in the document? Please provide citations.',
         {
           waitForResponse: true,
         },
@@ -359,10 +359,10 @@ Web development is a rewarding field with many opportunities. Start with the bas
 
       // Check for citation elements
       const possibleCitations = [
-        ".citations",
-        ".sources",
-        ".source-link",
-        ".citation",
+        '.citations',
+        '.sources',
+        '.source-link',
+        '.citation',
         '[data-testid="citations"]',
         '[data-testid="sources"]',
         ':text("technical-guide.md")',
@@ -385,18 +385,18 @@ Web development is a rewarding field with many opportunities. Start with the bas
       }
 
       if (citationsFound) {
-        console.log("✅ Citations system is working");
+        console.log('✅ Citations system is working');
       } else {
-        console.log("⚠️ Citations may not be implemented yet");
+        console.log('⚠️ Citations may not be implemented yet');
       }
 
-      monitor.end("citation-phase");
+      monitor.end('citation-phase');
     } finally {
       fs.unlinkSync(techDoc);
     }
   });
 
-  test("should handle multiple document types and cross-document queries", async ({
+  test('should handle multiple document types and cross-document queries', async ({
     page,
   }) => {
     const monitor = createPerformanceMonitor();
@@ -404,13 +404,13 @@ Web development is a rewarding field with many opportunities. Start with the bas
     const researchDoc = createTestFile(testDocuments.research);
 
     try {
-      monitor.start("multi-doc-upload");
+      monitor.start('multi-doc-upload');
 
       // Upload first document
       await uploadFileWithRetry(page, techDoc, { timeout: 15_000 });
       await sendMessageWithRetry(
         page,
-        "Process this technical architecture document for search.",
+        'Process this technical architecture document for search.',
         {
           waitForResponse: true,
         },
@@ -421,21 +421,21 @@ Web development is a rewarding field with many opportunities. Start with the bas
       await uploadFileWithRetry(page, researchDoc, { timeout: 15_000 });
       await sendMessageWithRetry(
         page,
-        "Process this healthcare research paper for search.",
+        'Process this healthcare research paper for search.',
         {
           waitForResponse: true,
         },
       );
       await waitForChatResponse(page, { timeout: 45_000 });
 
-      monitor.end("multi-doc-upload");
+      monitor.end('multi-doc-upload');
 
       // Cross-document query
-      monitor.start("cross-doc-query");
+      monitor.start('cross-doc-query');
 
       await sendMessageWithRetry(
         page,
-        "Compare the monitoring and observability approaches mentioned in the architecture document with the performance metrics discussed in the healthcare research paper.",
+        'Compare the monitoring and observability approaches mentioned in the architecture document with the performance metrics discussed in the healthcare research paper.',
         { waitForResponse: true },
       );
 
@@ -445,7 +445,7 @@ Web development is a rewarding field with many opportunities. Start with the bas
       });
 
       const response = await page
-        .locator(".message-content")
+        .locator('.message-content')
         .last()
         .textContent();
       expect(response).toBeTruthy();
@@ -453,37 +453,37 @@ Web development is a rewarding field with many opportunities. Start with the bas
       // Should reference both documents
       const responseText = response!.toLowerCase();
       const hasArchitectureTerms =
-        responseText.includes("distributed tracing") ||
-        responseText.includes("monitoring") ||
-        responseText.includes("observability");
+        responseText.includes('distributed tracing') ||
+        responseText.includes('monitoring') ||
+        responseText.includes('observability');
       const hasHealthcareTerms =
-        responseText.includes("sensitivity") ||
-        responseText.includes("specificity") ||
-        responseText.includes("auc");
+        responseText.includes('sensitivity') ||
+        responseText.includes('specificity') ||
+        responseText.includes('auc');
 
       expect(hasArchitectureTerms || hasHealthcareTerms).toBe(true);
 
-      monitor.end("cross-doc-query");
+      monitor.end('cross-doc-query');
     } finally {
       fs.unlinkSync(techDoc);
       fs.unlinkSync(researchDoc);
     }
   });
 
-  test("should handle different file formats and edge cases", async ({
+  test('should handle different file formats and edge cases', async ({
     page,
   }) => {
     const monitor = createPerformanceMonitor();
     const simpleDoc = createTestFile(testDocuments.simple);
 
     try {
-      monitor.start("format-testing");
+      monitor.start('format-testing');
 
       // Test with .txt file
       await uploadFileWithRetry(page, simpleDoc, { timeout: 15_000 });
       await sendMessageWithRetry(
         page,
-        "Process this text file about web development.",
+        'Process this text file about web development.',
         {
           waitForResponse: true,
         },
@@ -493,7 +493,7 @@ Web development is a rewarding field with many opportunities. Start with the bas
       // Query the content
       await sendMessageWithRetry(
         page,
-        "What frontend technologies are mentioned in the guide?",
+        'What frontend technologies are mentioned in the guide?',
         {
           waitForResponse: true,
         },
@@ -505,7 +505,7 @@ Web development is a rewarding field with many opportunities. Start with the bas
       });
 
       const response = await page
-        .locator(".message-content")
+        .locator('.message-content')
         .last()
         .textContent();
       expect(response).toBeTruthy();
@@ -513,15 +513,15 @@ Web development is a rewarding field with many opportunities. Start with the bas
         /(html|css|javascript|react|vue|angular)/,
       );
 
-      monitor.end("format-testing");
+      monitor.end('format-testing');
 
       // Test edge cases
-      monitor.start("edge-case-testing");
+      monitor.start('edge-case-testing');
 
       // Empty query
       await sendMessageWithRetry(
         page,
-        "Tell me about quantum computing from the documents.",
+        'Tell me about quantum computing from the documents.',
         {
           waitForResponse: true,
         },
@@ -530,38 +530,38 @@ Web development is a rewarding field with many opportunities. Start with the bas
       await waitForChatResponse(page, { timeout: 30_000 });
 
       const edgeResponse = await page
-        .locator(".message-content")
+        .locator('.message-content')
         .last()
         .textContent();
       expect(edgeResponse).toBeTruthy();
 
       // Should handle gracefully when topic not found
       const isGracefulHandling =
-        edgeResponse!.toLowerCase().includes("not found") ||
-        edgeResponse!.toLowerCase().includes("not mentioned") ||
-        edgeResponse!.toLowerCase().includes("no information") ||
-        edgeResponse!.toLowerCase().includes("quantum computing"); // General knowledge fallback
+        edgeResponse!.toLowerCase().includes('not found') ||
+        edgeResponse!.toLowerCase().includes('not mentioned') ||
+        edgeResponse!.toLowerCase().includes('no information') ||
+        edgeResponse!.toLowerCase().includes('quantum computing'); // General knowledge fallback
 
       expect(isGracefulHandling).toBe(true);
 
-      monitor.end("edge-case-testing");
+      monitor.end('edge-case-testing');
     } finally {
       fs.unlinkSync(simpleDoc);
     }
   });
 
-  test("should maintain context across conversation turns", async ({
+  test('should maintain context across conversation turns', async ({
     page,
   }) => {
     const monitor = createPerformanceMonitor();
     const techDoc = createTestFile(testDocuments.technical);
 
     try {
-      monitor.start("context-testing");
+      monitor.start('context-testing');
 
       // Setup
       await uploadFileWithRetry(page, techDoc, { timeout: 15_000 });
-      await sendMessageWithRetry(page, "Process this architecture document.", {
+      await sendMessageWithRetry(page, 'Process this architecture document.', {
         waitForResponse: true,
       });
       await waitForChatResponse(page, { timeout: 30_000 });
@@ -569,7 +569,7 @@ Web development is a rewarding field with many opportunities. Start with the bas
       // First query
       await sendMessageWithRetry(
         page,
-        "What are the main design patterns for microservices?",
+        'What are the main design patterns for microservices?',
         {
           waitForResponse: true,
         },
@@ -579,7 +579,7 @@ Web development is a rewarding field with many opportunities. Start with the bas
       // Contextual follow-up
       await sendMessageWithRetry(
         page,
-        "Can you explain the first pattern in more detail?",
+        'Can you explain the first pattern in more detail?',
         {
           waitForResponse: true,
         },
@@ -587,7 +587,7 @@ Web development is a rewarding field with many opportunities. Start with the bas
       await waitForChatResponse(page, { timeout: 30_000 });
 
       const contextResponse = await page
-        .locator(".message-content")
+        .locator('.message-content')
         .last()
         .textContent();
       expect(contextResponse).toBeTruthy();
@@ -598,7 +598,7 @@ Web development is a rewarding field with many opportunities. Start with the bas
       // Another contextual query
       await sendMessageWithRetry(
         page,
-        "How does it help with the benefits you mentioned earlier?",
+        'How does it help with the benefits you mentioned earlier?',
         {
           waitForResponse: true,
         },
@@ -606,29 +606,29 @@ Web development is a rewarding field with many opportunities. Start with the bas
       await waitForChatResponse(page, { timeout: 30_000 });
 
       const finalResponse = await page
-        .locator(".message-content")
+        .locator('.message-content')
         .last()
         .textContent();
       expect(finalResponse).toBeTruthy();
 
-      monitor.end("context-testing");
+      monitor.end('context-testing');
     } finally {
       fs.unlinkSync(techDoc);
     }
   });
 
-  test("should handle concurrent queries efficiently", async ({ page }) => {
+  test('should handle concurrent queries efficiently', async ({ page }) => {
     const monitor = createPerformanceMonitor();
     const techDoc = createTestFile(testDocuments.technical);
 
     try {
-      monitor.start("concurrent-testing");
+      monitor.start('concurrent-testing');
 
       // Setup
       await uploadFileWithRetry(page, techDoc, { timeout: 15_000 });
       await sendMessageWithRetry(
         page,
-        "Process this document for concurrent testing.",
+        'Process this document for concurrent testing.',
         {
           waitForResponse: true,
         },
@@ -637,17 +637,17 @@ Web development is a rewarding field with many opportunities. Start with the bas
 
       // Send rapid queries
       const queries = [
-        "What is microservices architecture?",
-        "List the communication patterns",
-        "Explain database strategies",
-        "What are security considerations?",
+        'What is microservices architecture?',
+        'List the communication patterns',
+        'Explain database strategies',
+        'What are security considerations?',
       ];
 
-      monitor.start("rapid-queries");
+      monitor.start('rapid-queries');
 
       for (const query of queries) {
-        await page.getByTestId("multimodal-input").fill(query);
-        await page.getByTestId("send-button").click();
+        await page.getByTestId('multimodal-input').fill(query);
+        await page.getByTestId('send-button').click();
         // Small delay between queries
         await page.waitForTimeout(500);
       }
@@ -655,21 +655,21 @@ Web development is a rewarding field with many opportunities. Start with the bas
       // Wait for all responses
       await page.waitForTimeout(15_000);
 
-      monitor.end("rapid-queries");
+      monitor.end('rapid-queries');
 
-      const messages = page.locator(".message-content");
+      const messages = page.locator('.message-content');
       const messageCount = await messages.count();
 
       // Should handle all queries
       expect(messageCount).toBeGreaterThan(queries.length);
 
-      monitor.end("concurrent-testing");
+      monitor.end('concurrent-testing');
     } finally {
       fs.unlinkSync(techDoc);
     }
   });
 
-  test("should provide performance benchmarks for RAG operations", async ({
+  test('should provide performance benchmarks for RAG operations', async ({
     page,
   }) => {
     const monitor = createPerformanceMonitor();
@@ -677,33 +677,33 @@ Web development is a rewarding field with many opportunities. Start with the bas
 
     try {
       // Benchmark upload performance
-      monitor.start("upload-benchmark");
+      monitor.start('upload-benchmark');
       await uploadFileWithRetry(page, techDoc, { timeout: 15_000 });
-      const uploadTime = monitor.end("upload-benchmark");
+      const uploadTime = monitor.end('upload-benchmark');
 
       // Benchmark processing performance
-      monitor.start("processing-benchmark");
+      monitor.start('processing-benchmark');
       await sendMessageWithRetry(
         page,
-        "Process this document for performance testing.",
+        'Process this document for performance testing.',
         {
           waitForResponse: true,
         },
       );
       await waitForChatResponse(page, { timeout: 60_000 });
-      const processingTime = monitor.end("processing-benchmark");
+      const processingTime = monitor.end('processing-benchmark');
 
       // Benchmark search performance
-      monitor.start("search-benchmark");
+      monitor.start('search-benchmark');
       await sendMessageWithRetry(
         page,
-        "What are the key benefits of microservices?",
+        'What are the key benefits of microservices?',
         {
           waitForResponse: true,
         },
       );
       await waitForChatResponse(page, { timeout: 30_000 });
-      const searchTime = monitor.end("search-benchmark");
+      const searchTime = monitor.end('search-benchmark');
 
       // Performance assertions
       expect(uploadTime).toBeLessThan(15_000); // Upload should be fast
@@ -719,16 +719,16 @@ Web development is a rewarding field with many opportunities. Start with the bas
     }
   });
 
-  test("should handle vector store provider switching", async ({ page }) => {
+  test('should handle vector store provider switching', async ({ page }) => {
     const monitor = createPerformanceMonitor();
     const techDoc = createTestFile(testDocuments.technical);
 
     try {
-      monitor.start("provider-testing");
+      monitor.start('provider-testing');
 
       // Upload document
       await uploadFileWithRetry(page, techDoc, { timeout: 15_000 });
-      await sendMessageWithRetry(page, "Process this document.", {
+      await sendMessageWithRetry(page, 'Process this document.', {
         waitForResponse: true,
       });
       await waitForChatResponse(page, { timeout: 30_000 });
@@ -736,7 +736,7 @@ Web development is a rewarding field with many opportunities. Start with the bas
       // Check if database/provider selector is available
       const providerSelectors = [
         '[data-testid="database-selector"]',
-        ".database-selector",
+        '.database-selector',
         'button:has-text("Data Sources")',
         'button:has-text("Database")',
         'select[name="provider"]',
@@ -753,7 +753,7 @@ Web development is a rewarding field with many opportunities. Start with the bas
       }
 
       if (providerSelector) {
-        console.log("✅ Provider selector found");
+        console.log('✅ Provider selector found');
 
         // Try to interact with it
         await providerSelector.click();
@@ -772,19 +772,19 @@ Web development is a rewarding field with many opportunities. Start with the bas
         // Test search with current provider
         await sendMessageWithRetry(
           page,
-          "What security patterns are mentioned?",
+          'What security patterns are mentioned?',
           {
             waitForResponse: true,
           },
         );
         await waitForChatResponse(page, { timeout: 30_000 });
       } else {
-        console.log("ℹ️ No provider selector found - may be auto-configured");
+        console.log('ℹ️ No provider selector found - may be auto-configured');
 
         // Still test basic search functionality
         await sendMessageWithRetry(
           page,
-          "What security patterns are mentioned?",
+          'What security patterns are mentioned?',
           {
             waitForResponse: true,
           },
@@ -793,7 +793,7 @@ Web development is a rewarding field with many opportunities. Start with the bas
       }
 
       const response = await page
-        .locator(".message-content")
+        .locator('.message-content')
         .last()
         .textContent();
       expect(response).toBeTruthy();
@@ -801,22 +801,22 @@ Web development is a rewarding field with many opportunities. Start with the bas
         /(security|authentication|authorization)/,
       );
 
-      monitor.end("provider-testing");
+      monitor.end('provider-testing');
     } finally {
       fs.unlinkSync(techDoc);
     }
   });
 
-  test("should validate error handling and recovery", async ({ page }) => {
+  test('should validate error handling and recovery', async ({ page }) => {
     const monitor = createPerformanceMonitor();
 
     try {
-      monitor.start("error-handling");
+      monitor.start('error-handling');
 
       // Test 1: Search without any documents
       await sendMessageWithRetry(
         page,
-        "Search for information about artificial intelligence.",
+        'Search for information about artificial intelligence.',
         {
           waitForResponse: true,
         },
@@ -825,26 +825,26 @@ Web development is a rewarding field with many opportunities. Start with the bas
       await waitForChatResponse(page, { timeout: 30_000 });
 
       const noDocResponse = await page
-        .locator(".message-content")
+        .locator('.message-content')
         .last()
         .textContent();
       expect(noDocResponse).toBeTruthy();
 
       // Should either provide helpful message or general knowledge
       const isHandledGracefully =
-        noDocResponse!.toLowerCase().includes("no documents") ||
-        noDocResponse!.toLowerCase().includes("artificial intelligence") ||
-        noDocResponse!.toLowerCase().includes("not found");
+        noDocResponse!.toLowerCase().includes('no documents') ||
+        noDocResponse!.toLowerCase().includes('artificial intelligence') ||
+        noDocResponse!.toLowerCase().includes('not found');
       expect(isHandledGracefully).toBe(true);
 
       // Test 2: Invalid/corrupted file handling
-      const invalidFile = path.join(process.cwd(), "temp", "invalid.txt");
+      const invalidFile = path.join(process.cwd(), 'temp', 'invalid.txt');
       fs.mkdirSync(path.dirname(invalidFile), { recursive: true });
-      fs.writeFileSync(invalidFile, "\x00\x01\x02\x03"); // Binary content
+      fs.writeFileSync(invalidFile, '\x00\x01\x02\x03'); // Binary content
 
       try {
         await uploadFileWithRetry(page, invalidFile, { timeout: 10_000 });
-        await sendMessageWithRetry(page, "Process this file.", {
+        await sendMessageWithRetry(page, 'Process this file.', {
           waitForResponse: true,
         });
 
@@ -852,13 +852,13 @@ Web development is a rewarding field with many opportunities. Start with the bas
         await waitForChatResponse(page, { timeout: 20_000 });
       } catch (error) {
         // Expected to fail gracefully
-        console.log("✅ Invalid file handled appropriately");
+        console.log('✅ Invalid file handled appropriately');
       }
 
-      monitor.end("error-handling");
+      monitor.end('error-handling');
     } finally {
       // Cleanup
-      const invalidFile = path.join(process.cwd(), "temp", "invalid.txt");
+      const invalidFile = path.join(process.cwd(), 'temp', 'invalid.txt');
       try {
         if (fs.existsSync(invalidFile)) {
           fs.unlinkSync(invalidFile);

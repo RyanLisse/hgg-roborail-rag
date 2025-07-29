@@ -26,13 +26,13 @@ class DatabaseHealthMonitor {
       failedChecks: 0,
       averageLatency: 0,
       lastCheck: null,
-      lastError: null
+      lastError: null,
     };
   }
 
   async performHealthCheck() {
     const startTime = performance.now();
-    
+
     try {
       if (!this.connectionString) {
         throw new Error('POSTGRES_URL not found in environment');
@@ -41,7 +41,7 @@ class DatabaseHealthMonitor {
       const sql = postgres(this.connectionString, {
         max: 1,
         connect_timeout: CONNECTION_TIMEOUT / 1000,
-        idle_timeout: 5
+        idle_timeout: 5,
       });
 
       // Simple health check query
@@ -63,8 +63,9 @@ class DatabaseHealthMonitor {
       this.stats.successfulChecks++;
       this.stats.lastCheck = new Date().toISOString();
       this.stats.averageLatency = Math.round(
-        (this.stats.averageLatency * (this.stats.successfulChecks - 1) + latency) / 
-        this.stats.successfulChecks
+        (this.stats.averageLatency * (this.stats.successfulChecks - 1) +
+          latency) /
+          this.stats.successfulChecks,
       );
 
       const status = {
@@ -74,12 +75,11 @@ class DatabaseHealthMonitor {
         dbSizeMB: Math.round(result[0].db_size_bytes / 1024 / 1024),
         activeConnections: result[0].active_connections,
         serverTime: result[0].server_time,
-        timestamp: this.stats.lastCheck
+        timestamp: this.stats.lastCheck,
       };
 
       this.logHealthStatus(status);
       return status;
-
     } catch (error) {
       const endTime = performance.now();
       const latency = Math.round(endTime - startTime);
@@ -93,7 +93,7 @@ class DatabaseHealthMonitor {
         status: 'unhealthy',
         latency,
         error: error.message,
-        timestamp: this.stats.lastCheck
+        timestamp: this.stats.lastCheck,
       };
 
       this.logHealthStatus(status);
@@ -103,30 +103,44 @@ class DatabaseHealthMonitor {
 
   logHealthStatus(status) {
     const timestamp = new Date().toLocaleTimeString();
-    
+
     if (status.status === 'healthy') {
-      console.log(`✅ [${timestamp}] Database healthy - ${status.latency}ms | DB: ${status.database} (${status.dbSizeMB}MB) | Connections: ${status.activeConnections}`);
-      
+      console.log(
+        `✅ [${timestamp}] Database healthy - ${status.latency}ms | DB: ${status.database} (${status.dbSizeMB}MB) | Connections: ${status.activeConnections}`,
+      );
+
       if (status.latency > MAX_LATENCY_THRESHOLD) {
-        console.warn(`⚠️  [${timestamp}] High latency detected: ${status.latency}ms (threshold: ${MAX_LATENCY_THRESHOLD}ms)`);
+        console.warn(
+          `⚠️  [${timestamp}] High latency detected: ${status.latency}ms (threshold: ${MAX_LATENCY_THRESHOLD}ms)`,
+        );
       }
     } else {
       console.error(`❌ [${timestamp}] Database unhealthy - ${status.error}`);
-      
+
       // Check for specific error types
       if (status.error.includes('quota')) {
-        console.error(`💳 [${timestamp}] QUOTA ISSUE: Consider upgrading your Neon DB plan`);
+        console.error(
+          `💳 [${timestamp}] QUOTA ISSUE: Consider upgrading your Neon DB plan`,
+        );
       } else if (status.error.includes('timeout')) {
-        console.error(`⏱️  [${timestamp}] TIMEOUT ISSUE: Network or server performance problems`);
+        console.error(
+          `⏱️  [${timestamp}] TIMEOUT ISSUE: Network or server performance problems`,
+        );
       } else if (status.error.includes('authentication')) {
-        console.error(`🔐 [${timestamp}] AUTH ISSUE: Check database credentials`);
+        console.error(
+          `🔐 [${timestamp}] AUTH ISSUE: Check database credentials`,
+        );
       }
     }
   }
 
   printSummary() {
-    const uptime = this.stats.totalChecks > 0 ? 
-      Math.round((this.stats.successfulChecks / this.stats.totalChecks) * 100) : 0;
+    const uptime =
+      this.stats.totalChecks > 0
+        ? Math.round(
+            (this.stats.successfulChecks / this.stats.totalChecks) * 100,
+          )
+        : 0;
 
     console.log('\n📊 Health Monitor Summary:');
     console.log(`   Total Checks: ${this.stats.totalChecks}`);
@@ -142,7 +156,9 @@ class DatabaseHealthMonitor {
 
   async start() {
     console.log('🔍 Starting Database Health Monitor...');
-    console.log(`📡 Connection: ${this.connectionString?.replace(/:[^:@]*@/, ':***@') || 'Not configured'}`);
+    console.log(
+      `📡 Connection: ${this.connectionString?.replace(/:[^:@]*@/, ':***@') || 'Not configured'}`,
+    );
     console.log(`⏰ Check Interval: ${HEALTH_CHECK_INTERVAL / 1000}s`);
     console.log(`🚨 Latency Threshold: ${MAX_LATENCY_THRESHOLD}ms\n`);
 
@@ -189,24 +205,25 @@ class DatabaseHealthMonitor {
 // CLI usage
 if (import.meta.url === `file://${process.argv[1]}`) {
   const monitor = new DatabaseHealthMonitor();
-  
+
   const command = process.argv[2] || 'monitor';
-  
+
   switch (command) {
     case 'check':
-      monitor.runSingleCheck()
-        .then(result => {
+      monitor
+        .runSingleCheck()
+        .then((result) => {
           process.exit(result.status === 'healthy' ? 0 : 1);
         })
-        .catch(error => {
+        .catch((error) => {
           console.error('💥 Fatal error:', error.message);
           process.exit(1);
         });
       break;
-      
+
     case 'monitor':
     default:
-      monitor.start().catch(error => {
+      monitor.start().catch((error) => {
         console.error('💥 Monitor failed to start:', error.message);
         process.exit(1);
       });

@@ -3,10 +3,10 @@
  * Implements lazy loading for vector store providers to reduce initial bundle size
  */
 
-import "server-only";
+import 'server-only';
 
 // Core types that are needed immediately
-export type { VectorStoreType } from "./unified";
+export type { VectorStoreType } from './unified';
 
 // Lazy loading factory for vector stores
 let openaiStore: unknown = null;
@@ -20,7 +20,7 @@ let unifiedStore: unknown = null;
  */
 export async function getOpenAIVectorStore() {
   if (!openaiStore) {
-    const { getOpenAIVectorStoreService } = await import("./openai");
+    const { getOpenAIVectorStoreService } = await import('./openai');
     openaiStore = await getOpenAIVectorStoreService();
   }
   return openaiStore;
@@ -31,7 +31,7 @@ export async function getOpenAIVectorStore() {
  */
 export async function getNeonVectorStore() {
   if (!neonStore) {
-    const { getNeonVectorStoreService } = await import("./neon");
+    const { getNeonVectorStoreService } = await import('./neon');
     neonStore = await getNeonVectorStoreService();
   }
   return neonStore;
@@ -42,7 +42,7 @@ export async function getNeonVectorStore() {
  */
 export async function getSupabaseVectorStore() {
   if (!supabaseStore) {
-    const { getSupabaseVectorStoreService } = await import("./supabase");
+    const { getSupabaseVectorStoreService } = await import('./supabase');
     supabaseStore = await getSupabaseVectorStoreService();
   }
   return supabaseStore;
@@ -53,7 +53,7 @@ export async function getSupabaseVectorStore() {
  */
 export async function getMemoryVectorStore() {
   if (!memoryStore) {
-    const { MemoryVectorStore } = await import("./memory-class");
+    const { MemoryVectorStore } = await import('./memory-class');
     memoryStore = new MemoryVectorStore();
   }
   return memoryStore;
@@ -64,7 +64,7 @@ export async function getMemoryVectorStore() {
  */
 export async function getUnifiedVectorStore() {
   if (!unifiedStore) {
-    const { getUnifiedVectorStoreService } = await import("./unified");
+    const { getUnifiedVectorStoreService } = await import('./unified');
     unifiedStore = await getUnifiedVectorStoreService();
   }
   return unifiedStore;

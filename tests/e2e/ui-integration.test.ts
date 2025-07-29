@@ -1,7 +1,7 @@
-import { expect, test } from "../fixtures";
-import { ChatPage } from "../pages/chat";
+import { expect, test } from '../fixtures';
+import { ChatPage } from '../pages/chat';
 
-test.describe("UI Integration Tests", () => {
+test.describe('UI Integration Tests', () => {
   let chatPage: ChatPage;
 
   test.beforeEach(async ({ page }) => {
@@ -9,8 +9,8 @@ test.describe("UI Integration Tests", () => {
     await chatPage.createNewChat();
   });
 
-  test.describe("Chat Interface Integration", () => {
-    test("should render chat components correctly", async () => {
+  test.describe('Chat Interface Integration', () => {
+    test('should render chat components correctly', async () => {
       // Verify main chat components are present
       await expect(
         chatPage.page.locator('[data-testid="chat-header"]'),
@@ -23,7 +23,7 @@ test.describe("UI Integration Tests", () => {
       ).toBeVisible();
     });
 
-    test("should handle database selector interaction", async () => {
+    test('should handle database selector interaction', async () => {
       // Mobile view - database selector should be visible
       await chatPage.page.setViewportSize({ width: 400, height: 800 });
 
@@ -41,9 +41,9 @@ test.describe("UI Integration Tests", () => {
       }
     });
 
-    test("should maintain state during source selection", async () => {
+    test('should maintain state during source selection', async () => {
       // Start typing a message
-      await chatPage.messageInput.fill("Test message about data");
+      await chatPage.messageInput.fill('Test message about data');
 
       // Change data source if available
       const sourceButton = chatPage.page.locator(
@@ -55,11 +55,11 @@ test.describe("UI Integration Tests", () => {
 
       // Verify message input maintains content
       await expect(chatPage.messageInput).toHaveValue(
-        "Test message about data",
+        'Test message about data',
       );
     });
 
-    test("should handle multimodal input interactions", async () => {
+    test('should handle multimodal input interactions', async () => {
       // Test attachment button
       const attachButton = chatPage.page.locator(
         '[data-testid="attach-button"]',
@@ -71,28 +71,28 @@ test.describe("UI Integration Tests", () => {
       // Test file input functionality
       try {
         await chatPage.addImageAttachment();
-        await chatPage.isElementVisible("attachments-preview");
+        await chatPage.isElementVisible('attachments-preview');
 
         // Test message input with attachment
-        await chatPage.messageInput.fill("Describe this image");
+        await chatPage.messageInput.fill('Describe this image');
         await expect(chatPage.sendButton).toBeEnabled();
       } catch (error) {
         // Skip if attachment functionality not available
-        console.log("Attachment test skipped:", error);
+        console.log('Attachment test skipped:', error);
       }
     });
   });
 
-  test.describe("Vector Store Monitoring UI", () => {
-    test("should navigate to monitoring dashboard", async ({ page }) => {
+  test.describe('Vector Store Monitoring UI', () => {
+    test('should navigate to monitoring dashboard', async ({ page }) => {
       // Try to navigate to monitoring page
       try {
-        await page.goto("/monitoring");
+        await page.goto('/monitoring');
 
         // Verify main dashboard elements
         const heading = page
-          .locator("h1")
-          .filter({ hasText: "Vector Store Monitoring" });
+          .locator('h1')
+          .filter({ hasText: 'Vector Store Monitoring' });
         if (await heading.isVisible()) {
           await expect(heading).toBeVisible();
           await expect(
@@ -104,15 +104,15 @@ test.describe("UI Integration Tests", () => {
         }
       } catch (error) {
         console.log(
-          "Monitoring dashboard test skipped - route may not exist:",
+          'Monitoring dashboard test skipped - route may not exist:',
           error,
         );
       }
     });
 
-    test("should display health status indicators", async ({ page }) => {
+    test('should display health status indicators', async ({ page }) => {
       try {
-        await page.goto("/monitoring");
+        await page.goto('/monitoring');
 
         // Wait for data to load
         await page.waitForSelector('[data-testid="health-status-card"]', {
@@ -133,13 +133,13 @@ test.describe("UI Integration Tests", () => {
           }
         }
       } catch (error) {
-        console.log("Health status test skipped:", error);
+        console.log('Health status test skipped:', error);
       }
     });
 
-    test("should handle test button interactions", async ({ page }) => {
+    test('should handle test button interactions', async ({ page }) => {
       try {
-        await page.goto("/monitoring");
+        await page.goto('/monitoring');
 
         // Wait for component to load
         await page.waitForSelector('[data-testid="test-button"]', {
@@ -153,15 +153,15 @@ test.describe("UI Integration Tests", () => {
         // Allow for API call
         await page.waitForTimeout(1000);
       } catch (error) {
-        console.log("Test button interaction skipped:", error);
+        console.log('Test button interaction skipped:', error);
       }
     });
   });
 
-  test.describe("Artifact Rendering and Interactions", () => {
-    test("should create and display artifact", async () => {
+  test.describe('Artifact Rendering and Interactions', () => {
+    test('should create and display artifact', async () => {
       // Send message that should create an artifact
-      await chatPage.sendUserMessage("Create a simple React component");
+      await chatPage.sendUserMessage('Create a simple React component');
       await chatPage.isGenerationComplete();
 
       // Check if artifact was created
@@ -183,9 +183,9 @@ test.describe("UI Integration Tests", () => {
       }
     });
 
-    test("should handle artifact version navigation", async () => {
+    test('should handle artifact version navigation', async () => {
       // Create artifact first
-      await chatPage.sendUserMessage("Create a simple HTML page");
+      await chatPage.sendUserMessage('Create a simple HTML page');
       await chatPage.isGenerationComplete();
 
       const artifact = chatPage.page.locator('[data-testid="artifact"]');
@@ -211,9 +211,9 @@ test.describe("UI Integration Tests", () => {
       }
     });
 
-    test("should handle artifact close and reopen", async () => {
+    test('should handle artifact close and reopen', async () => {
       // Create artifact
-      await chatPage.sendUserMessage("Create a CSS animation");
+      await chatPage.sendUserMessage('Create a CSS animation');
       await chatPage.isGenerationComplete();
 
       const artifact = chatPage.page.locator('[data-testid="artifact"]');
@@ -239,9 +239,9 @@ test.describe("UI Integration Tests", () => {
     });
   });
 
-  test.describe("Feedback System UI", () => {
-    test("should display feedback buttons for assistant messages", async () => {
-      await chatPage.sendUserMessage("What is machine learning?");
+  test.describe('Feedback System UI', () => {
+    test('should display feedback buttons for assistant messages', async () => {
+      await chatPage.sendUserMessage('What is machine learning?');
       await chatPage.isGenerationComplete();
 
       const assistantMessage = await chatPage.getRecentAssistantMessage();
@@ -262,8 +262,8 @@ test.describe("UI Integration Tests", () => {
       }
     });
 
-    test("should handle feedback voting interactions", async () => {
-      await chatPage.sendUserMessage("Explain quantum computing");
+    test('should handle feedback voting interactions', async () => {
+      await chatPage.sendUserMessage('Explain quantum computing');
       await chatPage.isGenerationComplete();
 
       const assistantMessage = await chatPage.getRecentAssistantMessage();
@@ -289,8 +289,8 @@ test.describe("UI Integration Tests", () => {
       }
     });
 
-    test("should open feedback comment dialog", async () => {
-      await chatPage.sendUserMessage("Tell me about AI ethics");
+    test('should open feedback comment dialog', async () => {
+      await chatPage.sendUserMessage('Tell me about AI ethics');
       await chatPage.isGenerationComplete();
 
       const assistantMessage = await chatPage.getRecentAssistantMessage();
@@ -318,12 +318,12 @@ test.describe("UI Integration Tests", () => {
             await expect(dialog).toBeVisible();
 
             // Should have comment textarea
-            const textarea = dialog.locator("textarea");
+            const textarea = dialog.locator('textarea');
             if (await textarea.isVisible()) {
               await expect(textarea).toBeVisible();
 
               // Test comment submission
-              await textarea.fill("This was very helpful!");
+              await textarea.fill('This was very helpful!');
 
               const submitButton = dialog.locator('button:has-text("Submit")');
               if (await submitButton.isVisible()) {
@@ -339,10 +339,10 @@ test.describe("UI Integration Tests", () => {
     });
   });
 
-  test.describe("Citations Display and Interaction", () => {
-    test("should display citations when sources are available", async () => {
+  test.describe('Citations Display and Interaction', () => {
+    test('should display citations when sources are available', async () => {
       // Send message that might generate citations
-      await chatPage.sendUserMessage("Tell me about the project documentation");
+      await chatPage.sendUserMessage('Tell me about the project documentation');
       await chatPage.isGenerationComplete();
 
       // Look for citations section
@@ -358,8 +358,8 @@ test.describe("UI Integration Tests", () => {
       }
     });
 
-    test("should expand and collapse citations list", async () => {
-      await chatPage.sendUserMessage("What features does this system have?");
+    test('should expand and collapse citations list', async () => {
+      await chatPage.sendUserMessage('What features does this system have?');
       await chatPage.isGenerationComplete();
 
       const citations = chatPage.page.locator('[data-testid="citations"]');
@@ -388,8 +388,8 @@ test.describe("UI Integration Tests", () => {
       }
     });
 
-    test("should handle inline citation clicks", async () => {
-      await chatPage.sendUserMessage("Explain the system architecture");
+    test('should handle inline citation clicks', async () => {
+      await chatPage.sendUserMessage('Explain the system architecture');
       await chatPage.isGenerationComplete();
 
       // Look for inline citations in message
@@ -412,17 +412,17 @@ test.describe("UI Integration Tests", () => {
     });
   });
 
-  test.describe("Accessibility and Keyboard Navigation", () => {
-    test("should support keyboard navigation in chat", async () => {
+  test.describe('Accessibility and Keyboard Navigation', () => {
+    test('should support keyboard navigation in chat', async () => {
       // Focus message input
       await chatPage.messageInput.focus();
 
       // Type message
-      await chatPage.page.keyboard.type("Test keyboard navigation");
+      await chatPage.page.keyboard.type('Test keyboard navigation');
 
       // Check if Enter sends message or requires Shift+Enter
       const inputValue = await chatPage.messageInput.inputValue();
-      expect(inputValue).toBe("Test keyboard navigation");
+      expect(inputValue).toBe('Test keyboard navigation');
 
       // Send with button click for reliable test
       await chatPage.sendButton.click();
@@ -435,39 +435,39 @@ test.describe("UI Integration Tests", () => {
       expect(messages).toBeGreaterThan(0);
     });
 
-    test("should have proper ARIA labels", async () => {
+    test('should have proper ARIA labels', async () => {
       // Check input accessibility
       const messageInput = chatPage.messageInput;
-      const ariaLabel = await messageInput.getAttribute("aria-label");
+      const ariaLabel = await messageInput.getAttribute('aria-label');
       if (ariaLabel) {
         expect(ariaLabel).toBeTruthy();
       }
 
       // Check button accessibility
-      const buttons = chatPage.page.locator("button");
+      const buttons = chatPage.page.locator('button');
       const buttonCount = await buttons.count();
 
       for (let i = 0; i < Math.min(buttonCount, 3); i++) {
         const button = buttons.nth(i);
         if (await button.isVisible()) {
           // Should have either aria-label or accessible text
-          const hasAriaLabel = await button.getAttribute("aria-label");
+          const hasAriaLabel = await button.getAttribute('aria-label');
           const hasText = await button.textContent();
           expect(hasAriaLabel || hasText).toBeTruthy();
         }
       }
     });
 
-    test("should support focus management", async () => {
+    test('should support focus management', async () => {
       // Send message to create UI elements
-      await chatPage.sendUserMessage("Create some interactive content");
+      await chatPage.sendUserMessage('Create some interactive content');
       await chatPage.isGenerationComplete();
 
       // Tab through focusable elements
-      await chatPage.page.keyboard.press("Tab");
+      await chatPage.page.keyboard.press('Tab');
 
       // Should have visible focus indicator
-      const focusedElement = await chatPage.page.locator(":focus").first();
+      const focusedElement = await chatPage.page.locator(':focus').first();
       if (await focusedElement.isVisible()) {
         // Element should be focused
         expect(focusedElement.count()).toBe(1);
@@ -475,14 +475,14 @@ test.describe("UI Integration Tests", () => {
     });
   });
 
-  test.describe("Mobile Responsiveness", () => {
-    test("should adapt layout for mobile viewport", async () => {
+  test.describe('Mobile Responsiveness', () => {
+    test('should adapt layout for mobile viewport', async () => {
       // Set mobile viewport
       await chatPage.page.setViewportSize({ width: 375, height: 667 });
 
       // Reload to apply mobile styles
       await chatPage.page.reload();
-      await chatPage.page.waitForLoadState("networkidle");
+      await chatPage.page.waitForLoadState('networkidle');
 
       // Check that essential elements are still visible
       await expect(chatPage.messageInput).toBeVisible();
@@ -500,11 +500,11 @@ test.describe("UI Integration Tests", () => {
       }
     });
 
-    test("should handle touch interactions", async () => {
+    test('should handle touch interactions', async () => {
       await chatPage.page.setViewportSize({ width: 375, height: 667 });
 
       // Test touch on send button
-      await chatPage.messageInput.fill("Touch test");
+      await chatPage.messageInput.fill('Touch test');
 
       if (await chatPage.sendButton.isVisible()) {
         // Simulate touch
@@ -520,11 +520,11 @@ test.describe("UI Integration Tests", () => {
       }
     });
 
-    test("should maintain usability on small screens", async () => {
+    test('should maintain usability on small screens', async () => {
       await chatPage.page.setViewportSize({ width: 320, height: 568 });
 
       // Send message to test full flow
-      await chatPage.sendUserMessage("Test mobile usability");
+      await chatPage.sendUserMessage('Test mobile usability');
 
       // Should still be functional
       await chatPage.isGenerationComplete();
@@ -535,13 +535,13 @@ test.describe("UI Integration Tests", () => {
     });
   });
 
-  test.describe("Error Handling and Edge Cases", () => {
-    test("should handle network errors gracefully", async () => {
+  test.describe('Error Handling and Edge Cases', () => {
+    test('should handle network errors gracefully', async () => {
       // Simulate network failure
       await chatPage.page.setOfflineMode(true);
 
       try {
-        await chatPage.sendUserMessage("This should fail");
+        await chatPage.sendUserMessage('This should fail');
 
         // Wait a bit for error to appear
         await chatPage.page.waitForTimeout(2000);
@@ -559,7 +559,7 @@ test.describe("UI Integration Tests", () => {
       }
     });
 
-    test("should handle empty states", async () => {
+    test('should handle empty states', async () => {
       // Check empty chat state
       const emptyState = chatPage.page.locator('[data-testid="empty-state"]');
       if (await emptyState.isVisible()) {
@@ -575,10 +575,10 @@ test.describe("UI Integration Tests", () => {
       }
     });
 
-    test("should handle large message content", async () => {
+    test('should handle large message content', async () => {
       // Send very long message
       const longMessage =
-        "This is a very long message that tests how the UI handles extensive content. ".repeat(
+        'This is a very long message that tests how the UI handles extensive content. '.repeat(
           50,
         );
       await chatPage.sendUserMessage(longMessage);
@@ -593,9 +593,9 @@ test.describe("UI Integration Tests", () => {
       }
     });
 
-    test("should handle rapid user interactions", async () => {
+    test('should handle rapid user interactions', async () => {
       // Fill message
-      await chatPage.messageInput.fill("Test rapid interactions");
+      await chatPage.messageInput.fill('Test rapid interactions');
 
       // Try rapid clicks - but only if button is enabled
       if (await chatPage.sendButton.isEnabled()) {

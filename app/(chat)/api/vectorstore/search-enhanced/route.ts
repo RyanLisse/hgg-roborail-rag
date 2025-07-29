@@ -1,17 +1,17 @@
-import { type NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
-import { auth } from "@/app/(auth)/auth";
+import { type NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import { auth } from '@/app/(auth)/auth';
 import {
   type EnhancedSearchResponse,
   getUnifiedVectorStoreService,
-} from "@/lib/vectorstore/unified";
+} from '@/lib/vectorstore/unified';
 
 // Enhanced search request schema
 const EnhancedSearchRequestSchema = z.object({
   query: z.string().min(1),
   sources: z
-    .array(z.enum(["openai", "neon", "memory", "unified"]))
-    .default(["openai", "memory"]),
+    .array(z.enum(['openai', 'neon', 'memory', 'unified']))
+    .default(['openai', 'memory']),
   maxResults: z.number().min(1).max(50).default(10),
   threshold: z.number().min(0).max(1).default(0.3),
   metadata: z.record(z.any()).optional(),
@@ -21,27 +21,27 @@ const EnhancedSearchRequestSchema = z.object({
     .object({
       type: z
         .enum([
-          "technical",
-          "conceptual",
-          "procedural",
-          "troubleshooting",
-          "configuration",
-          "api",
-          "integration",
-          "best_practices",
-          "examples",
-          "reference",
-          "multi_turn",
-          "contextual",
+          'technical',
+          'conceptual',
+          'procedural',
+          'troubleshooting',
+          'configuration',
+          'api',
+          'integration',
+          'best_practices',
+          'examples',
+          'reference',
+          'multi_turn',
+          'contextual',
         ])
         .optional(),
       domain: z.string().optional(),
-      complexity: z.enum(["basic", "intermediate", "advanced"]).optional(),
+      complexity: z.enum(['basic', 'intermediate', 'advanced']).optional(),
       userIntent: z.string().optional(),
       conversationHistory: z
         .array(
           z.object({
-            role: z.enum(["user", "assistant"]),
+            role: z.enum(['user', 'assistant']),
             content: z.string(),
             timestamp: z.number(),
           }),
@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
   try {
     const session = await auth();
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await request.json();
@@ -103,24 +103,24 @@ export async function POST(request: NextRequest) {
     } catch (validationError: unknown) {
       return NextResponse.json(
         {
-          error: "Invalid request format",
+          error: 'Invalid request format',
           details:
             validationError instanceof z.ZodError
               ? validationError.errors
-              : "Unknown validation error",
+              : 'Unknown validation error',
         },
         { status: 400 },
       );
     }
 
     // Performance optimization: Check cache first for quick queries
-    const { getSmartCache } = await import("@/lib/cache");
+    const { getSmartCache } = await import('@/lib/cache');
     const smartCache = await getSmartCache();
 
     // Check cache for recent identical requests
     const cachedResult =
       await smartCache.getCachedAgentResponse<EnhancedSearchResponse>(
-        "search-enhanced",
+        'search-enhanced',
         validatedRequest.query,
         {
           sources: validatedRequest.sources,
@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
       const response = {
         ...cachedResult,
         searchMetadata: {
-          ...(("searchMetadata" in cachedResult &&
+          ...(('searchMetadata' in cachedResult &&
             cachedResult.searchMetadata) ||
             {}),
           cached: true,
@@ -145,8 +145,8 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json(response, {
         headers: {
-          "X-Cache": "HIT",
-          "X-Response-Time": `${Date.now() - startTime}ms`,
+          'X-Cache': 'HIT',
+          'X-Response-Time': `${Date.now() - startTime}ms`,
         },
       });
     }
@@ -160,8 +160,8 @@ export async function POST(request: NextRequest) {
       ...validatedRequest,
       userId: session.user.id,
       queryContext: validatedRequest.queryContext || {
-        domain: "roborail",
-        type: "conceptual" as const,
+        domain: 'roborail',
+        type: 'conceptual' as const,
       },
     };
 
@@ -169,7 +169,7 @@ export async function POST(request: NextRequest) {
     const searchPromise = vectorStoreService.searchEnhanced(searchRequest);
     const timeoutPromise = new Promise((_, reject) =>
       setTimeout(
-        () => reject(new Error("Search timeout")),
+        () => reject(new Error('Search timeout')),
         validatedRequest.timeout,
       ),
     );
@@ -206,7 +206,7 @@ export async function POST(request: NextRequest) {
     // Performance optimization: Cache successful results
     if (result.results.length > 0) {
       await smartCache.cacheAgentResponse(
-        "search-enhanced",
+        'search-enhanced',
         validatedRequest.query,
         {
           sources: validatedRequest.sources,
@@ -220,22 +220,22 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(response, {
       headers: {
-        "X-Cache": "MISS",
-        "X-Response-Time": `${Date.now() - startTime}ms`,
+        'X-Cache': 'MISS',
+        'X-Response-Time': `${Date.now() - startTime}ms`,
       },
     });
   } catch (error) {
     const errorResponse = {
-      error: "Enhanced search failed",
-      message: error instanceof Error ? error.message : "Unknown error",
+      error: 'Enhanced search failed',
+      message: error instanceof Error ? error.message : 'Unknown error',
       timestamp: new Date().toISOString(),
       fallbackAvailable: true,
     };
 
     // For timeout errors, suggest adjusting parameters
-    if (error instanceof Error && error.message.includes("timeout")) {
+    if (error instanceof Error && error.message.includes('timeout')) {
       errorResponse.message =
-        "Search timed out. Try reducing maxResults or increasing timeout.";
+        'Search timed out. Try reducing maxResults or increasing timeout.';
     }
 
     return NextResponse.json(errorResponse, { status: 500 });
@@ -246,7 +246,7 @@ export async function GET(_request: NextRequest) {
   try {
     const session = await auth();
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const vectorStoreService = await getUnifiedVectorStoreService();
@@ -269,20 +269,20 @@ export async function GET(_request: NextRequest) {
         personalization: true,
       },
       documentation: {
-        endpoint: "/api/vectorstore/search-enhanced",
-        method: "POST",
+        endpoint: '/api/vectorstore/search-enhanced',
+        method: 'POST',
         description:
-          "Enhanced vector store search with advanced relevance scoring",
+          'Enhanced vector store search with advanced relevance scoring',
         parameters: {
-          query: "Required: Search query string",
+          query: 'Required: Search query string',
           enableRelevanceScoring:
-            "Optional: Enable multi-factor relevance scoring (default: true)",
+            'Optional: Enable multi-factor relevance scoring (default: true)',
           enableCrossEncoder:
-            "Optional: Enable cross-encoder reranking (default: false)",
+            'Optional: Enable cross-encoder reranking (default: false)',
           enableDiversification:
-            "Optional: Enable result diversification (default: true)",
-          relevanceWeights: "Optional: Custom weights for relevance factors",
-          queryContext: "Optional: Query context for optimization",
+            'Optional: Enable result diversification (default: true)',
+          relevanceWeights: 'Optional: Custom weights for relevance factors',
+          queryContext: 'Optional: Query context for optimization',
         },
       },
     };
@@ -290,7 +290,7 @@ export async function GET(_request: NextRequest) {
     return NextResponse.json(response);
   } catch (_error) {
     return NextResponse.json(
-      { error: "Failed to get enhanced search info" },
+      { error: 'Failed to get enhanced search info' },
       { status: 500 },
     );
   }

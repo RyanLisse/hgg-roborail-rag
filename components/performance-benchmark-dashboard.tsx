@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import useSWR from "swr";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { fetcher } from "@/lib/utils";
+import { useState, useEffect } from 'react';
+import useSWR from 'swr';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { fetcher } from '@/lib/utils';
 
 interface BenchmarkResult {
   provider: string;
@@ -62,13 +62,13 @@ interface BenchmarkConfig {
 }
 
 export function PerformanceBenchmarkDashboard() {
-  const [activeProvider, setActiveProvider] = useState<string>("openai");
+  const [activeProvider, setActiveProvider] = useState<string>('openai');
   const [benchmarkResults, setBenchmarkResults] = useState<BenchmarkResult[]>(
     [],
   );
   const [loadTestResults, setLoadTestResults] = useState<LoadTestResult[]>([]);
   const [isRunning, setIsRunning] = useState(false);
-  const [selectedScenario, setSelectedScenario] = useState<string>("");
+  const [selectedScenario, setSelectedScenario] = useState<string>('');
 
   // Fetch benchmark status and configuration
   const { data: statusData } = useSWR<{
@@ -85,7 +85,7 @@ export function PerformanceBenchmarkDashboard() {
         duration: number;
       }>;
     };
-  }>("/api/vectorstore/benchmarks?action=status", fetcher);
+  }>('/api/vectorstore/benchmarks?action=status', fetcher);
 
   const { data: configData } = useSWR<{
     success: boolean;
@@ -94,7 +94,7 @@ export function PerformanceBenchmarkDashboard() {
       testQueries: string[];
       complexityLevels: Array<{ name: string; query: string }>;
     };
-  }>("/api/vectorstore/benchmarks?action=config", fetcher);
+  }>('/api/vectorstore/benchmarks?action=config', fetcher);
 
   const formatLatency = (latency: number) => {
     if (latency < 1000) {
@@ -113,12 +113,12 @@ export function PerformanceBenchmarkDashboard() {
 
   const getPerformanceBadge = (successRate: number, avgLatency: number) => {
     if (successRate < 0.9 || avgLatency > 5000) {
-      return { variant: "destructive" as const, label: "Poor" };
+      return { variant: 'destructive' as const, label: 'Poor' };
     }
     if (successRate < 0.95 || avgLatency > 2000) {
-      return { variant: "secondary" as const, label: "Fair" };
+      return { variant: 'secondary' as const, label: 'Fair' };
     }
-    return { variant: "default" as const, label: "Good" };
+    return { variant: 'default' as const, label: 'Good' };
   };
 
   const runBenchmark = async (
@@ -127,9 +127,9 @@ export function PerformanceBenchmarkDashboard() {
   ) => {
     setIsRunning(true);
     try {
-      const response = await fetch("/api/vectorstore/benchmarks", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/vectorstore/benchmarks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action,
           provider,
@@ -142,7 +142,7 @@ export function PerformanceBenchmarkDashboard() {
         setBenchmarkResults((prev) => [result.data, ...prev].slice(0, 20)); // Keep last 20 results
       }
     } catch (error) {
-      console.error("Benchmark failed:", error);
+      console.error('Benchmark failed:', error);
     } finally {
       setIsRunning(false);
     }
@@ -151,11 +151,11 @@ export function PerformanceBenchmarkDashboard() {
   const runLoadTest = async (scenarioName: string) => {
     setIsRunning(true);
     try {
-      const response = await fetch("/api/vectorstore/benchmarks", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/vectorstore/benchmarks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          action: "load_test",
+          action: 'load_test',
           loadTestScenario: scenarioName,
         }),
       });
@@ -165,7 +165,7 @@ export function PerformanceBenchmarkDashboard() {
         setLoadTestResults((prev) => [result.data, ...prev].slice(0, 10)); // Keep last 10 results
       }
     } catch (error) {
-      console.error("Load test failed:", error);
+      console.error('Load test failed:', error);
     } finally {
       setIsRunning(false);
     }
@@ -174,11 +174,11 @@ export function PerformanceBenchmarkDashboard() {
   const runProviderComparison = async () => {
     setIsRunning(true);
     try {
-      const response = await fetch("/api/vectorstore/benchmarks", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/vectorstore/benchmarks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          action: "provider_comparison",
+          action: 'provider_comparison',
           config: configData?.data.defaultConfig,
         }),
       });
@@ -188,7 +188,7 @@ export function PerformanceBenchmarkDashboard() {
         setBenchmarkResults((prev) => [...result.data, ...prev].slice(0, 20));
       }
     } catch (error) {
-      console.error("Provider comparison failed:", error);
+      console.error('Provider comparison failed:', error);
     } finally {
       setIsRunning(false);
     }
@@ -236,10 +236,10 @@ export function PerformanceBenchmarkDashboard() {
           </select>
           <Badge
             variant={
-              statusData.data.benchmarkingEnabled ? "default" : "destructive"
+              statusData.data.benchmarkingEnabled ? 'default' : 'destructive'
             }
           >
-            {statusData.data.benchmarkingEnabled ? "Enabled" : "Disabled"}
+            {statusData.data.benchmarkingEnabled ? 'Enabled' : 'Disabled'}
           </Badge>
         </div>
       </div>
@@ -263,7 +263,7 @@ export function PerformanceBenchmarkDashboard() {
             <CardContent>
               <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
                 <Button
-                  onClick={() => runBenchmark("search_latency")}
+                  onClick={() => runBenchmark('search_latency')}
                   disabled={isRunning}
                   className="h-20 flex-col"
                 >
@@ -273,7 +273,7 @@ export function PerformanceBenchmarkDashboard() {
                   </span>
                 </Button>
                 <Button
-                  onClick={() => runBenchmark("concurrent_operations")}
+                  onClick={() => runBenchmark('concurrent_operations')}
                   disabled={isRunning}
                   variant="outline"
                   className="h-20 flex-col"
@@ -284,7 +284,7 @@ export function PerformanceBenchmarkDashboard() {
                   </span>
                 </Button>
                 <Button
-                  onClick={() => runBenchmark("stress_test")}
+                  onClick={() => runBenchmark('stress_test')}
                   disabled={isRunning}
                   variant="outline"
                   className="h-20 flex-col"
@@ -295,7 +295,7 @@ export function PerformanceBenchmarkDashboard() {
                   </span>
                 </Button>
                 <Button
-                  onClick={() => runBenchmark("memory_leak_test")}
+                  onClick={() => runBenchmark('memory_leak_test')}
                   disabled={isRunning}
                   variant="outline"
                   className="h-20 flex-col"
@@ -373,8 +373,8 @@ export function PerformanceBenchmarkDashboard() {
                   className="w-full"
                 >
                   {isRunning
-                    ? "Running Comparison..."
-                    : "Run Provider Comparison"}
+                    ? 'Running Comparison...'
+                    : 'Run Provider Comparison'}
                 </Button>
 
                 {benchmarkResults.length > 0 && (
@@ -392,7 +392,7 @@ export function PerformanceBenchmarkDashboard() {
                       </thead>
                       <tbody>
                         {benchmarkResults
-                          .filter((r) => r.operation === "search")
+                          .filter((r) => r.operation === 'search')
                           .slice(0, 5)
                           .map((result, index) => {
                             const badge = getPerformanceBadge(
@@ -410,7 +410,7 @@ export function PerformanceBenchmarkDashboard() {
                                 <td className="p-2">
                                   {result.metrics.p95Latency
                                     ? formatLatency(result.metrics.p95Latency)
-                                    : "N/A"}
+                                    : 'N/A'}
                                 </td>
                                 <td className="p-2">
                                   {formatThroughput(result.metrics.throughput)}
@@ -464,7 +464,7 @@ export function PerformanceBenchmarkDashboard() {
                     }
                     disabled={isRunning || !selectedScenario}
                   >
-                    {isRunning ? "Running..." : "Run Load Test"}
+                    {isRunning ? 'Running...' : 'Run Load Test'}
                   </Button>
                 </div>
 
@@ -506,9 +506,9 @@ export function PerformanceBenchmarkDashboard() {
                             {result.scenario.name}
                           </span>
                           <Badge
-                            variant={result.passed ? "default" : "destructive"}
+                            variant={result.passed ? 'default' : 'destructive'}
                           >
-                            {result.passed ? "Passed" : "Failed"}
+                            {result.passed ? 'Passed' : 'Failed'}
                           </Badge>
                         </div>
                         <div className="grid grid-cols-2 gap-4 text-sm md:grid-cols-4">
@@ -617,10 +617,10 @@ export function PerformanceBenchmarkDashboard() {
                         <span className="mr-2">-</span>
                         <span className="mr-2">{result.operation}</span>
                         <Badge
-                          variant={result.success ? "default" : "destructive"}
+                          variant={result.success ? 'default' : 'destructive'}
                           className="mr-2"
                         >
-                          {result.success ? "Success" : "Failed"}
+                          {result.success ? 'Success' : 'Failed'}
                         </Badge>
                         <span className="text-gray-500 text-sm">
                           {new Date(result.timestamp).toLocaleString()}

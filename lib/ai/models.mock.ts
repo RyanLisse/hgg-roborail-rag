@@ -1,6 +1,24 @@
 import { simulateReadableStream } from 'ai';
-import { MockLanguageModelV1 } from 'ai/test';
+import type { LanguageModelV1Prompt } from 'ai';
 import { getResponseChunksByPrompt } from '@/tests/prompts/utils';
+
+// Mock implementation for testing
+class MockLanguageModelV1 {
+  constructor(
+    private config: {
+      doGenerate: () => Promise<any>;
+      doStream: (options: { prompt: LanguageModelV1Prompt }) => Promise<any>;
+    },
+  ) {}
+
+  async doGenerate() {
+    return this.config.doGenerate();
+  }
+
+  async doStream(options: { prompt: LanguageModelV1Prompt }) {
+    return this.config.doStream(options);
+  }
+}
 
 export const chatModel = new MockLanguageModelV1({
   doGenerate: async () => ({
@@ -9,7 +27,7 @@ export const chatModel = new MockLanguageModelV1({
     usage: { promptTokens: 10, completionTokens: 20 },
     text: `Hello, world!`,
   }),
-  doStream: async ({ prompt }) => ({
+  doStream: async ({ prompt }: { prompt: LanguageModelV1Prompt }) => ({
     stream: simulateReadableStream({
       chunkDelayInMs: 500,
       initialDelayInMs: 1000,
@@ -26,7 +44,7 @@ export const reasoningModel = new MockLanguageModelV1({
     usage: { promptTokens: 10, completionTokens: 20 },
     text: `Hello, world!`,
   }),
-  doStream: async ({ prompt }) => ({
+  doStream: async ({ prompt }: { prompt: LanguageModelV1Prompt }) => ({
     stream: simulateReadableStream({
       chunkDelayInMs: 500,
       initialDelayInMs: 1000,
@@ -68,7 +86,7 @@ export const artifactModel = new MockLanguageModelV1({
     usage: { promptTokens: 10, completionTokens: 20 },
     text: `Hello, world!`,
   }),
-  doStream: async ({ prompt }) => ({
+  doStream: async ({ prompt }: { prompt: LanguageModelV1Prompt }) => ({
     stream: simulateReadableStream({
       chunkDelayInMs: 50,
       initialDelayInMs: 100,
