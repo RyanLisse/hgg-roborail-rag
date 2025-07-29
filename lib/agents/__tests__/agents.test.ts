@@ -103,12 +103,21 @@ describe('Agent System', () => {
     },
   };
 
-  beforeEach(() => {
+  beforeEach(async () => {
     // Reset all mocks
     vi.clearAllMocks();
 
     // Reset global orchestrator
     resetGlobalOrchestrator();
+
+    // Reset generateText mock to default behavior - use import to get mocked version
+    const { generateText } = await import('ai');
+    vi.mocked(generateText).mockReset();
+    vi.mocked(generateText).mockResolvedValue({
+      text: 'question_answering', // Default fallback
+      usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 },
+      response: { id: 'test-id' },
+    });
 
     // Initialize agents without vectorStoreConfig requirement
     qaAgent = new QAAgent();
@@ -183,7 +192,7 @@ describe('Agent System', () => {
   describe('Router Functionality', () => {
     it('should classify question-answering intent correctly', async () => {
       const { generateText } = await import('ai');
-      vi.mocked(generateText).mockResolvedValueOnce({
+      vi.mocked(generateText).mockResolvedValue({
         text: 'question_answering',
         usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 },
         response: {
@@ -200,7 +209,7 @@ describe('Agent System', () => {
 
     it('should classify rewriting intent correctly', async () => {
       const { generateText } = await import('ai');
-      vi.mocked(generateText).mockResolvedValueOnce({
+      vi.mocked(generateText).mockResolvedValue({
         text: 'rewriting',
         usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 },
         response: {
@@ -219,7 +228,7 @@ describe('Agent System', () => {
 
     it('should classify planning intent correctly', async () => {
       const { generateText } = await import('ai');
-      vi.mocked(generateText).mockResolvedValueOnce({
+      vi.mocked(generateText).mockResolvedValue({
         text: 'planning',
         usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 },
         response: {

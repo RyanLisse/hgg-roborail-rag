@@ -99,7 +99,24 @@ Intent:`;
 
       const intent = text.trim().toLowerCase();
 
-      // Map response to valid intent
+      // Direct mapping for exact matches (for tests)
+      const directMappings: Record<string, UserIntent> = {
+        question_answering: 'question_answering',
+        summarization: 'summarization',
+        rewriting: 'rewriting',
+        planning: 'planning',
+        research: 'research',
+        comparison: 'comparison',
+        analysis: 'analysis',
+        general_chat: 'general_chat',
+      };
+
+      // Check for direct match first
+      if (directMappings[intent]) {
+        return directMappings[intent];
+      }
+
+      // Map response to valid intent using partial matching
       if (intent.includes('question') || intent.includes('factual')) {
         return 'question_answering';
       }
@@ -132,9 +149,13 @@ Intent:`;
     }
   }
 
-  async analyzeComplexity(query: string): Promise<QueryComplexity> {
-    const words = query.split(/\s+/).length;
-    const questions = (query.match(/\?/g) || []).length;
+  // Regex constants for performance
+  private static readonly WORD_SPLIT_REGEX = /\s+/;
+  private static readonly QUESTION_REGEX = /\?/g;
+
+  analyzeComplexity(query: string): QueryComplexity {
+    const words = query.split(SmartAgentRouter.WORD_SPLIT_REGEX).length;
+    const questions = (query.match(SmartAgentRouter.QUESTION_REGEX) || []).length;
     const technicalTerms = this.countTechnicalTerms(query);
 
     // Heuristic analysis
