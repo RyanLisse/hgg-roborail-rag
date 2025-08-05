@@ -153,7 +153,7 @@ Intent:`;
   private static readonly WORD_SPLIT_REGEX = /\s+/;
   private static readonly QUESTION_REGEX = /\?/g;
 
-  analyzeComplexity(query: string): QueryComplexity {
+  async analyzeComplexity(query: string): Promise<QueryComplexity> {
     const words = query.split(SmartAgentRouter.WORD_SPLIT_REGEX).length;
     const questions = (query.match(SmartAgentRouter.QUESTION_REGEX) || []).length;
     const technicalTerms = this.countTechnicalTerms(query);
@@ -325,7 +325,7 @@ Intent:`;
   }
 
   private async getAvailableSources(): Promise<
-    ('openai' | 'neon' | 'memory')[]
+    ('openai' | 'supabase' | 'memory')[]
   > {
     try {
       const service = await getUnifiedVectorStoreService();
@@ -333,12 +333,12 @@ Intent:`;
       // Filter out 'unified' since agents work with individual sources
       return sources.filter((source) => source !== 'unified') as (
         | 'openai'
-        | 'neon'
+        | 'supabase'
         | 'memory'
       )[];
     } catch (error) {
       console.warn('Failed to get available sources, using defaults:', error);
-      return ['openai', 'memory']; // Fallback sources
+      return ['openai', 'supabase', 'memory']; // Fallback sources
     }
   }
 

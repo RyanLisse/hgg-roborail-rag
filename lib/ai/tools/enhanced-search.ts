@@ -41,7 +41,7 @@ export const enhancedSearch = (sources: VectorStoreType[] = ['memory']) =>
         let sourcesWithCitations: any[] = [];
 
         // 1. Search unified vector stores with enhanced search capabilities
-        if (sources.includes('memory') || sources.includes('neon')) {
+        if (sources.includes('memory') || sources.includes('supabase')) {
           const unifiedSources = sources.filter((s) => s !== 'openai');
           if (unifiedSources.length > 0) {
             const enhancedSearchResponse = await vectorStore.searchEnhanced({

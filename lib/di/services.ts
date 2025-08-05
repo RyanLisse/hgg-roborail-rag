@@ -40,7 +40,7 @@ export async function initializeServices(): Promise<void> {
  */
 async function initializeSyncServices(): Promise<void> {
   const { OpenAIVectorStore } = await import('../vectorstore/openai-class');
-  const { NeonVectorStore } = await import('../vectorstore/neon-class');
+  const { SupabaseVectorStore } = await import('../vectorstore/supabase-class');
   const { MemoryVectorStore } = await import('../vectorstore/memory-class');
   const { UnifiedVectorStore } = await import('../vectorstore/unified-class');
   const { AgentOrchestrator } = await import('../agents/orchestrator');
@@ -69,8 +69,8 @@ async function initializeSyncServices(): Promise<void> {
     () => new OpenAIVectorStore(),
   );
   registerSingleton(
-    ServiceTokens.NEON_VECTOR_STORE,
-    () => new NeonVectorStore(),
+    ServiceTokens.SUPABASE_VECTOR_STORE,
+    () => new SupabaseVectorStore(),
   );
   registerSingleton(
     ServiceTokens.MEMORY_VECTOR_STORE,
@@ -79,9 +79,9 @@ async function initializeSyncServices(): Promise<void> {
 
   registerSingleton(ServiceTokens.UNIFIED_VECTOR_STORE, (container) => {
     const openai = container.resolve(ServiceTokens.OPENAI_VECTOR_STORE);
-    const neon = container.resolve(ServiceTokens.NEON_VECTOR_STORE);
+    const supabase = container.resolve(ServiceTokens.SUPABASE_VECTOR_STORE);
     const memory = container.resolve(ServiceTokens.MEMORY_VECTOR_STORE);
-    return UnifiedVectorStore.create([openai, neon, memory]);
+    return UnifiedVectorStore.create([openai, supabase, memory]);
   });
 
   // Monitoring Services
@@ -142,7 +142,7 @@ async function initializeSyncServices(): Promise<void> {
 
     return new AgentOrchestrator({
       vectorStoreConfig: {
-        defaultSources: ['memory', 'neon', 'openai'],
+        defaultSources: ['memory', 'supabase', 'openai'],
         searchThreshold: 0.3,
         maxResults: 10,
       },
@@ -169,7 +169,7 @@ async function initializeSyncServices(): Promise<void> {
   // Configuration
   registerSingleton(ServiceTokens.CONFIG, () => ({
     vectorStore: {
-      defaultSources: ['memory', 'neon', 'openai'],
+      defaultSources: ['memory', 'supabase', 'openai'],
       searchThreshold: 0.3,
       maxResults: 10,
     },
@@ -216,7 +216,7 @@ function initializeLazyServices(): void {
   // Configuration (lightweight, keep sync)
   registerSingleton(ServiceTokens.CONFIG, () => ({
     vectorStore: {
-      defaultSources: ['memory', 'neon', 'openai'],
+      defaultSources: ['memory', 'supabase', 'openai'],
       searchThreshold: 0.3,
       maxResults: 10,
     },
@@ -232,9 +232,9 @@ function initializeLazyServices(): void {
     return new OpenAIVectorStore();
   });
 
-  registerSingleton(ServiceTokens.NEON_VECTOR_STORE, async () => {
-    const { NeonVectorStore } = await import('../vectorstore/neon-class');
-    return new NeonVectorStore();
+  registerSingleton(ServiceTokens.SUPABASE_VECTOR_STORE, async () => {
+    const { SupabaseVectorStore } = await import('../vectorstore/supabase-class');
+    return new SupabaseVectorStore();
   });
 
   registerSingleton(ServiceTokens.MEMORY_VECTOR_STORE, async () => {
@@ -245,9 +245,9 @@ function initializeLazyServices(): void {
   registerSingleton(ServiceTokens.UNIFIED_VECTOR_STORE, async (container) => {
     const { UnifiedVectorStore } = await import('../vectorstore/unified-class');
     const openai = await container.resolve(ServiceTokens.OPENAI_VECTOR_STORE);
-    const neon = await container.resolve(ServiceTokens.NEON_VECTOR_STORE);
+    const supabase = await container.resolve(ServiceTokens.SUPABASE_VECTOR_STORE);
     const memory = await container.resolve(ServiceTokens.MEMORY_VECTOR_STORE);
-    return UnifiedVectorStore.create([openai, neon, memory]);
+    return UnifiedVectorStore.create([openai, supabase, memory]);
   });
 
   // Monitoring Services with lazy loading
@@ -289,7 +289,7 @@ function initializeLazyServices(): void {
 
     return new AgentOrchestrator({
       vectorStoreConfig: {
-        defaultSources: ['memory', 'neon', 'openai'],
+        defaultSources: ['memory', 'supabase', 'openai'],
         searchThreshold: 0.3,
         maxResults: 10,
       },

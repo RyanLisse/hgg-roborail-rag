@@ -49,6 +49,46 @@ This is a custom RAG chatbot implementation with advanced features including:
 
 To deploy this application, you'll need to set up your own environment variables and database.
 
+## Setup and Configuration
+
+### Environment Variables
+
+This application requires several environment variables to function properly. Copy `.env.example` to `.env` and configure the following:
+
+#### Required OpenAI Configuration
+- `OPENAI_API_KEY` - Your OpenAI API key (starts with `sk-`)
+- Models are configured following [OpenAI's model documentation](https://platform.openai.com/docs/models)
+
+#### Optional AI Providers
+- `GOOGLE_GENERATIVE_AI_API_KEY` - For Google Gemini models
+- `COHERE_API_KEY` - For enhanced embedding capabilities
+
+#### Database and Authentication
+- `DATABASE_URL` - PostgreSQL connection string
+- `AUTH_SECRET` - NextAuth.js secret key
+- `NEXTAUTH_URL` - Your application URL
+
+#### Vector Store Configuration
+- Configured for OpenAI vector store operations following [OpenAI Tools File Search](https://platform.openai.com/docs/guides/tools-file-search)
+- Citations are automatically displayed in responses per [OpenAI PDF Files documentation](https://platform.openai.com/docs/guides/pdf-files?api-mode=responses)
+
+### Model Configuration
+
+The application uses **o4-mini** with **medium reasoning effort** as the default model, providing:
+- Enhanced reasoning capabilities with step-by-step thinking
+- Reasoning token display for transparent AI decision-making
+- Balanced performance and speed for complex analytical tasks
+- Medium reasoning effort configuration for optimal response quality
+
+Reasoning models (o1, o3, o4 series) automatically display thinking tokens when available, following [OpenAI's reasoning model guidelines](https://platform.openai.com/docs/models/o4-mini).
+
+### Citation Format
+
+The system automatically formats citations from vector store searches:
+- **Document citations**: `[Doc: filename.pdf, Page: X]`
+- **Source attribution**: Inline references to specific documents
+- **Confidence scoring**: Relevance indicators for retrieved content
+
 ## Running locally
 
 You will need to use the environment variables [defined in `.env.example`](.env.example) to run Next.js AI Chatbot. It's recommended you use [Vercel Environment Variables](https://vercel.com/docs/projects/environment-variables) for this, but a `.env` file is all that is necessary.

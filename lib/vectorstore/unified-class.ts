@@ -10,7 +10,7 @@ import {
   type UnifiedVectorStoreService,
 } from './unified';
 
-type VectorStoreSource = 'openai' | 'neon' | 'memory' | 'unified';
+type VectorStoreSource = 'openai' | 'supabase' | 'memory' | 'unified';
 
 export class UnifiedVectorStore extends BaseVectorStoreService {
   private readonly service: Promise<UnifiedVectorStoreService>;
@@ -31,7 +31,7 @@ export class UnifiedVectorStore extends BaseVectorStoreService {
       query,
       sources: (options?.sources as VectorStoreSource[]) || [
         'openai',
-        'neon',
+        'supabase',
         'memory',
       ],
       maxResults: (options?.maxResults as number) || 10,
@@ -56,7 +56,7 @@ export class UnifiedVectorStore extends BaseVectorStoreService {
             query: String(requestObj.query || ''),
             sources: (requestObj.sources as VectorStoreSource[]) || [
               'openai',
-              'neon',
+              'supabase',
               'memory',
             ],
             maxResults: Number(requestObj.maxResults) || 10,
@@ -70,7 +70,7 @@ export class UnifiedVectorStore extends BaseVectorStoreService {
           }
         : {
             query: String(request),
-            sources: ['openai', 'neon', 'memory'] as VectorStoreSource[],
+            sources: ['openai', 'supabase', 'memory'] as VectorStoreSource[],
             maxResults: 10,
             threshold: 0.3,
             optimizePrompts: false,
@@ -98,7 +98,7 @@ export class UnifiedVectorStore extends BaseVectorStoreService {
               content: String(docObj.content || ''),
               targetSources: (docObj.targetSources as VectorStoreSource[]) || [
                 'openai',
-                'neon',
+                'supabase',
                 'memory',
               ],
               metadata: docObj.metadata as Record<string, unknown> | undefined,

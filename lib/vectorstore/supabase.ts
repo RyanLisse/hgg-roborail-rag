@@ -87,6 +87,16 @@ export interface SupabaseVectorStoreService {
     responseTime?: number;
     error?: string;
   }>;
+
+  // Statistics and management
+  getStats: () => Promise<{
+    totalDocuments: number;
+    lastUpdated: Date;
+  }>;
+  initializeExtensions: () => Promise<void>;
+
+  // Compatibility properties
+  db: SupabaseClient;
 }
 
 // Create Supabase vector store service
@@ -142,6 +152,12 @@ export function createSupabaseVectorStoreService(
         isHealthy: false,
         error: 'Service disabled',
       }),
+      getStats: async () => ({
+        totalDocuments: 0,
+        lastUpdated: new Date(),
+      }),
+      initializeExtensions: async () => Promise.resolve(),
+      db: null as any,
     };
   }
 
@@ -150,7 +166,6 @@ export function createSupabaseVectorStoreService(
   const client = createClient(validatedConfig.url, apiKey);
 
   return {
-    client,
     isEnabled: true,
     embeddingModel: validatedConfig.embeddingModel,
 
@@ -453,6 +468,41 @@ export function createSupabaseVectorStoreService(
         };
       }
     },
+
+    async getStats(): Promise<{
+      totalDocuments: number;
+      lastUpdated: Date;
+    }> {
+      try {
+        const { count, error } = await client
+          .from('documents')
+          .select('*', { count: 'exact', head: true });
+
+        if (error) {
+          throw new Error(`Failed to get stats: ${error.message}`);
+        }
+
+        return {
+          totalDocuments: count || 0,
+          lastUpdated: new Date(),
+        };
+      } catch (error) {
+        return {
+          totalDocuments: 0,
+          lastUpdated: new Date(),
+        };
+      }
+    },
+
+    async initializeExtensions(): Promise<void> {
+      // Supabase doesn't require extension initialization like Neon
+      // Extensions are managed at the database level
+      return Promise.resolve();
+    },
+
+    // Compatibility properties
+    db: client,
+    client: client,
   };
 }
 

@@ -100,13 +100,14 @@ async function parseRequestBody(request: Request): Promise<PostRequestBody> {
 }
 
 // Helper function to validate model and provide fallback
+// Model validation follows OpenAI provider patterns: https://platform.openai.com/docs/models
 function validateAndFallbackModel(selectedChatModel: string): string {
   try {
     // Test if the selected model is available
     const _testModel = myProvider.languageModel(selectedChatModel);
     return selectedChatModel;
   } catch (_error) {
-    return 'openai-gpt-4.1-mini'; // Fast fallback model
+    return 'openai-o4-mini'; // Enhanced reasoning fallback model with medium effort configuration
   }
 }
 
@@ -289,6 +290,12 @@ function createStreamForChat(
           }),
           messages,
           maxSteps: 5,
+          // Configure reasoning effort for o4-mini models per AI SDK documentation
+          providerOptions: modelToUse.includes('o4-mini') ? {
+            openai: { 
+              reasoningEffort: 'medium' // Medium effort for balanced performance and speed
+            },
+          } : undefined,
           experimental_activeTools:
             modelToUse === 'chat-model-reasoning'
               ? []
@@ -314,7 +321,7 @@ function createStreamForChat(
             searchDocuments: searchDocuments(
               (selectedSources as (
                 | 'openai'
-                | 'neon'
+
                 | 'memory'
                 | 'unified'
               )[]) ?? ['memory'],
@@ -337,7 +344,7 @@ function createStreamForChat(
             enhancedSearch: enhancedSearch(
               (selectedSources as (
                 | 'openai'
-                | 'neon'
+
                 | 'memory'
                 | 'unified'
               )[]) ?? ['memory'],
@@ -389,8 +396,10 @@ function createStreamForChat(
 
         result.consumeStream();
 
+        // Enable reasoning token display for o4-mini-medium and other reasoning models
+        // Following OpenAI reasoning model guidelines: https://platform.openai.com/docs/models/o4-mini
         result.mergeIntoDataStream(dataStream, {
-          sendReasoning: true,
+          sendReasoning: true, // Display step-by-step thinking for transparency
         });
       } catch (_streamError) {
         dataStream.writeData({

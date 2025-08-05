@@ -5,7 +5,7 @@ import {
   getVectorStoreMonitoringService,
   withPerformanceMonitoring,
 } from './monitoring';
-import { getNeonVectorStoreService, type NeonVectorStoreService } from './neon';
+
 import {
   getOpenAIVectorStoreService,
   type OpenAIVectorStoreService,
@@ -35,7 +35,6 @@ export type { RelevanceWeights, UserFeedback } from './relevance-scoring';
 // Unified schemas
 export const VectorStoreType = z.enum([
   'openai',
-  'neon',
   'supabase',
   'memory',
   'unified',
@@ -53,7 +52,7 @@ export const UnifiedDocument = z.object({
 // Basic search request for backward compatibility
 export const BasicSearchRequest = z.object({
   query: z.string().min(1),
-  sources: z.array(VectorStoreType).default(['openai', 'neon', 'memory']),
+  sources: z.array(VectorStoreType).default(['openai', 'supabase', 'memory']),
   maxResults: z.number().min(1).max(100).default(10),
   threshold: z.number().min(0).max(1).default(0.3),
   metadata: z.record(z.string(), z.unknown()).optional(),
@@ -189,7 +188,6 @@ export type DocumentUploadRequest = z.infer<typeof DocumentUploadRequest>;
 
 export interface UnifiedVectorStoreService {
   openaiService: OpenAIVectorStoreService | null;
-  neonService: NeonVectorStoreService | null;
   supabaseService: SupabaseVectorStoreService | null;
 
   // Document management
@@ -215,11 +213,7 @@ export interface UnifiedVectorStoreService {
     query: string,
     maxResults?: number,
   ) => Promise<UnifiedSearchResult[]>;
-  searchNeon: (
-    query: string,
-    maxResults?: number,
-    threshold?: number,
-  ) => Promise<UnifiedSearchResult[]>;
+  
 
   // Enhanced search features
   rerankResults: (request: RerankingRequest) => Promise<RerankingResult>;
@@ -247,12 +241,10 @@ export interface UnifiedVectorStoreService {
 // Create unified vector store service
 export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorStoreService> {
   const openaiService = await getOpenAIVectorStoreService();
-  const neonService = await getNeonVectorStoreService();
   const supabaseService = await getSupabaseVectorStoreService();
 
-  const service: UnifiedVectorStoreService = {
+    const service: UnifiedVectorStoreService = {
     openaiService,
-    neonService,
     supabaseService,
 
     async addDocument(
@@ -285,25 +277,7 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
               }
               break;
 
-            case 'neon':
-              if (neonService.isEnabled) {
-                const neonDoc = await neonService.addDocument({
-                  content: validatedRequest.content,
-                  metadata: validatedRequest.metadata,
-                });
-
-                results.push(
-                  UnifiedDocument.parse({
-                    id: neonDoc.id,
-                    content: neonDoc.content,
-                    metadata: neonDoc.metadata,
-                    source: 'neon',
-                    createdAt: neonDoc.createdAt,
-                    updatedAt: neonDoc.updatedAt,
-                  }),
-                );
-              }
-              break;
+            
 
             case 'supabase':
               if (supabaseService.isEnabled) {
@@ -358,21 +332,7 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
             }
             break;
 
-          case 'neon':
-            if (neonService.isEnabled) {
-              const neonDoc = await neonService.getDocument(id);
-              if (neonDoc) {
-                return UnifiedDocument.parse({
-                  id: neonDoc.id,
-                  content: neonDoc.content,
-                  metadata: neonDoc.metadata,
-                  source: 'neon',
-                  createdAt: neonDoc.createdAt,
-                  updatedAt: neonDoc.updatedAt,
-                });
-              }
-            }
-            break;
+          
 
           case 'supabase':
             if (supabaseService.isEnabled) {
@@ -411,11 +371,7 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
             }
             break;
 
-          case 'neon':
-            if (neonService.isEnabled) {
-              return await neonService.deleteDocument(id);
-            }
-            break;
+          
 
           case 'supabase':
             if (supabaseService.isEnabled) {
@@ -488,15 +444,7 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
                     }
                     break;
 
-                  case 'neon':
-                    if (neonService.isEnabled) {
-                      return await this.searchNeon(
-                        validatedRequest.query,
-                        resultsPerSource,
-                        validatedRequest.threshold,
-                      );
-                    }
-                    break;
+                  
 
                   case 'supabase':
                     if (supabaseService.isEnabled) {
@@ -629,50 +577,7 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
       }
     },
 
-    async searchNeon(
-      query: string,
-      maxResults = 10,
-      threshold = 0.3,
-      queryContext?: any,
-    ): Promise<UnifiedSearchResult[]> {
-      if (!neonService.isEnabled) {
-        return [];
-      }
-
-      try {
-        // For now, Neon search doesn't use prompt optimization but gets the context
-        const results = await neonService.searchSimilar({
-          query,
-          maxResults,
-          threshold,
-          metadata: queryContext
-            ? {
-                queryType: queryContext.type,
-                domain: queryContext.domain,
-                optimizationContext: true,
-              }
-            : undefined,
-        });
-
-        return results.map((result) =>
-          UnifiedSearchResult.parse({
-            document: UnifiedDocument.parse({
-              id: result.document.id,
-              content: result.document.content,
-              metadata: result.document.metadata,
-              source: 'neon',
-              createdAt: result.document.createdAt,
-              updatedAt: result.document.updatedAt,
-            }),
-            similarity: result.similarity,
-            distance: result.distance,
-            source: 'neon',
-          }),
-        );
-      } catch (_error) {
-        return [];
-      }
-    },
+    
 
     async searchSupabase(
       query: string,
@@ -729,9 +634,7 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
       // Add memory as fallback
       sources.push('memory');
 
-      if (neonService.isEnabled) {
-        sources.push('neon');
-      }
+      
 
       if (supabaseService.isEnabled) {
         sources.push('supabase');
@@ -749,7 +652,7 @@ export async function createUnifiedVectorStoreService(): Promise<UnifiedVectorSt
       > = {
         memory: { enabled: true },
         openai: { enabled: openaiService.isEnabled },
-        neon: { enabled: neonService.isEnabled },
+        
         supabase: { enabled: supabaseService.isEnabled },
         unified: { enabled: true },
       };
@@ -982,11 +885,11 @@ export async function getUnifiedVectorStoreService(): Promise<UnifiedVectorStore
     // Use fault-tolerant version by default for production resilience
     if (process.env.USE_FAULT_TOLERANT !== 'false') {
       unifiedVectorStoreService =
-        await getFaultTolerantUnifiedVectorStoreService();
+        await getFaultTolerantUnifiedVectorStoreService() as UnifiedVectorStoreService;
     } else {
       // Fallback to basic version if explicitly disabled
       unifiedVectorStoreService = await createUnifiedVectorStoreService();
     }
   }
-  return unifiedVectorStoreService;
+  return unifiedVectorStoreService!;
 }

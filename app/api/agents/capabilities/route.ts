@@ -16,7 +16,7 @@ export async function GET(_request: Request) {
 
     return Response.json({
       agents: capabilities,
-      supportedSources: ['openai', 'neon', 'memory'],
+      supportedSources: ['openai', 'supabase', 'memory'],
       supportedComplexities: ['simple', 'moderate', 'complex'],
       supportedIntents: [
         'question_answering',

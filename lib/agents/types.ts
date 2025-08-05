@@ -28,7 +28,7 @@ export const AgentRequest = z.object({
       complexity: z.enum(['simple', 'moderate', 'complex']).default('moderate'),
       domainKeywords: z.array(z.string()).default([]),
       sources: z
-        .array(z.enum(['openai', 'neon', 'memory']))
+        .array(z.enum(['openai', 'supabase', 'memory']))
         .default(['openai']),
       requiresCitations: z.boolean().default(false),
       maxResults: z.number().min(1).max(20).default(5),
@@ -92,7 +92,7 @@ export const AgentRoutingDecision = z.object({
   reasoning: z.string(),
   fallbackAgent: AgentType.optional(),
   suggestedSources: z
-    .array(z.enum(['openai', 'neon', 'memory']))
+    .array(z.enum(['openai', 'supabase', 'memory']))
     .default(['openai']),
   estimatedComplexity: z.enum(['simple', 'moderate', 'complex']),
 });
@@ -106,7 +106,7 @@ export const AgentConfig = z.object({
   vectorStoreConfig: z
     .object({
       defaultSources: z
-        .array(z.enum(['openai', 'neon', 'memory']))
+        .array(z.enum(['openai', 'supabase', 'memory']))
         .default(['openai']),
       searchThreshold: z.number().min(0).max(1).default(0.3),
       maxResults: z.number().min(1).max(50).default(10),
@@ -180,5 +180,5 @@ export interface AgentRouter {
 }
 
 // Vector store type definition
-export const VectorStoreType = z.enum(['openai', 'neon', 'supabase', 'memory']);
+export const VectorStoreType = z.enum(['openai', 'supabase', 'memory']);
 export type VectorStoreType = z.infer<typeof VectorStoreType>;

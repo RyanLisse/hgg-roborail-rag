@@ -157,7 +157,7 @@ export function resetContainer(): void {
 export const ServiceTokens = {
   // Vector Store Services
   OPENAI_VECTOR_STORE: Symbol('OPENAI_VECTOR_STORE'),
-  NEON_VECTOR_STORE: Symbol('NEON_VECTOR_STORE'),
+  SUPABASE_VECTOR_STORE: Symbol('SUPABASE_VECTOR_STORE'),
   MEMORY_VECTOR_STORE: Symbol('MEMORY_VECTOR_STORE'),
   UNIFIED_VECTOR_STORE: Symbol('UNIFIED_VECTOR_STORE'),
 

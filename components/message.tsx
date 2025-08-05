@@ -4,7 +4,9 @@ import type { UseChatHelpers } from '@ai-sdk/react';
 import type { UIMessage } from 'ai';
 import equal from 'fast-deep-equal';
 import { AnimatePresence, motion } from 'framer-motion';
-import { memo, useState } from 'react';
+import { memo, useState, useEffect } from 'react';
+import { AnimatedLogo } from './animated-logo';
+import { StreamingText } from './streaming-text';
 import type { Vote } from '@/lib/db/schema';
 import { cn, sanitizeText } from '@/lib/utils';
 import { Citations } from './citations';
@@ -41,14 +43,46 @@ const PurePreviewMessage = ({
 }) => {
   const [mode, setMode] = useState<'view' | 'edit'>('view');
 
+  const messageVariants = {
+    initial: { 
+      y: 20, 
+      opacity: 0, 
+      scale: 0.95 
+    },
+    animate: { 
+      y: 0, 
+      opacity: 1, 
+      scale: 1,
+      transition: {
+        type: 'spring',
+        stiffness: 500,
+        damping: 30,
+        mass: 1,
+        duration: 0.4
+      }
+    },
+    exit: { 
+      y: -20, 
+      opacity: 0, 
+      scale: 0.95,
+      transition: { 
+        duration: 0.2,
+        ease: 'easeIn'
+      }
+    }
+  };
+
   return (
-    <AnimatePresence>
+    <AnimatePresence mode="wait">
       <motion.div
-        animate={{ y: 0, opacity: 1 }}
+        variants={messageVariants}
+        initial="initial"
+        animate="animate"
+        exit="exit"
+        layout
         className="group/message mx-auto w-full max-w-3xl px-4"
         data-role={message.role}
         data-testid={`message-${message.role}`}
-        initial={{ y: 5, opacity: 0 }}
       >
         <div
           className={cn(
@@ -130,7 +164,17 @@ const PurePreviewMessage = ({
                         })}
                         data-testid="message-content"
                       >
-                        <Markdown>{sanitizeText(part.text)}</Markdown>
+                        {message.role === 'assistant' ? (
+                          <StreamingText
+                            content={part.text}
+                            isLoading={isLoading}
+                            enableStreaming={true}
+                            enableMarkdown={true}
+                            streamingSpeed={6}
+                          />
+                        ) : (
+                          <Markdown>{sanitizeText(part.text)}</Markdown>
+                        )}
                       </div>
                     </div>
                   );
@@ -272,14 +316,77 @@ export const PreviewMessage = memo(
 
 export const ThinkingMessage = () => {
   const role = 'assistant';
+  const [currentMessage, setCurrentMessage] = useState('Thinking...');
+  const [messageIndex, setMessageIndex] = useState(0);
+
+  // Progressive loading messages inspired by ContentPort
+  const loadingMessages = [
+    'Thinking...',
+    'Analyzing your request...',
+    'Processing with o4-mini reasoning...',
+    'Generating response...'
+  ];
+
+  useEffect(() => {
+    const intervals = [1000, 2500, 4000]; // Timing for each message transition
+    let timeouts: NodeJS.Timeout[] = [];
+
+    intervals.forEach((delay, index) => {
+      const timeout = setTimeout(() => {
+        if (index + 1 < loadingMessages.length) {
+          setMessageIndex(index + 1);
+          setCurrentMessage(loadingMessages[index + 1]);
+        }
+      }, delay);
+      timeouts.push(timeout);
+    });
+
+    return () => {
+      timeouts.forEach(clearTimeout);
+    };
+  }, []);
+
+  const containerVariants = {
+    initial: { y: 10, opacity: 0 },
+    animate: { 
+      y: 0, 
+      opacity: 1,
+      transition: { 
+        delay: 0.2,
+        duration: 0.4,
+        ease: 'easeOut'
+      }
+    },
+    exit: { 
+      y: -10, 
+      opacity: 0,
+      transition: { duration: 0.3 }
+    }
+  };
+
+  const textVariants = {
+    initial: { opacity: 0, y: 5 },
+    animate: { 
+      opacity: 1, 
+      y: 0,
+      transition: { duration: 0.3, ease: 'easeOut' }
+    },
+    exit: { 
+      opacity: 0, 
+      y: -5,
+      transition: { duration: 0.2 }
+    }
+  };
 
   return (
     <motion.div
-      animate={{ y: 0, opacity: 1, transition: { delay: 1 } }}
-      className="group/message mx-auto min-h-96 w-full max-w-3xl px-4"
+      variants={containerVariants}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      className="group/message mx-auto min-h-24 w-full max-w-3xl px-4"
       data-role={role}
       data-testid="message-assistant-loading"
-      initial={{ y: 5, opacity: 0 }}
     >
       <div
         className={cn(
@@ -289,14 +396,46 @@ export const ThinkingMessage = () => {
           },
         )}
       >
-        <div className="flex size-8 shrink-0 items-center justify-center rounded-full ring-1 ring-border">
-          <SparklesIcon size={14} />
+        <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-background ring-1 ring-border">
+          <AnimatedLogo 
+            isAnimating={true} 
+            size={14} 
+            variant={messageIndex < 2 ? 'sparkles' : messageIndex < 3 ? 'pulse' : 'dots'}
+          />
         </div>
 
         <div className="flex w-full flex-col gap-2">
-          <div className="flex flex-col gap-4 text-muted-foreground">
-            Hmm...
-          </div>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentMessage}
+              variants={textVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              className="flex flex-col gap-4 text-muted-foreground"
+            >
+              {currentMessage}
+              
+              {/* Progress indicator */}
+              <div className="flex gap-1 mt-1">
+                {loadingMessages.map((_, index) => (
+                  <motion.div
+                    key={index}
+                    className={cn(
+                      'w-1.5 h-1.5 rounded-full transition-colors duration-300',
+                      index <= messageIndex ? 'bg-blue-500' : 'bg-muted'
+                    )}
+                    initial={{ scale: 0.6, opacity: 0.5 }}
+                    animate={{ 
+                      scale: index === messageIndex ? 1.2 : 1,
+                      opacity: index <= messageIndex ? 1 : 0.3
+                    }}
+                    transition={{ duration: 0.3 }}
+                  />
+                ))}
+              </div>
+            </motion.div>
+          </AnimatePresence>
         </div>
       </div>
     </motion.div>

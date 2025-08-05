@@ -19,7 +19,7 @@ const requestSchema = z.object({
     .optional()
     .default([]),
   sources: z
-    .array(z.enum(['openai', 'neon', 'memory']))
+    .array(z.enum(['openai', 'supabase', 'memory']))
     .optional()
     .default(['memory']),
   modelId: z.string().optional(),

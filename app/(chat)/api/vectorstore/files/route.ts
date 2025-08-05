@@ -4,7 +4,7 @@ import { auth } from '@/app/(auth)/auth';
 import { getUnifiedVectorStoreService } from '@/lib/vectorstore/unified';
 
 const _ListFilesRequest = z.object({
-  source: z.enum(['openai', 'neon', 'memory']).optional(),
+  source: z.enum(['openai', 'supabase', 'memory']).optional(),
   vectorStoreId: z.string().optional(),
 });
 
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const source = searchParams.get('source') as
       | 'openai'
-      | 'neon'
+      
       | 'memory'
       | null;
     const vectorStoreId = searchParams.get('vectorStoreId');
@@ -48,11 +48,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    if (source === 'neon') {
-      // Note: Neon service would need a listDocuments method
-      // For now, return empty array
-      return NextResponse.json({ files: [] });
-    }
+    
 
     if (source === 'memory') {
       // Memory documents are handled by localStorage in the client
@@ -70,7 +66,7 @@ export async function GET(request: NextRequest) {
       name: string;
       status: string;
       createdAt: Date;
-      source: 'openai' | 'neon' | 'memory';
+      source: 'openai'  | 'memory';
       vectorStoreId?: string;
     }> = [];
 

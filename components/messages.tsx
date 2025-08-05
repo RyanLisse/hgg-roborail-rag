@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { memo } from 'react';
 import { useMessages } from '@/hooks/use-messages';
 import type { Vote } from '@/lib/db/schema';
+import { ChatContainer } from './chat-container';
 import { Greeting } from './greeting';
 import { PreviewMessage, ThinkingMessage } from './message';
 
@@ -40,12 +41,14 @@ function PureMessages({
   });
 
   return (
-    <div
-      className="relative flex min-w-0 flex-1 flex-col gap-6 overflow-y-scroll pt-4"
+    <ChatContainer.Enhanced
+      className="relative flex min-w-0 flex-1 flex-col"
+      resize="smooth"
+      isEmpty={messages.length === 0}
+      isLoading={status === 'streaming'}
+      emptyComponent={<Greeting />}
       ref={messagesContainerRef}
     >
-      {messages.length === 0 && <Greeting />}
-
       {messages.map((message, index) => (
         <PreviewMessage
           chatId={chatId}
@@ -76,7 +79,7 @@ function PureMessages({
         onViewportLeave={onViewportLeave}
         ref={messagesEndRef}
       />
-    </div>
+    </ChatContainer.Enhanced>
   );
 }
 

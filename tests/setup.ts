@@ -30,10 +30,8 @@ process.env.XAI_API_KEY = process.env.XAI_API_KEY || 'test-xai-key';
 process.env.AUTH_SECRET = process.env.AUTH_SECRET || 'test-auth-secret';
 process.env.POSTGRES_URL =
   process.env.POSTGRES_URL || 'postgresql://test:test@localhost:5432/test';
-process.env.NEON_DATABASE_URL =
-  process.env.NEON_DATABASE_URL ||
-  process.env.POSTGRES_URL ||
-  'postgresql://test:test@localhost:5432/test';
+process.env.SUPABASE_URL = process.env.SUPABASE_URL || 'https://test.supabase.co';
+process.env.SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'test-anon-key';
 process.env.BLOB_READ_WRITE_TOKEN =
   process.env.BLOB_READ_WRITE_TOKEN || 'test-blob-token';
 process.env.REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';

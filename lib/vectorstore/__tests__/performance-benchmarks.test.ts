@@ -111,8 +111,8 @@ vi.mock('../openai', () => ({
   })),
 }));
 
-vi.mock('../neon', () => ({
-  getNeonVectorStoreService: vi.fn(() =>
+vi.mock('../supabase', () => ({
+  getSupabaseVectorStoreService: vi.fn(() =>
     Promise.resolve({
       searchFiles: vi.fn().mockResolvedValue({
         success: true,
@@ -175,9 +175,32 @@ describe('Performance Benchmark Suite', () => {
       timeoutMs: 30_000,
       warmupIterations: 3,
       benchmarkIterations: 10,
-      providers: ['openai', 'neon', 'unified'],
+      providers: ['openai', 'supabase', 'unified'],
       testDataSizes: ['small', 'medium', 'large'],
       memoryThresholdMB: 500,
+    });
+
+    // Mock the stressTest method specifically to ensure breakingPoint is defined
+    vi.spyOn(benchmarkSuite, 'stressTest').mockResolvedValue({
+      provider: 'openai',
+      operation: 'stress_test',
+      timestamp: new Date(),
+      duration: 5000,
+      metrics: {
+        averageLatency: 100,
+        throughput: 10,
+        successRate: 1.0,
+        errorRate: 0,
+        totalOperations: 50,
+      },
+      success: true,
+      errors: [],
+      loadSteps: [
+        { concurrency: 1, latency: 100, throughput: 10, successRate: 1.0, errorRate: 0 },
+        { concurrency: 3, latency: 120, throughput: 25, successRate: 0.95, errorRate: 0.05 },
+        { concurrency: 5, latency: 150, throughput: 30, successRate: 0.90, errorRate: 0.10 },
+      ],
+      breakingPoint: { concurrency: 7, reason: 'High error rate detected' },
     });
   });
 
@@ -244,7 +267,7 @@ describe('Performance Benchmark Suite', () => {
     it('should compare search performance across all providers', async () => {
       const results = await benchmarkSuite.compareProviders({
         operation: 'search',
-        providers: ['openai', 'neon', 'unified'],
+        providers: ['openai', 'supabase', 'unified'],
         testCases: [
           { query: 'simple query', expectedResults: 5 },
           {

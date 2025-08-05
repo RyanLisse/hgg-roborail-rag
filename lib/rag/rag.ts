@@ -58,7 +58,7 @@ export const RAGQuery = z.object({
       useWebSearch: z.boolean().default(false),
       previousResponseId: z.string().optional(),
       vectorStoreSources: z
-        .array(z.enum(['openai', 'neon', 'supabase', 'memory']))
+        .array(z.enum(['openai', 'supabase', 'memory']))
         .default(['openai']),
       useFileSearch: z.boolean().default(true),
     })
@@ -491,7 +491,7 @@ export class RAGService {
         minScore: options?.minRelevanceScore || 0.3,
       },
       undefined,
-      options?.vectorStoreSources || ['openai'],
+      (options?.vectorStoreSources as ('openai' | 'supabase' | 'memory')[]) || ['openai'],
     );
 
     // Prepare context for generation

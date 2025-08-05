@@ -10,8 +10,8 @@ export interface ChatModel {
   contextWindow?: number;
 }
 
-export const DEFAULT_CHAT_MODEL_ID = 'openai-gpt-4.1';
-export const DEFAULT_CHAT_MODEL = 'openai-gpt-4.1';
+export const DEFAULT_CHAT_MODEL_ID = 'openai-o4-mini';
+export const DEFAULT_CHAT_MODEL = 'openai-o4-mini';
 export const DEFAULT_REASONING_MODEL = 'openai-o4-mini';
 export const DEFAULT_FAST_MODEL = 'openai-gpt-4.1-nano';
 

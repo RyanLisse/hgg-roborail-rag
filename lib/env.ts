@@ -21,7 +21,7 @@ const envSchema = z.object({
     .string()
     .url()
     .optional()
-    .describe('Railway DATABASE_URL (alternative to POSTGRES_URL)'),
+    .describe('Railway DATABASE_URL (primary connection string)'),
   PGHOST: z.string().optional().describe('PostgreSQL host (Railway managed)'),
   PGPORT: z.string().optional().describe('PostgreSQL port (Railway managed)'),
   PGUSER: z.string().optional().describe('PostgreSQL user (Railway managed)'),
@@ -33,6 +33,20 @@ const envSchema = z.object({
     .string()
     .optional()
     .describe('PostgreSQL database name (Railway managed)'),
+
+  // Railway Service Configuration
+  RAILWAY_DEPLOYMENT_ID: z
+    .string()
+    .optional()
+    .describe('Railway deployment identifier'),
+  RAILWAY_REPLICA_ID: z
+    .string()
+    .optional()
+    .describe('Railway replica identifier'),
+  RAILWAY_VOLUME_MOUNT_PATH: z
+    .string()
+    .optional()
+    .describe('Railway volume mount path'),
 
   // AI Provider API Keys (at least one required)
   OPENAI_API_KEY: z.string().optional(),
@@ -217,6 +231,9 @@ function initializeEnv(): Env {
         RAILWAY_ENVIRONMENT: process.env.RAILWAY_ENVIRONMENT,
         RAILWAY_PROJECT_ID: process.env.RAILWAY_PROJECT_ID,
         RAILWAY_SERVICE_ID: process.env.RAILWAY_SERVICE_ID,
+        RAILWAY_DEPLOYMENT_ID: process.env.RAILWAY_DEPLOYMENT_ID,
+        RAILWAY_REPLICA_ID: process.env.RAILWAY_REPLICA_ID,
+        RAILWAY_VOLUME_MOUNT_PATH: process.env.RAILWAY_VOLUME_MOUNT_PATH,
         // Include other available vars
         OPENAI_API_KEY: process.env.OPENAI_API_KEY,
         GOOGLE_GENERATIVE_AI_API_KEY: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
@@ -286,8 +303,29 @@ export const railwayConfig = {
   environment: env.RAILWAY_ENVIRONMENT || 'production',
   projectId: env.RAILWAY_PROJECT_ID || '',
   serviceId: env.RAILWAY_SERVICE_ID || '',
+  deploymentId: env.RAILWAY_DEPLOYMENT_ID || '',
+  replicaId: env.RAILWAY_REPLICA_ID || '',
+  volumeMountPath: env.RAILWAY_VOLUME_MOUNT_PATH || '/data',
   isEnabled: !!(env.DATABASE_URL || env.POSTGRES_URL),
   isRailwayManaged: !!(env.DATABASE_URL && env.RAILWAY_PROJECT_ID),
+  // Connection health check
+  getConnectionString: () => {
+    const primaryUrl = env.DATABASE_URL || env.POSTGRES_URL;
+    if (primaryUrl) return primaryUrl;
+    
+    // Construct from individual components if available
+    if (env.PGHOST && env.PGUSER && env.PGPASSWORD && env.PGDATABASE) {
+      const port = env.PGPORT || '5432';
+      return `postgresql://${env.PGUSER}:${env.PGPASSWORD}@${env.PGHOST}:${port}/${env.PGDATABASE}`;
+    }
+    
+    return '';
+  },
+  // Railway service health check
+  isHealthy: () => {
+    return !!(env.DATABASE_URL || env.POSTGRES_URL) && 
+           !!(env.RAILWAY_PROJECT_ID || env.PGHOST);
+  },
 } as const;
 
 // Vector store configuration
@@ -329,6 +367,9 @@ export const {
   RAILWAY_ENVIRONMENT,
   RAILWAY_PROJECT_ID,
   RAILWAY_SERVICE_ID,
+  RAILWAY_DEPLOYMENT_ID,
+  RAILWAY_REPLICA_ID,
+  RAILWAY_VOLUME_MOUNT_PATH,
   OPENAI_API_KEY,
   GOOGLE_GENERATIVE_AI_API_KEY,
   COHERE_API_KEY,

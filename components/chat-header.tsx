@@ -11,7 +11,7 @@ import { PlusIcon } from './icons';
 import { useSidebar } from './ui/sidebar';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
-type VectorStoreType = 'openai' | 'neon' | 'supabase' | 'memory';
+type VectorStoreType = 'openai' | 'supabase' | 'memory';
 
 function PureChatHeader({
   chatId: _chatId,
@@ -63,14 +63,16 @@ function PureChatHeader({
       {!isReadonly && <ModelSelector className="order-2 md:order-2" />}
 
       {!isReadonly && (
-        <DatabaseSelector
-          availableSources={availableSources}
-          className="order-3 flex md:order-3"
-          data-testid="database-selector"
-          onSourcesChange={onSourcesChange}
-          selectedSources={selectedSources}
-          sourceStats={sourceStats}
-        />
+        <div className="ml-auto order-4 flex items-center md:order-3 md:ml-2">
+          <DatabaseSelector
+            availableSources={availableSources}
+            className="w-48"
+            data-testid="database-selector"
+            onSourcesChange={onSourcesChange}
+            selectedSources={selectedSources}
+            sourceStats={sourceStats}
+          />
+        </div>
       )}
     </header>
   );

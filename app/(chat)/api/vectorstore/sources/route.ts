@@ -3,18 +3,7 @@ import { getUnifiedVectorStoreService } from '@/lib/vectorstore/unified';
 
 export async function GET() {
   try {
-    // Check for required environment variables
-    // COHERE_API_KEY environment variable checked
-
-    if (!process.env.POSTGRES_URL) {
-      return NextResponse.json({
-        availableSources: ['memory'],
-        sourceStats: {
-          memory: { documents: 0, lastUpdated: new Date().toISOString() },
-        },
-      });
-    }
-
+    // Always try to get the unified service - it will determine what's available
     const vectorStoreService = await getUnifiedVectorStoreService();
 
     const [availableSources, sourceStats] = await Promise.all([
@@ -27,15 +16,16 @@ export async function GET() {
       sourceStats,
     });
   } catch (_error) {
-    // Return fallback response instead of 500 error
+    // Return fallback response with OpenAI as default if available
+    const hasOpenAI = !!process.env.OPENAI_API_KEY;
+    
     return NextResponse.json({
-      availableSources: ['memory'],
+      availableSources: hasOpenAI ? ['openai', 'memory'] : ['memory'],
       sourceStats: {
-        memory: {
-          documents: 0,
-          lastUpdated: new Date().toISOString(),
-          error: 'Service temporarily unavailable',
-        },
+        openai: { enabled: hasOpenAI, count: 0 },
+        supabase: { enabled: false, count: 0 },
+        memory: { enabled: true, count: 0 },
+        unified: { enabled: true, count: 0 },
       },
     });
   }

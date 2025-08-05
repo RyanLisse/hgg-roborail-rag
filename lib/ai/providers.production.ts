@@ -88,6 +88,7 @@ function createDynamicLanguageModel(modelId: string): LanguageModel {
   const baseModel = getModelInstance(modelId);
 
   // For reasoning models (o1, o3, o4 series), wrap with middleware
+  // Reasoning effort is configured via providerOptions in streamText/generateText calls
   if (isReasoningModel(modelId)) {
     return wrapLanguageModel({
       model: baseModel,
@@ -105,6 +106,7 @@ function createDynamicLanguageModel(modelId: string): LanguageModel {
 }
 
 // Helper function to identify reasoning models
+// Reasoning models support chain-of-thought processing per OpenAI docs: https://platform.openai.com/docs/models/o4-mini
 function isReasoningModel(modelId: string): boolean {
   const reasoningPatterns = [
     'o1-',
@@ -128,10 +130,11 @@ function createAllLanguageModels(): Record<string, LanguageModel> {
   const models: Record<string, LanguageModel> = {};
 
   // Primary models with fallbacks - June 2025 optimized
+  // Model configuration follows OpenAI documentation: https://platform.openai.com/docs/models
   const primaryModels = {
-    'chat-model': 'openai-gpt-4.1',
+    'chat-model': 'openai-o4-mini', // Default reasoning model with medium effort configuration
     'chat-model-fast': 'openai-gpt-4.1-mini',
-    'chat-model-reasoning': 'openai-o3-mini',
+    'chat-model-reasoning': 'openai-o4-mini', // Primary reasoning model per https://platform.openai.com/docs/models/o4-mini
     'chat-model-advanced-reasoning': 'openai-o4-mini',
     'title-model': 'openai-gpt-4.1-nano',
     'artifact-model': 'openai-gpt-4.1',

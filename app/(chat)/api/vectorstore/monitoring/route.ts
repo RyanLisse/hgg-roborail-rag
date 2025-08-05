@@ -1,20 +1,20 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getVectorStoreMonitoringService } from '@/lib/vectorstore/monitoring';
-import { getNeonVectorStoreService } from '@/lib/vectorstore/neon';
+
 import { getOpenAIVectorStoreService } from '@/lib/vectorstore/openai';
 import { getUnifiedVectorStoreService } from '@/lib/vectorstore/unified';
 
 // Request schemas
 const HealthCheckRequest = z.object({
   provider: z
-    .enum(['openai', 'neon', 'unified', 'all'])
+    .enum(['openai', 'supabase', 'unified', 'all'])
     .optional()
     .default('all'),
 });
 
 const MetricsRequest = z.object({
-  provider: z.enum(['openai', 'neon', 'unified', 'memory']).optional(),
+  provider: z.enum(['openai', 'supabase', 'unified', 'memory']).optional(),
   metricType: z
     .enum([
       'search_latency',
@@ -38,15 +38,15 @@ const MetricsRequest = z.object({
 });
 
 const PerformanceRequest = z.object({
-  provider: z.enum(['openai', 'neon', 'unified', 'memory']),
+  provider: z.enum(['openai', 'supabase', 'unified', 'memory']),
   timeWindow: z.string().optional().default('24h'),
 });
 
 // Helper function to handle health check for all providers
 async function handleHealthCheckAll() {
-  const [openaiService, neonService, _unifiedService] = await Promise.all([
+    const [openaiService, _unifiedService] = await Promise.all([
     getOpenAIVectorStoreService(),
-    getNeonVectorStoreService(),
+    
     getUnifiedVectorStoreService(),
   ]);
 
@@ -56,8 +56,8 @@ async function handleHealthCheckAll() {
       error: error.message,
     })),
     Promise.resolve({
-      isHealthy: neonService.isEnabled,
-      error: neonService.isEnabled ? undefined : 'Service disabled',
+      isHealthy: false,
+      error: 'Neon service removed - migrated to Supabase',
     }),
     Promise.resolve({
       isHealthy: true, // Unified service is always enabled
@@ -72,11 +72,7 @@ async function handleHealthCheckAll() {
         ...healthChecks[0],
         lastChecked: new Date(),
       },
-      neon: {
-        provider: 'neon' as const,
-        ...healthChecks[1],
-        lastChecked: new Date(),
-      },
+      
       unified: {
         provider: 'unified' as const,
         ...healthChecks[2],
@@ -93,12 +89,7 @@ async function handleHealthCheckSpecific(provider: string) {
   if (provider === 'openai') {
     const service = await getOpenAIVectorStoreService();
     healthResult = await service.healthCheck();
-  } else if (provider === 'neon') {
-    const service = await getNeonVectorStoreService();
-    healthResult = {
-      isHealthy: service.isEnabled,
-      ...(service.isEnabled ? {} : { error: 'Service disabled' }),
-    };
+  
   } else {
     healthResult = { isHealthy: true };
   }

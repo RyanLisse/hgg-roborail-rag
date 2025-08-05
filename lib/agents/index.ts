@@ -231,7 +231,7 @@ export async function processQuery(
   query: string,
   options?: {
     chatHistory?: AgentRequest['chatHistory'];
-    sources?: ('openai' | 'neon' | 'memory')[];
+    sources?: ('openai' | 'supabase' | 'memory')[];
     modelId?: string;
     streaming?: boolean;
   },
@@ -265,7 +265,7 @@ export async function* processQueryStream(
   query: string,
   options?: {
     chatHistory?: AgentRequest['chatHistory'];
-    sources?: ('openai' | 'neon' | 'memory')[];
+    sources?: ('openai' | 'supabase' | 'memory')[];
     modelId?: string;
   },
 ): AsyncGenerator<string, AgentResponse, unknown> {
@@ -317,7 +317,7 @@ export async function useAgent(
   query: string,
   options?: {
     chatHistory?: AgentRequest['chatHistory'];
-    sources?: ('openai' | 'neon' | 'memory')[];
+    sources?: ('openai' | 'supabase' | 'memory')[];
     modelId?: string;
   },
 ): Promise<AgentResponse> {

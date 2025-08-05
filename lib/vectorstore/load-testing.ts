@@ -364,7 +364,7 @@ export class LoadTestingEngine {
         timeoutMs: 60_000,
         warmupIterations: 0,
         benchmarkIterations: 1,
-        providers: ['openai', 'neon', 'unified'],
+        providers: ['openai', 'supabase', 'unified'],
         testDataSizes: ['small', 'medium', 'large'],
         memoryThresholdMB: 1000,
         outputDirectory: './benchmark-results',

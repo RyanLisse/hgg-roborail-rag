@@ -15,11 +15,11 @@ vi.mock('../../vectorstore/unified', () => ({
     Promise.resolve({
       searchAcrossSources: vi.fn(() => Promise.resolve([])),
       getAvailableSources: vi.fn(() =>
-        Promise.resolve(['openai', 'memory', 'neon']),
+        Promise.resolve(['openai', 'supabase', 'memory']),
       ),
       healthCheck: vi.fn(() => Promise.resolve({ isHealthy: true })),
       config: {
-        sources: ['openai', 'memory', 'neon'],
+        sources: ['openai', 'supabase', 'memory'],
         searchThreshold: 0.3,
         maxResults: 10,
       },

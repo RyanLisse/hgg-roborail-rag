@@ -5,6 +5,8 @@ import {
   type VectorStoreType,
 } from '@/lib/vectorstore/unified';
 
+// Document search tool implementation following OpenAI Tools File Search documentation
+// Reference: https://platform.openai.com/docs/guides/tools-file-search
 export const searchDocuments = (
   sources: VectorStoreType[] = ['memory'],
   conversationHistory?: Array<{
@@ -119,9 +121,11 @@ export const searchDocuments = (
           message: optimizePrompts
             ? `Found ${results.length} relevant ${queryType || 'general'} document(s) for ${domain} domain`
             : `Found ${results.length} relevant document(s)`,
+          // Format results with citation information per OpenAI PDF Files documentation
+          // Reference: https://platform.openai.com/docs/guides/pdf-files?api-mode=responses
           results: results.map((result) => ({
             content: result.document.content,
-            source: result.source,
+            source: result.source, // Used for citation formatting: [Doc: filename.pdf, Page: X]
             similarity: result.similarity,
             metadata: {
               ...result.document.metadata,

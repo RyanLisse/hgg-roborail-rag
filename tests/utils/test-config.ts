@@ -177,7 +177,7 @@ export const ENV_CONFIG = {
 
   production: {
     database: {
-      url: process.env.NEON_DATABASE_URL,
+      url: process.env.POSTGRES_URL,
       maxConnections: 20,
     },
     redis: {
@@ -233,7 +233,8 @@ export const configUtils = {
       XAI_API_KEY: 'test-xai-key',
       AUTH_SECRET: 'test-auth-secret',
       POSTGRES_URL: 'postgresql://test:test@localhost:5432/test',
-      NEON_DATABASE_URL: 'postgresql://test:test@localhost:5432/test',
+      SUPABASE_URL: 'https://test.supabase.co',
+      SUPABASE_ANON_KEY: 'test-anon-key',
       BLOB_READ_WRITE_TOKEN: 'test-blob-token',
       REDIS_URL: 'redis://localhost:6379',
       LANGCHAIN_API_KEY: 'test-langchain-key',

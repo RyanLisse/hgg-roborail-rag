@@ -14,7 +14,7 @@ import {
 import { cn } from '@/lib/utils';
 import { CheckIcon, ChevronDownIcon, DatabaseIcon } from './icons';
 
-type VectorStoreType = 'openai' | 'neon' | 'supabase' | 'memory';
+type VectorStoreType = 'openai' | 'supabase' | 'memory';
 
 interface DatabaseSelectorProps {
   selectedSources: VectorStoreType[];
@@ -27,21 +27,18 @@ interface DatabaseSelectorProps {
 
 const sourceLabels: Record<VectorStoreType, string> = {
   openai: 'OpenAI Vector Store',
-  neon: 'NeonDB (pgvector)',
   supabase: 'Supabase Vector Store',
   memory: 'In-Memory Store',
 };
 
 const sourceDescriptions: Record<VectorStoreType, string> = {
   openai: 'OpenAI file search with vector store',
-  neon: 'PostgreSQL with pgvector extension',
   supabase: 'Supabase vector store with pgvector',
   memory: 'Temporary in-memory vector storage',
 };
 
 const sourceColors: Record<VectorStoreType, string> = {
   openai: 'bg-green-100 text-green-800 border-green-200',
-  neon: 'bg-blue-100 text-blue-800 border-blue-200',
   supabase: 'bg-purple-100 text-purple-800 border-purple-200',
   memory: 'bg-gray-100 text-gray-800 border-gray-200',
 };
@@ -80,6 +77,23 @@ export function DatabaseSelector({
     }
 
     return `${selectedSources.length} sources`;
+  };
+
+  const getSourceStatusIcon = (source: VectorStoreType, isEnabled: boolean) => {
+    if (!isEnabled) {
+      return <span className="text-muted-foreground text-xs">⚠️ Not configured</span>;
+    }
+    
+    switch (source) {
+      case 'supabase':
+        return <span className="text-green-600 text-xs">🟢 Supabase</span>;
+      case 'openai':
+        return <span className="text-blue-600 text-xs">🔵 OpenAI</span>;
+      case 'memory':
+        return <span className="text-orange-600 text-xs">🟠 Memory</span>;
+      default:
+        return null;
+    }
   };
 
   return (
@@ -127,43 +141,58 @@ export function DatabaseSelector({
                 )}
                 disabled={!isEnabled}
                 key={source}
-                onCheckedChange={() => handleSourceToggle(source)}
+                onCheckedChange={() => {
+                  if (isEnabled) {
+                    handleSourceToggle(source);
+                  }
+                }}
+                onSelect={(e) => e.preventDefault()}
               >
-                <div className="flex-1 space-y-1">
+                <div className="flex flex-col gap-1">
                   <div className="flex items-center gap-2">
                     <span className="font-medium">{sourceLabels[source]}</span>
-                    {!isEnabled && (
-                      <Badge className="text-xs" variant="secondary">
-                        Disabled
-                      </Badge>
-                    )}
-                    {isEnabled && stats?.count !== undefined && (
-                      <Badge className="text-xs" variant="outline">
-                        {stats.count} docs
-                      </Badge>
-                    )}
+                    {getSourceStatusIcon(source, isEnabled)}
                   </div>
-                  <div className="text-muted-foreground text-xs">
-                    {sourceDescriptions[source]}
-                  </div>
+                  
+                  {source === 'supabase' && (
+                    <span className="text-muted-foreground text-xs">
+                      PostgreSQL vector database with pgvector
+                    </span>
+                  )}
+                  
+                  {source === 'openai' && (
+                    <span className="text-muted-foreground text-xs">
+                      OpenAI's managed vector store service
+                    </span>
+                  )}
+                  
+                  {source === 'memory' && (
+                    <span className="text-muted-foreground text-xs">
+                      In-browser temporary storage
+                    </span>
+                  )}
+                  
+                  {stats?.count !== undefined && (
+                    <span className="text-muted-foreground text-xs">
+                      {stats.count} documents
+                    </span>
+                  )}
+                  
+                  {!isEnabled && (
+                    <span className="text-red-500 text-xs">
+                      {source === 'supabase' && 'Requires SUPABASE_URL and SUPABASE_ANON_KEY'}
+                      {source === 'openai' && 'Requires OPENAI_API_KEY'}
+                      {source === 'memory' && 'Always available'}
+                    </span>
+                  )}
                 </div>
-
-                {isSelected && (
-                  <div className="mt-1 ml-2 text-primary">
-                    <CheckIcon size={16} />
-                  </div>
-                )}
               </DropdownMenuCheckboxItem>
             );
           })}
-
+          
           <DropdownMenuSeparator />
-
-          <div className="px-2 py-1.5">
-            <div className="text-muted-foreground text-xs">
-              Select multiple sources to search across all of them
-              simultaneously.
-            </div>
+          <div className="px-2 py-1.5 text-muted-foreground text-xs">
+            💡 Tip: You can select multiple sources for broader search coverage
           </div>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -198,15 +227,15 @@ export function useDatabaseSelection() {
   ]);
   const [availableSources, setAvailableSources] = useState<VectorStoreType[]>([
     'openai',
+    'supabase',
     'memory',
   ]);
   const [sourceStats, setSourceStats] = useState<
     Record<VectorStoreType, { enabled: boolean; count?: number }>
   >({
     openai: { enabled: true, count: 0 },
+    supabase: { enabled: false, count: 0 },
     memory: { enabled: true },
-    neon: { enabled: false },
-    supabase: { enabled: false },
   });
   const [isLoading, setIsLoading] = useState(true);
 
@@ -219,27 +248,42 @@ export function useDatabaseSelection() {
         const response = await fetch('/api/vectorstore/sources');
         if (response.ok) {
           const data = await response.json();
-          setAvailableSources(data.availableSources || ['openai', 'memory']);
+          setAvailableSources(data.availableSources || ['openai', 'supabase', 'memory']);
           setSourceStats(
             data.sourceStats || {
               openai: { enabled: true, count: 0 },
+              supabase: { enabled: false, count: 0 },
               memory: { enabled: true },
-              neon: { enabled: false },
             },
           );
 
-          // Update selected sources to prioritize OpenAI, fallback to available ones
-          const defaultSources = data.availableSources?.includes('openai')
-            ? ['openai']
-            : ['memory'];
+          // Prioritize enabled sources: OpenAI > Supabase > Memory
+          let defaultSources: VectorStoreType[] = ['memory']; // Fallback
+          
+          if (data.sourceStats?.openai?.enabled) {
+            defaultSources = ['openai'];
+          } else if (data.sourceStats?.supabase?.enabled) {
+            defaultSources = ['supabase'];
+          }
+          
           setSelectedSources(
-            (prev) =>
-              prev.filter((source) =>
+            (prev) => {
+              const filtered = prev.filter((source) =>
                 data.availableSources?.includes(source),
-              ) || defaultSources,
+              );
+              return filtered.length > 0 ? filtered : defaultSources;
+            },
           );
         }
       } catch (_error) {
+        // On error, use fallback configuration with OpenAI as default
+        setAvailableSources(['openai', 'memory']);
+        setSourceStats({
+          openai: { enabled: true, count: 0 },
+          supabase: { enabled: false, count: 0 },
+          memory: { enabled: true },
+        });
+        setSelectedSources(['openai']); // Default to OpenAI on error
       } finally {
         setIsLoading(false);
       }
@@ -254,8 +298,15 @@ export function useDatabaseSelection() {
       if (response.ok) {
         const data = await response.json();
         setSourceStats(data.sourceStats || sourceStats);
+        
+        // Update available sources if they changed
+        if (data.availableSources) {
+          setAvailableSources(data.availableSources);
+        }
       }
-    } catch (_error) {}
+    } catch (_error) {
+      // Handle error silently
+    }
   };
 
   return {

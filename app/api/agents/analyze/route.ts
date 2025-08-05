@@ -14,7 +14,7 @@ export const maxDuration = 30;
 const requestSchema = z.object({
   query: z.string().min(1, 'Query is required'),
   sources: z
-    .array(z.enum(['openai', 'neon', 'memory']))
+    .array(z.enum(['openai', 'supabase', 'memory']))
     .optional()
     .default(['memory']),
   includeComplexity: z.boolean().optional().default(true),

@@ -12,8 +12,22 @@ jobs:
     env:
       AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
       POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
       BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
       REDIS_URL: ${{ secrets.REDIS_URL }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
+      # Railway Platform Variables (optional for testing)
+      RAILWAY_ENVIRONMENT: ${{ secrets.RAILWAY_ENVIRONMENT }}
+      RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+      RAILWAY_SERVICE_ID: ${{ secrets.RAILWAY_SERVICE_ID }}
+      # Smart-Spawn Database Configuration
+      SMART_SPAWN_DB_MAX_CONNECTIONS: 5
+      SMART_SPAWN_DB_CONNECTION_TIMEOUT: 10000
+      SMART_SPAWN_DB_RETRY_ATTEMPTS: 2
+      SMART_SPAWN_DB_RETRY_DELAY: 1000
+      SMART_SPAWN_FALLBACK_MODE: graceful
+      SMART_SPAWN_TEST_MODE: true
 
     steps:
       - uses: actions/checkout@v4

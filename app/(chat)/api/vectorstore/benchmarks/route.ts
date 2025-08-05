@@ -27,7 +27,7 @@ const BenchmarkRequest = z.object({
     'generate_report',
   ]),
   provider: z
-    .enum(['openai', 'neon', 'supabase', 'unified', 'memory'])
+    .enum(['openai', 'supabase', 'unified', 'memory'])
     .optional(),
   config: z
     .object({
@@ -332,7 +332,7 @@ export function GET(request: NextRequest) {
           benchmarkingEnabled: true,
           availableProviders: [
             'openai',
-            'neon',
+            
             'supabase',
             'unified',
             'memory',
@@ -458,7 +458,7 @@ async function executeSystemBenchmarks(
 
   switch (action) {
     case 'provider_comparison': {
-      const providers = ['openai', 'neon', 'unified'];
+      const providers = ['openai',  'unified'];
       return await handleProviderComparison(providers, config, testData);
     }
     case 'load_test':
@@ -467,7 +467,7 @@ async function executeSystemBenchmarks(
       }
       return await handleLoadTest(loadTestScenario);
     case 'create_baseline': {
-      const providers = ['openai', 'neon', 'unified'];
+      const providers = ['openai',  'unified'];
       return await handleCreateBaseline(providers, config, testData);
     }
     case 'detect_regression':

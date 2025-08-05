@@ -10,7 +10,7 @@ import {
 const EnhancedSearchRequestSchema = z.object({
   query: z.string().min(1),
   sources: z
-    .array(z.enum(['openai', 'neon', 'memory', 'unified']))
+    .array(z.enum(['openai', 'supabase', 'memory', 'unified']))
     .default(['openai', 'memory']),
   maxResults: z.number().min(1).max(50).default(10),
   threshold: z.number().min(0).max(1).default(0.3),

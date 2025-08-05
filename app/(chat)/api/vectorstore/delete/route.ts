@@ -5,7 +5,7 @@ import { getUnifiedVectorStoreService } from '@/lib/vectorstore/unified';
 
 const DeleteRequest = z.object({
   documentId: z.string(),
-  source: z.enum(['openai', 'neon', 'memory']),
+  source: z.enum(['openai', 'supabase', 'memory']),
 });
 
 export async function DELETE(request: NextRequest) {

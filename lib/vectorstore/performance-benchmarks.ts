@@ -2,7 +2,7 @@ import 'server-only';
 
 import { z } from 'zod';
 import { getVectorStoreMonitoringService } from './monitoring';
-import { getNeonVectorStoreService } from './neon';
+import { getSupabaseVectorStoreService } from './supabase';
 import { getOpenAIVectorStoreService } from './openai';
 import { getUnifiedVectorStoreService } from './unified';
 
@@ -14,7 +14,7 @@ export const BenchmarkConfig = z.object({
   warmupIterations: z.number().min(0).default(3),
   benchmarkIterations: z.number().min(1).default(10),
   providers: z.array(
-    z.enum(['openai', 'neon', 'supabase', 'unified', 'memory']),
+    z.enum(['openai', 'supabase', 'unified', 'memory']),
   ),
   testDataSizes: z
     .array(z.enum(['small', 'medium', 'large', 'xlarge']))
@@ -1458,8 +1458,8 @@ export class PerformanceBenchmarkSuite {
     switch (provider) {
       case 'openai':
         return await getOpenAIVectorStoreService();
-      case 'neon':
-        return await getNeonVectorStoreService();
+      case 'supabase':
+        return await getSupabaseVectorStoreService();
       case 'unified':
         return await getUnifiedVectorStoreService();
       default:
@@ -1482,7 +1482,7 @@ export const DEFAULT_BENCHMARK_CONFIG: BenchmarkConfig = {
   timeoutMs: 30_000,
   warmupIterations: 3,
   benchmarkIterations: 10,
-  providers: ['openai', 'neon', 'unified'],
+  providers: ['openai', 'supabase', 'unified'],
   testDataSizes: ['small', 'medium', 'large'],
   memoryThresholdMB: 500,
   outputDirectory: './benchmark-results',
