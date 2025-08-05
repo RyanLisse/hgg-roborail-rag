@@ -1,53 +1,103 @@
-<a href="https://chat.vercel.ai/">
-  <img alt="Next.js 14 and App Router-ready AI chatbot." src="app/(chat)/opengraph-image.png">
-  <h1 align="center">Chat SDK</h1>
+<a href="https://hgg-profiling.com">
+  <img alt="RoboRail Assistant - AI-powered support for HGG Profiling Equipment" src="app/(chat)/opengraph-image.png">
+  <h1 align="center">RoboRail Assistant</h1>
 </a>
 
 <p align="center">
-    Chat SDK is a free, open-source template built with Next.js and the AI SDK that helps you quickly build powerful chatbot applications.
+    RoboRail Assistant is an AI-powered support system for the RoboRail machine manufactured by HGG Profiling Equipment b.v., providing expert guidance on operation, maintenance, troubleshooting, and safety protocols.
 </p>
 
 <p align="center">
-  <a href="https://chat-sdk.dev"><strong>Read Docs</strong></a> ·
-  <a href="#features"><strong>Features</strong></a> ·
-  <a href="#model-providers"><strong>Model Providers</strong></a> ·
-  <a href="#deploy-your-own"><strong>Deploy Your Own</strong></a> ·
-  <a href="#running-locally"><strong>Running locally</strong></a>
+  <a href="#roborail-features"><strong>RoboRail Features</strong></a> ·
+  <a href="#safety-protocols"><strong>Safety Protocols</strong></a> ·
+  <a href="#troubleshooting-workflows"><strong>Troubleshooting</strong></a> ·
+  <a href="#technical-setup"><strong>Technical Setup</strong></a> ·
+  <a href="#running-locally"><strong>Running Locally</strong></a>
 </p>
 <br/>
 
-## Features
+## RoboRail Features
 
-- [Next.js](https://nextjs.org) App Router
-  - Advanced routing for seamless navigation and performance
-  - React Server Components (RSCs) and Server Actions for server-side rendering and increased performance
-- [AI SDK](https://sdk.vercel.ai/docs)
-  - Unified API for generating text, structured objects, and tool calls with LLMs
-  - Hooks for building dynamic chat and generative user interfaces
-  - Supports OpenAI (default) and Google model providers
-- [shadcn/ui](https://ui.shadcn.com)
-  - Styling with [Tailwind CSS](https://tailwindcss.com)
-  - Component primitives from [Radix UI](https://radix-ui.com) for accessibility and flexibility
-- Data Persistence
-  - [Neon Serverless Postgres](https://vercel.com/marketplace/neon) for saving chat history and user data
-  - [Vercel Blob](https://vercel.com/storage/blob) for efficient file storage
-- [Auth.js](https://authjs.dev)
-  - Simple and secure authentication
+### 🤖 AI-Powered RoboRail Expertise
+- **Specialized Knowledge Base**: Comprehensive understanding of RoboRail machine operations, maintenance, and troubleshooting
+- **Safety-First Approach**: Prioritizes user safety with hazard identification and proper protocol guidance
+- **Concise Expert Responses**: Provides brief, accurate answers with option for detailed explanations
+- **Systematic Troubleshooting**: Guided diagnostic workflows for efficient problem resolution
 
-## Model Providers
+### 🔧 Technical Capabilities
+- **Real-time Assistance**: Instant access to RoboRail operational guidance
+- **Step-by-Step Instructions**: Clear procedures for maintenance, calibrations, and operations
+- **Error Diagnosis**: Systematic approach to identifying and resolving machine issues
+- **Code Formatting**: Proper formatting for machine commands and technical procedures
 
-This template ships with [OpenAI](https://openai.com) `gpt-4.1` as the default chat model. The system supports both OpenAI and [Google](https://ai.google.dev) model providers, with the [AI SDK](https://sdk.vercel.ai/docs) allowing seamless switching between models with just a few lines of code.
+### 🛡️ Safety & Support Integration
+- **Safety Protocol Emphasis**: Highlights potential hazards and proper safety measures
+- **HGG Customer Support**: Direct escalation path for complex issues beyond AI scope
+- **Documentation Integration**: Access to RoboRail manual and technical documentation
+- **Progressive Disclosure**: Brief responses first, detailed information on request
 
-## Deploy Your Own
+### 💻 Technical Infrastructure
+- [Next.js](https://nextjs.org) App Router with React Server Components
+- [AI SDK](https://sdk.vercel.ai/docs) with OpenAI o4-mini reasoning model
+- ContentPort-inspired smooth animations and auto-scrolling chat interface
+- Vector store integration for RoboRail documentation search
+- Real-time streaming responses with typewriter effects
 
-This is a custom RAG chatbot implementation with advanced features including:
+## AI Model Configuration
 
-- LangSmith observability and feedback collection
-- Multimodal embeddings with Cohere v2 API
-- OpenAI responses API integration
-- Comprehensive user feedback system
+The RoboRail Assistant uses **OpenAI o4-mini with medium reasoning effort** as the primary model, specifically optimized for:
 
-To deploy this application, you'll need to set up your own environment variables and database.
+- **Technical Problem Solving**: Enhanced reasoning for complex RoboRail diagnostics
+- **Safety Analysis**: Thorough evaluation of operational procedures and hazards
+- **Step-by-Step Guidance**: Logical breakdown of maintenance and operational tasks
+- **Reasoning Transparency**: Displays thinking process for complex troubleshooting scenarios
+
+Supported model providers:
+- [OpenAI](https://openai.com) - Primary provider with reasoning models (o1, o3, o4 series)
+- [Google Gemini](https://ai.google.dev) - Secondary provider for specialized tasks
+- Seamless model switching via [AI SDK](https://sdk.vercel.ai/docs) configuration
+
+## Safety Protocols
+
+⚠️ **IMPORTANT SAFETY NOTICE** ⚠️
+
+The RoboRail Assistant prioritizes safety in all interactions. Always follow these protocols:
+
+### 🔐 Before Operating RoboRail:
+1. **Read all safety documentation** provided by HGG Profiling Equipment
+2. **Verify proper training** on RoboRail operation before use
+3. **Check safety equipment** and emergency procedures
+4. **Confirm machine status** and environmental conditions
+
+### ⚡ During Operations:
+- **Follow lockout/tagout procedures** for maintenance
+- **Use appropriate PPE** as specified in HGG documentation
+- **Monitor machine parameters** continuously during operation
+- **Stop immediately** if any unusual sounds, vibrations, or behaviors occur
+
+### 🚨 Emergency Procedures:
+- **Emergency Stop**: Located at [position per HGG manual]
+- **HGG Support Contact**: [Contact information to be added]
+- **Report incidents** according to facility safety protocols
+
+## Troubleshooting Workflows
+
+The RoboRail Assistant provides systematic troubleshooting approaches:
+
+### 📋 Diagnostic Process:
+1. **Symptom Identification**: Describe observed issues
+2. **Recent Changes**: Document any modifications or maintenance
+3. **Error Messages**: Provide exact error codes or messages
+4. **Operating Conditions**: Environmental and operational context
+5. **Systematic Testing**: Guided step-by-step diagnostics
+
+### 🔧 Common Issue Categories:
+- **Mechanical Problems**: Alignment, wear, mechanical failures
+- **Electrical Issues**: Power, control systems, sensors
+- **Software/Control**: Programming, parameter settings
+- **Calibration**: Accuracy, repeatability, measurement issues
+
+## Technical Setup
 
 ## Setup and Configuration
 
@@ -72,22 +122,68 @@ This application requires several environment variables to function properly. Co
 - Configured for OpenAI vector store operations following [OpenAI Tools File Search](https://platform.openai.com/docs/guides/tools-file-search)
 - Citations are automatically displayed in responses per [OpenAI PDF Files documentation](https://platform.openai.com/docs/guides/pdf-files?api-mode=responses)
 
-### Model Configuration
+### RoboRail AI Model Configuration
 
-The application uses **o4-mini** with **medium reasoning effort** as the default model, providing:
-- Enhanced reasoning capabilities with step-by-step thinking
-- Reasoning token display for transparent AI decision-making
-- Balanced performance and speed for complex analytical tasks
-- Medium reasoning effort configuration for optimal response quality
+Optimized for RoboRail technical support with **o4-mini medium reasoning effort**:
 
-Reasoning models (o1, o3, o4 series) automatically display thinking tokens when available, following [OpenAI's reasoning model guidelines](https://platform.openai.com/docs/models/o4-mini).
+#### 🧠 Reasoning Capabilities:
+- **Technical Problem Analysis**: Step-by-step diagnostic reasoning
+- **Safety Assessment**: Thorough evaluation of operational procedures
+- **Maintenance Planning**: Logical sequencing of maintenance tasks
+- **Troubleshooting Logic**: Systematic elimination of potential causes
 
-### Citation Format
+#### 🔍 Transparency Features:
+- **Reasoning Token Display**: Shows AI thinking process for complex issues
+- **Decision Traceability**: Clear explanation of diagnostic conclusions
+- **Safety Rationale**: Explicit reasoning for safety recommendations
+- **Progressive Complexity**: Adapts reasoning depth to issue complexity
 
-The system automatically formats citations from vector store searches:
-- **Document citations**: `[Doc: filename.pdf, Page: X]`
-- **Source attribution**: Inline references to specific documents
-- **Confidence scoring**: Relevance indicators for retrieved content
+#### ⚙️ RoboRail-Specific Optimizations:
+- **Machine-Specific Knowledge**: Trained on RoboRail operational patterns
+- **Safety-First Processing**: Prioritizes safety considerations in all responses
+- **Technical Precision**: Accurate technical terminology and procedures
+- **HGG Integration**: Seamless escalation to HGG customer support
+
+### RoboRail Documentation Integration
+
+Automated access to RoboRail technical documentation:
+
+#### 📚 Document Sources:
+- **RoboRail Operations Manual**: Complete operational procedures
+- **Maintenance Schedules**: Preventive and corrective maintenance
+- **Safety Protocols**: HGG-approved safety procedures
+- **Troubleshooting Guides**: Systematic diagnostic procedures
+- **Technical Specifications**: Machine parameters and capabilities
+
+#### 🔗 Citation Format:
+- **Manual References**: `[RoboRail Manual, Section X.Y, Page Z]`
+- **Safety Documents**: `[Safety Protocol: procedure_name.pdf]`
+- **Technical Specs**: `[Tech Spec: parameter_document.pdf, Page X]`
+- **Maintenance Guides**: `[Maintenance: task_guide.pdf, Step X]`
+
+#### 🎯 Smart Document Retrieval:
+- **Context-Aware Search**: Finds relevant documentation based on issue type
+- **Safety-Priority Retrieval**: Prioritizes safety-related documentation
+- **Version Control**: Always references latest approved documentation
+- **Confidence Scoring**: Indicates relevance and reliability of retrieved information
+
+## HGG Customer Support Integration
+
+### 📞 When to Contact HGG Support:
+- Issues beyond standard troubleshooting procedures
+- Safety-critical problems requiring immediate attention
+- Warranty or service-related questions
+- Software updates or specialized modifications
+
+### 🔗 HGG Contact Information:
+**HGG Profiling Equipment b.v.**
+- **Main Office**: +31 (0)73 599 6360
+- **Website**: [https://hgg-profiling.com](https://hgg-profiling.com)
+- **Technical Support**: support@hgg-profiling.com
+- **Service Department**: service@hgg-profiling.com
+- **Parts Department**: parts@hgg-profiling.com
+- **Emergency Hotline**: [Available 24/7 for critical issues]
+- **Address**: Laan van Ypenburg 100, 2497 GB The Hague, Netherlands
 
 ## Running locally
 

@@ -20,7 +20,7 @@
       "name": "web",
       "source": {
         "type": "repo",
-        "repo": "ruvnet/rra-roborail-assistant"
+        "repo": "https://github.com/ryanlisse/rra-roborail-assistant"
       },
       "variables": {
         "NODE_ENV": "production",

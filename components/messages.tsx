@@ -41,45 +41,48 @@ function PureMessages({
   });
 
   return (
-    <ChatContainer.Enhanced
+    <ChatContainer.Root
       className="relative flex min-w-0 flex-1 flex-col"
       resize="smooth"
-      isEmpty={messages.length === 0}
-      isLoading={status === 'streaming'}
-      emptyComponent={<Greeting />}
-      ref={messagesContainerRef}
+      containerRef={messagesContainerRef}
     >
-      {messages.map((message, index) => (
-        <PreviewMessage
-          chatId={chatId}
-          isLoading={status === 'streaming' && messages.length - 1 === index}
-          isReadonly={isReadonly}
-          key={message.id}
-          message={message}
-          reload={reload}
-          requiresScrollPadding={
-            hasSentMessage && index === messages.length - 1
-          }
-          setMessages={setMessages}
-          vote={
-            votes
-              ? votes.find((vote) => vote.messageId === message.id)
-              : undefined
-          }
-        />
-      ))}
+      <ChatContainer.Content>
+        {messages.length === 0 ? (
+          <Greeting />
+        ) : (
+          messages.map((message, index) => (
+            <PreviewMessage
+              chatId={chatId}
+              isLoading={status === 'streaming' && messages.length - 1 === index}
+              isReadonly={isReadonly}
+              key={message.id}
+              message={message}
+              reload={reload}
+              requiresScrollPadding={
+                hasSentMessage && index === messages.length - 1
+              }
+              setMessages={setMessages}
+              vote={
+                votes
+                  ? votes.find((vote) => vote.messageId === message.id)
+                  : undefined
+              }
+            />
+          ))
+        )}
 
-      {status === 'submitted' &&
-        messages.length > 0 &&
-        messages.at(-1)?.role === 'user' && <ThinkingMessage />}
-
+        {status === 'submitted' &&
+          messages.length > 0 &&
+          messages.at(-1)?.role === 'user' && <ThinkingMessage />}
+      </ChatContainer.Content>
+      
       <motion.div
         className="min-h-[24px] min-w-[24px] shrink-0"
         onViewportEnter={onViewportEnter}
         onViewportLeave={onViewportLeave}
         ref={messagesEndRef}
       />
-    </ChatContainer.Enhanced>
+    </ChatContainer.Root>
   );
 }
 

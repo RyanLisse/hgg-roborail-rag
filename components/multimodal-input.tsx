@@ -188,10 +188,13 @@ function PureMultimodalInput({
     }
   }, [status, scrollToBottom]);
 
+  // Show scroll button only when chat has messages and user is not at bottom during active states
+  const showScrollButton = messages.length > 0 && !isAtBottom && (status === 'streaming' || status === 'submitted');
+
   return (
     <div className="relative flex w-full flex-col gap-4">
       <AnimatePresence>
-        {!isAtBottom && (
+        {showScrollButton && (
           <motion.div
             animate={{ opacity: 1, y: 0 }}
             className="-translate-x-1/2 absolute bottom-28 left-1/2 z-50"

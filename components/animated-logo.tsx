@@ -31,7 +31,7 @@ export function AnimatedLogo({
   return <PulseAnimation isAnimating={isAnimating} size={size} className={className} />;
 }
 
-function SparklesAnimation({ isAnimating, size, className }: Omit<AnimatedLogoProps, 'variant'>) {
+function SparklesAnimation({ isAnimating, size = 24, className }: Omit<AnimatedLogoProps, 'variant'>) {
   const pathVariants = {
     initial: { opacity: 0, scale: 0.8, rotate: -10 },
     animate: { 
@@ -100,7 +100,7 @@ function SparklesAnimation({ isAnimating, size, className }: Omit<AnimatedLogoPr
   );
 }
 
-function DotsAnimation({ isAnimating, size, className }: Omit<AnimatedLogoProps, 'variant'>) {
+function DotsAnimation({ isAnimating, size = 24, className }: Omit<AnimatedLogoProps, 'variant'>) {
   const dotVariants = {
     initial: { scale: 1, opacity: 0.3 },
     animate: (i: number) => ({
@@ -125,14 +125,14 @@ function DotsAnimation({ isAnimating, size, className }: Omit<AnimatedLogoProps,
           initial="initial"
           animate="animate"
           className="w-2 h-2 bg-current rounded-full"
-          style={{ width: size / 6, height: size / 6 }}
+          style={{ width: (size || 24) / 6, height: (size || 24) / 6 }}
         />
       ))}
     </div>
   );
 }
 
-function PulseAnimation({ isAnimating, size, className }: Omit<AnimatedLogoProps, 'variant'>) {
+function PulseAnimation({ isAnimating, size = 24, className }: Omit<AnimatedLogoProps, 'variant'>) {
   const pulseVariants = {
     initial: { scale: 0.8, opacity: 0.6 },
     animate: {
@@ -170,8 +170,8 @@ function PulseAnimation({ isAnimating, size, className }: Omit<AnimatedLogoProps
           animate="animate"
           className="absolute border-2 border-current rounded-full"
           style={{
-            width: size,
-            height: size,
+            width: size || 24,
+            height: size || 24,
             borderColor: 'currentColor',
             opacity: 0.2,
           }}
@@ -185,7 +185,7 @@ function PulseAnimation({ isAnimating, size, className }: Omit<AnimatedLogoProps
         initial="initial"
         animate="animate"
         className="w-3 h-3 bg-current rounded-full"
-        style={{ width: size / 3, height: size / 3 }}
+        style={{ width: (size || 24) / 3, height: (size || 24) / 3 }}
       />
     </div>
   );

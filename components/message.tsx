@@ -54,7 +54,7 @@ const PurePreviewMessage = ({
       opacity: 1, 
       scale: 1,
       transition: {
-        type: 'spring',
+        type: 'spring' as const,
         stiffness: 500,
         damping: 30,
         mass: 1,
@@ -67,7 +67,7 @@ const PurePreviewMessage = ({
       scale: 0.95,
       transition: { 
         duration: 0.2,
-        ease: 'easeIn'
+        ease: 'easeIn' as const
       }
     }
   };
@@ -354,7 +354,7 @@ export const ThinkingMessage = () => {
       transition: { 
         delay: 0.2,
         duration: 0.4,
-        ease: 'easeOut'
+        ease: 'easeOut' as const
       }
     },
     exit: { 
@@ -369,7 +369,7 @@ export const ThinkingMessage = () => {
     animate: { 
       opacity: 1, 
       y: 0,
-      transition: { duration: 0.3, ease: 'easeOut' }
+      transition: { duration: 0.3, ease: 'easeOut' as const }
     },
     exit: { 
       opacity: 0, 

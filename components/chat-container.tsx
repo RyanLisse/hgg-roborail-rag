@@ -1,7 +1,7 @@
 'use client';
 
 import { StickToBottom } from 'use-stick-to-bottom';
-import { forwardRef } from 'react';
+import { forwardRef, type RefObject } from 'react';
 import { cn } from '@/lib/utils';
 
 /**
@@ -17,6 +17,7 @@ interface ChatContainerProps {
 
 interface ChatContainerRootProps extends ChatContainerProps {
   role?: string;
+  containerRef?: RefObject<HTMLDivElement | null>;
 }
 
 interface ChatContainerContentProps {
@@ -33,20 +34,21 @@ interface ChatContainerScrollAnchorProps {
  * Automatically sticks to bottom when new content is added
  */
 const ChatContainerRoot = forwardRef<HTMLDivElement, ChatContainerRootProps>(
-  ({ children, className, resize = 'smooth', role = 'log', ...props }, ref) => {
+  ({ children, className, resize = 'smooth', role = 'log', containerRef, ...props }, ref) => {
     return (
-      <StickToBottom
-        ref={ref}
+      <div
+        ref={containerRef || ref}
         className={cn(
           'flex flex-col overflow-y-auto',
           className
         )}
-        resize={resize}
         role={role}
         {...props}
       >
-        {children}
-      </StickToBottom>
+        <StickToBottom resize={resize}>
+          {children}
+        </StickToBottom>
+      </div>
     );
   }
 );
@@ -60,9 +62,8 @@ const ChatContainerContent = forwardRef<HTMLDivElement, ChatContainerContentProp
   ({ children, className, ...props }, ref) => {
     return (
       <StickToBottom.Content
-        ref={ref}
         className={cn(
-          'flex flex-col gap-4 p-4',
+          'flex flex-col gap-4',
           className
         )}
         {...props}
@@ -197,6 +198,7 @@ export function useChatContainer() {
 
 // Export components with compound component pattern
 export const ChatContainer = Object.assign(ChatContainerRoot, {
+  Root: ChatContainerRoot,
   Content: ChatContainerContent,
   ScrollAnchor: ChatContainerScrollAnchor,
   Enhanced: EnhancedChatContainer,

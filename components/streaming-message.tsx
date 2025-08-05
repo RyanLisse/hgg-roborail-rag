@@ -27,8 +27,8 @@ export function StreamingMessage({
 }: StreamingMessageProps) {
   const [displayedContent, setDisplayedContent] = useState('');
   const [isAnimating, setIsAnimating] = useState(false);
-  const animationFrameRef = useRef<number>();
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const animationFrameRef = useRef<number | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const indexRef = useRef(0);
 
   const startAnimation = useCallback(() => {

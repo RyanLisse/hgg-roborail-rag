@@ -288,7 +288,7 @@ export function createNeonVectorStoreService(
 
     async deleteDocument(id: string): Promise<boolean> {
       try {
-        const _result = await this.db
+        await this.db
           .delete(vectorDocuments)
           .where(sql`${vectorDocuments.id} = ${id}`);
 
